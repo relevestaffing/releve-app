@@ -41,7 +41,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
           <span className={`pill ${waiting.length ? 'warn' : 'good'}`}>
             {waiting.length ? waiting.length : <><span className="dot" />Clear</>}</span></div>
         {waiting.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing to review.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">Nothing waiting. Documents appear here the moment someone uploads one.</p></div>
         ) : waiting.map(r => (
           <div className="vet-item" key={r.id}>
             <div className="row between" style={{ gap: 14, flexWrap: 'wrap' }}>
@@ -63,7 +63,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                 <button className="btn sm solid" disabled={busy}
                   onClick={() => decide(r.id, 'verified', undefined, r.expires_on ?? undefined, r.talent_id, r.kind)}>Verify</button>
                 <button className="btn sm ghost" disabled={busy}
-                  onClick={() => setRejecting(rejecting === r.id ? null : r.id)}>Send back</button>
+                  onClick={() => setRejecting(rejecting === r.id ? null : r.id)}>Needs another go</button>
               </div>
             </div>
             {rejecting === r.id && (
@@ -75,7 +75,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                   <input name="reason" required
                     placeholder="The photo is cut off — we need to see all four corners." /></div>
                 <p className="xs muted" style={{ marginBottom: 10 }}>They see this word for word, so make it useful.</p>
-                <button className="btn solid" disabled={busy}>Send back</button>
+                <button className="btn solid" disabled={busy}>Send it back</button>
               </form>
             )}
           </div>
@@ -85,7 +85,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
       <div className="card">
         <div className="card-head"><h3>Everything else</h3><span className="pill">{rest.length}</span></div>
         {rest.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing yet.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">No decisions recorded yet.</p></div>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>
             <thead><tr><th>Candidate</th><th>Document</th><th>State</th><th>Expires</th><th></th></tr></thead>

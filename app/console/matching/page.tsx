@@ -96,7 +96,7 @@ export default async function Matching({ searchParams }: {
           <b> release</b> appear in their account — nothing else is visible to them.
         </p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,2fr)', gap: 22, alignItems: 'start' }}>
+      <div className="match-layout">
         <div className="card">
           <div className="card-head"><h3>The executive</h3></div>
           <Radar series={[{ name: 'Executive', color: '#35443A', values: exec.scores, op: .2 }]} axes={L1} size={250} />

@@ -6,6 +6,7 @@ import { zoomConfigured } from '@/lib/zoom';
 import Shell from '@/components/Shell';
 import InterviewStatus from '@/components/InterviewStatus';
 import { Stat } from '@/components/Viz';
+import { getAvailability } from '@/lib/store';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,11 @@ export default async function ConsoleInterviews() {
   if (!profile) redirect('/');
   if (profile.role !== 'admin' && configured()) redirect('/app');
   const all = await listInterviews();
-  const tz = 'America/Los_Angeles';
+  /* The operator's own timezone, not a hardcoded Pacific. A London-based
+     manager was reading every interview eight hours out. */
+  const myAvail = await getAvailability(profile.id, '');
+  const tz = myAvail.timezone || 'America/Los_Angeles';
+  const tzLabel = tz.split('/')[1]?.replace(/_/g, ' ') ?? tz;
   const count = (s: string) => all.filter(i => i.status === s).length;
 
   return (
@@ -34,7 +39,7 @@ export default async function ConsoleInterviews() {
           ? <p className="small muted">Nothing booked yet. Clients book from their own account once you release a shortlist.</p>
           : (
             <table className="data">
-              <thead><tr><th>Client</th><th>Talent</th><th>Stage</th><th>When (PT)</th><th>Status</th><th>Link</th></tr></thead>
+              <thead><tr><th>Client</th><th>Talent</th><th>Stage</th><th>When ({tzLabel})</th><th>Status</th><th>Link</th></tr></thead>
               <tbody>
                 {all.map(iv => (
                   <tr key={iv.id}>
@@ -55,9 +60,9 @@ export default async function ConsoleInterviews() {
       {!zoomConfigured() && (
         <div className="card tight">
           <p className="small muted">
-            Zoom is not connected, so bookings are recorded without a meeting link. Add <code>ZOOM_ACCOUNT_ID</code>,
-            {' '}<code>ZOOM_CLIENT_ID</code> and <code>ZOOM_CLIENT_SECRET</code> to your environment and every new booking
-            gets a real Zoom meeting automatically. See SETUP.md, stage 5.
+            <b>Meeting links are being added by hand.</b> Zoom is not connected yet, so
+            each booking is recorded without a link and somebody has to send one. Connecting
+            Zoom makes that automatic — the steps are in your notes.
           </p>
         </div>
       )}

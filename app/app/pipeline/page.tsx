@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { getMySignature, rankBench, archetype } from '@/lib/data';
 import { L1, L2 } from '@/lib/signature/model';
-import { fitSentence, matchHeadline, conditionNote } from '@/lib/plain';
+import { fitSentence, matchReasons, conditionNote } from '@/lib/plain';
 import Shell from '@/components/Shell';
 import { Portrait, AxisBars } from '@/components/Viz';
 import DecisionControls from '@/components/DecisionControls';
@@ -50,7 +50,7 @@ export default async function Pipeline() {
 
       {ranked.map(({ person, match, checks }) => {
         const first = person.name.split(' ')[0];
-        const head = matchHeadline(match, first);
+        const why = matchReasons(match, first);
         const gaps = checks.filter(c => c.state !== 'pass');
         return (
           <div className="card" key={person.id}>
@@ -68,13 +68,35 @@ export default async function Pipeline() {
               </div>
             </div>
 
-            <p className="verdict" style={{ margin: '22px 0 16px' }}>{fitSentence(match, first)}</p>
+            <div className="rationale">
+              <div className="eyebrow">The Signature Match</div>
+              <p className="verdict">{fitSentence(match, first)}</p>
 
-            <ul className="plain">
-              {head.good && <li>{head.good}</li>}
-              {head.watch && <li>{head.watch}</li>}
-              {gaps.length > 0 && <li>{conditionNote(gaps[0], first)}</li>}
-            </ul>
+              {why.strong.length > 0 && (
+                <>
+                  <div className="rationale-h">Where you line up</div>
+                  <ul className="plain">
+                    {why.strong.map((line, i) => <li key={i}>{line}</li>)}
+                  </ul>
+                </>
+              )}
+
+              {(why.watch || gaps.length > 0) && (
+                <>
+                  <div className="rationale-h">Worth knowing before you meet</div>
+                  <ul className="plain">
+                    {why.watch && <li>{why.watch}</li>}
+                    {gaps.length > 0 && <li>{conditionNote(gaps[0], first)}</li>}
+                  </ul>
+                </>
+              )}
+
+              <p className="xs muted rationale-foot">
+                Scored against your own Signature, then read and approved by a
+                person at Relève before it reached you. We put nobody forward
+                on a number alone.
+              </p>
+            </div>
 
             <details className="more">
               <summary>See the full assessment</summary>

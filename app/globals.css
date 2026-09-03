@@ -891,3 +891,93 @@ html,body{max-width:100%;overflow-x:hidden}
   width:9px;height:1px;background:var(--pale)
 }
 @media (max-width:820px){ .empty-card{padding:34px 22px} }
+
+/* The matching engine's two-column layout was an inline style, so no media
+   query could collapse it — a 250px radar sat beside a seven-column table on
+   a phone. */
+.match-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:22px;align-items:start}
+@media (max-width:1000px){ .match-layout{grid-template-columns:1fr} }
+
+/* ---------- the Signature Match ---------- */
+/* The reasoning behind a shortlist, presented as a named artifact rather than
+   a paragraph. No competitor in this category shows the client the working. */
+.rationale{
+  margin:22px 0 4px;padding:24px 26px;
+  background:var(--cream);border:1px solid var(--mist);border-radius:12px
+}
+.rationale .eyebrow{margin-bottom:14px}
+.rationale .verdict{margin:0 0 18px}
+.rationale-h{
+  font-family:'Tenor Sans',sans-serif;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--fern);margin:18px 0 9px
+}
+.rationale-h:first-of-type{margin-top:0}
+.rationale ul.plain{margin:0}
+.rationale ul.plain li{margin-bottom:7px}
+.rationale-foot{
+  margin:20px 0 0;padding-top:15px;border-top:1px solid var(--mist);
+  line-height:1.65;max-width:560px
+}
+@media (max-width:820px){ .rationale{padding:20px 18px;margin:18px 0 4px} }
+
+/* ============================================================
+   THE LAST TEN PER CENT
+   Small things, but they are the difference between a competent
+   product and one that reads as expensive.
+   ============================================================ */
+
+/* One vertical rhythm. Cards were spaced by whatever margin the page happened
+   to set, so the gap between two cards changed from screen to screen. */
+.page-body > .card + .card,
+.page-body > .stack > .card + .card{ margin-top:22px }
+.page-body > .money-strip + .card{ margin-top:22px }
+
+/* Headings: tighter tracking at large sizes, looser at small. Marcellus is a
+   display face and needs the air taken out of it as it grows. */
+h1,h2{ letter-spacing:-.012em }
+h3{ letter-spacing:-.004em }
+.eyebrow{ letter-spacing:.19em }
+
+/* Numbers should never reflow as they tick over. */
+.n,.score,.num,.amount,.att-n,.money-stat .n{ font-variant-numeric:tabular-nums }
+
+/* Links inside body text get the underline offset a serif deserves. */
+.small a,.verdict a,p a{ text-underline-offset:3px;text-decoration-thickness:1px }
+
+/* Buttons settle rather than snap. */
+.btn{ transition:background .16s ease, color .16s ease, border-color .16s ease }
+.btn:active{ transform:translateY(.5px) }
+
+/* Cards lift a hair on hover only where they are actually clickable. */
+table.data tbody tr{ transition:background .14s ease }
+table.data tbody tr:hover{ background:rgba(53,68,58,.025) }
+
+/* Focus that is visible without being loud — required, not decorative. */
+a:focus-visible,button:focus-visible,select:focus-visible,
+input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--fern);outline-offset:2px;border-radius:3px
+}
+
+/* Long words and pasted URLs must not push a card sideways on a phone. */
+.small,.xs,.verdict,td,.att-body b{ overflow-wrap:anywhere }
+
+/* ---------- mobile: the type scale ---------- */
+@media (max-width:640px){
+  .page-body{ padding:26px 18px 72px }
+  h1{ font-size:clamp(26px,7vw,34px);line-height:1.15 }
+  h2{ font-size:clamp(22px,6vw,28px) }
+  h3{ font-size:17px }
+  .card{ padding:20px 18px }
+  .card-head{ flex-wrap:wrap;gap:10px }
+  .section-h{ margin:24px 0 11px }
+  .money-strip{ gap:9px }
+  .grid-2,.grid-3,.grid-4{ grid-template-columns:1fr }
+  /* stop a row of pills wrapping into a ragged stack */
+  .row{ flex-wrap:wrap }
+}
+
+/* On a phone in standalone mode the bottom inset matters or the last button
+   sits under the home indicator. */
+@media (display-mode:standalone){
+  .page-body{ padding-bottom:calc(72px + env(safe-area-inset-bottom)) }
+}

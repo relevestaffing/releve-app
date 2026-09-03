@@ -123,6 +123,32 @@ export function matchHeadline(m: Match, name: string): { good: string | null; wa
   return { good, watch: worst };
 }
 
+/* The Signature Match — the reasoning behind a shortlist, in the executive's
+   own language.
+
+   Every agency in this category tells the client someone is a good fit.
+   Nobody shows them why. We have the working, so we show it: the strongest
+   points of alignment named individually, and the one thing worth knowing
+   before the call. It is the difference between a recommendation and a
+   judgement someone can check. */
+export function matchReasons(m: Match, name: string, limit = 3):
+  { strong: string[]; watch: string | null } {
+  const sorted = [...m.parts].sort((a, b) => b.score - a.score);
+  const strong = sorted
+    .filter(p => p.score >= 78)
+    .slice(0, limit)
+    .map(p => clientNote(p, name))
+    .filter(Boolean) as string[];
+
+  /* If nothing clears the bar, say so honestly rather than dressing up the
+     top of a weak list. A shortlist that oversells is worse than a short one. */
+  const watch = [...sorted].reverse()
+    .map(p => (p.score < 75 ? clientNote(p, name) : null))
+    .find(Boolean) ?? null;
+
+  return { strong, watch };
+}
+
 /* Conditions, said the way a person would say them. */
 export function conditionNote(c: { label: string; state: string; note: string }, name: string): string {
   if (c.state === 'pass') return '';

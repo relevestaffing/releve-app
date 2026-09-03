@@ -5,6 +5,7 @@ import Shell from '@/components/Shell';
 import { Portrait } from '@/components/Viz';
 import AddPerson from '@/components/AddPerson';
 import { listPending, getAvailability } from '@/lib/store';
+import { bookableIds } from '@/lib/store';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -15,11 +16,11 @@ export default async function Bench() {
   if (profile.role !== 'admin' && configured()) redirect('/app');
   const bench = await getBench();
   const pending = await listPending();
-  /* someone with no availability looks ready and cannot be booked — surface it */
-  const unbookable = (await Promise.all(bench.map(async t => {
-    const a = await getAvailability(t.id, '');
-    return (a.windows?.length ?? 0) === 0 || !a.timezone ? t : null;
-  }))).filter(Boolean) as typeof bench;
+  /* Someone with no availability looks ready and cannot be booked — surface it.
+     One query for everybody, not one per person: the old version made a round
+     trip per talent before the page could paint. */
+  const bookable = await bookableIds(bench.map(t => t.id));
+  const unbookable = bench.filter(t => !bookable.has(t.id));
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent Bench" crumb="Talent accounts">
@@ -27,6 +28,17 @@ export default async function Bench() {
         <div className="card-head"><h3>Every assessed profile</h3>
           <div className="row" style={{ gap: 10 }}><span className="pill">{bench.length} on file</span>
             <AddPerson role="talent" /></div></div>
+        {!bench.length ? (
+          <div className="empty-card" style={{ padding: '34px 24px' }}>
+            <div className="empty-mark" aria-hidden="true" />
+            <h3>The bench is empty</h3>
+            <p className="small">
+              Add talent with the button above, or let them apply through the Careers
+              page. Nobody appears here until they have completed their Talent
+              Signature — an unassessed profile cannot be matched against anyone.
+            </p>
+          </div>
+        ) : (
         <table className="data">
           <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th>Pay</th><th>Stage</th></tr></thead>
           <tbody>
@@ -46,7 +58,9 @@ export default async function Bench() {
             ))}
           </tbody>
         </table>
+        )}
       </div>
+      {bench.length > 0 && (
       <div className="card">
         <div className="card-head"><h3>Validity detail</h3><span className="pill">Internal only</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
@@ -69,9 +83,10 @@ export default async function Bench() {
           </tbody>
         </table>
       </div>
+      )}
       {unbookable.length > 0 && (
         <div className="card" style={{ borderColor: 'rgba(140,74,63,.45)' }}>
-          <div className="card-head"><h3>Ready on paper, impossible to book</h3>
+          <div className="card-head"><h3>Assessed but not bookable</h3>
             <span className="pill crit"><span className="dot" />{unbookable.length}</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
             These profiles are complete but have no availability set, so no executive can book them.

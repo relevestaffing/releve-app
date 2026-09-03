@@ -120,6 +120,28 @@ export async function getAvailability(userId: string, fallbackTz = 'UTC'): Promi
   const { data } = await sb.from('availability').select('*').eq('user_id', userId).maybeSingle();
   return (data as Availability) ?? { user_id: userId, timezone: fallbackTz, windows: DEFAULT_WINDOWS };
 }
+/* Who can actually be booked, for a whole list of people, in one query.
+   The bench page used to call getAvailability once per talent, which is a
+   round trip each before the page can paint. */
+export async function bookableIds(userIds: string[]): Promise<Set<string>> {
+  const ok = new Set<string>();
+  if (!userIds.length) return ok;
+  if (!configured()) {
+    seed();
+    for (const id of userIds) {
+      const a = mem.availability.get(id);
+      if (a?.timezone && (a.windows?.length ?? 0) > 0) ok.add(id);
+    }
+    return ok;
+  }
+  const sb = await supabaseServer();
+  const { data } = await sb.from('availability')
+    .select('user_id, timezone, windows').in('user_id', userIds);
+  for (const a of (data ?? []) as any[])
+    if (a.timezone && (a.windows?.length ?? 0) > 0) ok.add(a.user_id);
+  return ok;
+}
+
 export async function setAvailability(userId: string, timezone: string, windows: Window[]) {
   if (!configured()) { seed(); mem.availability.set(userId, { user_id: userId, timezone, windows }); return; }
   const sb = await supabaseServer();

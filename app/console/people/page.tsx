@@ -42,7 +42,15 @@ export default async function People() {
         </p>
 
         {rows.length === 0 && (
-          <p className="small muted" style={{ padding: 30, textAlign: 'center' }}>No clients added yet.</p>
+          <div className="empty-card" style={{ padding: '34px 24px' }}>
+            <div className="empty-mark" aria-hidden="true" />
+            <h3>No executives yet</h3>
+            <p className="small">
+              Add one with the button above. They can sign in straight away with the
+              email you put on file — the account attaches itself, with no invitation
+              to chase and no password to set.
+            </p>
+          </div>
         )}
 
         {rows.map(({ client, brief }) => (
