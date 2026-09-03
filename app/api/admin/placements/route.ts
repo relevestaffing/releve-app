@@ -21,10 +21,10 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const { id, ended_on } = await req.json();
+  const { id, ended_on, reason } = await req.json();
   if (!id) return NextResponse.json({ error: 'which placement?' }, { status: 400 });
   try {
-    await endPlacement(id, ended_on);
+    await endPlacement(id, ended_on, reason);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });

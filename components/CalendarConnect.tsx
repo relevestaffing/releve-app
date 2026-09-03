@@ -4,7 +4,7 @@ import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
 import { saving } from './Toast';
 
 type State = { connected: boolean; configured: boolean; email?: string | null;
-  connected_at?: string; busy?: number; error?: string | null };
+  connected_at?: string; busy?: number; error?: string | null; missing?: string[] };
 
 export default function CalendarConnect() {
   const [s, setS] = useState<State | null>(null);
@@ -75,8 +75,17 @@ export default function CalendarConnect() {
           <button className="btn solid" disabled={busy || !s.configured} onClick={connect}>
             {s.configured ? 'Connect Google Calendar' : 'Google Calendar not set up yet'}
           </button>
-          {!s.configured && <p className="xs muted" style={{ marginTop: 12 }}>
-            Ask Relève to finish stage 6 of the setup — the Calendar API needs enabling once for the whole platform.</p>}
+          {!s.configured && (
+            <div className="xs muted" style={{ marginTop: 12, lineHeight: 1.7 }}>
+              <b>Not switched on yet.</b> It needs two things, once, for the whole platform:
+              <br />1. The Google Calendar API turned on, and the <code>calendar.freebusy</code> scope
+              added to the consent screen, in the Google Cloud project.
+              <br />2. {s.missing?.length
+                ? <>These set in Netlify: <b>{s.missing.join(' and ')}</b>.</>
+                : <>The OAuth client id and secret set in Netlify.</>}
+              <br />Everything else is already built and waiting.
+            </div>
+          )}
         </>
       )}
     </div>

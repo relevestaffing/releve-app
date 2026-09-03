@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saving } from './Toast';
+import { ENDED_REASONS, owesReplacement, type EndedReason } from '@/lib/care-public';
 
 type Person = { id: string; full_name: string | null; email: string; role: string; org_name: string | null };
 type Row = {
@@ -18,6 +19,7 @@ const day = (d: string) =>
 export default function PlacementMaker({ people, placements }: { people: Person[]; placements: Row[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [ending, setEnding] = useState<string | null>(null);
   const clients = people.filter(p => p.role === 'client');
   const talent = people.filter(p => p.role === 'talent');
   const live = placements.filter(p => !p.ended_on);
@@ -38,12 +40,19 @@ export default function PlacementMaker({ people, placements }: { people: Person[
     if (ok) { form.reset(); router.refresh(); }
   }
 
-  async function end(id: string) {
+  /* Ending a placement asks why, because the answer decides whether the
+     replacement guarantee is owed. Without it the promise is only ever
+     remembered, which means sometimes it is not. */
+  async function end(id: string, reason: EndedReason) {
     setBusy(true);
     const ok = await saving(() => fetch('/api/admin/placements', {
-      method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id })
-    }), 'Placement ended');
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id, reason })
+    }), owesReplacement(reason)
+        ? 'Ended — a replacement is now owed, and it is on the Care page'
+        : 'Placement ended');
     setBusy(false);
+    setEnding(null);
     if (ok) router.refresh();
   }
 
@@ -98,8 +107,27 @@ export default function PlacementMaker({ people, placements }: { people: Person[
                   <td style={{ textAlign: 'right' }}>
                     <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
                       <Link className="btn sm ghost" href={`/console/placements/${p.id}`}>Open file</Link>
-                      <button className="btn sm ghost" disabled={busy} onClick={() => end(p.id)}>End</button>
+                      <button className="btn sm ghost" disabled={busy}
+                        onClick={() => setEnding(ending === p.id ? null : p.id)}>
+                        {ending === p.id ? 'Cancel' : 'End'}
+                      </button>
                     </div>
+                    {ending === p.id && (
+                      <div className="end-why">
+                        <div className="xs muted" style={{ marginBottom: 8 }}>Why is it ending?</div>
+                        <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          {ENDED_REASONS.map(r => (
+                            <button key={r.key} className="btn sm ghost" disabled={busy}
+                              onClick={() => end(p.id, r.key)}>
+                              {r.label}{r.guaranteed && ' *'}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="xs muted" style={{ marginTop: 8 }}>
+                          * owes the client a free replacement
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

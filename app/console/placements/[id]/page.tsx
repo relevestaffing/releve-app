@@ -5,6 +5,9 @@ import { alertsFor, getPlacement, listCheckins, listNotes, listTasks, weekEnding
 import { listInterviews } from '@/lib/store';
 import Shell from '@/components/Shell';
 import NoteAdder from '@/components/NoteAdder';
+import FeedbackWriter from '@/components/FeedbackWriter';
+import FirstFortnight from '@/components/FirstFortnight';
+import { feedbackFor, pulseFor, stepsFor, timeOffFor, GOING, WORKLOADS, TIME_OFF_STATE, nights } from '@/lib/care';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,11 +24,15 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
   if (!p) redirect('/console/placements');
 
   const week = weekEnding();
-  const [tasks, checkins, notes, interviews] = await Promise.all([
+  const [tasks, checkins, notes, interviews, steps, feedback, pulse, off] = await Promise.all([
     listTasks(id),
     listCheckins({ talentId: p.talent_id, limit: 20 }),
     listNotes(id),
-    listInterviews({ talentId: p.talent_id })
+    listInterviews({ talentId: p.talent_id }),
+    stepsFor(id),
+    feedbackFor(p.talent_id),
+    pulseFor(id),
+    timeOffFor(id)
   ]);
   const mine = checkins.filter(c => c.placement_id === id);
   const alerts = alertsFor({ tasks, checkins: mine, startedOn: p.started_on, thisWeek: week });
@@ -131,6 +138,51 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
           </ul>
         )}
       </div>
+
+      <div className="card">
+        <div className="card-head">
+          <h3>What the executive says</h3>
+          <span className="xs muted">Monthly pulse</span>
+        </div>
+        {!pulse ? (
+          <div className="empty"><span className="tick" />
+            <p className="small">Nothing filed this month. It sits on their Placement page.</p></div>
+        ) : (
+          <>
+            <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              <span className={`pill ${pulse.needs_attention ? 'crit' : 'good'}`}>
+                {GOING.find(g => g.n === pulse.going)?.label ?? '—'}
+              </span>
+              <span className="pill">{WORKLOADS.find(w => w.key === pulse.workload)?.label}</span>
+              {pulse.keep_going === false && <span className="pill crit">Would not place again</span>}
+            </div>
+            {pulse.standout && <p className="small"><b>Went well.</b> {pulse.standout}</p>}
+            {pulse.friction && <p className="small" style={{ marginTop: 6 }}><b>Not working.</b> {pulse.friction}</p>}
+          </>
+        )}
+      </div>
+
+      {off.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>Time off</h3></div>
+          {off.map(t => {
+            const st = TIME_OFF_STATE.find(x => x.key === t.state);
+            return (
+              <div key={t.id} className="row between" style={{ padding: '10px 0', gap: 12, flexWrap: 'wrap' }}>
+                <div><b className="small">{day(t.starts_on)} – {day(t.ends_on)}</b>
+                  <div className="xs muted">{nights(t.starts_on, t.ends_on)} days
+                    {t.reason ? ` · ${t.reason}` : ''}{t.cover_note ? ` · cover: ${t.cover_note}` : ''}</div></div>
+                <span className={`pill ${st?.tone ?? ''}`}>{st?.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <FeedbackWriter placementId={id} talentId={p.talent_id}
+        talentName={p.talent_name} existing={feedback} />
+
+      <FirstFortnight steps={steps} startedOn={p.started_on} side="admin" />
 
       <div className="card">
         <div className="card-head"><h3>Your file</h3><span className="pill">{notes.length}</span></div>

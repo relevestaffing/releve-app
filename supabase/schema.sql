@@ -1112,3 +1112,424 @@ from invoices i
 join profiles c on c.id = i.client_id
 where i.status in ('draft', 'sent')
 order by i.due_on nulls last;
+
+
+-- ============================================================
+-- THE REVIEW LIST, 3 Sept 2026
+-- Roles, audit, vetting gate, client pulse, calibration,
+-- the replacement guarantee, time off, talent-facing feedback,
+-- the first fortnight, and private photos.
+-- ============================================================
+
+-- ---------- 1. More than one manager ----------
+-- is_admin() was a single flag. Relève now has roles: an owner who can do
+-- anything, and managers who run their own accounts. is_admin() is kept and
+-- still means "on the Relève team", so nothing that already calls it breaks.
+create table if not exists team_roles (
+  user_id    uuid primary key references profiles(id) on delete cascade,
+  team_role  text not null default 'manager'
+               check (team_role in ('owner', 'client_success', 'talent_success', 'manager')),
+  added_at   timestamptz not null default now(),
+  added_by   uuid references profiles(id)
+);
+
+-- Whoever is already an admin is the owner, so this file never locks her out.
+create or replace function is_owner() returns boolean language sql stable security definer as $$
+  select exists (
+    select 1 from profiles p
+    left join team_roles t on t.user_id = p.id
+    where p.id = auth.uid() and p.role = 'admin'
+      and coalesce(t.team_role, 'owner') = 'owner'
+  );
+$$;
+
+alter table team_roles enable row level security;
+drop policy if exists "team reads roles" on team_roles;
+create policy "team reads roles" on team_roles for select using (is_admin());
+drop policy if exists "owner writes roles" on team_roles;
+create policy "owner writes roles" on team_roles for all
+  using (is_owner()) with check (is_owner());
+
+insert into team_roles (user_id, team_role)
+select id, 'owner' from profiles where role = 'admin'
+on conflict (user_id) do nothing;
+
+-- Which manager looks after which placement.
+alter table placements add column if not exists csm_id uuid references profiles(id);
+alter table placements add column if not exists tsm_id uuid references profiles(id);
+
+comment on column placements.csm_id is 'Client Success Manager. Null means unassigned, which the console flags.';
+
+-- ---------- 2. The audit trail ----------
+-- Who changed what, when. Append only: no update or delete policy exists, so
+-- not even the owner can quietly rewrite history through the app.
+create table if not exists audit_log (
+  id         bigserial primary key,
+  at         timestamptz not null default now(),
+  actor_id   uuid references profiles(id) on delete set null,
+  actor_email text,                      -- kept flat, so a deleted account still reads
+  action     text not null,              -- 'release', 'rate_set', 'vetting_verified', ...
+  subject    text,                       -- table or area touched
+  subject_id uuid,
+  detail     jsonb not null default '{}'
+);
+create index if not exists audit_recent  on audit_log(at desc);
+create index if not exists audit_subject on audit_log(subject, subject_id, at desc);
+
+alter table audit_log enable row level security;
+drop policy if exists "team reads audit" on audit_log;
+create policy "team reads audit" on audit_log for select using (is_admin());
+drop policy if exists "team writes audit" on audit_log;
+create policy "team writes audit" on audit_log for insert with check (is_admin());
+
+create or replace function note_action(a text, s text, sid uuid, d jsonb default '{}')
+returns void language plpgsql security definer as $$
+declare em text;
+begin
+  select email into em from profiles where id = auth.uid();
+  insert into audit_log (actor_id, actor_email, action, subject, subject_id, detail)
+  values (auth.uid(), em, a, s, sid, coalesce(d, '{}'));
+end $$;
+
+-- Vetting decisions write themselves into the log. This is the one that
+-- matters most: a verification nobody can trace is not a verification.
+create or replace function audit_vetting() returns trigger language plpgsql security definer as $$
+begin
+  if new.state is distinct from old.state then
+    perform note_action('vetting_' || new.state, 'vetting', new.id,
+      jsonb_build_object('talent_id', new.talent_id, 'kind', new.kind::text,
+                         'from', old.state, 'to', new.state));
+  end if;
+  return new;
+end $$;
+drop trigger if exists audit_vetting_t on vetting;
+create trigger audit_vetting_t after update on vetting
+for each row execute function audit_vetting();
+
+create or replace function audit_money() returns trigger language plpgsql security definer as $$
+begin
+  perform note_action('invoice_' || new.status, 'invoices', new.id,
+    jsonb_build_object('client_id', new.client_id, 'amount_cents', new.amount_cents,
+                       'number', new.number));
+  return new;
+end $$;
+drop trigger if exists audit_money_t on invoices;
+create trigger audit_money_t after insert or update of status on invoices
+for each row execute function audit_money();
+
+-- ---------- 3. Vetting gates release ----------
+-- is_vetted() existed and was correct, and nothing called it. Now the database
+-- refuses the release itself, so no interface change can get around it.
+create or replace function guard_release() returns trigger language plpgsql as $$
+begin
+  if new.released and not coalesce(old.released, false) then
+    if not is_vetted(new.talent_id) then
+      raise exception 'This candidate is not verified yet. Identity and the signed agreement must both be verified before they can be released to a client.';
+    end if;
+    perform note_action('release', 'matches', null,
+      jsonb_build_object('client_id', new.client_id, 'talent_id', new.talent_id));
+  end if;
+  return new;
+end $$;
+drop trigger if exists guard_release_t on matches;
+create trigger guard_release_t before update on matches
+for each row execute function guard_release();
+
+-- ---------- 4. The executive's monthly pulse ----------
+-- Talent check in every Friday. The person paying was never asked anything.
+create table if not exists client_pulse (
+  id           uuid primary key default gen_random_uuid(),
+  placement_id uuid not null references placements(id) on delete cascade,
+  month_of     date not null,                 -- first of the month it covers
+  going        int  check (going between 1 and 5),      -- how is it going
+  workload     text check (workload in ('too_light', 'about_right', 'too_heavy')),
+  standout     text,                           -- what has gone well
+  friction     text,                           -- what is not working
+  keep_going   boolean,                        -- would you place them again
+  needs_attention boolean not null default false,
+  filed_at     timestamptz not null default now(),
+  unique (placement_id, month_of)
+);
+create index if not exists pulse_attention on client_pulse(needs_attention) where needs_attention;
+
+alter table client_pulse enable row level security;
+-- The client fills it in. Relève reads it. Talent never see it — the point is
+-- that the executive can say something awkward without managing the fallout.
+drop policy if exists "client files own pulse" on client_pulse;
+create policy "client files own pulse" on client_pulse for all
+  using (is_admin() or exists (
+    select 1 from placements p where p.id = client_pulse.placement_id and p.client_id = auth.uid()))
+  with check (is_admin() or exists (
+    select 1 from placements p where p.id = client_pulse.placement_id and p.client_id = auth.uid()));
+
+create or replace function flag_pulse() returns trigger language plpgsql as $$
+begin
+  new.needs_attention :=
+    coalesce(new.going, 5) <= 3
+    or new.workload in ('too_light', 'too_heavy')
+    or new.keep_going is false
+    or coalesce(nullif(btrim(coalesce(new.friction, '')), ''), null) is not null;
+  return new;
+end $$;
+drop trigger if exists flag_pulse_t on client_pulse;
+create trigger flag_pulse_t before insert or update on client_pulse
+for each row execute function flag_pulse();
+
+-- ---------- 5. The calibration loop ----------
+-- predicted_fit, outcome_score and retained were columns nobody ever wrote to,
+-- so the matching could never learn anything. Predicted fit is now captured
+-- when the placement is made, and the six-month review has a home.
+alter table placements add column if not exists review_due_on date;
+alter table placements add column if not exists reviewed_on   date;
+alter table placements add column if not exists review_note   text;
+
+-- Six months after the start, the outcome is due.
+create or replace function set_review_due() returns trigger language plpgsql as $$
+begin
+  if new.review_due_on is null then
+    new.review_due_on := (new.started_on + interval '6 months')::date;
+  end if;
+  return new;
+end $$;
+drop trigger if exists set_review_due_t on placements;
+create trigger set_review_due_t before insert on placements
+for each row execute function set_review_due();
+
+update placements set review_due_on = (started_on + interval '6 months')::date
+ where review_due_on is null;
+
+-- What the assessment predicted against what actually happened.
+drop view if exists calibration;
+create view calibration with (security_invoker = true) as
+select
+  p.id, p.started_on, p.reviewed_on, p.predicted_fit, p.outcome_score, p.retained,
+  (p.outcome_score - p.predicted_fit) as gap,
+  c.full_name as client_name, t.full_name as talent_name
+from placements p
+join profiles c on c.id = p.client_id
+join profiles t on t.id = p.talent_id
+where p.predicted_fit is not null and p.outcome_score is not null;
+
+-- ---------- 6. The replacement guarantee ----------
+-- "A qualified applicant within 14 days, and a replacement if the hire does
+-- not work out." Neither half was tracked anywhere.
+alter table searches add column if not exists first_candidate_on date;
+alter table searches add column if not exists guarantee_days     int not null default 14;
+
+alter table placements add column if not exists replaces_id  uuid references placements(id);
+alter table placements add column if not exists ended_reason text
+  check (ended_reason in ('completed', 'client_ended', 'talent_left', 'not_working', 'replaced'));
+
+comment on column placements.replaces_id is
+  'Set when this placement is a free replacement for one that did not work out. Makes the guarantee visible rather than remembered.';
+
+-- Searches past their promise, with nobody put forward yet.
+drop view if exists guarantee_watch;
+create view guarantee_watch with (security_invoker = true) as
+select s.id, s.client_id, s.role_title, s.opened_at, s.guarantee_days,
+       (current_date - s.opened_at) as days_open,
+       c.full_name as client_name, c.org_name
+from searches s
+join profiles c on c.id = s.client_id
+where s.first_candidate_on is null
+  and s.stage not in ('Placed', 'On hold')
+  and (current_date - s.opened_at) >= (s.guarantee_days - 3)   -- warn before it lapses
+order by s.opened_at;
+
+-- ---------- 7. Time off and coverage ----------
+create table if not exists time_off (
+  id           uuid primary key default gen_random_uuid(),
+  placement_id uuid not null references placements(id) on delete cascade,
+  starts_on    date not null,
+  ends_on      date not null,
+  reason       text,
+  state        text not null default 'requested'
+                 check (state in ('requested', 'approved', 'declined', 'cancelled')),
+  cover_note   text,                        -- who is covering, and how
+  requested_at timestamptz not null default now(),
+  decided_at   timestamptz,
+  decided_by   uuid references profiles(id),
+  check (ends_on >= starts_on)
+);
+create index if not exists time_off_upcoming on time_off(starts_on) where state = 'approved';
+
+alter table time_off enable row level security;
+-- Talent ask. The client can see it coming, which is the whole point. Only
+-- Relève decides — cover has to be arranged, and that is not the talent's job.
+drop policy if exists "placement sees time off" on time_off;
+create policy "placement sees time off" on time_off for select using (in_placement(placement_id));
+drop policy if exists "talent asks for time off" on time_off;
+create policy "talent asks for time off" on time_off for insert
+  with check (exists (select 1 from placements p
+                      where p.id = time_off.placement_id and p.talent_id = auth.uid()));
+drop policy if exists "team decides time off" on time_off;
+create policy "team decides time off" on time_off for update
+  using (is_admin()) with check (is_admin());
+
+-- ---------- 8. Feedback the talent can actually see ----------
+-- Reviews were internal only, so nobody knew how they were doing.
+create table if not exists talent_feedback (
+  id           uuid primary key default gen_random_uuid(),
+  placement_id uuid not null references placements(id) on delete cascade,
+  talent_id    uuid not null references profiles(id) on delete cascade,
+  period       text not null,                -- 'September 2026'
+  strengths    text not null,
+  growing      text,                          -- said as something to build, not a complaint
+  quality      int check (quality between 1 and 5),
+  communication int check (communication between 1 and 5),
+  ownership    int check (ownership between 1 and 5),
+  shared       boolean not null default false, -- drafted first, released deliberately
+  written_by   uuid references profiles(id),
+  written_at   timestamptz not null default now(),
+  seen_at      timestamptz
+);
+create index if not exists feedback_for_talent on talent_feedback(talent_id, written_at desc);
+
+alter table talent_feedback enable row level security;
+-- The talent sees it only once it has been shared. A half-written review
+-- appearing in someone's account is worse than none.
+drop policy if exists "talent reads shared feedback" on talent_feedback;
+create policy "talent reads shared feedback" on talent_feedback for select
+  using (is_admin() or (talent_id = auth.uid() and shared));
+drop policy if exists "team writes feedback" on talent_feedback;
+create policy "team writes feedback" on talent_feedback for all
+  using (is_admin()) with check (is_admin());
+
+-- ---------- 9. The first fortnight ----------
+-- Week one was improvised every time. This is the same plan for everyone,
+-- created automatically when a placement starts.
+create table if not exists onboarding_steps (
+  id           uuid primary key default gen_random_uuid(),
+  placement_id uuid not null references placements(id) on delete cascade,
+  day          int  not null,                -- days from the start date
+  title        text not null,
+  detail       text,
+  whose        text not null check (whose in ('client', 'talent', 'both')),
+  done         boolean not null default false,
+  done_at      timestamptz,
+  sort         int not null default 0
+);
+create index if not exists onboarding_by_placement on onboarding_steps(placement_id, sort);
+
+alter table onboarding_steps enable row level security;
+drop policy if exists "placement sees onboarding" on onboarding_steps;
+create policy "placement sees onboarding" on onboarding_steps for select
+  using (in_placement(placement_id));
+drop policy if exists "placement ticks onboarding" on onboarding_steps;
+create policy "placement ticks onboarding" on onboarding_steps for update
+  using (in_placement(placement_id)) with check (in_placement(placement_id));
+drop policy if exists "team writes onboarding" on onboarding_steps;
+create policy "team writes onboarding" on onboarding_steps for all
+  using (is_admin()) with check (is_admin());
+
+create or replace function plan_first_fortnight() returns trigger language plpgsql security definer as $$
+begin
+  insert into onboarding_steps (placement_id, day, title, detail, whose, sort) values
+    (new.id, 0,  'Kick-off call',
+     'Thirty minutes, both sides. Introductions, working hours, and how you each prefer to be reached.', 'both', 1),
+    (new.id, 0,  'Share the tools',
+     'Email, calendar, and whatever else they need on day one. Access is the most common reason a first week stalls.', 'client', 2),
+    (new.id, 1,  'Agree the working rhythm',
+     'Which hours overlap, when the daily check-in happens, and what counts as urgent.', 'both', 3),
+    (new.id, 2,  'First three tasks assigned',
+     'Small and finishable. The point of week one is a completed thing, not a big thing.', 'client', 4),
+    (new.id, 3,  'Write down what is never delegated',
+     'The things the executive keeps. Saying it once prevents a month of hesitation.', 'client', 5),
+    (new.id, 5,  'End of week one: what worked',
+     'Fifteen minutes. What was clear, what was not, what to change on Monday.', 'both', 6),
+    (new.id, 8,  'Take over one recurring thing',
+     'A standing meeting, the inbox triage, the weekly report. Something that repeats.', 'talent', 7),
+    (new.id, 10, 'Talent files their first weekly check-in',
+     'The Friday check-in, done properly once, sets the habit.', 'talent', 8),
+    (new.id, 14, 'Two-week review with Relève',
+     'Your Client Success Manager joins. Course-correct now rather than at month three.', 'both', 9);
+  return new;
+end $$;
+drop trigger if exists plan_first_fortnight_t on placements;
+create trigger plan_first_fortnight_t after insert on placements
+for each row execute function plan_first_fortnight();
+
+-- ---------- 10. Profile photos become private ----------
+-- The bucket was public: not listed anywhere, but anyone who ever had the
+-- exact link could open the image forever, signed in or not, including after
+-- the person deleted their account.
+--
+-- Now private. The app serves photos through /api/photo/view, which checks
+-- who is asking and then mints a link that expires in a minute. Nothing is
+-- reachable by URL alone.
+update storage.buckets set public = false where id = 'avatars';
+
+-- Do these two people work together? Used to decide who may see whose photo.
+create or replace function share_work(a uuid, b uuid) returns boolean
+language sql stable security definer as $$
+  select a = b
+      or exists (select 1 from placements p
+                 where (p.client_id = a and p.talent_id = b)
+                    or (p.client_id = b and p.talent_id = a))
+      or exists (select 1 from matches m
+                 where m.released
+                   and ((m.client_id = a and m.talent_id = b)
+                     or (m.client_id = b and m.talent_id = a)));
+$$;
+
+-- Each photo lives at <user id>/photo.jpg, so the folder name is the owner.
+-- The uuid regex guard matters: a stray path would otherwise raise on the
+-- cast and take every avatar read down with it.
+drop policy if exists "avatars are readable" on storage.objects;
+drop policy if exists "avatars are public" on storage.objects;
+drop policy if exists "read own avatar" on storage.objects;
+create policy "avatars for people who work together" on storage.objects for select
+  using (
+    bucket_id = 'avatars'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or is_admin()
+      or (
+        (storage.foldername(name))[1] ~* '^[0-9a-f-]{36}$'
+        and share_work(auth.uid(), ((storage.foldername(name))[1])::uuid)
+      )
+    )
+  );
+
+-- Existing rows hold a public URL that will stop resolving. Point them at the
+-- app's own route instead, which is stable and checks permission every time.
+update profiles
+   set photo_url = '/api/photo/view?u=' || id::text
+ where photo_url is not null
+   and photo_url like 'http%'
+   and photo_url like '%/storage/v1/object/public/avatars/%';
+
+
+-- ============================================================
+-- TWO LEAKS FOUND IN THE AUDIT, 3 Sept 2026
+-- ============================================================
+
+-- A view runs as its owner unless told otherwise, which means it ignores row
+-- level security entirely. interview_list did, so any signed-in account could
+-- read every interview in the system by querying the view directly — not
+-- through the app, which filters properly, but the door was open.
+--
+-- Fixing it needs one more thing first: with security_invoker on, the join to
+-- profiles is checked too, and profiles was "yourself or the team" only. So a
+-- client could not read their own interview, because they could not read the
+-- talent's name. This policy says people who work together may see each
+-- other's basic profile — which is the truth of the situation anyway.
+drop policy if exists "read profiles of people you work with" on profiles;
+create policy "read profiles of people you work with" on profiles for select
+  using (share_work(auth.uid(), id));
+
+drop view if exists interview_list;
+create view interview_list with (security_invoker = true) as
+  select i.*, c.full_name as client_name, t.full_name as talent_name
+  from interviews i
+  join profiles c on c.id = i.client_id
+  join profiles t on t.id = i.talent_id;
+
+-- NOTE, deliberately left alone: talent_directory still bypasses row level
+-- security, so any signed-in client can read the whole bench through it.
+-- That is how the matching works today — the client dashboard ranks every
+-- available talent against their own Signature, which needs the whole bench
+-- and the validity data the score depends on. Locking it to released
+-- candidates only would break matching, so it is a product decision rather
+-- than a bug, and it belongs to Sage, not to this file. It is written up in
+-- WHERE-WE-LEFT-OFF.md.

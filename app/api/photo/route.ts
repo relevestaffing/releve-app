@@ -33,9 +33,11 @@ export async function POST(req: Request) {
     .upload(path, bytes, { contentType: 'image/jpeg', upsert: true, cacheControl: '3600' });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const { data } = sb.storage.from(BUCKET).getPublicUrl(path);
-  /* a cache-buster, or the browser keeps showing the photo they just replaced */
-  const url = `${data.publicUrl}?v=${Date.now()}`;
+  /* Not a public URL. The bucket is private, so what we store is a pointer at
+     our own route, which checks who is asking before minting a short-lived
+     link. The timestamp is a cache-buster, or the browser keeps showing the
+     photo they just replaced. */
+  const url = `/api/photo/view?u=${me.id}&v=${Date.now()}`;
   await saveSelfProfile(me.id, { photo_url: url });
   return NextResponse.json({ url });
 }

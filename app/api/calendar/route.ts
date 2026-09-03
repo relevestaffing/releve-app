@@ -7,7 +7,16 @@ export async function GET() {
   const p = await currentProfile();
   if (!p) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   const conn = await getCalendar(p.id);
-  if (!conn) return NextResponse.json({ connected: false, configured: googleConfigured() });
+  if (!conn) {
+    /* Say which half is missing rather than a flat "not set up". Names only,
+       never values — enough to fix it without a guessing game. */
+    const missing = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']
+      .filter(k => !process.env[k]);
+    return NextResponse.json({
+      connected: false, configured: googleConfigured(),
+      missing: missing.length ? missing : undefined
+    });
+  }
 
   /* prove it still works, and report how many conflicts it is currently hiding */
   let busy = 0, error: string | null = null;

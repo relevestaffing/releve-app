@@ -1,0 +1,167 @@
+import { redirect } from 'next/navigation';
+import { currentProfile } from '@/lib/supabase/server';
+import {
+  allPulses, guaranteeWatch, replacementsOwed, reviewsDue,
+  upcomingTimeOff, GOING, WORKLOADS, TIME_OFF_STATE, nights
+} from '@/lib/care';
+import Shell from '@/components/Shell';
+import { TimeOffDecider, OutcomeForm } from '@/components/CareControls';
+
+export const dynamic = 'force-dynamic';
+
+const day = (iso: string | null) => iso
+  ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US',
+      { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+  : '—';
+
+/* Everything that needs a person to look at it, in the order it will hurt if
+   nobody does. */
+export default async function ConsoleCare() {
+  const profile = await currentProfile();
+  if (!profile) redirect('/');
+  if (profile.role !== 'admin') redirect('/app');
+
+  const [pulses, off, due, watch, owed] = await Promise.all([
+    allPulses(60), upcomingTimeOff(45), reviewsDue(), guaranteeWatch(), replacementsOwed()
+  ]);
+  const flagged = pulses.filter(p => p.needs_attention);
+  const waiting = off.filter(t => t.state === 'requested');
+
+  return (
+    <Shell profile={profile} active="/console/care" title="Care"
+      crumb="What needs a person today">
+
+      <div className="money-strip">
+        <div className={`money-stat ${flagged.length ? 'alert' : ''}`}>
+          <div className="n">{flagged.length}</div><div className="k">Clients flagged</div>
+        </div>
+        <div className={`money-stat ${waiting.length ? 'alert' : ''}`}>
+          <div className="n">{waiting.length}</div><div className="k">Time off to decide</div>
+        </div>
+        <div className={`money-stat ${watch.length ? 'alert' : ''}`}>
+          <div className="n">{watch.length}</div><div className="k">Guarantee at risk</div>
+        </div>
+        <div className="money-stat">
+          <div className="n">{due.length}</div><div className="k">Six-month reviews</div>
+        </div>
+      </div>
+
+      <div className="stack">
+        {watch.length > 0 && (
+          <div className="card">
+            <div className="card-head"><h3>The 14-day promise</h3></div>
+            <p className="small muted" style={{ marginBottom: 16 }}>
+              Searches with nobody put forward yet, at or near the fourteen days
+              you promise. This is the one that costs you a client quietly.
+            </p>
+            {watch.map((w: any) => (
+              <div key={w.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
+                <div><b className="small">{w.org_name ?? w.client_name}</b>
+                  <div className="xs muted">{w.role_title} · opened {day(w.opened_at)}</div></div>
+                <span className={`pill ${w.days_open >= w.guarantee_days ? 'crit' : 'warn'}`}>
+                  {w.days_open} days open
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {owed.length > 0 && (
+          <div className="card">
+            <div className="card-head"><h3>Replacements owed</h3></div>
+            <p className="small muted" style={{ marginBottom: 16 }}>
+              These ended in a way your guarantee covers, and no replacement has
+              been placed yet.
+            </p>
+            {owed.map((r: any) => (
+              <div key={r.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
+                <div><b className="small">{r.client_name}</b>
+                  <div className="xs muted">{r.talent_name} · ended {day(r.ended_on)}</div></div>
+                <span className="pill warn">
+                  {r.ended_reason === 'talent_left' ? 'Talent left' : 'Not working out'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="card">
+          <div className="card-head">
+            <h3>Time off</h3>
+            <span className="xs muted">Next 45 days</span>
+          </div>
+          {!off.length ? <p className="small muted">Nothing booked or asked for.</p> : off.map(t => {
+            const s = TIME_OFF_STATE.find(x => x.key === t.state);
+            return (
+              <div key={t.id} style={{ padding: '13px 0', borderTop: '1px solid var(--mist)' }}>
+                <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
+                  <div>
+                    <b className="small">{t.talent_name}</b>
+                    <span className="xs muted"> · {t.org_name ?? t.client_name}</span>
+                    <div className="xs muted">
+                      {day(t.starts_on)} – {day(t.ends_on)} · {nights(t.starts_on, t.ends_on)} days
+                      {t.reason ? ` · ${t.reason}` : ''}
+                    </div>
+                    {t.cover_note && <div className="xs muted">Cover: {t.cover_note}</div>}
+                  </div>
+                  <span className={`pill ${s?.tone ?? ''}`}>{s?.label}</span>
+                </div>
+                <TimeOffDecider id={t.id} state={t.state} />
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <h3>What the executives are saying</h3>
+            <span className="xs muted">Monthly pulse</span>
+          </div>
+          {!pulses.length ? (
+            <p className="small muted">
+              Nothing filed yet. Clients see the pulse on their Placement page from
+              the month their talent starts.
+            </p>
+          ) : pulses.slice(0, 20).map(p => (
+            <div key={p.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
+              <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
+                <div>
+                  <b className="small">{p.org_name ?? p.client_name}</b>
+                  <span className="xs muted"> on {p.talent_name}</span>
+                </div>
+                <div className="row" style={{ gap: 8 }}>
+                  {p.needs_attention && <span className="pill crit"><span className="dot" />Look at this</span>}
+                  <span className="pill">{GOING.find(g => g.n === p.going)?.label ?? '—'}</span>
+                </div>
+              </div>
+              <div className="xs muted" style={{ marginTop: 5 }}>
+                {WORKLOADS.find(w => w.key === p.workload)?.label}
+                {p.keep_going === false && ' · would not place them again'}
+              </div>
+              {p.standout && <p className="small" style={{ marginTop: 8 }}><b>Went well.</b> {p.standout}</p>}
+              {p.friction && <p className="small" style={{ marginTop: 6 }}><b>Not working.</b> {p.friction}</p>}
+            </div>
+          ))}
+        </div>
+
+        <div className="card">
+          <div className="card-head"><h3>Six-month reviews due</h3></div>
+          <p className="small muted" style={{ marginBottom: 16 }}>
+            This is the only thing that teaches the matching engine anything. Skip
+            it and every future match stays as good as the first one was.
+          </p>
+          {!due.length ? <p className="small muted">Nothing due.</p> : due.map((d: any) => (
+            <div key={d.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
+              <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
+                <div><b className="small">{d.client_name}</b>
+                  <div className="xs muted">{d.talent_name} · started {day(d.started_on)}</div></div>
+                <span className="pill warn">Due {day(d.review_due_on)}</span>
+              </div>
+              <OutcomeForm placementId={d.id} predicted={d.predicted_fit} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </Shell>
+  );
+}

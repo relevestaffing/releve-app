@@ -13,6 +13,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: '/app/tasks', label: 'Tasks' },
     { href: '/app/interviews', label: 'Interviews' },
     { href: '/app/availability', label: 'Availability' },
+    { href: '/app/care', label: 'Your Placement' },
     { href: '/app/billing', label: 'Billing' },
     { href: '/app/messages', label: 'Messages' }
   ],
@@ -23,6 +24,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: '/app/vetting', label: 'Verification' },
     { href: '/app/tasks', label: 'Tasks' },
     { href: '/app/checkin', label: 'Weekly check-in' },
+    { href: '/app/care', label: 'Your Placement' },
     { href: '/app/interviews', label: 'Interviews' },
     { href: '/app/availability', label: 'Availability' },
     { href: '/app/messages', label: 'Messages' }
@@ -36,6 +38,9 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: '/console/interviews', label: 'Interviews' },
     { href: '/console/placements', label: 'Placements' },
     { href: '/console/money', label: 'Money' },
+    { href: '/console/care', label: 'Care' },
+    { href: '/console/reports', label: 'Reports' },
+    { href: '/console/team', label: 'Team' },
     { href: '/console/checkins', label: 'Check-ins' },
     { href: '/console/signals', label: 'What we learn' },
     { href: '/console/messages', label: 'Messages' }

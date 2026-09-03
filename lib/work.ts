@@ -197,19 +197,35 @@ export async function listAllPlacements(): Promise<(Placement & { ended_on: stri
 
 export async function createPlacement(clientId: string, talentId: string, startedOn?: string | null) {
   const sb = await supabaseServer();
+
+  /* What the engine predicted for this pairing, captured now while it is still
+     knowable. Six months from now the outcome gets scored against it, and the
+     difference is the only thing that tells us whether the assessment works.
+     Read from the match rather than recomputed, so it is the number the engine
+     actually produced at the time. */
+  const { data: m } = await sb.from('matches')
+    .select('overall').eq('client_id', clientId).eq('talent_id', talentId)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+
   const { error } = await sb.from('placements').insert({
     client_id: clientId, talent_id: talentId,
-    started_on: startedOn || new Date().toISOString().slice(0, 10)
+    started_on: startedOn || new Date().toISOString().slice(0, 10),
+    predicted_fit: m?.overall ?? null
   });
   if (error) throw new Error(error.message);
   /* A placed person is no longer on the bench. */
   await sb.from('profiles').update({ stage: 'Placed' }).eq('id', talentId);
 }
 
-export async function endPlacement(id: string, endedOn?: string | null) {
+export async function endPlacement(id: string, endedOn?: string | null, reason?: string | null) {
   const sb = await supabaseServer();
-  const { error } = await sb.from('placements')
-    .update({ ended_on: endedOn || new Date().toISOString().slice(0, 10) }).eq('id', id);
+  const patch: Record<string, unknown> = {
+    ended_on: endedOn || new Date().toISOString().slice(0, 10)
+  };
+  /* Why it ended decides whether the replacement guarantee is owed, so it is
+     recorded at the moment it is known rather than remembered later. */
+  if (reason) patch.ended_reason = reason;
+  const { error } = await sb.from('placements').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
 }
 
