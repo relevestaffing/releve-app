@@ -36,6 +36,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: '/console/vetting', label: 'Verification' },
     { href: '/console/matching', label: 'Matching Engine' },
     { href: '/console/interviews', label: 'Interviews' },
+    { href: '/console/offers', label: 'Offers' },
     { href: '/console/placements', label: 'Placements' },
     { href: '/console/money', label: 'Money' },
     { href: '/console/care', label: 'Care' },

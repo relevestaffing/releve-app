@@ -981,3 +981,8 @@ input:focus-visible,textarea:focus-visible{
 @media (display-mode:standalone){
   .page-body{ padding-bottom:calc(72px + env(safe-area-inset-bottom)) }
 }
+
+/* ---------- the offer ---------- */
+.offer{border-color:var(--pale)}
+.offer h2{font-family:Marcellus,serif;color:var(--ink);font-weight:400}
+.offer .brief-facts dd b{font-family:Marcellus,serif;font-size:19px;color:var(--ink)}

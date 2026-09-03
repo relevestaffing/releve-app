@@ -150,6 +150,23 @@ export const templates = {
       { label: 'See the decision', href: `${SITE}/console/signals` })
   }),
 
+  /* The offer. Both sides get the same letter, and neither sees the other's
+     number — because the number is not in it. */
+  offerMade: (name: string, role: string, startsOn: string) => {
+    const when = new Date(startsOn + 'T00:00:00Z').toLocaleDateString('en-GB',
+      { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    return {
+      subject: `Your offer from Relève — ${role}`,
+      text: `${name},\n\nThere is an offer waiting in your account: ${role}, starting ${when}.\n\nThe role, the hours and the terms are all there. Have a read and say yes or no — nothing is settled until both sides have answered.\n\n${SITE}/app\n\n— Relève`,
+      html: shell('There is an offer waiting for you',
+        p(`${name},`) +
+        p(`<b>${role}</b>, starting <b>${when}</b>.`) +
+        p('The role, the hours and the terms are in your account. Have a read and say yes or no.') +
+        p('Nothing is settled until both sides have answered.'),
+        { label: 'Open your offer', href: `${SITE}/app` })
+    };
+  },
+
   checkinFlagged: (o: { talent: string; why: string }) => ({
     subject: `Check-in needs a look — ${o.talent}`,
     text: `${o.talent}'s weekly check-in raised a flag.\n\n${o.why}\n\n${SITE}/console/checkins\n\n— Relève`,

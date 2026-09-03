@@ -9,6 +9,8 @@ import { listVetting } from '@/lib/work';
 import { L1, L2 } from '@/lib/signature/model';
 import { execSelfLines, talentSelfLines, fitSentence, matchHeadline } from '@/lib/plain';
 import Shell from '@/components/Shell';
+import OfferCard from '@/components/OfferCard';
+import { myOffer } from '@/lib/offer';
 import { AxisBars, Portrait } from '@/components/Viz';
 
 /* always read live data — never serve a cached copy of someone's account */
@@ -28,6 +30,9 @@ export default async function AppHome() {
   /* One place, so no screen ever renders "Welcome, and welcome" for an account
      that signed itself up and has not given a name yet. */
   const firstName = (profile.full_name ?? '').trim().split(' ')[0] || '';
+
+  /* An offer outranks everything else on this page the day it lands. */
+  const offer = await myOffer(profile.id, side);
 
   const sig = await getMySignature(profile, side);
   const brief = side === 'client' ? await getSearch(profile.id) : null;
@@ -70,6 +75,8 @@ export default async function AppHome() {
       crumb={side === 'client'
         ? (profile.org_name ?? 'Executive')
         : (self.headline ?? 'Talent')}>
+
+      {offer && <OfferCard offer={offer} side={side} />}
 
       {/* who you are, in words */}
       {!setup.complete && <Checklist steps={steps} heading="Still to do" />}

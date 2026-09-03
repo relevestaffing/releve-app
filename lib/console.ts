@@ -53,12 +53,12 @@ export async function consoleSnapshot(): Promise<{
 
   const [
     people, vetting, searches, matches, places, terms,
-    invoices, checkins, pulses, timeOff, interviews, tasks, threads
+    invoices, checkins, pulses, timeOff, interviews, tasks, threads, decisions, offers
   ] = await Promise.all([
     sb.from('profiles').select('id, role, stage'),
     sb.from('vetting').select('talent_id, kind, state, expires_on'),
     sb.from('searches').select('id, client_id, stage, opened_at, first_candidate_on, guarantee_days, deposit_status'),
-    sb.from('matches').select('client_id, talent_id, released, client_state'),
+    sb.from('matches').select('client_id, talent_id, released'),
     sb.from('placements').select('id, client_id, talent_id, started_on, ended_on, csm_id, reviewed_on, review_due_on, client:client_id(full_name, org_name), talent:talent_id(full_name)'),
     sb.from('placement_terms').select('placement_id, rate_month_cents'),
     sb.from('invoices').select('amount_cents, due_on, status'),
@@ -67,7 +67,9 @@ export async function consoleSnapshot(): Promise<{
     sb.from('time_off').select('id, state, starts_on'),
     sb.from('interviews').select('id, starts_at, status'),
     sb.from('tasks').select('placement_id, done, due_on'),
-    sb.from('messages').select('id, read_at, from_team')
+    sb.from('messages').select('id, read_at, from_team'),
+    sb.from('talent_decisions').select('client_id, talent_id, state'),
+    sb.from('offers').select('id, state, sent_on, placement_id')
   ]);
 
   /* ---- people ---- */
@@ -106,11 +108,18 @@ export async function consoleSnapshot(): Promise<{
     .filter((s: any) => s.deposit_status === 'due' && s.stage !== 'On hold').length;
 
   /* ---- shortlists ---- */
+  /* Whether an executive has answered lives in talent_decisions, not in
+     matches.client_state — that column was designed for it and nothing has
+     ever written to it. Reading it would have counted every released
+     candidate as unanswered forever. */
+  const answered = new Set(
+    ((decisions.data ?? []) as any[]).map(d => `${d.client_id}:${d.talent_id}`));
+
   const clientsWithRelease = new Set<string>();
   for (const m of (matches.data ?? []) as any[]) {
     if (m.released) {
       clientsWithRelease.add(m.client_id);
-      if (!m.client_state) vitals.awaitingDecision++;
+      if (!answered.has(`${m.client_id}:${m.talent_id}`)) vitals.awaitingDecision++;
     }
   }
   vitals.shortlistsOut = clientsWithRelease.size;
@@ -222,6 +231,18 @@ export async function consoleSnapshot(): Promise<{
     what: 'documents waiting on you to verify',
     why: 'Nobody can be released to a client until their vetting is cleared.',
     href: '/console/vetting', cta: 'Verify them' });
+
+  add({ key: 'offer_ready', level: 'high',
+    count: ((offers.data ?? []) as any[]).filter(o => o.state === 'accepted' && !o.placement_id).length,
+    what: 'offers both sides have accepted, not yet placed',
+    why: 'The terms are agreed and nothing is running. One button turns each into a placement.',
+    href: '/console/offers', cta: 'Place them' });
+
+  add({ key: 'offer_open', level: 'medium',
+    count: ((offers.data ?? []) as any[]).filter(o => ['sent','client_yes','talent_yes'].includes(o.state)).length,
+    what: 'offers out and unanswered',
+    why: 'An offer left hanging is how a candidate takes something else.',
+    href: '/console/offers', cta: 'Chase it' });
 
   add({ key: 'decision', level: 'medium', count: vitals.awaitingDecision,
     what: 'candidates sent to executives with no answer yet',

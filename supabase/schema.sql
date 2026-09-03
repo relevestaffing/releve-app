@@ -1652,3 +1652,154 @@ create policy "read released matches" on matches for select using (
                    where se.id = matches.search_id and se.client_id = auth.uid())))
   or talent_id = auth.uid()
 );
+
+
+-- ============================================================
+-- THE OFFER, 3 Sept 2026
+--
+-- From the review: "An interview happens, and then a placement exists.
+-- Nothing in between records a decision, an offer, terms discussed, or a
+-- start date agreed. The moment your business actually earns money is the
+-- moment the app has nothing to say about."
+--
+-- This is that moment. An offer is made, the executive and the talent each
+-- answer it, and when both have said yes the placement can be created from
+-- it with the terms already agreed rather than re-typed.
+-- ============================================================
+
+create table if not exists offers (
+  id            uuid primary key default gen_random_uuid(),
+  client_id     uuid not null references profiles(id) on delete cascade,
+  talent_id     uuid not null references profiles(id) on delete cascade,
+  search_id     uuid references searches(id) on delete set null,
+
+  -- what is actually being offered
+  role_title    text not null,
+  starts_on     date not null,
+  hours         text,                       -- "40 a week, four hours overlapping 8am Pacific"
+  scope         text,                       -- what they will own, in the executive's words
+  rate_month_cents int,                     -- what the CLIENT will pay. Never shown to talent.
+  talent_pay_cents int,                     -- what the TALENT will be paid. Never shown to the client.
+  minimum_months   int not null default 3,
+
+  state         text not null default 'draft'
+                  check (state in ('draft','sent','client_yes','talent_yes','accepted','declined','withdrawn')),
+  client_answer text check (client_answer in ('yes','no')),
+  talent_answer text check (talent_answer in ('yes','no')),
+  declined_by   text check (declined_by in ('client','talent','releve')),
+  decline_reason text,
+
+  sent_on       date,
+  decided_on    date,
+  placement_id  uuid references placements(id) on delete set null,
+  created_at    timestamptz not null default now(),
+  unique (client_id, talent_id, starts_on)
+);
+create index if not exists offers_open on offers(state) where state in ('sent','client_yes','talent_yes');
+
+alter table offers enable row level security;
+
+-- Both sides see their own offer. Neither sees the other's number: the two
+-- rate columns live on one row, so the app reads through the two views below
+-- rather than the table, and the table itself is team-only.
+drop policy if exists "team handles offers" on offers;
+create policy "team handles offers" on offers for all
+  using (is_admin()) with check (is_admin());
+
+-- What the executive sees. Their rate, never the talent's pay.
+drop view if exists my_offer_client;
+create view my_offer_client with (security_invoker = true) as
+select o.id, o.client_id, o.talent_id, o.role_title, o.starts_on, o.hours, o.scope,
+       o.rate_month_cents, o.minimum_months, o.state, o.client_answer, o.sent_on,
+       p.full_name as talent_name, p.headline as talent_role, p.photo_url
+from offers o join profiles p on p.id = o.talent_id
+where o.client_id = auth.uid() and o.state in ('sent','client_yes','talent_yes','accepted');
+
+-- What the talent sees. Their pay, never what the client is charged.
+drop view if exists my_offer_talent;
+create view my_offer_talent with (security_invoker = true) as
+select o.id, o.client_id, o.talent_id, o.role_title, o.starts_on, o.hours, o.scope,
+       o.talent_pay_cents, o.minimum_months, o.state, o.talent_answer, o.sent_on,
+       c.full_name as client_name, c.org_name
+from offers o join profiles c on c.id = o.client_id
+where o.talent_id = auth.uid() and o.state in ('sent','client_yes','talent_yes','accepted');
+
+-- Answering an offer. Written as a function so neither side can reach the
+-- other's number, and so "both said yes" is decided in one place.
+create or replace function answer_offer(offer uuid, answer text)
+returns text language plpgsql security definer as $$
+declare o offers%rowtype; side text;
+begin
+  select * into o from offers where id = offer;
+  if not found then raise exception 'no such offer'; end if;
+  if answer not in ('yes','no') then raise exception 'answer yes or no'; end if;
+  if o.state not in ('sent','client_yes','talent_yes') then
+    raise exception 'that offer is no longer open';
+  end if;
+
+  if o.client_id = auth.uid() then side := 'client';
+  elsif o.talent_id = auth.uid() then side := 'talent';
+  else raise exception 'that offer is not yours';
+  end if;
+
+  if answer = 'no' then
+    update offers set state = 'declined', declined_by = side, decided_on = current_date,
+      client_answer = case when side = 'client' then 'no' else client_answer end,
+      talent_answer = case when side = 'talent' then 'no' else talent_answer end
+     where id = offer;
+    return 'declined';
+  end if;
+
+  update offers set
+    client_answer = case when side = 'client' then 'yes' else client_answer end,
+    talent_answer = case when side = 'talent' then 'yes' else talent_answer end
+   where id = offer returning * into o;
+
+  if o.client_answer = 'yes' and o.talent_answer = 'yes' then
+    update offers set state = 'accepted', decided_on = current_date where id = offer;
+    return 'accepted';
+  end if;
+
+  update offers set state = case when side = 'client' then 'client_yes' else 'talent_yes' end
+   where id = offer;
+  return 'waiting';
+end $$;
+
+-- Turning an accepted offer into a placement, with the terms already agreed
+-- rather than typed again. Idempotent: running it twice returns the same
+-- placement instead of making a second one.
+create or replace function place_from_offer(offer uuid)
+returns uuid language plpgsql security definer as $$
+declare o offers%rowtype; pid uuid; fit int;
+begin
+  if not is_admin() then raise exception 'only Releve may place someone'; end if;
+  select * into o from offers where id = offer;
+  if not found then raise exception 'no such offer'; end if;
+  if o.placement_id is not null then return o.placement_id; end if;
+  if o.state <> 'accepted' then raise exception 'both sides have not accepted yet'; end if;
+
+  select overall into fit from matches
+   where client_id = o.client_id and talent_id = o.talent_id
+   order by created_at desc limit 1;
+
+  insert into placements (client_id, talent_id, started_on, predicted_fit)
+  values (o.client_id, o.talent_id, o.starts_on, fit)
+  returning id into pid;
+
+  insert into placement_terms (placement_id, rate_month_cents, minimum_months)
+  values (pid, o.rate_month_cents, o.minimum_months)
+  on conflict (placement_id) do update
+    set rate_month_cents = excluded.rate_month_cents,
+        minimum_months   = excluded.minimum_months;
+
+  if o.talent_pay_cents is not null then
+    insert into talent_pay (talent_id, rate_month) values (o.talent_id, o.talent_pay_cents / 100)
+    on conflict (talent_id) do update set rate_month = excluded.rate_month;
+  end if;
+
+  update offers set placement_id = pid where id = offer;
+  update profiles set stage = 'Placed' where id = o.talent_id;
+  perform note_action('placed_from_offer', 'offers', offer,
+    jsonb_build_object('placement_id', pid, 'client_id', o.client_id, 'talent_id', o.talent_id));
+  return pid;
+end $$;
