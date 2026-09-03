@@ -1478,6 +1478,7 @@ $$;
 drop policy if exists "avatars are readable" on storage.objects;
 drop policy if exists "avatars are public" on storage.objects;
 drop policy if exists "read own avatar" on storage.objects;
+drop policy if exists "avatars for people who work together" on storage.objects;
 create policy "avatars for people who work together" on storage.objects for select
   using (
     bucket_id = 'avatars'
