@@ -101,7 +101,7 @@ export default async function Console() {
         <div className="money-stat"><div className="n">{vitals.interviewsUpcoming}</div><div className="k">Interviews, 14 days</div></div>
       </div>
 
-      <h3 className="section-h">The bench</h3>
+      <h3 className="section-h">The roster</h3>
       <div className="money-strip">
         <div className="money-stat"><div className="n">{vitals.talent}</div><div className="k">Talent</div></div>
         <div className="money-stat"><div className="n">{vitals.verified}</div><div className="k">Fully verified</div></div>

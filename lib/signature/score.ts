@@ -307,4 +307,4 @@ export function percentile(value: number, pool: number[]) {
   return Math.round(((below + equal / 2) / pool.length) * 100);
 }
 export const pctLabel = (p: number | null) =>
-  p == null ? '—' : p >= 90 ? 'Top 10% of bench' : p >= 75 ? 'Upper quartile' : p >= 25 ? 'Mid-range' : 'Lower quartile';
+  p == null ? '—' : p >= 90 ? 'Top 10% of the roster' : p >= 75 ? 'Upper quartile' : p >= 25 ? 'Mid-range' : 'Lower quartile';

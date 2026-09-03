@@ -124,7 +124,7 @@ export default async function Reports() {
           <div className="k">Interviews completed</div></div>
       </div>
 
-      <h3 className="section-h">The bench</h3>
+      <h3 className="section-h">The roster</h3>
       <div className="money-strip">
         <div className="money-stat"><div className="n">{c.talent}</div><div className="k">Talent</div></div>
         <div className="money-stat"><div className="n">{c.vetted}</div><div className="k">Fully verified</div></div>
@@ -146,7 +146,15 @@ export default async function Reports() {
       </div>
 
       <div className="card" style={{ marginTop: 26 }}>
-        <div className="card-head"><h3>Is the assessment right?</h3></div>
+        <div className="card-head">
+          <h3>Is the assessment right?</h3>
+          <span className="xs muted">Six-month calibration</span>
+        </div>
+        <p className="small muted" style={{ marginBottom: 16, maxWidth: 640 }}>
+          What the engine predicted, against what actually happened. If it runs
+          consistently high it is promising more than it delivers; consistently
+          low and you are turning down people you should be placing.
+        </p>
         {!cal.length ? (
           <p className="small muted">
             Nothing to compare yet. Every six-month review you record on the Care page

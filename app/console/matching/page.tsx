@@ -39,7 +39,7 @@ export default async function Matching({ searchParams }: {
       <div className="card tight">
         <p className="small">
           There are no executives on the books yet. Add one and complete their
-          Executive Signature, and this page will rank the bench against them.
+          Executive Signature, and this page will rank the roster against them.
         </p>
         <Link className="btn sm solid" href="/console/people" style={{ marginTop: 14 }}>
           Add an executive
@@ -89,7 +89,7 @@ export default async function Matching({ searchParams }: {
 
       <div className="card tight" style={{ marginBottom: 20 }}>
         <p className="small" style={{ margin: 0 }}>
-          Ranking the bench against <b>{chosen?.full_name}</b>{chosen?.org_name ? ` at ${chosen.org_name}` : ''},
+          Ranking the roster against <b>{chosen?.full_name}</b>{chosen?.org_name ? ` at ${chosen.org_name}` : ''},
           whose Signature reads as <b>{type.n}</b>. Only the people you
           <b> release</b> appear in their account — nothing else is visible to them.
           {role
@@ -108,7 +108,7 @@ export default async function Matching({ searchParams }: {
           <Radar series={[{ name: 'Executive', color: '#35443A', values: exec.scores, op: .2 }]} axes={L2} size={250} note={false} />
         </div>
         <div className="card">
-          <div className="card-head"><h3>Ranked bench</h3>
+          <div className="card-head"><h3>Ranked roster</h3>
             <div className="row" style={{ gap: 8 }}><span className="pill">{ranked.length} available</span>
               <span className="pill good"><span className="dot" />{releasedCount} released</span></div></div>
           <table className="data" style={{ boxShadow: 'none' }}>
@@ -146,7 +146,7 @@ export default async function Matching({ searchParams }: {
           {!ranked.length && (
             <div className="empty"><span className="tick" />
               <p className="small">
-                No talent available to rank. Everyone on the bench is either placed
+                No talent available to rank. Everyone on the roster is either placed
                 already or has not completed their Talent Signature.
               </p>
             </div>

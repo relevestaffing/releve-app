@@ -31,8 +31,17 @@ export default async function Signals() {
   const noes = feedback.filter(f => f.proceed === 'no').length;
 
   return (
-    <Shell profile={profile} active="/console/signals" title="Calibration"
-      crumb="Decisions and interview feedback">
+    <Shell profile={profile} active="/console/signals" title="Match Accuracy"
+      crumb="How well the shortlists are landing">
+
+      <div className="card tight" style={{ marginBottom: 22 }}>
+        <p className="small" style={{ margin: 0, maxWidth: 660 }}>
+          <b>Are the people you put forward the right people?</b> This is the early
+          answer — how often an executive shortlists rather than passes, how they
+          score the interviews, and what they say when someone is not right. The
+          later answer, six months in, is on Reports under <i>Is the assessment right?</i>
+        </p>
+      </div>
 
       <div className="grid-4">
         <div className="card stat"><div className="eyebrow">Decisions recorded</div>
@@ -73,7 +82,7 @@ export default async function Signals() {
             {worst && worst[1] >= 3 && (
               <p className="small" style={{ marginTop: 18 }}>
                 <b>Worth noticing:</b> “{worst[0]}” is your most common rejection.
-                {worst[0].includes('experience') && ' That is a briefing problem, not a matching one — it means the role brief and the bench are describing different jobs.'}
+                {worst[0].includes('experience') && ' That is a briefing problem, not a matching one — it means the role brief and the roster are describing different jobs.'}
                 {worst[0].includes('timezone') && ' That is a conditions problem — the overlap check should be catching this before a name reaches an executive.'}
                 {worst[0].includes('Communication') && ' That is the one your Signature should be predicting. If it keeps appearing, the instrument is missing something real.'}
               </p>

@@ -71,7 +71,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
 
       <div className="row" style={{ gap: 14 }}>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save'}</button>
-        <span className="small muted">Only matched candidates see this — never the wider bench.</span>
+        <span className="small muted">Only matched candidates see this — never the wider roster.</span>
       </div>
     </form>
   );

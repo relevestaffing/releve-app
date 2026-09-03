@@ -86,7 +86,7 @@ export type Empty = { title: string; body: string; cta?: { label: string; href: 
 export const EMPTY: Record<string, Empty> = {
   shortlist: {
     title: 'Your shortlist is being built',
-    body: 'Nobody has been put forward yet, and that is deliberate — we do not hand you a directory to search. Your Client Success Manager reviews the bench against your Signature and puts forward only the people worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
+    body: 'Nobody has been put forward yet, and that is deliberate — we do not hand you a directory to search. Your Client Success Manager reviews the roster against your Signature and puts forward only the people worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
     cta: { label: 'Ask where things stand', href: '/app/messages' }
   },
   interviewsClient: {

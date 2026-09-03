@@ -78,7 +78,7 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
             <div className="confirm-row">
               <p className="small" style={{ margin: '0 0 14px' }}>
                 Decline this offer? We will come back to you either way, and you
-                stay on the bench for other roles.
+                stay on the roster for other roles.
               </p>
               <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
                 <button className="btn sm solid" disabled={busy} onClick={() => answer('no')}>

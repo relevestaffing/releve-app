@@ -44,7 +44,7 @@ export default async function Pipeline() {
           <div className="card-head"><h3>Your shortlist is being built</h3></div>
           <p className="small" style={{ marginBottom: 16 }}>
             Nobody has been put forward yet. This is deliberate — we do not send you a
-            directory to search through. Your Client Success Manager reviews the bench
+            directory to search through. Your Client Success Manager reviews the roster
             against your Signature and puts forward only the people worth your time.
           </p>
           <p className="small muted" style={{ marginBottom: 18 }}>

@@ -59,7 +59,7 @@ const NAV: Record<string, NavGroup[]> = {
     { items: [{ href: '/console', label: 'Overview' }] },
     { group: 'People', items: [
       { href: '/console/people', label: 'Executives' },
-      { href: '/console/bench', label: 'Talent Bench' },
+      { href: '/console/bench', label: 'Talent Roster' },
       { href: '/console/vetting', label: 'Verification' }
     ]},
     { group: 'Placing', items: [
@@ -75,7 +75,7 @@ const NAV: Record<string, NavGroup[]> = {
     ]},
     { group: 'The business', items: [
       { href: '/console/reports', label: 'Reports' },
-      { href: '/console/signals', label: 'Calibration' },
+      { href: '/console/signals', label: 'Match Accuracy' },
       { href: '/console/team', label: 'Team' },
       { href: '/console/messages', label: 'Messages' }
     ]}

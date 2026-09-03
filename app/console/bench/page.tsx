@@ -29,17 +29,25 @@ export default async function Bench() {
   const unbookable = bench.filter(t => !bookable.has(t.id));
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent Bench" crumb="Talent accounts">
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent Roster" crumb="Everyone we can put forward">
+      <div className="card tight" style={{ marginBottom: 22 }}>
+        <p className="small" style={{ margin: 0, maxWidth: 660 }}>
+          Everyone Relève can put forward: assessed, verified, and not currently
+          placed. A person joins the roster once their Talent Signature is done,
+          and leaves it when they take a seat.
+        </p>
+      </div>
+
       <div className="card">
         <div className="card-head"><h3>Every assessed profile</h3>
           <div className="row" style={{ gap: 10 }}>
-            {bench.length > 5 && <TableSearch scope="bench-table" placeholder="Search the bench…" />}
+            {bench.length > 5 && <TableSearch scope="bench-table" placeholder="Search the roster…" />}
             <span className="pill">{bench.length} on file</span>
             <AddPerson role="talent" /></div></div>
         {!bench.length ? (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
-            <h3>The bench is empty</h3>
+            <h3>The roster is empty</h3>
             <p className="small">
               Add talent with the button above, or let them apply through the Careers
               page. Nobody appears here until they have completed their Talent

@@ -76,7 +76,7 @@ export default function PlacementMaker({ people, placements }: { people: Person[
           <div className="empty"><span className="tick" />
             <p className="small">
               You need at least one executive and one talent account before a placement can exist.
-              Add them under Clients or the Talent Bench.
+              Add them under Executives or the Talent Roster.
             </p></div>
         ) : (
           <form onSubmit={create}>
