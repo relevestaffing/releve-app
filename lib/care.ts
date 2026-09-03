@@ -153,8 +153,12 @@ export async function saveFeedback(f: {
     quality: f.quality ?? null, communication: f.communication ?? null,
     ownership: f.ownership ?? null, shared: f.shared ?? false
   };
+  /* Without a conflict target, "Save as draft" then "Save and share" wrote
+     two separate reviews and the talent saw the draft as well. One review per
+     placement per period. */
   if (f.id) row.id = f.id;
-  const { error } = await sb.from('talent_feedback').upsert(row);
+  const { error } = await sb.from('talent_feedback')
+    .upsert(row, { onConflict: 'placement_id,period' });
   if (error) throw new Error(error.message);
 }
 

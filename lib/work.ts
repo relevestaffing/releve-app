@@ -469,3 +469,16 @@ export async function personEmail(id: string): Promise<{ email: string; name: st
   if (!data) return null;
   return { email: (data as any).email, name: ((data as any).full_name ?? '').split(' ')[0] || 'there' };
 }
+
+
+/* What Relève pays each of these people, for the console only. talent_pay has
+   a single is_admin() policy, so a client session gets an empty map rather
+   than a refusal. */
+export async function benchPay(ids: string[]): Promise<Record<string, number | null>> {
+  const out: Record<string, number | null> = {};
+  if (!configured() || !ids.length) return out;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('talent_pay').select('talent_id, rate_month').in('talent_id', ids);
+  for (const r of (data ?? []) as any[]) out[r.talent_id] = r.rate_month ?? null;
+  return out;
+}

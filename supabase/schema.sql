@@ -1890,3 +1890,66 @@ create policy "own skills profile" on skills_profile for all
 drop policy if exists "client reads released skills" on skills_profile;
 create policy "client reads released skills" on skills_profile for select
   using (share_work(auth.uid(), talent_id));
+
+
+-- ============================================================
+-- THREE THINGS THE FULL AUDIT FOUND, 3 Sept 2026
+-- ============================================================
+
+-- ---------- 1. Every Match and Release was a silent no-op ----------
+-- The code upserts on (client_id, talent_id). The index behind it was
+-- PARTIAL — "where client_id is not null" — and Postgres will not infer a
+-- partial index for ON CONFLICT without its predicate. So every write raised
+-- 42P10, the error was never checked, and the console cheerfully reported
+-- "Released to the client" while nothing was written.
+--
+-- Second, independent cause: matches.overall is NOT NULL, and releasing a
+-- candidate sends no score, so even the insert path failed.
+
+update matches m set client_id = se.client_id
+  from searches se where se.id = m.search_id and m.client_id is null;
+
+-- Anything still without a client cannot be matched to anyone; it is debris
+-- from before client_id existed.
+delete from matches where client_id is null;
+
+alter table matches alter column client_id set not null;
+alter table matches alter column overall drop not null;
+
+drop index if exists matches_client_talent;
+create unique index if not exists matches_client_talent on matches(client_id, talent_id);
+
+-- ---------- 2. Nobody could see their own offer ----------
+-- my_offer_client and my_offer_talent are security_invoker, so the reader's
+-- own permissions apply to the underlying table — and offers had exactly one
+-- policy, is_admin(). Both sides got zero rows, so no offer could ever be
+-- read, and therefore never accepted. The whole step was dead on arrival.
+drop policy if exists "both sides read their own offer" on offers;
+create policy "both sides read their own offer" on offers for select
+  using (
+    is_admin()
+    or ((client_id = auth.uid() or talent_id = auth.uid())
+        and state in ('sent', 'client_yes', 'talent_yes', 'accepted', 'declined'))
+  );
+
+-- Answering still runs through answer_offer(), which is security definer and
+-- checks who is asking — so neither side can write to the row directly, and
+-- neither can reach the other's rate. Reading is all this policy grants.
+
+-- ---------- 3. Talent pay was write-only ----------
+-- talent_pay is written by claim_pending and place_from_offer and read by
+-- nothing. The bench still rendered a "Pay" column from a profiles column
+-- that no longer exists, so it was blank for everyone.
+drop view if exists bench_pay;
+create view bench_pay with (security_invoker = true) as
+select tp.talent_id, tp.rate_month, tp.currency, tp.updated_at
+from talent_pay tp;
+comment on view bench_pay is
+  'Team-only by inheritance: talent_pay has a single is_admin() policy, and this view runs as its caller.';
+
+-- One review per placement per period. Without this, saving a draft and then
+-- sharing it created two reviews and the talent saw both.
+delete from talent_feedback a using talent_feedback b
+ where a.placement_id = b.placement_id and a.period = b.period and a.ctid > b.ctid;
+create unique index if not exists feedback_one_per_period
+  on talent_feedback(placement_id, period);

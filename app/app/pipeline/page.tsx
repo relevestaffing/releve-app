@@ -9,6 +9,7 @@ import DecisionControls from '@/components/DecisionControls';
 import { listDecisions } from '@/lib/work';
 import RoleFit from '@/components/RoleFit';
 import { getRoleBreakdown, skillsFor } from '@/lib/roles';
+import { firstName } from '@/lib/words';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -55,7 +56,7 @@ export default async function Pipeline() {
       )}
 
       {ranked.map(({ person, match, checks }) => {
-        const first = person.name.split(' ')[0];
+        const first = firstName(person.name);
         const why = matchReasons(match, first);
         const gaps = checks.filter(c => c.state !== 'pass');
         return (

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Checkin, Placement } from '@/lib/work-public';
 import { saving } from './Toast';
+import { firstName } from '@/lib/words';
 
 export default function CheckinForm({ placement, week, existing }: {
   placement: Placement; week: string; existing: Checkin | null;
@@ -40,7 +41,7 @@ export default function CheckinForm({ placement, week, existing }: {
           </span>
         </div>
         <p className="small muted" style={{ marginBottom: 22 }}>
-          This goes to your Talent Success Manager at Relève — not to {placement.client_name.split(' ')[0]}.
+          This goes to your Talent Success Manager at Relève — not to {firstName(placement.client_name)}.
           Say what is actually true; that is the only way we can help.
         </p>
 

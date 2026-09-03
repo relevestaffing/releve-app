@@ -13,6 +13,7 @@ import Shell from '@/components/Shell';
 import OfferCard from '@/components/OfferCard';
 import { myOffer } from '@/lib/offer';
 import { AxisBars, Portrait } from '@/components/Viz';
+import { firstName } from '@/lib/words';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -28,9 +29,9 @@ export default async function AppHome() {
   /* first visit: say hello properly before asking for twenty minutes */
   if (!self.onboarded_at) redirect('/app/welcome');
 
-  /* One place, so no screen ever renders "Welcome, and welcome" for an account
-     that signed itself up and has not given a name yet. */
-  const firstName = (profile.full_name ?? '').trim().split(' ')[0] || '';
+  /* Empty rather than the fallback: these read "Welcome, {name}" and want to
+     drop the name entirely when there isn't one. */
+  const myName = firstName(profile.full_name, '');
 
   /* An offer outranks everything else on this page the day it lands. */
   const offer = await myOffer(profile.id, side);
@@ -59,7 +60,7 @@ export default async function AppHome() {
 
   if (!sig) return (
     <Shell profile={profile} active="/app"
-      title={firstName ? `Welcome, ${firstName}` : 'Welcome to Relève'}
+      title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
       crumb="Getting set up">
       <Checklist steps={steps} heading="A few things and you are done" />
       <div className="card tight">
@@ -78,7 +79,7 @@ export default async function AppHome() {
 
   return (
     <Shell profile={profile} active="/app"
-      title={firstName ? `Good to see you, ${firstName}` : 'Your account'}
+      title={myName ? `Good to see you, ${myName}` : 'Your account'}
       crumb={side === 'client'
         ? (profile.org_name ?? 'Executive')
         : (self.headline ?? 'Talent')}>
@@ -162,8 +163,8 @@ export default async function AppHome() {
                   <div className="small muted">{ranked[0].person.role} · {ranked[0].person.yrs} years · {ranked[0].person.loc}</div>
                 </div>
               </div>
-              <p className="verdict">{fitSentence(ranked[0].match, ranked[0].person.name.split(' ')[0])}</p>
-              {(() => { const h = matchHeadline(ranked[0].match, ranked[0].person.name.split(' ')[0]);
+              <p className="verdict">{fitSentence(ranked[0].match, firstName(ranked[0].person.name))}</p>
+              {(() => { const h = matchHeadline(ranked[0].match, firstName(ranked[0].person.name));
                 return h.good ? <ul className="plain" style={{ marginTop: 14 }}><li>{h.good}</li></ul> : null; })()}
             </div>
             <div className="next-step">

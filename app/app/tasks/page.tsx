@@ -3,7 +3,7 @@ import { currentProfile } from '@/lib/supabase/server';
 import { listPlacementsFor } from '@/lib/work';
 import Shell from '@/components/Shell';
 import TaskBoard from '@/components/TaskBoard';
-import { EMPTY } from '@/lib/words';
+import { firstName, EMPTY } from '@/lib/words';
 import Empty from '@/components/Empty';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,7 @@ export default async function TasksPage() {
           )}
           <TaskBoard
             placementId={p.id} me={profile.id} side={side}
-            counterpart={side === 'client' ? p.talent_name.split(' ')[0] : p.client_name.split(' ')[0]}
+            counterpart={firstName(side === 'client' ? p.talent_name : p.client_name)}
           />
         </div>
       ))}

@@ -8,7 +8,7 @@ import TimeOffForm from '@/components/TimeOffForm';
 import FirstFortnight from '@/components/FirstFortnight';
 import SeenFeedback from '@/components/SeenFeedback';
 import Empty from '@/components/Empty';
-import { EMPTY, WORDS } from '@/lib/words';
+import { firstName, EMPTY, WORDS } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,7 +43,7 @@ export default async function Care() {
 
   return (
     <Shell profile={profile} active="/app/care"
-      title={side === 'client' ? `Working with ${p.talent_name.split(' ')[0]}` : 'Your placement'}
+      title={side === 'client' ? `Working with ${firstName(p.talent_name)}` : 'Your placement'}
       crumb={side === 'client' ? p.talent_name : (p.org_name ?? p.client_name)}>
 
       <div className="stack">

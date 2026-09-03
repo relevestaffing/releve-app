@@ -17,12 +17,21 @@ export async function GET(request: Request) {
   if (user) {
     const { data: existing } = await sb.from('profiles').select('id').eq('id', user.id).maybeSingle();
     if (!existing) {
-      await sb.from('profiles').insert({
+      const { error } = await sb.from('profiles').insert({
         id: user.id, email: user.email,
         full_name: (user.user_metadata as any)?.full_name ?? null,
         role: 'talent'          // a placeholder only — the account picks its own side on first run,
                                 // and claim_pending() overrides both if Relève added them by hand
       });
+      /* If this fails silently, the account signs in with no profile row.
+         /app then finds no profile and sends them to /, which sees a live
+         session and sends them back to /app — a loop with no way out. Better
+         to say so once than to bounce someone forever. */
+      if (error) {
+        console.error('[auth] could not create the profile row:', error.message);
+        return NextResponse.redirect(
+          `${origin}/?error=${encodeURIComponent('Your account could not be set up. Please try again, or write to hello@relevestaffing.com.')}`);
+      }
     }
   }
 

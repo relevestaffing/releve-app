@@ -6,6 +6,8 @@ import { Portrait } from '@/components/Viz';
 import AddPerson from '@/components/AddPerson';
 import { listPending, getAvailability } from '@/lib/store';
 import { bookableIds } from '@/lib/store';
+import { benchPay } from '@/lib/work';
+import { money } from '@/lib/money-public';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -20,6 +22,9 @@ export default async function Bench() {
      One query for everybody, not one per person: the old version made a round
      trip per talent before the page could paint. */
   const bookable = await bookableIds(bench.map(t => t.id));
+  /* Pay moved out of profiles into talent_pay; this column had been rendering
+     a field that no longer exists, so it was blank for everyone. */
+  const pay = await benchPay(bench.map(t => t.id));
   const unbookable = bench.filter(t => !bookable.has(t.id));
 
   return (
@@ -40,7 +45,7 @@ export default async function Bench() {
           </div>
         ) : (
         <table className="data">
-          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th>Pay</th><th>Stage</th></tr></thead>
+          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>We pay</th><th>Stage</th></tr></thead>
           <tbody>
             {bench.map(t => (
               <tr key={t.id}>
@@ -51,7 +56,7 @@ export default async function Bench() {
                 <td className="small muted">{dispositionLine(t.scores)}</td>
                 <td><span className={`pill ${t.validity.verdict === 'Valid' ? 'good' : t.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>
                   <span className="dot" />{t.validity.verdict}</span></td>
-                <td className="small">{t.rate}</td>
+                <td className="amount">{pay[t.id] != null ? money(pay[t.id]! * 100) : <span className="muted">—</span>}</td>
                 <td><span className={`pill ${t.stage === 'Placed' ? 'good' : t.stage === 'Vetted' ? '' : 'warn'}`}>
                   <span className="dot" />{t.stage}</span></td>
               </tr>

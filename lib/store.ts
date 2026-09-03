@@ -218,7 +218,12 @@ export async function setMatch(clientId: string, talentId: string, patch: Partia
     return;
   }
   const sb = await supabaseServer();
-  await sb.from('matches').upsert({ client_id: clientId, talent_id: talentId, ...patch }, { onConflict: 'client_id,talent_id' });
+  /* The error was never read here, so a failed write reported success and the
+     console said "Released to the client" while nothing had happened. */
+  const { error } = await sb.from('matches')
+    .upsert({ client_id: clientId, talent_id: talentId, ...patch },
+            { onConflict: 'client_id,talent_id' });
+  if (error) throw new Error(error.message);
 }
 export async function removeMatch(clientId: string, talentId: string) {
   if (!configured()) { seed(); mem.matches = mem.matches.filter(m => !(m.client_id === clientId && m.talent_id === talentId)); return; }
@@ -249,12 +254,16 @@ export async function createInterview(row: Omit<Interview, 'id' | 'created_at'>)
     mem.interviews.push(made); return made;
   }
   const sb = await supabaseServer();
-  const { data } = await sb.from('interviews').insert({
+  /* The error used to go unread and the id was faked with `?? 'x'`, so a
+     failed booking returned HTTP 200 and both sides were emailed a
+     confirmation for a meeting that did not exist. */
+  const { data, error } = await sb.from('interviews').insert({
     client_id: row.client_id, talent_id: row.talent_id, stage: row.stage,
     starts_at: row.starts_at, duration_min: row.duration_min, status: row.status,
     meeting_url: row.meeting_url, meeting_id: row.meeting_id, notes: row.notes
   }).select().single();
-  return { ...row, id: (data as any)?.id ?? 'x', created_at: new Date().toISOString() };
+  if (error || !data) throw new Error(error?.message ?? 'the interview could not be booked');
+  return { ...row, id: (data as any).id, created_at: new Date().toISOString() };
 }
 export async function setInterviewStatus(id: string, status: InterviewStatus) {
   if (!configured()) { seed(); const i = mem.interviews.find(x => x.id === id); if (i) i.status = status; return; }

@@ -140,3 +140,15 @@ export const EMPTY: Record<string, Empty> = {
     body: 'Once you start, this is where you ask for time off, follow the first two weeks, and read the feedback written about your work.'
   }
 };
+
+
+/* A first name that never crashes a page.
+
+   full_name is nullable on any self-serve account, and six screens called
+   .split(' ')[0] on it directly — one released candidate without a name took
+   the whole matches page down with a 500. */
+export function firstName(full: string | null | undefined, fallback = 'them'): string {
+  const n = (full ?? '').trim();
+  if (!n) return fallback;
+  return n.split(/\s+/)[0];
+}
