@@ -8,6 +8,7 @@ import { listPending, getAvailability } from '@/lib/store';
 import { bookableIds } from '@/lib/store';
 import { benchPay } from '@/lib/work';
 import { money } from '@/lib/money-public';
+import TableSearch from '@/components/TableSearch';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -31,7 +32,9 @@ export default async function Bench() {
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent Bench" crumb="Talent accounts">
       <div className="card">
         <div className="card-head"><h3>Every assessed profile</h3>
-          <div className="row" style={{ gap: 10 }}><span className="pill">{bench.length} on file</span>
+          <div className="row" style={{ gap: 10 }}>
+            {bench.length > 5 && <TableSearch scope="bench-table" placeholder="Search the bench…" />}
+            <span className="pill">{bench.length} on file</span>
             <AddPerson role="talent" /></div></div>
         {!bench.length ? (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
@@ -44,7 +47,7 @@ export default async function Bench() {
             </p>
           </div>
         ) : (
-        <table className="data">
+        <table className="data" id="bench-table">
           <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>We pay</th><th>Stage</th></tr></thead>
           <tbody>
             {bench.map(t => (

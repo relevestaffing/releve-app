@@ -6,6 +6,7 @@ import { saving, toast } from '@/components/Toast';
 import { money, toCents, RATE_MIN_CENTS, RATE_MAX_CENTS } from '@/lib/money-public';
 import { fmtDate } from '@/lib/words';
 import { OFFER_STATE, type Offer } from '@/lib/offer-public';
+import PersonPicker from './PersonPicker';
 
 /* full_name is nullable on a self-serve account that has not given one, so
    the picker falls back to the email rather than rendering a blank option. */
@@ -89,17 +90,12 @@ export default function OfferDesk({ offers, clients, talent }: {
         ) : (
           <>
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label>Executive</label>
-                <select value={f.client_id} onChange={e => set('client_id', e.target.value)}>
-                  <option value="">Choose…</option>
-                  {clients.map(c => <option key={c.id} value={c.id}>
-                    {c.org_name ? `${c.org_name} — ${nameOf(c)}` : nameOf(c)}</option>)}
-                </select></div>
-              <div className="ff"><label>Talent</label>
-                <select value={f.talent_id} onChange={e => set('talent_id', e.target.value)}>
-                  <option value="">Choose…</option>
-                  {talent.map(t => <option key={t.id} value={t.id}>{nameOf(t)}</option>)}
-                </select></div>
+              <PersonPicker label="Executive" people={clients as any}
+                value={f.client_id} onChange={v => set('client_id', v)}
+                placeholder="Type a name or company…" />
+              <PersonPicker label="Talent" people={talent as any}
+                value={f.talent_id} onChange={v => set('talent_id', v)}
+                placeholder="Type a name…" />
             </div>
 
             <div className="grid-2" style={{ gap: 14 }}>

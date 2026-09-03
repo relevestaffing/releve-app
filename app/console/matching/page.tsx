@@ -9,6 +9,7 @@ import { listMatches } from '@/lib/store';
 import { listPeople } from '@/lib/work';
 import { getRoleBreakdown, skillsFor, fitByDiscipline, roleFitScore, roleShape } from '@/lib/roles';
 import Link from 'next/link';
+import ClientSwitcher from '@/components/ClientSwitcher';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -30,18 +31,7 @@ export default async function Matching({ searchParams }: {
   const clientId = client || clients[0]?.id || '';
   const chosen = clients.find(c => c.id === clientId) ?? null;
 
-  const picker = (
-    <form className="client-picker" action="/console/matching" method="get">
-      <select name="client" defaultValue={clientId}>
-        {clients.map(c => (
-          <option key={c.id} value={c.id}>
-            {c.org_name ? `${c.org_name} — ${c.full_name}` : c.full_name}
-          </option>
-        ))}
-      </select>
-      <button className="btn sm ghost" type="submit">Switch</button>
-    </form>
-  );
+  const picker = <ClientSwitcher clients={clients as any} current={clientId} />;
 
   if (!clients.length) return (
     <Shell profile={profile} active="/console/matching" title="Matching"

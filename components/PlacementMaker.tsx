@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saving } from './Toast';
 import { ENDED_REASONS, owesReplacement, type EndedReason } from '@/lib/care-public';
+import PersonPicker from './PersonPicker';
 
 type Person = { id: string; full_name: string | null; email: string; role: string; org_name: string | null };
 type Row = {
@@ -20,10 +21,20 @@ export default function PlacementMaker({ people, placements }: { people: Person[
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [ending, setEnding] = useState<string | null>(null);
+  const [clientId, setClientId] = useState('');
+  const [talentId, setTalentId] = useState('');
+  const [find, setFind] = useState('');
   const clients = people.filter(p => p.role === 'client');
   const talent = people.filter(p => p.role === 'talent');
-  const live = placements.filter(p => !p.ended_on);
-  const past = placements.filter(p => p.ended_on);
+  /* One box searches both lists — by executive, company or talent. */
+  const hit = (p: Row) => {
+    const n = find.trim().toLowerCase();
+    if (!n) return true;
+    return [p.client_name, p.talent_name, p.org_name]
+      .filter(Boolean).some(f => String(f).toLowerCase().includes(n));
+  };
+  const live = placements.filter(p => !p.ended_on && hit(p));
+  const past = placements.filter(p => p.ended_on && hit(p));
 
   async function create(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,7 +48,7 @@ export default function PlacementMaker({ people, placements }: { people: Person[
       })
     }), 'Placement created');
     setBusy(false);
-    if (ok) { form.reset(); router.refresh(); }
+    if (ok) { form.reset(); setClientId(''); setTalentId(''); router.refresh(); }
   }
 
   /* Ending a placement asks why, because the answer decides whether the
@@ -70,31 +81,37 @@ export default function PlacementMaker({ people, placements }: { people: Person[
         ) : (
           <form onSubmit={create}>
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label>Executive</label>
-                <select name="client_id" required defaultValue="">
-                  <option value="" disabled>Choose…</option>
-                  {clients.map(p => <option key={p.id} value={p.id}>{label(p)}</option>)}
-                </select></div>
-              <div className="ff"><label>Talent</label>
-                <select name="talent_id" required defaultValue="">
-                  <option value="" disabled>Choose…</option>
-                  {talent.map(p => <option key={p.id} value={p.id}>{label(p)}</option>)}
-                </select></div>
+              <PersonPicker label="Executive" name="client_id" people={clients}
+                value={clientId} onChange={setClientId}
+                placeholder="Type a name or company…" />
+              <PersonPicker label="Talent" name="talent_id" people={talent}
+                value={talentId} onChange={setTalentId}
+                placeholder="Type a name…" />
             </div>
             <div className="ff" style={{ maxWidth: 260 }}><label>Start date</label>
               <input type="date" name="started_on" defaultValue={new Date().toISOString().slice(0, 10)} /></div>
             <p className="xs muted" style={{ marginBottom: 16 }}>
               This opens their shared task list and starts the weekly check-ins. The talent's stage moves to Placed.
             </p>
-            <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Create placement'}</button>
+            <button className="btn solid" disabled={busy || !clientId || !talentId}>
+              {busy ? 'Saving…' : 'Create placement'}
+            </button>
           </form>
         )}
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>Running</h3></div>
+        <div className="card-head">
+          <h3>Running</h3>
+          <div className="ff picker-inline">
+            <input value={find} onChange={e => setFind(e.target.value)}
+              placeholder="Search placements…" aria-label="Search placements" />
+          </div>
+        </div>
         {live.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">No placements yet.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">
+            {find.trim() ? `Nobody running matches “${find.trim()}”.` : 'No placements yet.'}
+          </p></div>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>
             <thead><tr><th>Executive</th><th>Talent</th><th>Since</th><th style={{ textAlign: 'right' }}></th></tr></thead>

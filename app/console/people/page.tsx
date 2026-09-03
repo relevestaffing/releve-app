@@ -4,6 +4,7 @@ import { listClients, getSearch } from '@/lib/store';
 import Shell from '@/components/Shell';
 import AddPerson from '@/components/AddPerson';
 import RoleBriefEditor from '@/components/RoleBriefEditor';
+import TableSearch from '@/components/TableSearch';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -34,8 +35,12 @@ export default async function People() {
       )}
 
       <div className="card">
-        <div className="card-head"><h3>Client accounts</h3>
-          <span className="pill">{clients.length} on file</span></div>
+        <div className="card-head"><h3>Executive accounts</h3>
+          <div className="row" style={{ gap: 10 }}>
+            {clients.length > 5 &&
+              <TableSearch scope="exec-list" rows=".client-row" placeholder="Search executives…" />}
+            <span className="pill">{clients.length} on file</span>
+          </div></div>
         <p className="small muted" style={{ marginBottom: 20 }}>
           Add a client here and they can sign in immediately with the email on file — no invitation, no password.
           The role brief is yours to fill in from the intro call; clients are never asked to write their own.
@@ -53,6 +58,7 @@ export default async function People() {
           </div>
         )}
 
+        <div id="exec-list">
         {rows.map(({ client, brief }) => (
           <div className="client-row" key={client.key}>
             <div className="row between" style={{ gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -70,6 +76,7 @@ export default async function People() {
               initial={brief ?? {}} name={client.full_name} />
           </div>
         ))}
+        </div>
       </div>
     </Shell>
   );

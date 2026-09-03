@@ -763,11 +763,9 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 .section-h:first-of-type{margin-top:0}
 .end-why{margin-top:12px;padding:13px 14px;background:var(--cream);border:1px solid var(--mist);border-radius:9px;text-align:right}
-.client-picker{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.client-picker select{
-  padding:8px 12px;border-radius:8px;border:1px solid var(--mist);
-  background:var(--paper);color:var(--ink);font-size:14px;max-width:260px
-}
+.client-picker{min-width:270px}
+.client-picker .ff{margin:0}
+@media (max-width:900px){ .client-picker{min-width:0;width:100%} }
 
 /* ---------- console: what needs a person ---------- */
 .attention{list-style:none;margin:0;padding:0}
@@ -1350,3 +1348,40 @@ details.more .inner{padding-top:6px}
   .pair-grid{grid-template-columns:1fr;gap:10px}
   .pair-card{min-height:96px;padding:18px 16px}
 }
+
+/* ---------- a picker you can type into ---------- */
+.picker{position:relative}
+.picker-chosen{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;background:var(--cream);
+  border:1px solid var(--mist);border-radius:10px
+}
+.picker-chosen b{font-weight:400;color:var(--ink);font-size:15px}
+.picker-clear{
+  flex:none;background:none;border:none;cursor:pointer;font-family:inherit;
+  font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--fern);
+  text-decoration:underline;text-underline-offset:3px;padding:4px
+}
+.picker-list{
+  position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:5px;
+  max-height:290px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:#fff;border:1px solid var(--mist);border-radius:10px;
+  box-shadow:0 18px 40px -24px rgba(34,48,42,.5)
+}
+.picker-list button{
+  display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;
+  background:none;border:none;cursor:pointer;font-family:inherit;
+  padding:11px 14px;border-bottom:1px solid var(--mist)
+}
+.picker-list button:last-child{border-bottom:none}
+.picker-list button b{font-weight:400;color:var(--ink);font-size:14.5px}
+.picker-list button .xs{color:var(--muted)}
+.picker-list button.on{background:var(--cream)}
+.picker-none{padding:16px 14px;color:var(--muted);font-size:13.5px}
+@media (max-width:640px){
+  .picker-list{max-height:240px}
+  .picker-list button{padding:13px 14px}
+}
+.picker-inline{margin:0;min-width:200px}
+.picker-inline input{padding:9px 13px;font-size:14px}
+@media (max-width:640px){ .picker-inline{width:100%} }
