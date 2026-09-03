@@ -40,7 +40,7 @@ export default function CheckinForm({ placement, week, existing }: {
           </span>
         </div>
         <p className="small muted" style={{ marginBottom: 22 }}>
-          This goes to your Relève client success manager — not to {placement.client_name.split(' ')[0]}.
+          This goes to your Talent Success Manager at Relève — not to {placement.client_name.split(' ')[0]}.
           Say what is actually true; that is the only way we can help.
         </p>
 

@@ -2,11 +2,12 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { allDecisions, allFeedback } from '@/lib/work';
 import Shell from '@/components/Shell';
+import { fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
 const day = (d: string) =>
-  new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  fmtDate(d);
 
 export default async function Signals() {
   const profile = await currentProfile();

@@ -17,6 +17,9 @@ export default async function Pipeline() {
   if (profile.role !== 'client') redirect('/app');
   const sig = await getMySignature(profile, 'client');
   if (!sig) redirect('/app/signature');
+  /* rankBench reads talent_directory, which now runs under row level
+     security rather than around it — so for an executive this returns
+     exactly the people Relève has released to them, and nobody else. */
   const ranked = await rankBench(sig);
   const decisions = await listDecisions(profile.id);
   const byTalent = Object.fromEntries(decisions.map(d => [d.talent_id, d]));
@@ -24,10 +27,26 @@ export default async function Pipeline() {
   return (
     <Shell profile={profile} active="/app/pipeline" title="Your matches" crumb="Chosen for how you work">
       <p className="small muted" style={{ maxWidth: 620 }}>
-        Everyone here has been assessed and matched against your profile, ordered by fit.
-        Say who you would like to meet and we will arrange it. If someone is not right, say so —
-        knowing why is how the next shortlist gets better.
+        Everyone here was chosen for you by hand, then ranked against your Signature.
+        Say who you would like to meet and we will arrange it. If someone is not right,
+        say so — knowing why is how the next shortlist gets better.
       </p>
+
+      {ranked.length === 0 && (
+        <div className="card">
+          <div className="card-head"><h3>Your shortlist is being built</h3></div>
+          <p className="small" style={{ marginBottom: 16 }}>
+            Nobody has been put forward yet. This is deliberate — we do not send you a
+            directory to search through. Your Client Success Manager reviews the bench
+            against your Signature and puts forward only the people worth your time.
+          </p>
+          <p className="small muted" style={{ marginBottom: 18 }}>
+            Our promise is a qualified candidate within fourteen days of your search
+            opening. You will have an email the moment there is someone to see.
+          </p>
+          <a className="btn sm ghost" href="/app/messages">Ask your manager where things stand</a>
+        </div>
+      )}
 
       {ranked.map(({ person, match, checks }) => {
         const first = person.name.split(' ')[0];

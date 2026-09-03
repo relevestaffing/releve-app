@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
-import { saving } from './Toast';
+import { saving, toast } from './Toast';
 
 type State = { connected: boolean; configured: boolean; email?: string | null;
   connected_at?: string; busy?: number; error?: string | null; missing?: string[] };
@@ -14,7 +14,10 @@ export default function CalendarConnect() {
   useEffect(() => { load(); }, []);
 
   async function connect() {
-    if (!hasSupabase()) { alert('Connect Supabase first — see SETUP.md stage 2.'); return; }
+    if (!hasSupabase()) {
+      toast.bad('Calendar syncing is not available right now. Your availability below still works.');
+      return;
+    }
     setBusy(true);
     const sb = supabaseBrowser();
     await sb.auth.signInWithOAuth({
@@ -73,18 +76,13 @@ export default function CalendarConnect() {
             You can disconnect at any moment.
           </p>
           <button className="btn solid" disabled={busy || !s.configured} onClick={connect}>
-            {s.configured ? 'Connect Google Calendar' : 'Google Calendar not set up yet'}
+            {s.configured ? 'Connect Google Calendar' : 'Available shortly'}
           </button>
           {!s.configured && (
-            <div className="xs muted" style={{ marginTop: 12, lineHeight: 1.7 }}>
-              <b>Not switched on yet.</b> It needs two things, once, for the whole platform:
-              <br />1. The Google Calendar API turned on, and the <code>calendar.freebusy</code> scope
-              added to the consent screen, in the Google Cloud project.
-              <br />2. {s.missing?.length
-                ? <>These set in Netlify: <b>{s.missing.join(' and ')}</b>.</>
-                : <>The OAuth client id and secret set in Netlify.</>}
-              <br />Everything else is already built and waiting.
-            </div>
+            <p className="xs muted" style={{ marginTop: 12 }}>
+              Calendar syncing is coming shortly. Until then the hours you set below
+              are what we book against, which works perfectly well.
+            </p>
           )}
         </>
       )}

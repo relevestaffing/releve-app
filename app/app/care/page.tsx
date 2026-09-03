@@ -7,6 +7,8 @@ import PulseForm from '@/components/PulseForm';
 import TimeOffForm from '@/components/TimeOffForm';
 import FirstFortnight from '@/components/FirstFortnight';
 import SeenFeedback from '@/components/SeenFeedback';
+import Empty from '@/components/Empty';
+import { EMPTY, WORDS } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,13 +27,7 @@ export default async function Care() {
   if (!p) return (
     <Shell profile={profile} active="/app/care" title="Your placement"
       crumb="Once you are placed, this is where it lives">
-      <div className="card tight">
-        <p className="small muted">
-          {side === 'client'
-            ? 'Nothing here yet. Once your talent starts, this is where you tell Relève how it is going each month, and where the first two weeks are planned out.'
-            : 'Nothing here yet. Once you are placed, this is where you ask for time off, follow the first two weeks, and read the feedback written about your work.'}
-        </p>
-      </div>
+      <Empty of={side === 'client' ? EMPTY.careClient : EMPTY.careTalent} />
     </Shell>
   );
 
@@ -62,8 +58,8 @@ export default async function Care() {
               <div className="card-head"><h3>How you are doing</h3></div>
               {!shared.length ? (
                 <p className="small muted">
-                  Nothing yet. Your Talent Success Manager writes this after your first
-                  full month, and you will see it here the moment it is ready.
+                  Nothing yet. {WORDS.tsm}s write this after your first full month,
+                  and you will see it here the moment it is ready.
                 </p>
               ) : shared.map(f => (
                 <div key={f.id} style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid var(--mist)' }}>

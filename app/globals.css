@@ -794,3 +794,100 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 .section-h:first-of-type{margin-top:0}
 .end-why{margin-top:12px;padding:13px 14px;background:var(--cream);border:1px solid var(--mist);border-radius:9px;text-align:right}
+.client-picker{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.client-picker select{
+  padding:8px 12px;border-radius:8px;border:1px solid var(--mist);
+  background:var(--paper);color:var(--ink);font-size:14px;max-width:260px
+}
+
+/* ---------- console: what needs a person ---------- */
+.attention{list-style:none;margin:0;padding:0}
+.attention li{
+  display:flex;align-items:center;gap:16px;
+  padding:15px 0;border-top:1px solid var(--mist)
+}
+.attention li:first-child{border-top:none}
+.att-n{
+  flex:none;min-width:38px;height:38px;padding:0 8px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Marcellus,serif;font-size:18px;line-height:1;
+  background:var(--cream);color:var(--ink);border:1px solid var(--mist)
+}
+.attention li.high .att-n{background:rgba(140,74,63,.09);border-color:rgba(140,74,63,.32);color:var(--crit)}
+.att-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.att-body b{font-weight:400;font-size:15px;color:var(--ink);line-height:1.45}
+.attention .btn{flex:none}
+
+@media (max-width:820px){
+  .attention li{flex-wrap:wrap;gap:12px;padding:16px 0}
+  .att-body{flex:1 1 auto;min-width:60%}
+  .attention .btn{width:100%;margin-top:2px}
+}
+
+/* ============================================================
+   FIXES FROM THE FULL AUDIT, 3 Sept 2026
+   ============================================================ */
+
+/* --muted was used in about thirty places and never defined, so every caption,
+   sub-label and hint on the newer screens fell back to inherited body colour
+   and lost its hierarchy. It sits between --sage and --body. */
+:root{
+  --muted:#6A7A6E;
+  --tap:44px;          /* the smallest thing a thumb should have to hit */
+}
+
+/* iOS zooms the whole page when a focused field is under 16px, and never
+   zooms back. The old rule covered .ff inputs only, which left the message
+   composer and every pill-shaped select — on the two screens people use most
+   on a phone. */
+@media (max-width:820px){
+  .composer textarea,
+  select.pill,
+  .client-picker select,
+  input[type="date"],
+  input, select, textarea{ font-size:16px }
+  /* the pill selects keep their compact look, just not their tiny text */
+  select.pill{ padding:8px 12px; min-height:var(--tap) }
+  .btn.sm{ min-height:38px }
+  .btn{ min-height:var(--tap) }
+  .step-tick{ width:26px;height:26px }
+}
+
+/* Between 641 and 900px the sidebar became a horizontal scroller, and with
+   fourteen admin items "Sign out" was pushed off the end with no way to reach
+   it. The account it belongs to was hidden at the same time. */
+@media (max-width:900px){
+  aside.side{ flex-wrap:wrap; row-gap:10px }
+  .side-role{ display:block; margin-left:auto; text-align:right }
+  .side-role .eyebrow{ font-size:9px }
+  .side-role .name{ font-size:13px }
+  nav.side-nav{ order:3; flex:1 0 100%; overflow-x:auto; -webkit-overflow-scrolling:touch }
+  .side-foot{ order:2; flex:none }
+  .side-foot .btn{ white-space:nowrap }
+}
+
+/* Wide tables are the main cause of sideways drag on a phone. Every one of
+   them scrolls inside its own box instead of pushing the page. */
+@media (max-width:820px){
+  .card > table.data{ display:block; overflow-x:auto; -webkit-overflow-scrolling:touch }
+  table.data th, table.data td{ white-space:nowrap }
+  table.data td .xs, table.data td .small{ white-space:normal }
+}
+
+/* Section headings on the console and reports need air above them but not
+   when they open a card. */
+.section-h + .money-strip{ margin-bottom:8px }
+
+/* ---------- the one empty state ---------- */
+.empty-card{text-align:center;padding:44px 32px}
+.empty-card h3{margin-bottom:12px}
+.empty-card .small{max-width:460px;margin:0 auto;color:var(--muted);line-height:1.75}
+.empty-mark{
+  width:34px;height:34px;margin:0 auto 20px;border-radius:50%;
+  border:1px solid var(--pale);position:relative
+}
+.empty-mark::after{
+  content:'';position:absolute;inset:0;margin:auto;
+  width:9px;height:1px;background:var(--pale)
+}
+@media (max-width:820px){ .empty-card{padding:34px 22px} }

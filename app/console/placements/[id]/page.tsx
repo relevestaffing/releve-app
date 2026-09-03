@@ -8,11 +8,11 @@ import NoteAdder from '@/components/NoteAdder';
 import FeedbackWriter from '@/components/FeedbackWriter';
 import FirstFortnight from '@/components/FirstFortnight';
 import { feedbackFor, pulseFor, stepsFor, timeOffFor, GOING, WORKLOADS, TIME_OFF_STATE, nights } from '@/lib/care';
+import { fmtDate, fmtWhen } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
-const day = (d: string) =>
-  new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+const day = fmtDate;
 
 export default async function PlacementFile({ params }: { params: Promise<{ id: string }> }) {
   const profile = await currentProfile();
@@ -96,8 +96,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
             <ul className="past-list">
               {interviews.slice(0, 6).map(iv => (
                 <li key={iv.id}>
-                  <span className="past-date">{new Date(iv.starts_at)
-                    .toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
+                  <span className="past-date">{fmtWhen(iv.starts_at)}</span>
                   <span className="small">{iv.stage} · {iv.status}</span>
                 </li>
               ))}
@@ -193,8 +192,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
               <li key={n.id}>
                 <div className="row between">
                   <span className={`pill ${n.kind === 'escalation' ? 'crit' : n.kind === 'resolution' ? 'good' : ''}`}>{n.kind}</span>
-                  <span className="xs muted">{new Date(n.created_at)
-                    .toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  <span className="xs muted">{fmtDate(n.created_at)}</span>
                 </div>
                 <p className="small" style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{n.body}</p>
               </li>

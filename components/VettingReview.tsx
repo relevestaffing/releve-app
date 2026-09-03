@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
 import { saving, toast } from './Toast';
+import { fmtDate } from '@/lib/words';
 
 type Row = Vetting & { talent?: { full_name: string | null; email: string; stage: string | null } };
 
@@ -50,7 +51,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                   {labelOf(r.kind)}
                   {r.submitted_at && ` · sent ${new Date(r.submitted_at)
                     .toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`}
-                  {r.expires_on && ` · expires ${r.expires_on}`}
+                  {r.expires_on && ` · expires ${fmtDate(r.expires_on)}`}
                 </p>
               </div>
               <div className="vet-doc">
@@ -95,7 +96,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                   <td className="small">{labelOf(r.kind)}</td>
                   <td><span className={`pill ${r.state === 'verified' ? 'good' : r.state === 'rejected' ? 'crit' : ''}`}>
                     {r.state === 'verified' && <span className="dot" />}{VETTING_WORDING[r.state]}</span></td>
-                  <td className="small muted">{r.expires_on ?? '—'}</td>
+                  <td className="small muted">{fmtDate(r.expires_on)}</td>
                   <td style={{ textAlign: 'right' }}>
                     {r.file_path && <button className="btn sm ghost" onClick={() => open(r.file_path!)}>Open</button>}
                   </td>

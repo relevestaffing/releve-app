@@ -3,6 +3,8 @@ import { currentProfile } from '@/lib/supabase/server';
 import { listCheckins, listPlacementsFor, weekEnding } from '@/lib/work';
 import Shell from '@/components/Shell';
 import CheckinForm from '@/components/CheckinForm';
+import { EMPTY, WORDS, fmtDate } from '@/lib/words';
+import Empty from '@/components/Empty';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,10 +19,9 @@ export default async function CheckinPage() {
 
   return (
     <Shell profile={profile} active="/app/checkin" title="Weekly check-in"
-      crumb="Every Friday, to your Relève manager">
+      crumb={`Every Friday, to ${WORDS.tsmShort}`}>
       {placements.length === 0 ? (
-        <div className="card"><div className="empty"><span className="tick" />
-          <p className="small">Check-ins start once you are placed.</p></div></div>
+        <Empty of={EMPTY.checkinUnplaced} />
       ) : placements.map(p => (
         <CheckinForm key={p.id} placement={p} week={week}
           existing={past.find(c => c.placement_id === p.id && c.week_ending === week) ?? null} />
@@ -32,9 +33,7 @@ export default async function CheckinPage() {
           <ul className="past-list">
             {past.filter(c => c.week_ending !== week).map(c => (
               <li key={c.id}>
-                <span className="past-date">
-                  {new Date(c.week_ending + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-                </span>
+                <span className="past-date">{fmtDate(c.week_ending)}</span>
                 <span className="small">{c.shipped || <span className="muted">No note</span>}</span>
               </li>
             ))}

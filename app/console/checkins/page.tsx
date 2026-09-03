@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { allPlacements, listCheckins, weekEnding } from '@/lib/work';
 import Shell from '@/components/Shell';
+import { fmtDay, fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,12 +18,9 @@ export default async function ConsoleCheckins() {
   const missing = placements.filter(p => !thisWeek.some(c => c.placement_id === p.id));
   const attention = checkins.filter(c => c.needs_attention);
 
-  const friday = new Date(week + 'T00:00:00')
-    .toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
-
   return (
     <Shell profile={profile} active="/console/checkins" title="Weekly check-ins"
-      crumb={`Week ending ${friday}`}>
+      crumb={`Week ending ${fmtDay(week)}`}>
 
       <div className="grid-3">
         <div className="card stat"><div className="eyebrow">In this week</div>

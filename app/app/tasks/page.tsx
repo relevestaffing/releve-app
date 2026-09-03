@@ -3,6 +3,8 @@ import { currentProfile } from '@/lib/supabase/server';
 import { listPlacementsFor } from '@/lib/work';
 import Shell from '@/components/Shell';
 import TaskBoard from '@/components/TaskBoard';
+import { EMPTY } from '@/lib/words';
+import Empty from '@/components/Empty';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,15 +18,7 @@ export default async function TasksPage() {
     <Shell profile={profile} active="/app/tasks" title="Tasks"
       crumb={side === 'client' ? 'What you have delegated' : 'What is on your plate'}>
       {placements.length === 0 ? (
-        <div className="card">
-          <div className="empty"><span className="tick" />
-            <p className="small">
-              {side === 'client'
-                ? 'Once someone is placed with you, this becomes the list you hand work to.'
-                : 'Once you are placed, the work your executive hands over appears here.'}
-            </p>
-          </div>
-        </div>
+        <Empty of={side === 'client' ? EMPTY.tasksClient : EMPTY.tasksTalent} />
       ) : placements.map(p => (
         <div key={p.id}>
           {placements.length > 1 && (

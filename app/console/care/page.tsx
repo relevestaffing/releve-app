@@ -6,13 +6,11 @@ import {
 } from '@/lib/care';
 import Shell from '@/components/Shell';
 import { TimeOffDecider, OutcomeForm } from '@/components/CareControls';
+import { fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
-const day = (iso: string | null) => iso
-  ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US',
-      { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
-  : '—';
+const day = fmtDate;
 
 /* Everything that needs a person to look at it, in the order it will hurt if
    nobody does. */

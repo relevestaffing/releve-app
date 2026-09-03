@@ -25,6 +25,10 @@ export default async function AppHome() {
   /* first visit: say hello properly before asking for twenty minutes */
   if (!self.onboarded_at) redirect('/app/welcome');
 
+  /* One place, so no screen ever renders "Welcome, and welcome" for an account
+     that signed itself up and has not given a name yet. */
+  const firstName = (profile.full_name ?? '').trim().split(' ')[0] || '';
+
   const sig = await getMySignature(profile, side);
   const brief = side === 'client' ? await getSearch(profile.id) : null;
   const avail = await getAvailability(profile.id, '');
@@ -42,7 +46,8 @@ export default async function AppHome() {
   const setup = progress(steps);
 
   if (!sig) return (
-    <Shell profile={profile} active="/app" title={`Welcome, ${(profile.full_name ?? '').split(' ')[0] || 'and welcome'}`}
+    <Shell profile={profile} active="/app"
+      title={firstName ? `Welcome, ${firstName}` : 'Welcome to Relève'}
       crumb="Getting set up">
       <Checklist steps={steps} heading="A few things and you are done" />
       <div className="card tight">
@@ -60,8 +65,11 @@ export default async function AppHome() {
   const selfLines = side === 'client' ? execSelfLines(sig.scores) : talentSelfLines(sig.scores);
 
   return (
-    <Shell profile={profile} active="/app" title={side === 'client' ? 'Your account' : 'Your account'}
-      crumb={side === 'client' ? 'Marsh & Co.' : 'Talent'}>
+    <Shell profile={profile} active="/app"
+      title={firstName ? `Good to see you, ${firstName}` : 'Your account'}
+      crumb={side === 'client'
+        ? (profile.org_name ?? 'Executive')
+        : (self.headline ?? 'Talent')}>
 
       {/* who you are, in words */}
       {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
@@ -115,7 +123,19 @@ export default async function AppHome() {
 
       {/* what to do next */}
       {side === 'client' ? (
-        ranked.length > 0 && (
+        ranked.length === 0 ? (
+          <div className="next-step">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 6 }}>Where you are</div>
+              <div className="small">
+                Your Signature is done, and your Client Success Manager is working the
+                search now. We put people forward by hand rather than sending you a
+                directory — you will hear from us within fourteen days of the search opening.
+              </div>
+            </div>
+            <Link className="btn solid" href="/app/messages">Message your manager</Link>
+          </div>
+        ) : (
           <>
             <div className="card">
               <div className="card-head"><h3>Your strongest match</h3>

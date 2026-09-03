@@ -1533,3 +1533,121 @@ create view interview_list with (security_invoker = true) as
 -- candidates only would break matching, so it is a product decision rather
 -- than a bug, and it belongs to Sage, not to this file. It is written up in
 -- WHERE-WE-LEFT-OFF.md.
+
+
+-- ============================================================
+-- THE SHORTLIST MODEL + A LEAK I OPENED, 3 Sept 2026
+-- ============================================================
+
+-- ---------- 1. Talent pay leaves profiles ----------
+-- The policy above ("read profiles of people you work with") lets a client
+-- read the whole profiles row of talent released to them. profiles.rate_month
+-- is in that row. Row level security is per row, not per column, so the
+-- comment on that column -- "client-facing views must never select this" --
+-- was the only thing protecting it, and a comment is not protection.
+--
+-- Pay moves to its own table, which no client can read at all. Same shape as
+-- placement_terms, and for the same reason.
+create table if not exists talent_pay (
+  talent_id   uuid primary key references profiles(id) on delete cascade,
+  rate_month  int,
+  currency    text not null default 'USD',
+  updated_at  timestamptz not null default now()
+);
+comment on table talent_pay is
+  'What Releve pays the talent. No client may read this table under any policy. The gap between this and placement_terms.rate_month_cents is the margin.';
+
+alter table talent_pay enable row level security;
+drop policy if exists "team only pay" on talent_pay;
+create policy "team only pay" on talent_pay for all
+  using (is_admin()) with check (is_admin());
+
+-- Carry across anything already recorded, then drop the column.
+do $$ begin
+  if exists (select 1 from information_schema.columns
+             where table_name = 'profiles' and column_name = 'rate_month') then
+    insert into talent_pay (talent_id, rate_month)
+    select id, rate_month from profiles where rate_month is not null
+    on conflict (talent_id) do nothing;
+    alter table profiles drop column rate_month;
+  end if;
+end $$;
+
+-- ---------- 2. The client sees a shortlist, not the bench ----------
+-- talent_directory bypassed row level security so the client dashboard could
+-- rank the whole bench. That is the leak; this is the replacement.
+--
+-- Relève does the matching in the console and releases individuals. The
+-- client sees exactly those people and no others. Nothing else changes about
+-- how the score is computed -- it is the same engine, run by the team.
+drop view if exists talent_directory;
+create view talent_directory with (security_invoker = true) as
+select
+  p.id, p.full_name as name, p.headline as role, p.location as loc, p.timezone as tz,
+  p.years_exp as yrs, p.english as eng, p.stage, p.photo_url,
+  s.scores, s.facets, s.validity, s.confidence, s.conditions as cond
+from profiles p
+join signatures s on s.user_id = p.id and s.side = 'talent'
+where p.role = 'talent';
+
+-- With security_invoker on, this view now returns only what the reader is
+-- allowed: the team sees everyone, and a client sees the talent released to
+-- them, because of the profiles and signatures policies already in place.
+-- One thing is missing for that to work -- signatures already allows released
+-- reads, but profiles needs the same, and share_work covers placements and
+-- released matches both. It is already granted above.
+
+-- ---------- 3. The shortlist, as the client sees it ----------
+-- Everything the executive needs to judge a candidate, and nothing internal.
+-- Note what is absent: validity, impression-management, facet detail and pay.
+drop view if exists my_shortlist;
+create view my_shortlist with (security_invoker = true) as
+select
+  m.id as match_id, m.client_id, m.talent_id,
+  m.overall, m.layer1, m.layer2, m.confidence, m.parts, m.conditions,
+  m.client_state, m.created_at as released_at,
+  p.full_name as name, p.headline as role, p.location as loc, p.timezone as tz,
+  p.years_exp as yrs, p.english as eng, p.photo_url, p.bio,
+  s.scores, s.archetype
+from matches m
+join profiles p on p.id = m.talent_id
+join signatures s on s.user_id = m.talent_id and s.side = 'talent'
+where m.released;
+
+comment on view my_shortlist is
+  'Released candidates only, with the internal assessment machinery stripped out. security_invoker means the row policies decide whose shortlist you get.';
+
+-- ---------- 4. Make matching actually work ----------
+-- Three things were wrong at once, and together they meant the Matching
+-- Engine had never worked against a real client:
+--
+--   a) matches.search_id was NOT NULL, but a match made by hand in the
+--      console does not necessarily belong to a search.
+--   b) the code upserts on (client_id, talent_id) and no unique index
+--      existed on that pair, so every write failed.
+--   c) the read policy identified the client through search_id, which is
+--      null for a hand-made match, so a released candidate stayed invisible.
+
+alter table matches alter column search_id drop not null;
+
+-- Backfill client_id from the search, for anything created before client_id
+-- existed, then make the pair the real key.
+update matches m set client_id = se.client_id
+  from searches se where se.id = m.search_id and m.client_id is null;
+
+delete from matches a using matches b
+ where a.client_id = b.client_id and a.talent_id = b.talent_id and a.ctid > b.ctid;
+
+create unique index if not exists matches_client_talent
+  on matches(client_id, talent_id) where client_id is not null;
+
+-- The client is now identified directly, whether or not a search is involved.
+drop policy if exists "read released matches" on matches;
+create policy "read released matches" on matches for select using (
+  is_admin()
+  or (matches.released and (
+        matches.client_id = auth.uid()
+        or exists (select 1 from searches se
+                   where se.id = matches.search_id and se.client_id = auth.uid())))
+  or talent_id = auth.uid()
+);

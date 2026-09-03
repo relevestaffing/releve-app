@@ -7,6 +7,7 @@ import { L1, L2, facetsOf } from '@/lib/signature/model';
 import { talentSelfLines, talentSummary } from '@/lib/plain';
 import Shell from '@/components/Shell';
 import { AxisBars, Portrait } from '@/components/Viz';
+import { WORDS } from '@/lib/words';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,25 @@ export default async function TalentProfile() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   const sig = await getMySignature(profile, 'talent');
-  if (!sig) redirect('/app/signature');
+  /* Sending someone into a twenty-minute assessment without warning is not a
+     redirect, it is an ambush. Say why, and let them choose the moment. */
+  if (!sig) return (
+    <Shell profile={profile} active="/app/talent" title="Your profile"
+      crumb="One thing first">
+      <div className="card empty-card">
+        <div className="empty-mark" aria-hidden="true" />
+        <h3>Your profile starts with your {WORDS.signature}</h3>
+        <p className="small">
+          Everything executives see about you is built on it — how you work, what you
+          are like to work with, and which roles will suit you. It takes about twenty
+          minutes and you can stop and come back at any point.
+        </p>
+        <a className="btn solid" href="/app/signature" style={{ marginTop: 20 }}>
+          Take the {WORDS.talentSignature}
+        </a>
+      </div>
+    </Shell>
+  );
   const type = archetype(sig.scores, 'talent');
   const hasFacets = Object.keys(sig.facets ?? {}).length > 0;
   const self = await getSelfProfile(profile.id);
@@ -81,15 +100,15 @@ export default async function TalentProfile() {
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>Your results in full</h3><span className="pill">Optional reading</span></div>
+        <div className="card-head"><h3>Your results in full</h3><span className="pill">See the full assessment</span></div>
         <p className="small muted">Most people never need this. It is here because it is your data.</p>
         <details className="more">
           <summary>See every score</summary>
           <div className="inner">
             <div className="grid-2" style={{ marginBottom: 22 }}>
-              <div><div className="eyebrow" style={{ marginBottom: 12 }}>How you work</div>
+              <div><div className="eyebrow" style={{ marginBottom: 12 }}>Working style</div>
                 <AxisBars values={sig.scores} axes={L1} /></div>
-              <div><div className="eyebrow" style={{ marginBottom: 12 }}>Who you are under pressure</div>
+              <div><div className="eyebrow" style={{ marginBottom: 12 }}>Disposition</div>
                 <AxisBars values={sig.scores} axes={L2} /></div>
             </div>
             {hasFacets && (

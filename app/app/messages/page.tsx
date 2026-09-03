@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import Shell from '@/components/Shell';
 import MessageThread from '@/components/MessageThread';
+import { WORDS } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,9 @@ export default async function MessagesPage() {
 
   return (
     <Shell profile={profile} active="/app/messages" title="Messages"
-      crumb="Straight to the Relève team">
+      crumb={profile.role === 'client'
+        ? `Straight to ${WORDS.csmShort}`
+        : `Straight to ${WORDS.tsmShort}`}>
       <MessageThread subject={profile.id} me={profile.id} />
     </Shell>
   );

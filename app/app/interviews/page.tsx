@@ -11,6 +11,8 @@ import BookInterview from '@/components/BookInterview';
 import InterviewStatus from '@/components/InterviewStatus';
 import InterviewFeedback from '@/components/InterviewFeedback';
 import { listFeedback } from '@/lib/work';
+import Empty from '@/components/Empty';
+import { EMPTY } from '@/lib/words';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -22,6 +24,9 @@ export default async function Interviews() {
   const mine = await listInterviews(isClient ? { clientId: profile.id } : { talentId: profile.id });
   const myAvail = await getAvailability(profile.id, 'America/Los_Angeles');
   const tz = myAvail.timezone;
+  /* An account with no timezone set rendered the header as "When ()" — on the
+     one screen where the time is the entire point. */
+  const tzLabel = (tz ?? '').split('/')[1]?.replace(/_/g, ' ') ?? '';
   const feedback = await listFeedback({ authorId: profile.id });
   const fbByInterview = Object.fromEntries(feedback.map(f => [f.interview_id, f]));
   const past = (iso: string) => new Date(iso).getTime() < Date.now();
@@ -78,10 +83,10 @@ export default async function Interviews() {
         <div className="card-head"><h3>Scheduled</h3>
           <span className="pill">{mine.length} total</span></div>
         {mine.length === 0
-          ? <p className="small muted">Nothing scheduled yet.</p>
+          ? <Empty of={isClient ? EMPTY.interviewsClient : EMPTY.interviewsTalent} />
           : (
             <table className="data">
-              <thead><tr><th>{isClient ? 'Candidate' : 'Client'}</th><th>Stage</th><th>When ({tz.split('/')[1]?.replace('_', ' ')})</th><th>Status</th><th></th></tr></thead>
+              <thead><tr><th>{isClient ? 'Candidate' : 'Client'}</th><th>Stage</th><th>When{tzLabel && ` (${tzLabel})`}</th><th>Status</th><th></th></tr></thead>
               <tbody>
                 {mine.map(iv => (
                   <tr key={iv.id}>
