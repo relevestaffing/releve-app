@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { configured, type Profile } from '@/lib/supabase/server';
 import DemoSwitch from './DemoSwitch';
+import MobileNav from './MobileNav';
 import TermsGate from './TermsGate';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 
@@ -101,6 +102,10 @@ export default async function Shell({
   return (
     <>
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
+      <MobileNav role={profile.role} active={active} nav={nav}
+        who={WHO[profile.role]}
+        name={profile.full_name ?? profile.email}
+        org={profile.org_name} />
       <div className="shell">
         <aside className="side">
           <div className="side-logo"><img src="/logo-white.png" alt="Relève" /></div>

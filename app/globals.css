@@ -303,17 +303,10 @@ nav.side-nav a:hover::before,nav.side-nav a.active::before{transform:scaleY(1)}
   .grid-4{grid-template-columns:repeat(2,1fr)}
   .match-grid{grid-template-columns:repeat(2,1fr)}
 }
+/* The sidebar-as-horizontal-scroller lived here. It is replaced by the bottom
+   bar and the menu sheet further down; only the layout rules survive. */
 @media (max-width:900px){
-  .shell{grid-template-columns:1fr}
-  aside.side{position:relative;height:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:14px 20px;gap:20px}
-  .side-logo,.side-role{padding:0;border:none;margin:0}
-  .side-role{display:none}
-  nav.side-nav{flex-direction:row}
-  nav.side-nav a{padding:10px 14px;border-left:none;border-bottom:2px solid transparent;white-space:nowrap}
-  nav.side-nav a.active{border-left:none;border-bottom-color:var(--pale)}
-  .side-foot{border:none;padding:0}
   .grid-2,.grid-3,.grid-4,.match-grid,.role-grid{grid-template-columns:1fr}
-  .page-body,.topbar{padding-left:22px;padding-right:22px}
   .stepper{flex-direction:column}
   .stepper .st{border-left:none;border-top:1px solid var(--line);padding-left:0}
 }
@@ -624,19 +617,6 @@ html,body{max-width:100%;overflow-x:hidden}
   .topbar .crumb{font-size:9.5px;letter-spacing:.22em}
   .main{min-width:0}
 
-  /* --- the nav strip --- */
-  aside.side{padding:0;gap:0;position:sticky;top:0;z-index:50;
-    box-shadow:0 10px 24px -20px rgba(34,48,42,.8)}
-  .side-logo{padding:14px 16px 10px;text-align:left}
-  .side-logo img{height:26px;width:auto}
-  nav.side-nav{overflow-x:auto;-webkit-overflow-scrolling:touch;
-    scroll-snap-type:x proximity;padding:0 10px 2px;gap:0}
-  nav.side-nav::-webkit-scrollbar{display:none}
-  nav.side-nav a{scroll-snap-align:start;font-size:12px;letter-spacing:.1em;
-    padding:12px 12px 11px;border-bottom:2px solid transparent}
-  nav.side-nav a.active{border-bottom-color:var(--pale);color:#fff}
-  .side-foot{padding:12px 16px!important}
-
   /* --- cards read better tighter, and the heavy shadows are wasted --- */
   .card{padding:20px 18px;box-shadow:none;margin-bottom:14px}
   .card-head{gap:10px}
@@ -658,7 +638,6 @@ html,body{max-width:100%;overflow-x:hidden}
 
   /* --- iPhone notch and home indicator --- */
   .page-body{padding-bottom:calc(64px + env(safe-area-inset-bottom))}
-  aside.side{padding-top:env(safe-area-inset-top)}
   .toast-wrap{bottom:calc(16px + env(safe-area-inset-bottom))}
 }
 
@@ -687,16 +666,11 @@ html,body{max-width:100%;overflow-x:hidden}
   .section-title h2{font-size:20px}
   .eyebrow{font-size:9.5px;letter-spacing:.2em}
 
-  /* The nav strip should feel pinned, like a tab bar */
-  aside.side{border-bottom:1px solid rgba(255,255,255,.08)}
-  nav.side-nav a{opacity:.72}
-  nav.side-nav a.active{opacity:1}
-
   /* Chat fills the screen properly instead of floating in a card */
-  .chat-card{min-height:calc(100vh - 210px);padding:14px 14px 12px}
+  .chat-card{min-height:calc(100vh - 250px);padding:14px 14px 12px}
   .bubble{max-width:86%}
   .composer{position:sticky;bottom:0;background:#fff;margin:0 -14px -12px;
-    padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+    padding:12px 14px 12px;border-top:1px solid var(--line)}
 
   /* Long forms: give the eye somewhere to rest between blocks */
   .ff{margin-bottom:16px}
@@ -706,11 +680,6 @@ html,body{max-width:100%;overflow-x:hidden}
   /* Modest entrance — enough to feel responsive, not enough to annoy */
   .page-body.anim{animation:app-in .26s cubic-bezier(.22,.61,.36,1)}
   @keyframes app-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-}
-
-/* Installed to the home screen: no browser chrome, so give the top back */
-@media (display-mode:standalone){
-  aside.side{padding-top:max(10px,env(safe-area-inset-top))}
 }
 
 /* ---------- terms gate ---------- */
@@ -851,19 +820,6 @@ html,body{max-width:100%;overflow-x:hidden}
   .btn.sm{ min-height:38px }
   .btn{ min-height:var(--tap) }
   .step-tick{ width:26px;height:26px }
-}
-
-/* Between 641 and 900px the sidebar became a horizontal scroller, and with
-   fourteen admin items "Sign out" was pushed off the end with no way to reach
-   it. The account it belongs to was hidden at the same time. */
-@media (max-width:900px){
-  aside.side{ flex-wrap:wrap; row-gap:10px }
-  .side-role{ display:block; margin-left:auto; text-align:right }
-  .side-role .eyebrow{ font-size:9px }
-  .side-role .name{ font-size:13px }
-  nav.side-nav{ order:3; flex:1 0 100%; overflow-x:auto; -webkit-overflow-scrolling:touch }
-  .side-foot{ order:2; flex:none }
-  .side-foot .btn{ white-space:nowrap }
 }
 
 /* Wide tables are the main cause of sideways drag on a phone. Every one of
@@ -1163,3 +1119,234 @@ details.more summary::-webkit-details-marker{display:none}
 details.more summary::before{content:'+ ';font-family:'Tenor Sans',sans-serif}
 details.more[open] summary::before{content:'– '}
 details.more .inner{padding-top:6px}
+
+/* ============================================================
+   MOBILE — a real app, not a squeezed desktop
+   The sidebar used to become a horizontal scroller holding
+   fifteen links. Below 900px it is gone entirely, replaced by a
+   bottom bar and a menu sheet.
+   ============================================================ */
+
+.tabbar,.sheet-scrim{display:none}
+
+@media (max-width:900px){
+
+  /* ---------- the desktop chrome goes away ---------- */
+  .shell{grid-template-columns:1fr;background:var(--paper)}
+  aside.side{display:none}
+
+  /* ---------- a compact, sticky header ---------- */
+  .topbar{
+    height:auto;min-height:60px;padding:12px 18px;
+    background:rgba(250,248,242,.92);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line)
+  }
+  .topbar h1{font-size:20px;line-height:1.25}
+  .topbar .crumb{font-size:9.5px;letter-spacing:.22em;margin-bottom:3px}
+
+  /* room for the bar, plus the home indicator on an iPhone */
+  .page-body{
+    padding:20px 18px calc(96px + env(safe-area-inset-bottom));
+    max-width:none
+  }
+
+  /* ---------- the bottom bar ---------- */
+  .tabbar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;
+    background:rgba(53,68,58,.97);backdrop-filter:blur(14px);
+    border-top:1px solid rgba(243,239,230,.1);
+    padding-bottom:env(safe-area-inset-bottom)
+  }
+  .tabbar a,.tabbar button{
+    flex:1;min-width:0;background:none;border:none;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:9px 4px 8px;color:#93A394;font-family:inherit;
+    text-decoration:none;transition:color .18s
+  }
+  .tabbar svg{width:21px;height:21px;flex:none}
+  .tabbar span{
+    font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%
+  }
+  .tabbar .on{color:var(--cream)}
+  .tabbar .on svg{stroke-width:1.5}
+
+  /* ---------- the menu sheet ---------- */
+  .sheet-scrim{
+    display:block;position:fixed;inset:0;z-index:70;
+    background:rgba(34,48,42,.42);backdrop-filter:blur(3px);
+    animation:fade .18s ease
+  }
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;
+    max-height:86vh;display:flex;flex-direction:column;
+    background:var(--fern);color:#C9D2C8;
+    border-radius:18px 18px 0 0;
+    padding-bottom:env(safe-area-inset-bottom);
+    animation:rise .26s cubic-bezier(.22,.61,.36,1)
+  }
+  .sheet-grip{
+    width:36px;height:4px;border-radius:2px;flex:none;
+    background:rgba(243,239,230,.28);margin:10px auto 4px
+  }
+  .sheet-who{padding:14px 26px 18px;border-bottom:1px solid rgba(243,239,230,.13)}
+  .sheet-who .eyebrow{color:var(--pale);margin-bottom:6px}
+  .sheet-name{font-family:Marcellus,serif;color:var(--cream);font-size:19px;line-height:1.3}
+  .sheet-who .xs{color:#93A394;margin-top:3px}
+
+  .sheet-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 0 8px}
+  .sheet-group + .sheet-group{margin-top:14px}
+  .sheet-group-label{
+    font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:#7E8F80;padding:10px 26px 6px
+  }
+  .sheet-scroll a{
+    display:block;padding:13px 26px;text-decoration:none;
+    font-size:14.5px;letter-spacing:.02em;color:#C9D2C8;
+    border-left:2px solid transparent
+  }
+  .sheet-scroll a.on{
+    color:var(--cream);border-left-color:var(--pale);
+    background:rgba(243,239,230,.07)
+  }
+  .sheet-out{border-top:1px solid rgba(243,239,230,.13);padding:6px 0}
+  .sheet-out button{
+    width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    font-family:inherit;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:#93A394;padding:17px 26px
+  }
+}
+
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{transform:translateY(14px);opacity:.6}to{transform:translateY(0);opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .sheet,.sheet-scrim{animation:none}
+}
+
+/* ============================================================
+   MOBILE — the long forms
+   The role breakdown and the skills profile are twelve
+   competencies each, with three or four choices per row. Built
+   as-is they are a wall of tiny buttons on a phone.
+   ============================================================ */
+@media (max-width:640px){
+
+  /* ---------- choice rows become full-width stacked options ---------- */
+  .comp .pick-row{flex-direction:column;gap:6px}
+  .comp .pick{
+    flex-direction:row;justify-content:flex-start;text-align:left;
+    width:100%;min-height:46px;padding:11px 14px
+  }
+  .comp .pick span{font-size:14px}
+  .comp-label b{font-size:15.5px}
+  .comp{padding:18px 0}
+
+  /* the two-part skills row stacks, with its own labels kept */
+  .skill-row{grid-template-columns:1fr;gap:18px}
+
+  /* the 1–5 scales stay horizontal: five short taps, not five rows */
+  .pick-row:not(.comp .pick-row){flex-wrap:wrap}
+  .pick{min-height:46px}
+  .pick.wide{flex:1 1 100%;justify-content:flex-start;text-align:left;padding:12px 14px}
+  .pick b{font-size:17px}
+
+  /* ---------- discipline cards ---------- */
+  .disc{padding:15px 16px}
+  .disc b{font-size:15.5px}
+  .disc-aka{display:none}          /* the alternative job titles are desktop detail */
+
+  /* ---------- forms generally ---------- */
+  .ff label{font-size:13px}
+  .ff input,.ff select,.ff textarea{padding:13px 14px}
+  .grid-2,.grid-4{grid-template-columns:1fr;gap:0}
+
+  /* ---------- cards and headings ---------- */
+  .card{padding:20px 17px;margin-bottom:14px}
+  .card-head{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:14px}
+  .card-head .row{width:100%}
+  .stack{gap:14px}
+
+  /* ---------- the offer, the rationale, the coverage ---------- */
+  .offer h2{font-size:23px}
+  .brief-facts{grid-template-columns:1fr;gap:2px 0}
+  .brief-facts dt{margin-top:12px}
+  .rationale,.rolefit{padding:18px 16px}
+  .fit-list li{font-size:13.5px;padding-left:11px}
+
+  /* ---------- stat strips read two-up, never one ---------- */
+  .money-strip{grid-template-columns:1fr 1fr;gap:8px}
+  .money-stat,.card.stat{padding:13px 14px}
+  .money-stat .n,.card.stat .score{font-size:21px}
+  .money-stat .k,.card.stat .eyebrow{font-size:9.5px;letter-spacing:.12em}
+
+  /* ---------- the attention list ---------- */
+  .attention li{align-items:flex-start}
+  .att-n{min-width:34px;height:34px;font-size:16px}
+
+  /* ---------- buttons reach across ---------- */
+  .card > .btn.solid,.card > .btn.ghost{width:100%;justify-content:center}
+  .row > .btn{flex:1 1 auto;justify-content:center}
+}
+
+/* Anything that scrolls sideways does it inside its own box, never by
+   dragging the page. */
+@media (max-width:900px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .card table.data,.card > table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .avail-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+
+/* ---------- things that must clear the bottom bar ---------- */
+/* The bar is roughly 62px plus the home indicator. Anything fixed or sticky
+   to the bottom of the viewport has to sit above it, or it is unreachable. */
+@media (max-width:900px){
+  :root{ --tabbar:62px }
+
+  .toast-wrap{ bottom:calc(var(--tabbar) + 14px + env(safe-area-inset-bottom)) }
+
+  /* The chat composer is sticky, not fixed, so it needs the room underneath
+     rather than an offset. */
+  .chat-card{ padding-bottom:0 }
+  .composer{
+    position:sticky;
+    bottom:calc(var(--tabbar) + env(safe-area-inset-bottom));
+    background:#fff;border-top:1px solid var(--line);
+    margin:0 -14px;padding:12px 14px
+  }
+  .page-body:has(.chat-card){
+    padding-bottom:calc(var(--tabbar) + 24px + env(safe-area-inset-bottom))
+  }
+
+  /* The sheet sits above the bar, and the bar stays visible behind the scrim
+     so the person can see where they came from. */
+  .sheet{ padding-bottom:calc(var(--tabbar) + env(safe-area-inset-bottom)) }
+}
+
+/* ---------- the assessment on a phone ---------- */
+/* Ninety-four screens is the longest single thing anyone does here. It has to
+   be thumb-reachable and free of anything that competes with the statement. */
+@media (max-width:640px){
+  .assess-wrap{padding:0}
+  .assess-wrap .card{padding:22px 18px}
+  .scale{gap:8px}
+  .scale button{
+    padding:15px 16px;font-size:15px;gap:13px;
+    min-height:54px;border-radius:10px
+  }
+  .scale button:hover{transform:none}          /* no hover state on a touch screen */
+  .scale button:active{transform:scale(.99)}
+  .scale .key{width:20px;font-size:11px}
+
+  /* The statement is the only thing that should hold the eye. */
+  .assess-wrap h2,.assess-wrap h3{font-size:21px;line-height:1.35}
+
+  /* The assessment has no tab bar — it is a focused flow — so it gets the
+     bottom of the screen back. */
+  .assess-wrap ~ *,.assess-wrap{padding-bottom:env(safe-area-inset-bottom)}
+}
+
+/* A pairwise choice is two big targets, stacked. */
+@media (max-width:640px){
+  .pair-grid{grid-template-columns:1fr;gap:10px}
+  .pair-card{min-height:96px;padding:18px 16px}
+}

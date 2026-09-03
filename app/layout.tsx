@@ -14,7 +14,9 @@ export const metadata: Metadata = {
 
 /* The status bar picks up the fern when it is added to a home screen. */
 export const viewport: Viewport = {
-  themeColor: '#35443A',
+  /* The top of the app on a phone is the cream topbar, not the fern sidebar —
+     which is hidden below 900px. Matching it keeps the status bar seamless. */
+  themeColor: '#FAF8F2',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover'          // lets the safe-area insets in globals.css do their job
