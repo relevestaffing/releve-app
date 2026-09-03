@@ -8,6 +8,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
   client: [
     { href: '/app', label: 'Dashboard' },
     { href: '/app/signature', label: 'Executive Signature' },
+    { href: '/app/role', label: 'The Role' },
     { href: '/app/profile', label: 'My Profile' },
     { href: '/app/pipeline', label: 'Your Matches' },
     { href: '/app/tasks', label: 'Tasks' },
@@ -20,6 +21,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
   talent: [
     { href: '/app', label: 'Dashboard' },
     { href: '/app/signature', label: 'Talent Signature' },
+    { href: '/app/skills', label: 'Your Skills' },
     { href: '/app/talent', label: 'My Profile' },
     { href: '/app/vetting', label: 'Verification' },
     { href: '/app/tasks', label: 'Tasks' },

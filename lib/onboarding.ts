@@ -11,35 +11,44 @@ export type Step = {
 
 export function talentSteps(o: {
   hasSignature: boolean; hasAvailability: boolean; hasProfile: boolean; hasPhoto: boolean;
+  hasSkills?: boolean;
   vettingDone?: number; vettingTotal?: number;
 }): Step[] {
   const cleared = o.vettingDone ?? 0, needed = o.vettingTotal ?? 3;
   return [
     { key: 'vetting', title: 'Verify who you are', href: '/app/vetting', minutes: '5 min',
       blurb: cleared === 0
-        ? 'Identity, right to work, and the signed agreement. We check these once and never again.'
+        ? 'Proof of identity, and the agreement we send you to sign. We check these once and never again.'
         : `${cleared} of ${needed} cleared. An executive is never shown a candidate who has not been verified.`,
       done: cleared >= needed, critical: true },
     { key: 'signature', title: 'Take the Talent Signature', href: '/app/signature', minutes: '20 min',
       blurb: 'How you work and who you are under pressure. Nothing is matched until this is done.',
       done: o.hasSignature, critical: true },
+    { key: 'skills', title: 'Break down your skills', href: '/app/skills', minutes: '8 min',
+      blurb: 'Twelve areas of work: how strong you are at each, and which you actually want to do. This is what decides the kind of role you are put forward for.',
+      done: !!o.hasSkills, critical: true },
     { key: 'availability', title: 'Set your availability', href: '/app/availability', minutes: '2 min',
       blurb: 'The hours you can genuinely take a call. Without this, no executive can book you.',
       done: o.hasAvailability, critical: true },
     { key: 'profile', title: 'Complete your profile', href: '/app/talent/edit', minutes: '5 min',
       blurb: 'Skills, experience and a short introduction — this is what an executive reads first.',
       done: o.hasProfile },
-    { key: 'photo', title: 'Add a photo', href: '/app/talent/edit', minutes: '1 min',
+    { key: 'photo', title: 'Add a photo', href: '/app/talent/edit#photo', minutes: '1 min',
       blurb: 'People hire people. A face makes a real difference to how a profile lands.',
       done: o.hasPhoto }
   ];
 }
 
-export function clientSteps(o: { hasSignature: boolean; hasAvailability: boolean; hasIntro: boolean }): Step[] {
+export function clientSteps(o: {
+  hasSignature: boolean; hasAvailability: boolean; hasIntro: boolean; hasRole?: boolean;
+}): Step[] {
   return [
     { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: '13 min',
       blurb: 'How you run your day. Every candidate is scored against it before you see a name.',
       done: o.hasSignature, critical: true },
+    { key: 'role', title: 'Break down the role', href: '/app/role', minutes: '10 min',
+      blurb: 'Area by area, what the person you hire will own outright and what they will share with you. This is what we search against.',
+      done: !!o.hasRole, critical: true },
     { key: 'availability', title: 'Set your interview hours', href: '/app/availability', minutes: '2 min',
       blurb: 'When you are open to meeting candidates. We never offer anyone a slot outside these.',
       done: o.hasAvailability, critical: true },

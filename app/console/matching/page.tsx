@@ -7,6 +7,7 @@ import { Radar } from '@/components/Viz';
 import MatchControls from '@/components/MatchControls';
 import { listMatches } from '@/lib/store';
 import { listPeople } from '@/lib/work';
+import { getRoleBreakdown, skillsFor, coverage, coverageScore, roleShape } from '@/lib/roles';
 import Link from 'next/link';
 
 /* always read live data — never serve a cached copy of someone's account */
@@ -79,6 +80,13 @@ export default async function Matching({ searchParams }: {
 
   const ranked = await rankBench(exec);
   const type = archetype(exec.scores, 'client');
+
+  /* Two different questions, both worth an answer before you release anyone:
+     will they get on, and can they do the job. */
+  const role = await getRoleBreakdown(clientId);
+  const skills = await skillsFor(ranked.map(r => r.person.id));
+  const cover = Object.fromEntries(ranked.map(r =>
+    [r.person.id, coverageScore(coverage(role, skills[r.person.id] ?? null))]));
   const matches = await listMatches(clientId);
   const byTalent = Object.fromEntries(matches.map(m => [m.talent_id, m]));
   const releasedCount = matches.filter(m => m.released).length;
@@ -94,6 +102,10 @@ export default async function Matching({ searchParams }: {
           Ranking the bench against <b>{chosen?.full_name}</b>{chosen?.org_name ? ` at ${chosen.org_name}` : ''},
           whose Signature reads as <b>{type.n}</b>. Only the people you
           <b> release</b> appear in their account — nothing else is visible to them.
+          {role
+            ? <> Their role breakdown says: {roleShape(role)}.</>
+            : <> <b>They have not broken the role down yet</b>, so the Role column
+                 is empty — fit here is personality only, not capability.</>}
         </p>
       </div>
       <div className="match-layout">
@@ -109,7 +121,7 @@ export default async function Matching({ searchParams }: {
             <div className="row" style={{ gap: 8 }}><span className="pill">{ranked.length} available</span>
               <span className="pill good"><span className="dot" />{releasedCount} released</span></div></div>
           <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Talent</th><th>Fit</th><th>Style / Disp.</th><th>Confidence</th><th>Weakest axis</th><th>Status</th><th style={{textAlign:'right'}}>Match control</th></tr></thead>
+            <thead><tr><th>Talent</th><th>Fit</th><th>Role</th><th>Style / Disp.</th><th>Confidence</th><th>Weakest axis</th><th>Status</th><th style={{textAlign:'right'}}>Match control</th></tr></thead>
             <tbody>
               {ranked.map(({ person, match, checks }) => {
                 const worst = [...match.parts].sort((a, b) => a.score - b.score)[0];
@@ -119,6 +131,11 @@ export default async function Matching({ searchParams }: {
                     <td><b>{person.name}</b><div className="small muted">{person.role}</div></td>
                     <td><div className="row" style={{ gap: 10 }}><span className="num">{match.overall}%</span>
                       <div className="bar-mini" style={{ width: 60 }}><span style={{ width: `${match.overall}%` }} /></div></div></td>
+                    <td>{cover[person.id] == null
+                      ? <span className="xs muted">—</span>
+                      : <span className={`pill ${cover[person.id]! >= 80 ? 'good' : cover[person.id]! >= 60 ? 'warn' : 'crit'}`}>
+                          {cover[person.id]}%
+                        </span>}</td>
                     <td className="small muted">{match.l1} / {match.l2}</td>
                     <td><span className={`pill ${match.confidence.level === 'High' ? 'good' : match.confidence.level === 'Moderate' ? '' : 'warn'}`}>{match.confidence.level}</span></td>
                     <td className="small muted">{worst.axis.name} · {worst.score}</td>

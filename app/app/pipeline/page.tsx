@@ -7,6 +7,8 @@ import Shell from '@/components/Shell';
 import { Portrait, AxisBars } from '@/components/Viz';
 import DecisionControls from '@/components/DecisionControls';
 import { listDecisions } from '@/lib/work';
+import RoleFit from '@/components/RoleFit';
+import { getRoleBreakdown, skillsFor } from '@/lib/roles';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -22,6 +24,10 @@ export default async function Pipeline() {
      exactly the people Relève has released to them, and nobody else. */
   const ranked = await rankBench(sig);
   const decisions = await listDecisions(profile.id);
+  /* The other half of the match: can this person actually do the job the
+     executive described? */
+  const role = await getRoleBreakdown(profile.id);
+  const skills = await skillsFor(ranked.map(r => r.person.id));
   const byTalent = Object.fromEntries(decisions.map(d => [d.talent_id, d]));
 
   return (
@@ -97,6 +103,8 @@ export default async function Pipeline() {
                 on a number alone.
               </p>
             </div>
+
+            <RoleFit role={role} skills={skills[person.id] ?? null} name={person.name} />
 
             <details className="more">
               <summary>See the full assessment</summary>

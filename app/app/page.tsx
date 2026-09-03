@@ -6,6 +6,7 @@ import { getAvailability, getSelfProfile, getCalendar, getSearch } from '@/lib/s
 import { talentSteps, clientSteps, progress } from '@/lib/onboarding';
 import Checklist from '@/components/Checklist';
 import { listVetting } from '@/lib/work';
+import { getRoleBreakdown, getSkills, AREAS } from '@/lib/roles';
 import { L1, L2 } from '@/lib/signature/model';
 import { execSelfLines, talentSelfLines, fitSentence, matchHeadline } from '@/lib/plain';
 import Shell from '@/components/Shell';
@@ -38,15 +39,21 @@ export default async function AppHome() {
   const brief = side === 'client' ? await getSearch(profile.id) : null;
   const avail = await getAvailability(profile.id, '');
   const vetting = side === 'talent' ? await listVetting(profile.id) : [];
+  const role   = side === 'client' ? await getRoleBreakdown(profile.id) : null;
+  const skills = side === 'talent' ? await getSkills(profile.id) : null;
+  /* Half-answered is not answered: the questionnaire only earns its keep once
+     every area has a view on it. */
+  const hasRole   = !!role   && AREAS.every(a => role.ownership?.[a.key]);
+  const hasSkills = !!skills && AREAS.every(a => skills.level?.[a.key]);
   const hasAvailability = !!avail.timezone && (avail.windows?.length ?? 0) > 0;
   const steps = side === 'client'
-    ? clientSteps({ hasSignature: !!sig, hasAvailability, hasIntro: !!(self.bio && self.photo_url) })
+    ? clientSteps({ hasSignature: !!sig, hasAvailability, hasIntro: !!(self.bio && self.photo_url), hasRole })
     : talentSteps({
-        hasSignature: !!sig, hasAvailability,
+        hasSignature: !!sig, hasAvailability, hasSkills,
         hasProfile: !!(self.bio && (self.skills?.length ?? 0) > 0),
         hasPhoto: !!self.photo_url,
         vettingDone: vetting.filter(v => v.state === 'verified').length,
-        vettingTotal: 3
+        vettingTotal: 2
       });
   const setup = progress(steps);
 

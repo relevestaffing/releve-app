@@ -114,7 +114,7 @@ export default function OfferDesk({ offers, clients, talent }: {
               <input value={f.hours} onChange={e => set('hours', e.target.value)}
                 placeholder="40 a week, four hours overlapping 8am Pacific" /></div>
 
-            <div className="ff"><label>What they will own</label>
+            <div className="ff"><label>What this role owns outright</label>
               <textarea rows={2} value={f.scope} onChange={e => set('scope', e.target.value)}
                 placeholder="Inbox and calendar, board prep, running the weekly leadership meeting." /></div>
 

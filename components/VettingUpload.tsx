@@ -64,7 +64,7 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h4>{item.label}</h4>
                 <p className="small muted" style={{ margin: '4px 0 0' }}>{item.ask}</p>
-                <p className="xs muted" style={{ margin: '6px 0 0' }}>{item.why}</p>
+                {item.why && <p className="xs muted" style={{ margin: '6px 0 0' }}>{item.why}</p>}
                 {state === 'rejected' && row?.reject_reason && (
                   <p className="small" style={{ color: '#7A2E26', marginTop: 10 }}>
                     <b>Needs another go:</b> {row.reject_reason}
@@ -82,17 +82,16 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
               </span>
             </div>
 
-            {/* Documents Relève issues: the candidate reads them, never uploads. */}
+            {/* Relève issues and files this one. Nothing for the candidate to do
+                but read it, so the row is a status and a link, nothing more. */}
             {item.issuedByTeam ? (
-              <div className="vet-actions">
-                {row?.file_path
-                  ? <button className="btn sm ghost" onClick={() => view(row.file_path!)}>
-                      Read your {item.label.toLowerCase()}
-                    </button>
-                  : <span className="xs muted">
-                      We will send this to you to sign, then file it here. Nothing to do yet.
-                    </span>}
-              </div>
+              row?.file_path && (
+                <div className="vet-actions">
+                  <button className="btn sm ghost" onClick={() => view(row.file_path!)}>
+                    Read your {item.label.toLowerCase()}
+                  </button>
+                </div>
+              )
             ) : state !== 'verified' && (
               <div className="vet-actions">
                 <input

@@ -54,7 +54,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
           <select name="stage" defaultValue={initial?.stage ?? 'Sourcing'}>
             {STAGES.map(s => <option key={s}>{s}</option>)}</select></div>
       </div>
-      <div className="ff"><label>What they will own</label>
+      <div className="ff"><label>What the talent will own</label>
         <textarea name="scope" rows={2} defaultValue={initial?.scope ?? ''}
           placeholder="Inbox and calendar, board prep, running the weekly leadership meeting end to end." /></div>
       <div className="grid-2" style={{ gap: 12 }}>

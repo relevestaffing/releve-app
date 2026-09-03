@@ -1815,3 +1815,59 @@ begin
     jsonb_build_object('placement_id', pid, 'client_id', o.client_id, 'talent_id', o.talent_id));
   return pid;
 end $$;
+
+
+-- ============================================================
+-- THE ROLE BREAKDOWN AND THE SKILLS PROFILE, 3 Sept 2026
+--
+-- Two questionnaires answered against one shared list of work areas.
+-- The executive says how much of each area belongs to the talent; the talent
+-- says how strong they are in the same areas and which they want to do.
+--
+-- Because both answer the same list, the two compare directly. The Signature
+-- says whether two people will work well together; this says whether the
+-- person can actually do the job. Both are needed and they are not the same
+-- question.
+-- ============================================================
+
+create table if not exists role_breakdown (
+  client_id  uuid primary key references profiles(id) on delete cascade,
+  ownership  jsonb not null default '{}',   -- area key -> none | shared | all
+  priorities text,                          -- the three or four that matter most
+  never      text,                          -- what is never delegated
+  tools      text,
+  success    text,                          -- what a good week looks like
+  updated_at timestamptz not null default now()
+);
+
+alter table role_breakdown enable row level security;
+drop policy if exists "own role breakdown" on role_breakdown;
+create policy "own role breakdown" on role_breakdown for all
+  using (client_id = auth.uid() or is_admin())
+  with check (client_id = auth.uid() or is_admin());
+-- Talent released to this executive may read the shape of the role they are
+-- being considered for. They see the areas, never the executive's private notes.
+drop policy if exists "candidate reads the role" on role_breakdown;
+create policy "candidate reads the role" on role_breakdown for select
+  using (share_work(auth.uid(), client_id));
+
+create table if not exists skills_profile (
+  talent_id  uuid primary key references profiles(id) on delete cascade,
+  level      jsonb not null default '{}',   -- area key -> no | some | strong | expert
+  appetite   jsonb not null default '{}',   -- area key -> avoid | fine | love
+  tools      text,
+  best       text,
+  growing    text,
+  updated_at timestamptz not null default now()
+);
+
+alter table skills_profile enable row level security;
+drop policy if exists "own skills profile" on skills_profile;
+create policy "own skills profile" on skills_profile for all
+  using (talent_id = auth.uid() or is_admin())
+  with check (talent_id = auth.uid() or is_admin());
+-- An executive sees the skills of anyone released to them: it is half of why
+-- they were put forward.
+drop policy if exists "client reads released skills" on skills_profile;
+create policy "client reads released skills" on skills_profile for select
+  using (share_work(auth.uid(), talent_id));

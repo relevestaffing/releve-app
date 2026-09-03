@@ -93,8 +93,8 @@ export const VETTING_ITEMS: {
     why: 'Executives are handing over calendars, inboxes and sometimes finances. Knowing who you are is the floor.',
     expires: true, issuedByTeam: false },
   { kind: 'agreement', label: 'Your agreement with Relève',
-    ask: 'We send this to you, you sign it, and we file it here. Nothing for you to upload.',
-    why: 'The contractor agreement and NDA. You will see things that are not yours to repeat — this is the promise that you will not.',
+    ask: 'Your contractor agreement and NDA. We send it to you, you sign it, and we file it here.',
+    why: '',
     expires: false, issuedByTeam: true }
 ];
 
