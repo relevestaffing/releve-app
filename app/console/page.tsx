@@ -44,7 +44,7 @@ export default async function Console() {
           <h3>Today</h3>
           <span className={`pill ${urgent.length ? 'crit' : attention.length ? 'warn' : 'good'}`}>
             {attention.length
-              ? `${attention.reduce((n, a) => n + a.count, 0)} things`
+              ? `${attention.reduce((n, a) => n + a.count, 0)} items need you`
               : <><span className="dot" />All clear</>}
           </span>
         </div>
@@ -168,12 +168,6 @@ export default async function Console() {
           </table>
         )}
       </div>
-
-      {!configured() && (
-        <p className="small muted" style={{ marginTop: 20 }}>
-          Demo mode — add your Supabase keys to <code>.env.local</code> for live data.
-        </p>
-      )}
     </Shell>
   );
 }

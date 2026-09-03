@@ -68,7 +68,7 @@ export default function BookInterview({ talentId, talentName, slots, tz }: {
   return (
     <div className="card tight">
       <div className="card-head" style={{ marginBottom: 10 }}>
-        <h3 style={{ fontSize: 16 }}>Times you are both free</h3>
+        <h3>Times you are both free</h3>
         <button className="x-btn" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="xs muted" style={{ marginBottom: 16 }}>Shown in your time ({tz.replace('_', ' ')}). 45 minutes.</p>

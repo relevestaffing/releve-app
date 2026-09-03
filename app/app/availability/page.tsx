@@ -12,7 +12,7 @@ export default async function AvailabilityPage() {
   if (!profile) redirect('/');
   const who = profile.role === 'client' ? 'client' : 'talent';
   return (
-    <Shell profile={profile} active="/app/availability" title="Your availability" crumb="Interviews">
+    <Shell profile={profile} active="/app/availability" title="Availability" crumb="Interviews">
       <CalendarConnect />
       <AvailabilityEditor who={who} />
     </Shell>

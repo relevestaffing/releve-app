@@ -118,7 +118,7 @@ export default async function Interviews() {
               <div className="row between" style={{ flexWrap: 'wrap', gap: 16, marginBottom: 18 }}>
                 <div className="row">
                   <Portrait id={b.id} name={b.name} />
-                  <div><h3 style={{ fontSize: 19 }}>{b.name}</h3>
+                  <div><h3>{b.name}</h3>
                     <div className="small muted">{b.role} · {b.slots.length} times you are both free</div></div>
                 </div>
               </div>
@@ -137,7 +137,7 @@ export default async function Interviews() {
               <div className="row" style={{ gap: 16, marginBottom: m.who.bio || m.brief ? 18 : 0 }}>
                 <Portrait id={m.id} name={m.name} cls="lg" url={m.who.photo_url} />
                 <div>
-                  <h3 style={{ fontSize: 20 }}>{m.who.full_name ?? m.name}</h3>
+                  <h3>{m.who.full_name ?? m.name}</h3>
                   <div className="small muted">
                     {[m.who.headline, m.who.org_name, m.who.location].filter(Boolean).join(' · ') || 'Executive'}
                   </div>

@@ -19,7 +19,7 @@ export default async function People() {
   const missing = rows.filter(r => !r.brief?.role_title).length;
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/people" title="Clients" crumb="Accounts and open roles">
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/people" title="Executives" crumb="Accounts and open roles">
       <AddPerson role="client" />
 
       {missing > 0 && (

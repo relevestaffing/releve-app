@@ -22,7 +22,7 @@ export default function InterviewFeedback({ interviewId, who, side, existing }: 
         interview_id: interviewId, rating, proceed: f.get('proceed'),
         strengths: f.get('strengths'), concerns: f.get('concerns'), notes: f.get('notes')
       })
-    }), 'Thank you — that helps more than you think');
+    }), 'Thank you. Noted.');
     setBusy(false);
     if (ok) { setOpen(false); router.refresh(); }
   }

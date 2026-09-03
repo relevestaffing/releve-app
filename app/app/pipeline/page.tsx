@@ -65,7 +65,7 @@ export default async function Pipeline() {
               <div className="row">
                 <Portrait id={person.id} name={person.name} cls="lg" url={person.photo_url} />
                 <div>
-                  <h3 style={{ fontSize: 22 }}>{person.name}</h3>
+                  <h3>{person.name}</h3>
                   <div className="small muted">{person.role} · {person.yrs} years · {person.loc} ({person.tz})</div>
                 </div>
               </div>

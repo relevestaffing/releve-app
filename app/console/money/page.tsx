@@ -83,7 +83,7 @@ export default async function ConsoleMoney() {
   const live = placements.filter(p => !p.ended_on);
 
   return (
-    <Shell profile={profile} active="/console/money" title="Money"
+    <Shell profile={profile} active="/console/money" title="Billing"
       crumb="Deposits, rates and invoices"
       action={<RunTheMonth month={thisMonth} />}>
 

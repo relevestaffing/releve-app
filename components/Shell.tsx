@@ -4,51 +4,83 @@ import DemoSwitch from './DemoSwitch';
 import TermsGate from './TermsGate';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 
-const NAV: Record<string, { href: string; label: string }[]> = {
+/* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
+   four labelled groups is a product. Nothing is removed — everything stays
+   reachable — but the eye now lands on a heading first.
+
+   Labels here must match each page's own <Shell title>, or the sidebar and
+   the page disagree about what you are looking at. */
+type NavItem = { href: string; label: string };
+type NavGroup = { group?: string; items: NavItem[] };
+
+const NAV: Record<string, NavGroup[]> = {
   client: [
-    { href: '/app', label: 'Dashboard' },
-    { href: '/app/signature', label: 'Executive Signature' },
-    { href: '/app/role', label: 'The Role' },
-    { href: '/app/profile', label: 'My Profile' },
-    { href: '/app/pipeline', label: 'Your Matches' },
-    { href: '/app/tasks', label: 'Tasks' },
-    { href: '/app/interviews', label: 'Interviews' },
-    { href: '/app/availability', label: 'Availability' },
-    { href: '/app/care', label: 'Your Placement' },
-    { href: '/app/billing', label: 'Billing' },
-    { href: '/app/messages', label: 'Messages' }
+    { items: [{ href: '/app', label: 'Dashboard' }] },
+    { group: 'Your brief', items: [
+      { href: '/app/signature', label: 'Executive Signature' },
+      { href: '/app/role', label: 'The Role' },
+      { href: '/app/profile', label: 'Your Profile' }
+    ]},
+    { group: 'Hiring', items: [
+      { href: '/app/pipeline', label: 'Your Matches' },
+      { href: '/app/interviews', label: 'Interviews' },
+      { href: '/app/availability', label: 'Availability' }
+    ]},
+    { group: 'Working together', items: [
+      { href: '/app/care', label: 'Your Placement' },
+      { href: '/app/tasks', label: 'Tasks' },
+      { href: '/app/billing', label: 'Billing' }
+    ]},
+    { items: [{ href: '/app/messages', label: 'Messages' }] }
   ],
+
   talent: [
-    { href: '/app', label: 'Dashboard' },
-    { href: '/app/signature', label: 'Talent Signature' },
-    { href: '/app/skills', label: 'Your Skills' },
-    { href: '/app/talent', label: 'My Profile' },
-    { href: '/app/vetting', label: 'Verification' },
-    { href: '/app/tasks', label: 'Tasks' },
-    { href: '/app/checkin', label: 'Weekly check-in' },
-    { href: '/app/care', label: 'Your Placement' },
-    { href: '/app/interviews', label: 'Interviews' },
-    { href: '/app/availability', label: 'Availability' },
-    { href: '/app/messages', label: 'Messages' }
+    { items: [{ href: '/app', label: 'Dashboard' }] },
+    { group: 'Your profile', items: [
+      { href: '/app/signature', label: 'Talent Signature' },
+      { href: '/app/skills', label: 'Your Skills' },
+      { href: '/app/talent', label: 'Your Profile' },
+      { href: '/app/vetting', label: 'Verification' }
+    ]},
+    { group: 'Opportunities', items: [
+      { href: '/app/interviews', label: 'Interviews' },
+      { href: '/app/availability', label: 'Availability' }
+    ]},
+    { group: 'Your placement', items: [
+      { href: '/app/care', label: 'Your Placement' },
+      { href: '/app/tasks', label: 'Tasks' },
+      { href: '/app/checkin', label: 'Weekly Check-in' }
+    ]},
+    { items: [{ href: '/app/messages', label: 'Messages' }] }
   ],
+
   admin: [
-    { href: '/console', label: 'Overview' },
-    { href: '/console/people', label: 'Clients' },
-    { href: '/console/bench', label: 'Talent Bench' },
-    { href: '/console/vetting', label: 'Verification' },
-    { href: '/console/matching', label: 'Matching Engine' },
-    { href: '/console/interviews', label: 'Interviews' },
-    { href: '/console/offers', label: 'Offers' },
-    { href: '/console/placements', label: 'Placements' },
-    { href: '/console/money', label: 'Money' },
-    { href: '/console/care', label: 'Care' },
-    { href: '/console/reports', label: 'Reports' },
-    { href: '/console/team', label: 'Team' },
-    { href: '/console/checkins', label: 'Check-ins' },
-    { href: '/console/signals', label: 'What we learn' },
-    { href: '/console/messages', label: 'Messages' }
+    { items: [{ href: '/console', label: 'Overview' }] },
+    { group: 'People', items: [
+      { href: '/console/people', label: 'Executives' },
+      { href: '/console/bench', label: 'Talent Bench' },
+      { href: '/console/vetting', label: 'Verification' }
+    ]},
+    { group: 'Placing', items: [
+      { href: '/console/matching', label: 'Matching' },
+      { href: '/console/interviews', label: 'Interviews' },
+      { href: '/console/offers', label: 'Offers' }
+    ]},
+    { group: 'Running', items: [
+      { href: '/console/placements', label: 'Placements' },
+      { href: '/console/care', label: 'Care' },
+      { href: '/console/checkins', label: 'Check-ins' },
+      { href: '/console/money', label: 'Billing' }
+    ]},
+    { group: 'The business', items: [
+      { href: '/console/reports', label: 'Reports' },
+      { href: '/console/signals', label: 'Calibration' },
+      { href: '/console/team', label: 'Team' },
+      { href: '/console/messages', label: 'Messages' }
+    ]}
   ]
 };
+
 const WHO: Record<string, string> = { client: 'Executive Account', talent: 'Talent Account', admin: 'Relève Console' };
 
 export default async function Shell({
@@ -79,12 +111,21 @@ export default async function Shell({
             </div>
           </div>
           <nav className="side-nav">
-            {nav.map(n => (
-              <Link key={n.href} href={n.href} className={active === n.href ? 'active' : ''}>{n.label}</Link>
+            {nav.map((g, i) => (
+              <div className="nav-group" key={g.group ?? `g${i}`}>
+                {g.group && <div className="nav-group-label">{g.group}</div>}
+                {g.items.map(n => (
+                  <Link key={n.href} href={n.href} className={active === n.href ? 'active' : ''}>
+                    {n.label}
+                  </Link>
+                ))}
+              </div>
             ))}
           </nav>
           {!configured() && <DemoSwitch current={profile.id === 'demo-new' ? 'new' : profile.role} />}
-          <form action="/api/signout" method="post"><button className="side-foot" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>← Sign out</button></form>
+          <form action="/api/signout" method="post" className="side-foot-form">
+            <button className="side-foot" type="submit">Sign out</button>
+          </form>
         </aside>
         <main className="main">
           <div className="topbar">

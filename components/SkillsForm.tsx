@@ -48,7 +48,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
     <div className="stack">
       <div className="card">
         <div className="card-head">
-          <h3>What are you genuinely good at?</h3>
+          <h3>Your areas of expertise</h3>
           {picked.length > 0 && <span className="pill">{picked.length} chosen</span>}
         </div>
         <p className="small muted" style={{ marginBottom: 20, maxWidth: 620 }}>
@@ -58,7 +58,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
           which one you are.
         </p>
         <p className="xs muted" style={{ marginBottom: 20 }}>
-          Only pick what you could be dropped into on Monday. Breadth is worth
+          Select only work you could take on immediately. Breadth is worth
           a lot here, but a claim you cannot back is the fastest way to a
           placement that does not last.
         </p>

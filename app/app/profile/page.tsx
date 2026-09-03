@@ -23,7 +23,7 @@ export default async function ExecProfile() {
         <div className="row" style={{ gap: 18 }}>
           <Portrait id={profile.id} name={initial.full_name ?? ''} cls="lg" url={initial.photo_url} />
           <div>
-            <h2 style={{ fontSize: 26, color: 'var(--cream)', marginBottom: 6 }}>{initial.full_name || 'Your name'}</h2>
+            <h2 style={{ fontSize: 24, color: 'var(--cream)', marginBottom: 6 }}>{initial.full_name || 'Your name'}</h2>
             <p style={{ fontFamily: 'Marcellus,serif', fontSize: 16, color: 'var(--pale)' }}>
               {[initial.headline, initial.org_name].filter(Boolean).join(' · ') || 'Your title and company'}
             </p>

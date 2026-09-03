@@ -43,7 +43,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
 
   return (
     <Shell profile={profile} active="/console/placements"
-      title={`${p.talent_name} → ${p.client_name}`}
+      title={`${p.talent_name} with ${p.org_name ?? p.client_name}`}
       crumb={p.org_name ?? 'Placement file'}
       action={<Link className="btn sm ghost" href="/console/placements">← All placements</Link>}>
 

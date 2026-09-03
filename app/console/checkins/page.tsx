@@ -19,7 +19,7 @@ export default async function ConsoleCheckins() {
   const attention = checkins.filter(c => c.needs_attention);
 
   return (
-    <Shell profile={profile} active="/console/checkins" title="Weekly check-ins"
+    <Shell profile={profile} active="/console/checkins" title="Check-ins"
       crumb={`Week ending ${fmtDay(week)}`}>
 
       <div className="grid-3">

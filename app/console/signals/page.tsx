@@ -31,7 +31,7 @@ export default async function Signals() {
   const noes = feedback.filter(f => f.proceed === 'no').length;
 
   return (
-    <Shell profile={profile} active="/console/signals" title="What we are learning"
+    <Shell profile={profile} active="/console/signals" title="Calibration"
       crumb="Decisions and interview feedback">
 
       <div className="grid-4">

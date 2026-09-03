@@ -44,7 +44,7 @@ export default async function Matching({ searchParams }: {
   );
 
   if (!clients.length) return (
-    <Shell profile={profile} active="/console/matching" title="Matching Engine"
+    <Shell profile={profile} active="/console/matching" title="Matching"
       crumb="Nobody to match yet">
       <div className="card tight">
         <p className="small">

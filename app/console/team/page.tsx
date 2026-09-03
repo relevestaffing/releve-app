@@ -69,8 +69,7 @@ export default async function ConsoleTeam() {
           ))}
         </div>
         <p className="xs muted" style={{ marginTop: 16 }}>
-          To add someone: make them an account on the Clients page, then set their
-          role to admin in Supabase. They appear here the next time this page loads.
+          To add a manager, create their account and ask Relève to grant console access. They appear here once it is granted.
         </p>
       </div>
 

@@ -74,7 +74,7 @@ export default async function TalentProfile() {
 
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your profile</div>
-        <h2 style={{ fontSize: 38, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
+        <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
         <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
         <p className="small" style={{ maxWidth: 640 }}>{type.d}</p>
       </div>

@@ -62,7 +62,7 @@ export default async function AppHome() {
     <Shell profile={profile} active="/app"
       title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
       crumb="Getting set up">
-      <Checklist steps={steps} heading="A few things and you are done" />
+      <Checklist steps={steps} heading="Before we can begin your search" />
       <div className="card tight">
         <p className="small muted">
           {side === 'client'
@@ -90,7 +90,7 @@ export default async function AppHome() {
       {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your profile</div>
-        <h2 style={{ fontSize: 38, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
+        <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
         <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
         <p className="small" style={{ maxWidth: 640 }}>{type.d}</p>
       </div>
@@ -187,10 +187,6 @@ export default async function AppHome() {
           <Link className="btn solid" href={setup.complete ? '/app/talent' : setup.next!.href}>
             {setup.complete ? 'See your profile' : setup.next!.title}</Link>
         </div>
-      )}
-
-      {!configured() && (
-        <p className="small muted">Demo mode — add your Supabase keys to <code>.env.local</code> for live data.</p>
       )}
     </Shell>
   );

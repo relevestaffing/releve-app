@@ -118,7 +118,7 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
     setBusy(false);
   }
 
-  if (!data || qi === -2) return <div className="empty"><span className="tick" /><p className="small">Loading the instrument…</p></div>;
+  if (!data || qi === -2) return <div className="empty"><span className="tick" /><p className="small">Preparing your assessment</p></div>;
   if (result) return <Results result={result} side={side} />;
   if (interlude) return <Interlude sec={interlude} n={data.sections.findIndex(s => s.name === interlude.name) + 1} />;
 
@@ -151,7 +151,7 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
     <div className="assess-wrap">
       <div className="row between"><span className="eyebrow">Final section</span><span className="xs muted">Conditions</span></div>
       <div className="progress-rail"><span style={{ width: '97%' }} /></div>
-      <h2 style={{ fontSize: 28, marginBottom: 12 }}>Conditions</h2>
+      <h2 style={{ fontSize: 24, marginBottom: 12 }}>Conditions</h2>
       <p className="small muted" style={{ marginBottom: 30 }}>
         Not scored — checked. A match that clears every axis and fails on hours or discretion is not a match.
       </p>
@@ -261,7 +261,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>
           Profile {a.r} · {side === 'client' ? 'Executive' : 'Talent'} Signature
         </div>
-        <h2 style={{ fontSize: 40, color: 'var(--cream)', marginBottom: 8 }}>{a.n}</h2>
+        <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 8 }}>{a.n}</h2>
         <div className="row" style={{ gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
           <span className="pill" style={{ borderColor: 'var(--pale)', color: 'var(--pale)', background: 'transparent' }}>{result.disposition}</span>
           <span className={`pill ${result.validity.verdict === 'Valid' ? 'good' : result.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>

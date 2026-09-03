@@ -71,7 +71,7 @@ export function OutcomeForm({ placementId, predicted }: { placementId: string; p
     setBusy(true);
     const ok = await saving(
       () => post({ action: 'outcome', placement_id: placementId, outcome_score: n, retained, note }),
-      'Recorded — the engine learns from this'
+      'Recorded. This calibrates future matches.'
     );
     setBusy(false);
     if (ok) router.refresh();
