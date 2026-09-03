@@ -1,0 +1,16 @@
+{
+  "name": "Relève Accounts Center",
+  "short_name": "Relève",
+  "description": "Your Relève account — matches, interviews, tasks and check-ins.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF8F2",
+  "theme_color": "#35443A",
+  "icons": [
+    { "src": "/icon-512.png",  "sizes": "512x512",   "type": "image/png", "purpose": "any" },
+    { "src": "/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png",  "sizes": "512x512",   "type": "image/png", "purpose": "maskable" }
+  ]
+}

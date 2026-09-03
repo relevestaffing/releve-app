@@ -1,0 +1,83 @@
+'use client';
+import { useState } from 'react';
+import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
+
+export default function SignIn() {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const live = hasSupabase();
+
+  async function magicLink(e: React.FormEvent) {
+    e.preventDefault();
+    if (!live) { window.location.href = '/app'; return; }
+    setBusy(true); setErr(null);
+    const sb = supabaseBrowser();
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+    });
+    setBusy(false);
+    if (error) setErr(error.message); else setSent(true);
+  }
+  async function google() {
+    if (!live) { window.location.href = '/app'; return; }
+    const sb = supabaseBrowser();
+    await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` }
+    });
+  }
+
+  return (
+    <div className="auth">
+      <div>
+        <img className="auth-logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
+        <div className="auth-card">
+          {sent ? (
+            <>
+              <h2 style={{ fontSize: 24, marginBottom: 12 }}>Check your email</h2>
+              <p className="note">A sign-in link is on its way to <b>{email}</b>. It is valid for one hour and opens your account directly — there is no password to remember.</p>
+              <button className="btn ghost sm" style={{ marginTop: 22 }} onClick={() => setSent(false)}>Use a different address</button>
+            </>
+          ) : (
+            <>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Accounts Center</div>
+              <h2 style={{ fontSize: 26, marginBottom: 10 }}>Sign in</h2>
+              <p className="note" style={{ marginBottom: 24 }}>
+                {live ? 'Enter the email address your account is under. We will send you a link.'
+                      : 'Demo mode — Supabase is not connected yet, so sign-in is skipped and nothing is saved.'}
+              </p>
+              <form onSubmit={magicLink}>
+                <div className="ff">
+                  <label>Email</label>
+                  <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="you@company.com" autoComplete="email" />
+                </div>
+                <button className="btn solid" style={{ width: '100%' }} disabled={busy}>
+                  {busy ? 'Sending…' : live ? 'Email me a sign-in link' : 'Enter the demo'}
+                </button>
+              </form>
+              <div className="divider">or</div>
+              <button className="gbtn" onClick={google}>
+                <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
+                  <path fill="#4285F4" d="M45 24.5c0-1.6-.1-2.7-.4-3.9H24v7.1h12c-.2 1.9-1.5 4.7-4.4 6.6l6.7 5.2c4-3.7 6.7-9.1 6.7-15z"/>
+                  <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.8 1.3-4.3 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41.2 15.4 46 24 46z"/>
+                  <path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7.1-5.5C2.9 17 2 20.4 2 24s.9 7 2.4 9.9l7.1-5.5z"/>
+                  <path fill="#EA4335" d="M24 10.5c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.3 29.9 2 24 2 15.4 2 8.1 6.8 4.4 14.1l7.1 5.5C13.3 14.3 18.2 10.5 24 10.5z"/>
+                </svg>
+                Continue with Google
+              </button>
+              {err && <div className="err">{err}</div>}
+              <p className="note" style={{ marginTop: 22, fontSize: 12 }}>
+                Talent applying for the first time should use the address on their application.
+              </p>
+            </>
+          )}
+        </div>
+        <p className="small muted" style={{ marginTop: 26 }}>Relève Executive Staffing · Consider it handled.</p>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,17 @@
+# dependencies and build output
+node_modules
+.next
+out
+
+# secrets — never commit these
+.env
+.env.local
+.env*.local
+
+# hosting
+.netlify
+.vercel
+
+# os
+.DS_Store
+*.log
