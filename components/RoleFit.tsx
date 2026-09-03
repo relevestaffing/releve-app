@@ -1,56 +1,73 @@
-import { coverage, coverageScore, type RoleBreakdown, type SkillsProfile } from '@/lib/roles-public';
+import {
+  fitByDiscipline, roleFitScore, DISCIPLINE,
+  type RoleBreakdown, type SkillsProfile
+} from '@/lib/roles-public';
 
-const TONE = { covered: 'good', stretch: 'warn', gap: 'crit' } as const;
-const WORD = { covered: 'Covered', stretch: 'A stretch', gap: 'Gap' } as const;
+const TONE = { strong: 'good', covered: 'good', thin: 'warn', missing: 'crit' } as const;
+const WORD = { strong: 'Strong', covered: 'Covered', thin: 'Thin', missing: 'Not done it' } as const;
 
-/* The other half of the match. The Signature says whether two people will
-   work well together; this says whether the person can do the job. Both are
-   needed, and no agency in this category shows the client either one. */
-export default function RoleFit({ role, skills, name, compact = false }: {
-  role: RoleBreakdown | null; skills: SkillsProfile | null; name: string; compact?: boolean;
+/* Can this person do the job — discipline by discipline, competency by
+   competency. The Signature answers whether two people will get on; this
+   answers whether the work will get done. Both are needed. */
+export default function RoleFit({ role, skills, name }: {
+  role: RoleBreakdown | null; skills: SkillsProfile | null; name: string;
 }) {
-  const rows = coverage(role, skills);
-  if (!rows.length) return null;
+  const fits = fitByDiscipline(role, skills);
+  if (!fits.length) return null;
 
-  const score = coverageScore(rows);
-  const gaps = rows.filter(r => r.verdict === 'gap');
+  const score = roleFitScore(fits);
   const first = name.split(' ')[0];
+  const missing = fits.flatMap(f => f.missingCore);
 
   return (
-    <div className={compact ? '' : 'card'}>
-      {!compact && (
-        <div className="card-head">
-          <h3>Can they do the job?</h3>
-          <span className={`pill ${score! >= 80 ? 'good' : score! >= 60 ? 'warn' : 'crit'}`}>
-            {score}% of the role covered
-          </span>
-        </div>
-      )}
+    <div className="rolefit">
+      <div className="row between" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+        <div className="eyebrow">Can they do the work</div>
+        <span className={`pill ${score! >= 80 ? 'good' : score! >= 60 ? 'warn' : 'crit'}`}>
+          {score}% of what you asked for
+        </span>
+      </div>
 
-      <p className="small" style={{ marginBottom: 16 }}>
-        {gaps.length === 0
-          ? `${first} covers every area this role hands over.`
-          : gaps.some(g => g.need === 'all')
-            ? `${first} covers most of it, but ${gaps.filter(g => g.need === 'all').length === 1
-                ? 'one area you wanted handed over entirely is new to them'
-                : `${gaps.filter(g => g.need === 'all').length} areas you wanted handed over entirely are new to them`}.`
-            : `${first} covers the areas you own outright; the gaps are in shared work.`}
+      <p className="small" style={{ marginBottom: 18 }}>
+        {missing.length === 0
+          ? `${first} can do everything you marked as a must-have.`
+          : missing.length === 1
+            ? `${first} covers almost all of it. One must-have — ${missing[0].label.toLowerCase()} — they have not done before.`
+            : `${first} covers most of it, with ${missing.length} must-haves they have not done before.`}
       </p>
 
-      <ul className="fit-list">
-        {rows.map(r => (
-          <li key={r.key} className={r.verdict}>
-            <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
-              <b>{r.name}</b>
-              <div className="row" style={{ gap: 8 }}>
-                {r.need === 'all' && <span className="pill">Entirely theirs</span>}
-                <span className={`pill ${TONE[r.verdict]}`}>{WORD[r.verdict]}</span>
-              </div>
+      {fits.map(f => (
+        <div className="fit-disc" key={f.key}>
+          <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
+            <b>{f.name}</b>
+            <div className="row" style={{ gap: 8 }}>
+              {f.years != null && f.years > 0 && <span className="xs muted">{f.years} years</span>}
+              <span className={`pill ${f.score >= 80 ? 'good' : f.score >= 60 ? 'warn' : 'crit'}`}>
+                {f.score}%
+              </span>
             </div>
-            <p className="xs muted">{r.note}</p>
-          </li>
-        ))}
-      </ul>
+          </div>
+
+          <ul className="fit-list">
+            {f.comps
+              .slice()
+              .sort((a, b) =>
+                (a.verdict === 'missing' ? 0 : a.verdict === 'thin' ? 1 : 2) -
+                (b.verdict === 'missing' ? 0 : b.verdict === 'thin' ? 1 : 2))
+              .map(c => (
+                <li key={c.comp} className={c.verdict}>
+                  <div className="row between" style={{ gap: 10, flexWrap: 'wrap' }}>
+                    <span>{c.label}</span>
+                    <div className="row" style={{ gap: 7 }}>
+                      {c.need === 'core' && <span className="pill">Must have</span>}
+                      <span className={`pill ${TONE[c.verdict]}`}>{WORD[c.verdict]}</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }

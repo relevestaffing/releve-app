@@ -1831,14 +1831,23 @@ end $$;
 -- ============================================================
 
 create table if not exists role_breakdown (
-  client_id  uuid primary key references profiles(id) on delete cascade,
-  ownership  jsonb not null default '{}',   -- area key -> none | shared | all
-  priorities text,                          -- the three or four that matter most
-  never      text,                          -- what is never delegated
-  tools      text,
-  success    text,                          -- what a good week looks like
-  updated_at timestamptz not null default now()
+  client_id   uuid primary key references profiles(id) on delete cascade,
+  disciplines jsonb not null default '[]',  -- which disciplines the role is made of
+  needs       jsonb not null default '{}',  -- "ea.inbox_triage" -> core | useful | no
+  details     jsonb not null default '{}',  -- discipline-specific answers
+  priorities  text,
+  never       text,
+  tools       text,
+  success     text,
+  hours       text,
+  updated_at  timestamptz not null default now()
 );
+-- columns added after the first version of this table shipped
+alter table role_breakdown add column if not exists disciplines jsonb not null default '[]';
+alter table role_breakdown add column if not exists needs       jsonb not null default '{}';
+alter table role_breakdown add column if not exists details     jsonb not null default '{}';
+alter table role_breakdown add column if not exists hours       text;
+alter table role_breakdown drop column if exists ownership;
 
 alter table role_breakdown enable row level security;
 drop policy if exists "own role breakdown" on role_breakdown;
@@ -1846,20 +1855,30 @@ create policy "own role breakdown" on role_breakdown for all
   using (client_id = auth.uid() or is_admin())
   with check (client_id = auth.uid() or is_admin());
 -- Talent released to this executive may read the shape of the role they are
--- being considered for. They see the areas, never the executive's private notes.
+-- being considered for. They see the requirements, never the private notes.
 drop policy if exists "candidate reads the role" on role_breakdown;
 create policy "candidate reads the role" on role_breakdown for select
   using (share_work(auth.uid(), client_id));
 
 create table if not exists skills_profile (
-  talent_id  uuid primary key references profiles(id) on delete cascade,
-  level      jsonb not null default '{}',   -- area key -> no | some | strong | expert
-  appetite   jsonb not null default '{}',   -- area key -> avoid | fine | love
-  tools      text,
-  best       text,
-  growing    text,
-  updated_at timestamptz not null default now()
+  talent_id   uuid primary key references profiles(id) on delete cascade,
+  disciplines jsonb not null default '[]',  -- every discipline they claim
+  levels      jsonb not null default '{}',  -- "social.shortform" -> none | learning | solid | deep
+  details     jsonb not null default '{}',
+  years       jsonb not null default '{}',  -- "social" -> 4
+  primary_key text,                         -- their home discipline
+  best        text,
+  growing     text,
+  tools       text,
+  updated_at  timestamptz not null default now()
 );
+alter table skills_profile add column if not exists disciplines jsonb not null default '[]';
+alter table skills_profile add column if not exists levels      jsonb not null default '{}';
+alter table skills_profile add column if not exists details     jsonb not null default '{}';
+alter table skills_profile add column if not exists years       jsonb not null default '{}';
+alter table skills_profile add column if not exists primary_key text;
+alter table skills_profile drop column if exists level;
+alter table skills_profile drop column if exists appetite;
 
 alter table skills_profile enable row level security;
 drop policy if exists "own skills profile" on skills_profile;

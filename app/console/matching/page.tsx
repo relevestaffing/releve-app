@@ -7,7 +7,7 @@ import { Radar } from '@/components/Viz';
 import MatchControls from '@/components/MatchControls';
 import { listMatches } from '@/lib/store';
 import { listPeople } from '@/lib/work';
-import { getRoleBreakdown, skillsFor, coverage, coverageScore, roleShape } from '@/lib/roles';
+import { getRoleBreakdown, skillsFor, fitByDiscipline, roleFitScore, roleShape } from '@/lib/roles';
 import Link from 'next/link';
 
 /* always read live data — never serve a cached copy of someone's account */
@@ -86,7 +86,7 @@ export default async function Matching({ searchParams }: {
   const role = await getRoleBreakdown(clientId);
   const skills = await skillsFor(ranked.map(r => r.person.id));
   const cover = Object.fromEntries(ranked.map(r =>
-    [r.person.id, coverageScore(coverage(role, skills[r.person.id] ?? null))]));
+    [r.person.id, roleFitScore(fitByDiscipline(role, skills[r.person.id] ?? null))]));
   const matches = await listMatches(clientId);
   const byTalent = Object.fromEntries(matches.map(m => [m.talent_id, m]));
   const releasedCount = matches.filter(m => m.released).length;
@@ -103,7 +103,8 @@ export default async function Matching({ searchParams }: {
           whose Signature reads as <b>{type.n}</b>. Only the people you
           <b> release</b> appear in their account — nothing else is visible to them.
           {role
-            ? <> Their role breakdown says: {roleShape(role)}.</>
+            ? <> The role is <b>{roleShape(role)}</b>, and the Role column scores each
+                 candidate against exactly what they asked for.</>
             : <> <b>They have not broken the role down yet</b>, so the Role column
                  is empty — fit here is personality only, not capability.</>}
         </p>

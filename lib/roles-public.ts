@@ -1,203 +1,144 @@
 /* THE ROLE BREAKDOWN AND THE SKILLS PROFILE
 
-   Two questionnaires answered against one shared list of work.
+   Both branch on discipline. The executive names the role — executive
+   assistance, social media, bookkeeping — and the questions that follow are
+   specific to it. The talent picks every discipline they are actually strong
+   in and answers the same specific questions for each.
 
-   The executive says, area by area, how much of it belongs to the talent:
-   nothing, some of it, or all of it. The talent says how strong they are in
-   the same areas and which they actually want to do.
+   That is the whole differentiator. "Good at social media" is not a
+   qualification; "can run a paid budget over $10k, edits short-form, owns the
+   calendar end to end, has never touched influencer outreach" is.
 
-   Because both sides answer the same list, the two can be compared directly
-   — "this role is 100% inbox and calendar, and this person is expert at it
-   and enjoys it" is a sentence the app can now say rather than a hope.
+   Client-safe: types and arithmetic only. */
+import { DISCIPLINES, DISCIPLINE, compsOf, type Need, type Prof } from './disciplines';
 
-   Client-safe: types and wording only, no database code. */
+export * from './disciplines';
+export { DISCIPLINES, DISCIPLINE, compsOf };
 
-export type Ownership = 'none' | 'shared' | 'all';
-export type Level = 'no' | 'some' | 'strong' | 'expert';
-export type Appetite = 'avoid' | 'fine' | 'love';
-
-export const OWNERSHIP: { key: Ownership; label: string; hint: string }[] = [
-  { key: 'none',   label: 'Not part of the role', hint: 'Stays with you or someone else entirely' },
-  { key: 'shared', label: 'Shared with you',      hint: 'They help; you still hold it' },
-  { key: 'all',    label: 'Entirely theirs',      hint: 'It leaves your desk and does not come back' }
-];
-
-export const LEVELS: { key: Level; label: string; hint: string }[] = [
-  { key: 'no',     label: 'Not really',   hint: 'Little or no experience' },
-  { key: 'some',   label: 'Some',         hint: 'Have done it, would need a steer' },
-  { key: 'strong', label: 'Strong',       hint: 'Comfortable running it unsupervised' },
-  { key: 'expert', label: 'This is my thing', hint: 'Could set it up from scratch and teach it' }
-];
-
-export const APPETITES: { key: Appetite; label: string }[] = [
-  { key: 'avoid', label: 'Rather not' },
-  { key: 'fine',  label: 'Happy to' },
-  { key: 'love',  label: 'Love it' }
-];
-
-/* The areas. Deliberately about the WORK, not about job titles — a role is
-   described by what actually leaves the executive's desk. */
-export type Area = {
-  key: string;
-  name: string;
-  /* What this covers, said the way an executive would say it. */
-  covers: string;
-  /* The concrete tasks, so nobody has to guess what the area means. */
-  tasks: string[];
-};
-
-export const AREAS: Area[] = [
-  { key: 'inbox', name: 'Inbox and correspondence',
-    covers: 'Reading, triaging, drafting and replying on your behalf.',
-    tasks: ['Triage and flag what matters', 'Draft replies in your voice',
-            'Chase unanswered threads', 'Unsubscribe and keep it clean'] },
-
-  { key: 'calendar', name: 'Calendar and scheduling',
-    covers: 'Owning the diary, the conflicts, and the travel around it.',
-    tasks: ['Book and reschedule', 'Protect focus time', 'Handle time zones',
-            'Confirm and remind attendees'] },
-
-  { key: 'meetings', name: 'Meeting preparation and follow-up',
-    covers: 'Making sure you walk in ready and walk out with actions moving.',
-    tasks: ['Agendas and briefing notes', 'Background on who you are meeting',
-            'Minutes and action capture', 'Chasing the follow-ups'] },
-
-  { key: 'travel', name: 'Travel and logistics',
-    covers: 'Everything between deciding to go and getting home.',
-    tasks: ['Flights, hotels, ground transport', 'Itineraries and visas',
-            'Restaurant and venue booking', 'Rebooking when it falls apart'] },
-
-  { key: 'projects', name: 'Projects and coordination',
-    covers: 'Holding a piece of work together across other people.',
-    tasks: ['Tracking deadlines and owners', 'Chasing other departments',
-            'Status updates', 'Keeping the plan current'] },
-
-  { key: 'docs', name: 'Documents and reporting',
-    covers: 'Turning raw material into something presentable.',
-    tasks: ['Decks and one-pagers', 'Spreadsheets and reporting',
-            'Proofreading and formatting', 'Research and summaries'] },
-
-  { key: 'crm', name: 'CRM, pipeline and client follow-up',
-    covers: 'Keeping the commercial side moving and recorded.',
-    tasks: ['Updating the CRM', 'Follow-up sequences', 'Proposal and quote prep',
-            'Reporting on the pipeline'] },
-
-  { key: 'finance', name: 'Bookkeeping and expenses',
-    covers: 'The money admin, not the accounting.',
-    tasks: ['Expense reports and receipts', 'Invoicing and chasing payment',
-            'Subscription and vendor tracking', 'Liaising with the accountant'] },
-
-  { key: 'social', name: 'Social, content and marketing support',
-    covers: 'Publishing and keeping the presence alive.',
-    tasks: ['Scheduling and posting', 'Drafting captions and newsletters',
-            'Community replies and DMs', 'Basic graphics from a template'] },
-
-  { key: 'people', name: 'Hiring and team admin',
-    covers: 'The administrative half of running people.',
-    tasks: ['Screening and scheduling interviews', 'Onboarding paperwork',
-            'Contractor and vendor coordination', 'Keeping records tidy'] },
-
-  { key: 'ops', name: 'Systems and process',
-    covers: 'Building the machinery so things stop being ad hoc.',
-    tasks: ['Documenting how things are done', 'Setting up automations',
-            'Tidying shared drives', 'Choosing and configuring tools'] },
-
-  { key: 'personal', name: 'Personal and household',
-    covers: 'The life admin that eats the same hours as the business.',
-    tasks: ['Appointments and reminders', 'Gifts, cards and occasions',
-            'Home vendors and deliveries', 'Family calendar'] }
-];
-
-export const AREA = Object.fromEntries(AREAS.map(a => [a.key, a])) as Record<string, Area>;
-
-/* ---------- the shapes each side saves ---------- */
+/* ---------- what the executive saves ---------- */
 export type RoleBreakdown = {
-  /* area key → how much of it is the talent's */
-  ownership: Record<string, Ownership>;
-  /* the three or four things that matter most, in the executive's own words */
+  /* the disciplines this role is made of, most important first */
+  disciplines: string[];
+  /* "ea.inbox_triage" -> core | useful | no */
+  needs: Record<string, Need>;
+  /* "ea.inbox_volume" -> the answer */
+  details: Record<string, string>;
+  /* the same for every role, whatever the discipline */
   priorities: string;
-  /* what will never be delegated, however well it goes */
   never: string;
-  /* the tools they must be able to use on day one */
   tools: string;
-  /* what "a good week" looks like, so success is defined before it starts */
   success: string;
+  hours: string;
 };
 
+/* ---------- what the talent saves ---------- */
 export type SkillsProfile = {
-  level: Record<string, Level>;
-  appetite: Record<string, Appetite>;
-  tools: string;
-  /* what they would say they are best at, unprompted */
+  /* every discipline they claim, each with its own breakdown */
+  disciplines: string[];
+  /* "social.shortform" -> none | learning | solid | deep */
+  levels: Record<string, Prof>;
+  details: Record<string, string>;
+  /* years in each discipline: "social" -> 4 */
+  years: Record<string, number>;
+  /* which one they would call their home discipline */
+  primary: string;
   best: string;
-  /* what they would rather grow into */
   growing: string;
+  tools: string;
 };
+
+export const key = (discipline: string, item: string) => `${discipline}.${item}`;
+
+/* ---------- how complete is each side ---------- */
+export function roleComplete(r: RoleBreakdown | null): boolean {
+  if (!r?.disciplines?.length) return false;
+  return r.disciplines.every(d => compsOf(d).every(c => r.needs?.[key(d, c.key)]));
+}
+export function skillsComplete(s: SkillsProfile | null): boolean {
+  if (!s?.disciplines?.length) return false;
+  return s.disciplines.every(d => compsOf(d).every(c => s.levels?.[key(d, c.key)]));
+}
 
 /* ---------- comparing the two ---------- */
+const NEED_W: Record<Need, number> = { core: 3, useful: 1, no: 0 };
+const HAS_W: Record<Prof, number> = { none: 0, learning: 1, solid: 2, deep: 3 };
 
-const NEED: Record<Ownership, number> = { none: 0, shared: 1, all: 2 };
-const HAS: Record<Level, number> = { no: 0, some: 1, strong: 2, expert: 3 };
-
-export type Coverage = {
-  key: string; name: string;
-  need: Ownership; level: Level; appetite: Appetite;
-  /* covered | stretch | gap — and gap on an "entirely theirs" area is the
-     one that actually sinks a placement */
-  verdict: 'covered' | 'stretch' | 'gap';
-  note: string;
+export type CompFit = {
+  discipline: string; comp: string; label: string; hint: string;
+  need: Need; have: Prof;
+  verdict: 'strong' | 'covered' | 'thin' | 'missing';
 };
 
-export function coverage(role: RoleBreakdown | null, skills: SkillsProfile | null): Coverage[] {
-  if (!role || !skills) return [];
-  return AREAS
-    .filter(a => (role.ownership?.[a.key] ?? 'none') !== 'none')
-    .map(a => {
-      const need = role.ownership[a.key];
-      const level = skills.level?.[a.key] ?? 'no';
-      const appetite = skills.appetite?.[a.key] ?? 'fine';
-      const short = NEED[need] + 1 - HAS[level];   // >0 means they are behind
+export type DisciplineFit = {
+  key: string; name: string;
+  score: number;                 // 0-100 for this discipline
+  years: number | null;
+  comps: CompFit[];
+  missingCore: CompFit[];
+};
 
-      let verdict: Coverage['verdict'] = 'covered';
-      let note = '';
-      if (HAS[level] === 0) {
-        verdict = 'gap';
-        note = need === 'all'
-          ? `The role hands this over entirely and they have not done it before.`
-          : `They would be learning this from scratch alongside you.`;
-      } else if (short > 0) {
-        verdict = 'stretch';
-        note = `They can do this, but ${need === 'all' ? 'owning it outright' : 'this'} would be a step up.`;
-      } else if (appetite === 'avoid') {
-        verdict = 'stretch';
-        note = `They are capable here but said they would rather not. Worth raising on the call.`;
-      } else {
-        note = appetite === 'love'
-          ? `Strong here, and it is the kind of work they say they enjoy most.`
-          : `Comfortable owning this.`;
-      }
-      return { key: a.key, name: a.name, need, level, appetite, verdict, note };
-    });
+function verdictOf(need: Need, have: Prof): CompFit['verdict'] {
+  if (need === 'no') return 'covered';
+  if (HAS_W[have] === 0) return 'missing';
+  if (need === 'core' && HAS_W[have] === 1) return 'thin';
+  if (need === 'core' && HAS_W[have] >= 3) return 'strong';
+  if (need === 'useful' && HAS_W[have] >= 2) return 'strong';
+  return 'covered';
 }
 
-/* One number, for the console and the shortlist. Not part of the Signature —
-   this is about the work, the Signature is about the person. */
-export function coverageScore(rows: Coverage[]): number | null {
-  if (!rows.length) return null;
-  const weight = (r: Coverage) => (r.need === 'all' ? 2 : 1);
-  const got = (r: Coverage) => (r.verdict === 'covered' ? 1 : r.verdict === 'stretch' ? 0.55 : 0);
-  const total = rows.reduce((n, r) => n + weight(r), 0);
-  const score = rows.reduce((n, r) => n + weight(r) * got(r), 0);
-  return Math.round((score / total) * 100);
+export function fitByDiscipline(
+  role: RoleBreakdown | null, skills: SkillsProfile | null
+): DisciplineFit[] {
+  if (!role?.disciplines?.length || !skills) return [];
+
+  return role.disciplines.map(d => {
+    const def = DISCIPLINE[d];
+    const comps: CompFit[] = compsOf(d)
+      .map(c => {
+        const need = role.needs?.[key(d, c.key)] ?? 'no';
+        const have = skills.levels?.[key(d, c.key)] ?? 'none';
+        return { discipline: d, comp: c.key, label: c.label, hint: c.hint,
+                 need, have, verdict: verdictOf(need, have) };
+      })
+      .filter(c => c.need !== 'no');
+
+    const total = comps.reduce((n, c) => n + NEED_W[c.need], 0);
+    const got = comps.reduce((n, c) =>
+      n + NEED_W[c.need] * Math.min(1, HAS_W[c.have] / Math.max(1, NEED_W[c.need] === 3 ? 2 : 1)), 0);
+
+    return {
+      key: d, name: def?.name ?? d,
+      score: total ? Math.round((got / total) * 100) : 0,
+      years: skills.years?.[d] ?? null,
+      comps,
+      missingCore: comps.filter(c => c.need === 'core' && c.verdict === 'missing')
+    };
+  });
 }
 
-export function roleShape(role: RoleBreakdown | null): string {
-  if (!role?.ownership) return '';
-  const all = AREAS.filter(a => role.ownership[a.key] === 'all');
-  const shared = AREAS.filter(a => role.ownership[a.key] === 'shared');
-  if (!all.length && !shared.length) return '';
-  const bits: string[] = [];
-  if (all.length) bits.push(`${all.map(a => a.name.toLowerCase()).slice(0, 3).join(', ')} entirely theirs`);
-  if (shared.length) bits.push(`${shared.length} more shared with you`);
-  return bits.join(', ');
+/* One number for the shortlist and the console. Weighted so the discipline
+   the executive named first counts most. */
+export function roleFitScore(fits: DisciplineFit[]): number | null {
+  if (!fits.length) return null;
+  const w = (i: number) => (i === 0 ? 3 : i === 1 ? 2 : 1);
+  const total = fits.reduce((n, _, i) => n + w(i), 0);
+  return Math.round(fits.reduce((n, f, i) => n + f.score * w(i), 0) / total);
+}
+
+/* The role, in one line, for a heading. */
+export function roleShape(r: RoleBreakdown | null): string {
+  if (!r?.disciplines?.length) return '';
+  const names = r.disciplines.map(d => DISCIPLINE[d]?.name ?? d);
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}
+
+/* What the talent leads with. */
+export function skillsShape(s: SkillsProfile | null): string {
+  if (!s?.disciplines?.length) return '';
+  const ordered = [s.primary, ...s.disciplines.filter(d => d !== s.primary)].filter(Boolean);
+  return ordered.map(d => {
+    const y = s.years?.[d];
+    return `${DISCIPLINE[d]?.name ?? d}${y ? ` (${y}y)` : ''}`;
+  }).join(' · ');
 }
