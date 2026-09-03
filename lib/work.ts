@@ -446,12 +446,6 @@ export async function vettingFileLink(path: string, seconds = 120) {
   return data?.signedUrl ?? null;
 }
 
-export async function isVetted(talentId: string): Promise<boolean> {
-  if (!configured()) return false;
-  const sb = await supabaseServer();
-  const { data } = await sb.rpc('is_vetted', { person: talentId });
-  return Boolean(data);
-}
 
 /* ---------- who to tell ---------- */
 

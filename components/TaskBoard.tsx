@@ -95,7 +95,7 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
               const origin = ORIGINS.find(o => o.key === t.origin);
               return (
                 <li key={t.id} className="task">
-                  <button className="task-check" onClick={() => toggle(t)} aria-label={`Mark ${t.title} done`} />
+                  <button disabled={!!busy} className="task-check" onClick={() => toggle(t)} aria-label={`Mark ${t.title} done`} />
                   <div className="task-body">
                     <div className="task-top">
                       <span className={`pri ${t.priority}`}>{PRIORITIES.find(p => p.key === t.priority)?.label}</span>
@@ -111,7 +111,7 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
                     </div>
                   </div>
                   {t.created_by === me && (
-                    <button className="task-x" onClick={() => remove(t)} aria-label="Remove task">×</button>
+                    <button disabled={!!busy} className="task-x" onClick={() => remove(t)} aria-label="Remove task">×</button>
                   )}
                 </li>
               );
@@ -165,7 +165,7 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
             <ul className="task-list done">
               {done.map(t => (
                 <li key={t.id} className="task">
-                  <button className="task-check on" onClick={() => toggle(t)} aria-label={`Reopen ${t.title}`}>✓</button>
+                  <button disabled={!!busy} className="task-check on" onClick={() => toggle(t)} aria-label={`Reopen ${t.title}`}>✓</button>
                   <div className="task-body"><span className="task-title">{t.title}</span></div>
                 </li>
               ))}

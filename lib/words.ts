@@ -76,21 +76,6 @@ export function fmtWhen(iso: string | null | undefined): string {
     { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-/** "3 days ago", "today", "in 2 weeks" — for how fresh something is. */
-export function fmtSince(iso: string | null | undefined): string {
-  if (!iso) return 'never';
-  const days = Math.round((Date.now() - asUTC(iso).getTime()) / 86_400_000);
-  if (days === 0) return 'today';
-  if (days === 1) return 'yesterday';
-  if (days === -1) return 'tomorrow';
-  if (days < 0) {
-    const n = Math.abs(days);
-    return n < 14 ? `in ${n} days` : `in ${Math.round(n / 7)} weeks`;
-  }
-  if (days < 14) return `${days} days ago`;
-  if (days < 60) return `${Math.round(days / 7)} weeks ago`;
-  return `${Math.round(days / 30)} months ago`;
-}
 
 /* ---------- empty states ---------- */
 /* A blank screen is the cheapest place to lose someone's confidence, and the

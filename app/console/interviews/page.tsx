@@ -19,7 +19,7 @@ export default async function ConsoleInterviews() {
   /* The operator's own timezone, not a hardcoded Pacific. A London-based
      manager was reading every interview eight hours out. */
   const myAvail = await getAvailability(profile.id, '');
-  const tz = myAvail.timezone || 'America/Los_Angeles';
+  const tz = myAvail.timezone?.trim() || 'America/Los_Angeles';
   const tzLabel = tz.split('/')[1]?.replace(/_/g, ' ') ?? tz;
   const count = (s: string) => all.filter(i => i.status === s).length;
 

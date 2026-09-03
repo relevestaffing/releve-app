@@ -110,11 +110,23 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
     conditions.tools = TOOLS.filter(t => (document.getElementById(`tl-${t.replace(/\W/g, '')}`) as HTMLInputElement)?.checked);
     const never = document.getElementById('cd-never') as HTMLTextAreaElement | null;
     if (never) conditions.never = never.value.trim();
-    const r = await fetch('/api/signature/submit', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ side, answers, pairs, timings, conditions })
-    });
-    setResult(await r.json());
+    try {
+      const r = await fetch('/api/signature/submit', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ side, answers, pairs, timings, conditions })
+      });
+      const out = await r.json().catch(() => ({}));
+      /* Never show a result page over a failed save — the person would
+         believe they were finished and close the tab. */
+      if (!r.ok) {
+        toast.bad(out.error ?? 'That did not send. Stay on this page and try again.');
+        setBusy(false);
+        return;
+      }
+      setResult(out);
+    } catch {
+      toast.bad('No connection. Stay on this page — your answers are still here.');
+    }
     setBusy(false);
   }
 

@@ -23,7 +23,8 @@ export default async function CheckinPage() {
       {placements.length === 0 ? (
         <Empty of={EMPTY.checkinUnplaced} />
       ) : placements.map(p => (
-        <CheckinForm key={p.id} placement={p} week={week}
+        <CheckinForm key={`${p.id}-${past.find(c => c.placement_id === p.id && c.week_ending === week)?.id ?? 'new'}`}
+          placement={p} week={week}
           existing={past.find(c => c.placement_id === p.id && c.week_ending === week) ?? null} />
       ))}
 

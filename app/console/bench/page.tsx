@@ -68,9 +68,12 @@ export default async function Bench() {
       {bench.length > 0 && (
       <div className="card">
         <div className="card-head"><h3>Validity detail</h3><span className="pill">Internal only</span></div>
-        <p className="small muted" style={{ marginBottom: 18 }}>
+        <p className="small muted" style={{ marginBottom: 8 }}>
           Clients see a verified badge and confidence bands. These numbers stay here.
         </p>
+        <details className="more">
+          <summary>Show the raw control measures</summary>
+          <div className="inner">
         <table className="data">
           <thead><tr><th>Talent</th><th>Impression mgmt</th><th>Inconsistency</th><th>Extreme</th><th>Longest run</th><th>Median s/item</th><th>Flags</th></tr></thead>
           <tbody>
@@ -87,6 +90,8 @@ export default async function Bench() {
             ))}
           </tbody>
         </table>
+          </div>
+        </details>
       </div>
       )}
       {unbookable.length > 0 && (

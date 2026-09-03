@@ -63,6 +63,8 @@ export async function POST(req: Request) {
   return NextResponse.json({ interview: iv, warning });
 }
 
+const STATUSES = ['Proposed','Confirmed','Declined','Completed','No-show','Cancelled'];
+
 export async function PATCH(req: Request) {
   const p = await currentProfile();
   if (!p) return NextResponse.json({ error: 'not signed in' }, { status: 401 });

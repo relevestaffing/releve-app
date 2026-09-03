@@ -48,7 +48,7 @@ export default async function Care() {
 
       <div className="stack">
         {side === 'client' && (
-          <PulseForm placementId={p.id} talentName={p.talent_name} existing={pulse} />
+          <PulseForm key={pulse?.filed_at ?? "new"} placementId={p.id} talentName={p.talent_name} existing={pulse} />
         )}
 
         {side === 'talent' && (

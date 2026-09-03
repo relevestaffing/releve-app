@@ -1953,3 +1953,8 @@ delete from talent_feedback a using talent_feedback b
  where a.placement_id = b.placement_id and a.period = b.period and a.ctid > b.ctid;
 create unique index if not exists feedback_one_per_period
   on talent_feedback(placement_id, period);
+
+-- Two views nothing reads. Left behind by refactors; dropping them keeps the
+-- schema honest about what is actually in use.
+drop view if exists my_shortlist;
+drop view if exists money_owed;

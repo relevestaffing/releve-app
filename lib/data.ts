@@ -52,32 +52,7 @@ export async function signatureOf(userId: string, side: 'client' | 'talent'): Pr
   return (data as SignatureRow) ?? null;
 }
 
-/* What the executive actually sees: the people Relève has released to them,
-   with the internal assessment machinery left behind. */
-export type ShortlistEntry = {
-  match_id: string; talent_id: string; overall: number;
-  layer1: number | null; layer2: number | null; confidence: string | null;
-  parts: any; conditions: any; client_state: string | null; released_at: string;
-  name: string; role: string | null; loc: string | null; tz: string | null;
-  yrs: number | null; eng: string | null; photo_url: string | null; bio: string | null;
-  scores: Record<string, number>; archetype: string | null;
-};
 
-export async function myShortlist(clientId: string): Promise<ShortlistEntry[]> {
-  if (!configured()) {
-    return DEMO_BENCH.slice(0, 3).map((p, i) => ({
-      match_id: 'demo' + i, talent_id: p.id, overall: 92 - i * 6,
-      layer1: null, layer2: null, confidence: 'High', parts: null, conditions: null,
-      client_state: null, released_at: new Date().toISOString(),
-      name: p.name, role: p.role, loc: p.loc, tz: p.tz, yrs: p.yrs, eng: p.eng,
-      photo_url: p.photo_url ?? null, bio: null, scores: p.scores, archetype: null
-    })) as ShortlistEntry[];
-  }
-  const sb = await supabaseServer();
-  const { data } = await sb.from('my_shortlist').select('*')
-    .eq('client_id', clientId).order('overall', { ascending: false });
-  return (data ?? []) as unknown as ShortlistEntry[];
-}
 
 export type Ranked = { person: Person; match: Match; checks: ReturnType<typeof conditionCheck> };
 export async function rankBench(exec: SignatureRow): Promise<Ranked[]> {
@@ -92,9 +67,5 @@ export async function rankBench(exec: SignatureRow): Promise<Ranked[]> {
     .sort((a, b) => b.match.overall - a.match.overall);
 }
 
-export async function benchPercentile(trait: string, value: number) {
-  const bench = await getBench();
-  return percentile(value, bench.map(p => p.scores[trait]).filter(v => v != null));
-}
 export { archetype, dispositionLine, matchScore, conditionCheck };
 export type { Person, Match };

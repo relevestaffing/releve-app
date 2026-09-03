@@ -84,7 +84,7 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
               {busy ? 'Working…' : preview ? 'Choose a different photo' : 'Choose a photo'}
             </button>
             {preview && !busy && (
-              <button type="button" className="btn sm ghost" onClick={remove}>Remove</button>
+              <button disabled={busy} type="button" className="btn sm ghost" onClick={remove}>Remove</button>
             )}
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>

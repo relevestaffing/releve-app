@@ -79,18 +79,18 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       <div className="grid-2">
         <div className="card">
           <div className="card-head"><h3>The pairing</h3></div>
-          <div className="brief-facts">
-            <span className="eyebrow">Executive</span>
-            <span>{p.client_name}<div className="small muted">{p.client_email}{p.client_tz ? ` · ${p.client_tz.replace('_', ' ')}` : ''}</div></span>
-            <span className="eyebrow">Talent</span>
-            <span>{p.talent_name}<div className="small muted">{p.talent_headline ?? p.talent_email}{p.talent_tz ? ` · ${p.talent_tz.replace('_', ' ')}` : ''}</div></span>
-            <span className="eyebrow">Started</span><span>{day(p.started_on)}</span>
-            {p.ended_on && <><span className="eyebrow">Ended</span>
-              <span>{day(p.ended_on)}{p.ended_reason ? ` · ${p.ended_reason}` : ''}</span></>}
-          </div>
+          <dl className="brief-facts">
+            <dt>Executive</dt>
+            <dd>{p.client_name}<div className="small muted">{p.client_email}{p.client_tz ? ` · ${p.client_tz.replace('_', ' ')}` : ''}</div></dd>
+            <dt>Talent</dt>
+            <dd>{p.talent_name}<div className="small muted">{p.talent_headline ?? p.talent_email}{p.talent_tz ? ` · ${p.talent_tz.replace('_', ' ')}` : ''}</div></dd>
+            <dt>Started</dt><dd>{day(p.started_on)}</dd>
+            {p.ended_on && <><dt>Ended</dt>
+              <dd>{day(p.ended_on)}{p.ended_reason ? ` · ${p.ended_reason}` : ''}</dd></>}
+          </dl>
           <div className="hr" style={{ margin: '18px 0 16px' }} />
           <div className="eyebrow" style={{ marginBottom: 12 }}>Who looks after this</div>
-          <ManagerPicker placementId={id} team={team}
+          <ManagerPicker key={`${p.csm_id}-${p.tsm_id}`} placementId={id} team={team}
             csm={p.csm_id} tsm={p.tsm_id} />
         </div>
 

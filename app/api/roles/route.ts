@@ -7,7 +7,9 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
-  const b = await req.json().catch(() => ({}));
+  const b = await req.json().catch(() => ({} as any));
+  if (!b?.data || typeof b.data !== 'object')
+    return NextResponse.json({ error: 'nothing to save' }, { status: 400 });
 
   try {
     if (b.action === 'role') {

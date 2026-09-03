@@ -130,8 +130,7 @@ export default async function Console() {
         ) : (
           <table className="data">
             <thead><tr>
-              <th>Executive</th><th>Talent</th><th>In seat</th>
-              <th>Last check-in</th><th>Open work</th>
+              <th>Executive</th><th>Talent</th>
               <th style={{ textAlign: 'right' }}>Rate</th><th>Health</th>
             </tr></thead>
             <tbody>
@@ -145,16 +144,11 @@ export default async function Console() {
                       </Link>
                       {!p.csm_id && <div className="xs muted">No manager assigned</div>}
                     </td>
-                    <td>{p.talent_name}</td>
-                    <td className="xs">{p.days} days</td>
-                    <td className="xs">
-                      {day(p.lastCheckin)}
-                      {p.checkinFlagged && <><br /><span className="pill crit">Flagged</span></>}
-                    </td>
-                    <td className="xs">
-                      {p.openTasks}
-                      {p.overdueTasks > 0 && <span className="pill warn" style={{ marginLeft: 6 }}>
-                        {p.overdueTasks} late</span>}
+                    <td>{p.talent_name}
+                      <div className="xs muted">
+                        {p.days} days in seat · last check-in {day(p.lastCheckin)}
+                        {p.overdueTasks > 0 && ` · ${p.overdueTasks} late`}
+                      </div>
                     </td>
                     <td className="amount">{money(p.rate_month_cents)}</td>
                     <td>

@@ -198,14 +198,6 @@ export async function tickStep(id: string, done: boolean) {
 
 /* ---------- the calibration loop ---------- */
 
-/* Written when the placement is made, from the engine's own ranking. Without
-   it there is nothing to compare the six-month outcome against. */
-export async function recordPrediction(placementId: string, fit: number) {
-  if (!configured()) return;
-  const sb = await supabaseServer();
-  await sb.from('placements')
-    .update({ predicted_fit: Math.round(fit) }).eq('id', placementId).is('predicted_fit', null);
-}
 
 export async function recordOutcome(placementId: string, a: {
   outcome_score: number; retained: boolean; note?: string;
@@ -257,9 +249,10 @@ export async function endPlacementWithReason(id: string, reason: EndedReason, on
 export async function markFirstCandidate(searchId: string, on?: string) {
   if (!configured()) return;
   const sb = await supabaseServer();
-  await sb.from('searches')
+  const { error } = await sb.from('searches')
     .update({ first_candidate_on: on ?? new Date().toISOString().slice(0, 10) })
     .eq('id', searchId).is('first_candidate_on', null);
+  if (error) throw new Error(error.message);
 }
 
 /* Searches approaching or past the 14-day promise with nobody put forward. */

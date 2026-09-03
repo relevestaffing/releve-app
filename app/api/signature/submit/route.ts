@@ -15,12 +15,22 @@ export async function POST(req: Request) {
   const profile = await currentProfile();
   if (configured() && profile) {
     const sb = await supabaseServer();
-    await sb.from('signatures').upsert({
+    const { error: sigErr } = await sb.from('signatures').upsert({
       user_id: profile.id, side,
       scores: result.scores, facets: result.facets,
       validity: result.validity, confidence: result.confidence,
       conditions, archetype: type.id, taken_at: new Date().toISOString()
     }, { onConflict: 'user_id,side' });
+
+    /* Twenty-two minutes of answers. Losing them in silence and telling the
+       person it saved is the worst failure in the product. */
+    if (sigErr) {
+      console.error('[signature] could not save:', sigErr.message);
+      return NextResponse.json({
+        error: 'Your answers could not be saved. Nothing is lost — stay on this page and press Finish again.'
+      }, { status: 500 });
+    }
+
     await sb.from('signature_attempts')
       .update({ submitted: true }).eq('user_id', profile.id).eq('side', side);
   }

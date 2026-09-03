@@ -8,6 +8,7 @@ import { talentSelfLines, talentSummary } from '@/lib/plain';
 import Shell from '@/components/Shell';
 import { AxisBars, Portrait } from '@/components/Viz';
 import { WORDS } from '@/lib/words';
+import { getSkills, skillsShape, DISCIPLINE } from '@/lib/roles';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -38,7 +39,8 @@ export default async function TalentProfile() {
   const type = archetype(sig.scores, 'talent');
   const hasFacets = Object.keys(sig.facets ?? {}).length > 0;
   const self = await getSelfProfile(profile.id);
-  const skills: string[] = self.skills ?? [];
+  const skills = await getSkills(profile.id);
+  const shape = skillsShape(skills);
 
   return (
     <Shell profile={profile} active="/app/talent" title="Your profile" crumb="What executives are told about you">
@@ -52,7 +54,7 @@ export default async function TalentProfile() {
           </div>
           <Link className="btn sm ghost" href="/app/talent/edit">Edit</Link>
         </div>
-        <div className="row" style={{ marginBottom: self.bio || skills.length ? 18 : 0 }}>
+        <div className="row" style={{ marginBottom: self.bio || shape ? 18 : 0 }}>
           <Portrait id={profile.id} name={self.full_name ?? profile.full_name ?? ''} cls="lg" url={self.photo_url} />
           <div>
             <h4 style={{ fontSize: 20 }}>{self.full_name ?? profile.full_name}</h4>
@@ -65,10 +67,21 @@ export default async function TalentProfile() {
         {self.bio
           ? <p className="small" style={{ maxWidth: 640 }}>{self.bio}</p>
           : <p className="small muted">You have not written an introduction yet — it is the part executives read first.</p>}
-        {skills.length > 0 && (
+        {shape ? (
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 18 }}>
-            {skills.map(s => <span className="pill" key={s}>{s}</span>)}
+            {(skills?.disciplines ?? []).map(d => (
+              <span className="pill" key={d}>
+                {DISCIPLINE[d]?.name ?? d}
+                {skills?.years?.[d] ? ` · ${skills.years[d]}y` : ''}
+              </span>
+            ))}
           </div>
+        ) : (
+          <p className="xs muted" style={{ marginTop: 16 }}>
+            You have not broken your skills down yet. Until you do, executives
+            cannot be matched to what you are actually good at.{' '}
+            <a href="/app/skills" style={{ textDecoration: 'underline' }}>Do it now</a>.
+          </p>
         )}
       </div>
 

@@ -4,24 +4,20 @@ import { useRouter } from 'next/navigation';
 import { saving } from './Toast';
 import PhotoUpload from './PhotoUpload';
 
-const SUGGESTED = ['Inbox & calendar','Travel','Board prep','Client care','Bookkeeping','CRM hygiene',
-  'Social media','Newsletter','SOP build','Research','Slide decks','Recruiting','Vendor management','Bilingual'];
 
 export default function ProfileEditor({ initial }: { initial: any }) {
   const router = useRouter();
-  const [skills, setSkills] = useState<string[]>(initial.skills ?? []);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
 
   function toggle(s: string) {
-    setSkills(skills.includes(s) ? skills.filter(x => x !== s) : [...skills, s]);
     setSaved(false);
   }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true);
     const f = new FormData(e.currentTarget);
-    const body: any = { skills };
+    const body: any = {};
     f.forEach((v, k) => { if (v !== '') body[k] = k === 'years_exp' ? Number(v) : v; });
     const ok = await saving(() => fetch('/api/profile', {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
@@ -53,15 +49,18 @@ export default function ProfileEditor({ initial }: { initial: any }) {
         <p className="xs muted">Write it the way you would say it. Executives read this before anything else.</p>
       </div>
 
-      <div className="card">
-        <div className="card-head"><h3>What you can do</h3><span className="pill">{skills.length} selected</span></div>
-        <p className="small muted" style={{ marginBottom: 18 }}>Pick everything you have genuinely done in a paid role.</p>
-        <div className="row" style={{ gap: 9, flexWrap: 'wrap' }}>
-          {[...new Set([...SUGGESTED, ...skills])].map(s => (
-            <button type="button" key={s} onClick={() => toggle(s)}
-              className={`pill ${skills.includes(s) ? 'fern' : ''}`} style={{ cursor: 'pointer' }}>{s}</button>
-          ))}
-        </div>
+      {/* The skill pills used to live here. They asked the same question as
+          Your Skills, in a shallower way, and both were shown to executives —
+          so a candidate could look strong on one and weak on the other. One
+          instrument now, and it is the deep one. */}
+      <div className="card tight">
+        <p className="small" style={{ margin: 0 }}>
+          <b>Your skills are set on their own page.</b> Twelve areas of work, each
+          broken down properly — that is what executives are matched against.
+        </p>
+        <a className="btn sm ghost" href="/app/skills" style={{ marginTop: 14 }}>
+          Open Your Skills
+        </a>
       </div>
 
       <div className="card">

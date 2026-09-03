@@ -134,7 +134,7 @@ export default async function ConsoleMoney() {
                   <td className="xs">{dayLabel(sr.opened_at)}</td>
                   <td className="xs">{sr.stage}</td>
                   <td>
-                    <DepositControl searchId={sr.id} clientId={sr.client_id}
+                    <DepositControl key={sr.deposit_status} searchId={sr.id} clientId={sr.client_id}
                       status={sr.deposit_status} cents={sr.deposit_cents}
                       invoiced={depositInvoiced.has(sr.id)} />
                   </td>
@@ -220,7 +220,7 @@ export default async function ConsoleMoney() {
                         <><br /><span className="pill warn">{late} day{late === 1 ? '' : 's'} late</span></>}
                     </td>
                     <td className="amount">{money(i.amount_cents)}</td>
-                    <td><InvoiceStatusPicker inv={i} /></td>
+                    <td><InvoiceStatusPicker key={i.status} inv={i} /></td>
                   </tr>
                 );
               })}

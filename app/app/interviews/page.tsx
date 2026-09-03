@@ -23,7 +23,9 @@ export default async function Interviews() {
   const isClient = profile.role === 'client';
   const mine = await listInterviews(isClient ? { clientId: profile.id } : { talentId: profile.id });
   const myAvail = await getAvailability(profile.id, 'America/Los_Angeles');
-  const tz = myAvail.timezone;
+  /* availability.timezone is NOT NULL but can be an empty string, and Intl
+     throws RangeError on one — which took the whole page down. */
+  const tz = myAvail.timezone?.trim() || 'UTC';
   /* An account with no timezone set rendered the header as "When ()" — on the
      one screen where the time is the entire point. */
   const tzLabel = (tz ?? '').split('/')[1]?.replace(/_/g, ' ') ?? '';

@@ -145,7 +145,9 @@ export async function bookableIds(userIds: string[]): Promise<Set<string>> {
 export async function setAvailability(userId: string, timezone: string, windows: Window[]) {
   if (!configured()) { seed(); mem.availability.set(userId, { user_id: userId, timezone, windows }); return; }
   const sb = await supabaseServer();
-  await sb.from('availability').upsert({ user_id: userId, timezone, windows }, { onConflict: 'user_id' });
+  const { error } = await sb.from('availability')
+    .upsert({ user_id: userId, timezone, windows }, { onConflict: 'user_id' });
+  if (error) throw new Error(error.message);
 }
 
 /* ---------- the role brief ---------- */
@@ -172,8 +174,14 @@ export async function saveSearch(clientKey: string, patch: Partial<RoleBrief>, p
   const row: Record<string, unknown> = { ...key, role_title: patch.role_title ?? '', scope: patch.scope ?? null,
     hours: patch.hours ?? null, tools: patch.tools ?? null,
     target_at: patch.target_at ?? null, stage: patch.stage ?? 'Sourcing' };
-  if (data) await sb.from('searches').update(row).eq('id', (data as any).id);
-  else await sb.from('searches').insert(row);
+  /* A row claimed from a pending person still carries pending_id, and the
+     one-owner constraint rejects a write that sets both. Clear it in the
+     same statement, and read the error — this used to fail in silence and
+     the brief simply never saved. */
+  const { error } = data
+    ? await sb.from('searches').update({ ...row, pending_id: null }).eq('id', (data as any).id)
+    : await sb.from('searches').insert(row);
+  if (error) throw new Error(error.message);
 }
 
 /* Everyone on the client side: real accounts first, then records waiting to be claimed. */
@@ -228,7 +236,9 @@ export async function setMatch(clientId: string, talentId: string, patch: Partia
 export async function removeMatch(clientId: string, talentId: string) {
   if (!configured()) { seed(); mem.matches = mem.matches.filter(m => !(m.client_id === clientId && m.talent_id === talentId)); return; }
   const sb = await supabaseServer();
-  await sb.from('matches').delete().eq('client_id', clientId).eq('talent_id', talentId);
+  const { error } = await sb.from('matches').delete()
+    .eq('client_id', clientId).eq('talent_id', talentId);
+  if (error) throw new Error(error.message);
 }
 
 /* ---------- interviews ---------- */
@@ -268,7 +278,8 @@ export async function createInterview(row: Omit<Interview, 'id' | 'created_at'>)
 export async function setInterviewStatus(id: string, status: InterviewStatus) {
   if (!configured()) { seed(); const i = mem.interviews.find(x => x.id === id); if (i) i.status = status; return; }
   const sb = await supabaseServer();
-  await sb.from('interviews').update({ status }).eq('id', id);
+  const { error } = await sb.from('interviews').update({ status }).eq('id', id);
+  if (error) throw new Error(error.message);
 }
 export async function bookedSlots(userId: string): Promise<string[]> {
   const all = await listInterviews();
@@ -354,7 +365,8 @@ export async function saveSelfProfile(userId: string, patch: Record<string, unkn
     return;
   }
   const sb = await supabaseServer();
-  await sb.from('profiles').update(patch).eq('id', userId);
+  const { error } = await sb.from('profiles').update(patch).eq('id', userId);
+  if (error) throw new Error(error.message);
 }
 export async function markOnboarded(userId: string) {
   await saveSelfProfile(userId, { onboarded_at: new Date().toISOString() });
