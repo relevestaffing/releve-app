@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { saving, toast } from '@/components/Toast';
 import { money, toCents, RATE_MIN_CENTS, RATE_MAX_CENTS } from '@/lib/money-public';
 import { fmtDate } from '@/lib/words';
-import { OFFER_STATE, type Offer } from '@/lib/offer';
+import { OFFER_STATE, type Offer } from '@/lib/offer-public';
 
 /* full_name is nullable on a self-serve account that has not given one, so
    the picker falls back to the email rather than rendering a blank option. */
