@@ -7,7 +7,8 @@ import Shell from '@/components/Shell';
 import NoteAdder from '@/components/NoteAdder';
 import FeedbackWriter from '@/components/FeedbackWriter';
 import FirstFortnight from '@/components/FirstFortnight';
-import { feedbackFor, pulseFor, stepsFor, timeOffFor, GOING, WORKLOADS, TIME_OFF_STATE, nights } from '@/lib/care';
+import ManagerPicker from '@/components/ManagerPicker';
+import { feedbackFor, pulseFor, stepsFor, timeOffFor, teamRoles, GOING, WORKLOADS, TIME_OFF_STATE, nights } from '@/lib/care';
 import { fmtDate, fmtWhen } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
@@ -32,8 +33,9 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
     stepsFor(id),
     feedbackFor(p.talent_id),
     pulseFor(id),
-    timeOffFor(id)
+    timeOffFor(id),
   ]);
+  const team = await teamRoles();
   const mine = checkins.filter(c => c.placement_id === id);
   const alerts = alertsFor({ tasks, checkins: mine, startedOn: p.started_on, thisWeek: week });
   const open = tasks.filter(t => !t.done);
@@ -86,6 +88,10 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
             {p.ended_on && <><span className="eyebrow">Ended</span>
               <span>{day(p.ended_on)}{p.ended_reason ? ` · ${p.ended_reason}` : ''}</span></>}
           </div>
+          <div className="hr" style={{ margin: '18px 0 16px' }} />
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Who looks after this</div>
+          <ManagerPicker placementId={id} team={team}
+            csm={p.csm_id} tsm={p.tsm_id} />
         </div>
 
         <div className="card">

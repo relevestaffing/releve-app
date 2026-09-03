@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { SCALE, COND_PUBLIC, TOOLS } from '@/lib/signature/public';
+import { toast } from '@/components/Toast';
 
 type Screen = { i: number; kind: 'likert'; tag: string; text: string };
 type Pair = { i: number; kind: 'pair'; a: string; b: string };
@@ -40,11 +41,33 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
 
   function note(msg: string) { setChip(msg); setTimeout(() => setChip(null), 2000); }
 
+  /* The autosave behind a twenty-minute assessment. It used to swallow every
+     failure silently, which meant someone could answer ninety items, lose the
+     connection, and find out only when they came back to an empty form.
+
+     Now it tells them — once, quietly, and only after a second attempt has
+     also failed, so a momentary blip does not interrupt anyone mid-question. */
+  const saveWarned = useRef(false);
+
   async function persist(a: (number | null)[], p: ('a' | 'b' | null)[], t: (number | null)[]) {
-    fetch('/api/signature/save', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ side, answers: a, pairs: p, timings: t })
-    }).catch(() => {});
+    const body = JSON.stringify({ side, answers: a, pairs: p, timings: t });
+    const send = () => fetch('/api/signature/save', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body
+    });
+    try {
+      const r = await send();
+      if (r.ok) { if (saveWarned.current) { saveWarned.current = false; toast.saved('Saved again'); } return; }
+      throw new Error(String(r.status));
+    } catch {
+      try {
+        const again = await send();
+        if (again.ok) { if (saveWarned.current) { saveWarned.current = false; toast.saved('Saved again'); } return; }
+      } catch { /* fall through to the warning */ }
+      if (!saveWarned.current) {
+        saveWarned.current = true;
+        toast.bad('Your answers have stopped saving. Stay on this page — we will keep trying.');
+      }
+    }
   }
 
   function advance(next: number) {

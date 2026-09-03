@@ -255,7 +255,7 @@ export async function consoleSnapshot(): Promise<{
 
   add({ key: 'manager', level: 'medium', count: noManager,
     what: 'placements with no Client Success Manager assigned',
-    why: 'Nobody owns them, so nobody notices when they slip.',
+    why: 'Nobody owns them, so nobody notices when they slip. Open the placement and set one on the pairing card.',
     href: '/console/placements', cta: 'Assign someone' });
 
   add({ key: 'unread', level: 'medium', count: unread,

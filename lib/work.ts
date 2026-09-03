@@ -240,7 +240,7 @@ export async function getPlacement(id: string) {
   if (!configured()) return null;
   const sb = await supabaseServer();
   const { data } = await sb.from('placements')
-    .select('id, client_id, talent_id, started_on, ended_on, ended_reason, ended_note, client:client_id(full_name, org_name, email, timezone), talent:talent_id(full_name, email, timezone, headline)')
+    .select('id, client_id, talent_id, started_on, ended_on, ended_reason, ended_note, csm_id, tsm_id, client:client_id(full_name, org_name, email, timezone), talent:talent_id(full_name, email, timezone, headline)')
     .eq('id', id).maybeSingle();
   if (!data) return null;
   const r: any = data;
@@ -248,6 +248,7 @@ export async function getPlacement(id: string) {
     id: r.id, client_id: r.client_id, talent_id: r.talent_id,
     started_on: r.started_on, ended_on: r.ended_on,
     ended_reason: r.ended_reason as string | null, ended_note: r.ended_note as string | null,
+    csm_id: (r.csm_id ?? null) as string | null, tsm_id: (r.tsm_id ?? null) as string | null,
     client_name: r.client?.full_name ?? 'Executive', client_email: r.client?.email ?? '',
     org_name: r.client?.org_name ?? null, client_tz: r.client?.timezone ?? null,
     talent_name: r.talent?.full_name ?? 'Talent', talent_email: r.talent?.email ?? '',
