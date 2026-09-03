@@ -19,13 +19,13 @@ create table if not exists profiles (
   timezone    text,
   years_exp   int,
   english     text,
-  rate_month  int,                        -- what the talent is paid. NEVER exposed to clients.
   stage       text default 'Applied',     -- Applied | Screening | Vetted | Placed
   photo_url   text,
   created_at  timestamptz not null default now()
 );
-comment on column profiles.rate_month is
-  'Talent pay. Client-facing views must never select this column — see the talent_directory view.';
+-- Talent pay used to live on profiles, protected only by a comment saying
+-- client-facing views must not select it. It lives in talent_pay now, which
+-- no client can read under any policy. See "Talent pay leaves profiles".
 
 -- ---------- the Signature ----------
 create table if not exists signatures (
@@ -210,9 +210,14 @@ begin
     update profiles set
       role = p.role, full_name = coalesce(new.full_name, p.full_name), org_name = p.org_name,
       headline = p.headline, location = p.location, timezone = p.timezone,
-      years_exp = p.years_exp, english = p.english, rate_month = p.rate_month,
+      years_exp = p.years_exp, english = p.english,
       stage = coalesce(p.stage, profiles.stage)
     where id = new.id;
+    -- pay goes to talent_pay, never onto the profile row
+    if p.rate_month is not null then
+      insert into talent_pay (talent_id, rate_month) values (new.id, p.rate_month)
+      on conflict (talent_id) do update set rate_month = excluded.rate_month;
+    end if;
     update pending_people set claimed_by = new.id where id = p.id;
   end if;
   return new;
@@ -303,7 +308,6 @@ alter table profiles add column if not exists onboarded_at timestamptz;
 create or replace function guard_profile_edit() returns trigger language plpgsql as $$
 begin
   if auth.uid() = new.id and not exists (select 1 from profiles where id = auth.uid() and role = 'admin') then
-    new.rate_month := old.rate_month;   -- pay is set by Relève
     new.role       := old.role;         -- nobody promotes themselves
     new.stage      := old.stage;        -- the team owns the pipeline stage
   end if;
@@ -361,10 +365,15 @@ begin
     update profiles set
       role = p.role, full_name = coalesce(new.full_name, p.full_name), org_name = p.org_name,
       headline = p.headline, location = p.location, timezone = p.timezone,
-      years_exp = p.years_exp, english = p.english, rate_month = p.rate_month,
+      years_exp = p.years_exp, english = p.english,
       stage = coalesce(p.stage, profiles.stage)
     where id = new.id;
     update searches set client_id = new.id, pending_id = null where pending_id = p.id;
+    -- pay goes to talent_pay, never onto the profile row
+    if p.rate_month is not null then
+      insert into talent_pay (talent_id, rate_month) values (new.id, p.rate_month)
+      on conflict (talent_id) do update set rate_month = excluded.rate_month;
+    end if;
     update pending_people set claimed_by = new.id where id = p.id;
   end if;
   return new;
@@ -410,11 +419,16 @@ begin
     update profiles set
       role = p.role, full_name = coalesce(new.full_name, p.full_name), org_name = p.org_name,
       headline = p.headline, location = p.location, timezone = p.timezone,
-      years_exp = p.years_exp, english = p.english, rate_month = p.rate_month,
+      years_exp = p.years_exp, english = p.english,
       stage = coalesce(p.stage, profiles.stage),
       assigned_by_releve = true, role_chosen_at = now()
     where id = new.id;
     update searches set client_id = new.id, pending_id = null where pending_id = p.id;
+    -- pay goes to talent_pay, never onto the profile row
+    if p.rate_month is not null then
+      insert into talent_pay (talent_id, rate_month) values (new.id, p.rate_month)
+      on conflict (talent_id) do update set rate_month = excluded.rate_month;
+    end if;
     update pending_people set claimed_by = new.id where id = p.id;
   end if;
   return new;
@@ -424,7 +438,6 @@ end $$;
 create or replace function guard_profile_edit() returns trigger language plpgsql as $$
 begin
   if auth.uid() = new.id and not exists (select 1 from profiles where id = auth.uid() and role = 'admin') then
-    new.rate_month         := old.rate_month;          -- pay is set by Relève
     new.role               := old.role;                -- nobody promotes themselves
     new.stage              := old.stage;               -- the team owns the pipeline stage
     new.role_chosen_at     := old.role_chosen_at;      -- and nobody re-opens the question
@@ -470,7 +483,6 @@ begin
   select exists (select 1 from profiles where id = auth.uid() and role = 'admin') into i_am_admin;
 
   if auth.uid() = new.id and not i_am_admin then
-    new.rate_month := old.rate_month;   -- pay is set by Relève
     new.stage      := old.stage;        -- the team owns the pipeline stage
     new.assigned_by_releve := old.assigned_by_releve;
 
