@@ -47,7 +47,7 @@ export default function SignIn() {
               <h2 style={{ fontSize: 24, marginBottom: 10 }}>Sign in</h2>
               <p className="note" style={{ marginBottom: 24 }}>
                 {live ? 'Enter the email address your account is under. We will send you a link.'
-                      : 'Demo mode — Supabase is not connected yet, so sign-in is skipped and nothing is saved.'}
+                      : 'Preview mode — sign-in is skipped and nothing is saved.'}
               </p>
               <form onSubmit={magicLink}>
                 <div className="ff">

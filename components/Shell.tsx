@@ -100,7 +100,7 @@ export default async function Shell({
   const nav = NAV[profile.role] ?? NAV.talent;
   return (
     <>
-      {!configured() && <div className="demo-banner">Demo mode · Supabase not connected · nothing is saved</div>}
+      {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
       <div className="shell">
         <aside className="side">
           <div className="side-logo"><img src="/logo-white.png" alt="Relève" /></div>
