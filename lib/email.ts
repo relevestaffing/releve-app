@@ -212,9 +212,9 @@ const rawTemplates = {
   depositReady: (o: { name: string; payUrl: string; cents: number; docsUrl?: string }) => {
     const amount = (o.cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     const steps = [
-      { n: 1, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' },
-      { n: 2, label: 'Sign the agreement', href: o.docsUrl ?? SITE, cta: 'Sign the agreement' },
-      { n: 3, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` }
+      { n: 1, label: 'Sign the agreement', href: o.docsUrl ?? SITE, cta: 'Sign the agreement' },
+      { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
+      { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
     ];
     const stepRow = (s: typeof steps[number]) => `
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px;border:1px solid #E4E9E3;">
@@ -234,11 +234,11 @@ const rawTemplates = {
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
       from: PERSONAL_FROM,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.\n\nEverything from here happens in your Relève account. Set it up, sign the agreement, and pay your deposit — that last step is what opens your search, and we start sourcing your first candidate the moment it's in:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Sage`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.\n\nHere's what's next: sign the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Sage`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
         p(`Thank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.`) +
-        p(`Everything from here happens in your Relève account. Set it up, sign the agreement, and pay your deposit — that last step is what opens your search, and we start sourcing your first candidate the moment it's in.`) +
+        p(`Here's what's next: sign the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account.`) +
         steps.map(stepRow).join('') +
         `<p style="margin:18px 0 0;font-size:13px;color:#7C897F;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you — talk soon.</p>` +
@@ -456,14 +456,15 @@ const rawTemplates = {
   }),
 
   /* The invitation out of the applicant pile and into the roster. */
-  applicationInvited: (o: { name: string; role: string }) => ({
+  applicationInvited: (o: { name: string; role: string; docsUrl?: string }) => ({
     subject: `Welcome to Relève, ${o.name}`,
     from: PERSONAL_FROM,
-    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\nEverything from here starts inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nSet it up and it will walk you through the rest.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
+    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nSet it up and it will walk you through the rest.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
     html: shell(`Welcome to Relève, ${o.name}`,
       p(`${o.name},`) +
       p('Thank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.') +
-      p('Everything from here starts inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
+      (o.docsUrl ? p(`Before you get started, you are welcome to sign your <a href="${o.docsUrl}" style="color:#4C594F;">NDA and contractor agreement</a> whenever suits you.`) : '') +
+      p('Everything else happens inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
       p('Set it up and it will walk you through the rest.'),
       { label: 'Create your account', href: SITE })
   }),

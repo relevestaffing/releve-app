@@ -25,7 +25,7 @@ export default function TalentOnboardingSender() {
     try {
       r = await fetch('/api/admin/talent-onboarding', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, email: f.get('email'), role: f.get('role') })
+        body: JSON.stringify({ name, email: f.get('email'), role: f.get('role'), docs_url: f.get('docs_url') })
       });
       d = await r.json().catch(() => ({}));
     } catch {
@@ -70,6 +70,8 @@ export default function TalentOnboardingSender() {
         </div>
         <div className="ff"><label>Role — optional</label>
           <input name="role" placeholder="Executive Assistant" /></div>
+        <div className="ff"><label>Documents link — optional</label>
+          <input name="docs_url" type="url" placeholder="Paste the DocuSign link for their NDA + contractor agreement, or leave blank" /></div>
         <button className="btn solid" disabled={busy}>{busy ? 'Sending…' : 'Send onboarding email'}</button>
         {err && <div className="err">{err}</div>}
       </form>
