@@ -50,7 +50,7 @@ export default function InvoiceGate({ invoiceId, cents, number, failed, name }: 
           </button>
           <p className="xs muted" style={{ marginTop: 16 }}>
             Something not right about this invoice? <a href="/app/messages" style={{ textDecoration: 'underline' }}>Write to your Client Success Manager</a>{' '}
-            rather than paying it — we would rather fix it than have you chase us afterwards.
+            rather than paying it — we would rather fix it now than sort it out afterwards.
             The invoice itself is on <a href="/app/billing" style={{ textDecoration: 'underline' }}>your billing page</a>.
           </p>
         </div>

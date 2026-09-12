@@ -32,7 +32,7 @@ export default async function ConsoleCare() {
 
       <div className="money-strip">
         <div className={`money-stat ${flagged.length ? 'alert' : ''}`}>
-          <div className="n">{flagged.length}</div><div className="k">Clients flagged</div>
+          <div className="n">{flagged.length}</div><div className="k">Clients to check on</div>
         </div>
         <div className={`money-stat ${waiting.length ? 'alert' : ''}`}>
           <div className="n">{waiting.length}</div><div className="k">Time off to decide</div>

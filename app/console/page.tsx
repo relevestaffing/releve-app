@@ -229,18 +229,18 @@ export default async function Console() {
                         <Link href={`/console/placements/${p.id}`}>
                           <b>{p.org_name ?? p.client_name}</b>
                         </Link>
-                        {!p.csm_id && <div className="xs muted">No manager assigned</div>}
+                        {!p.csm_id && <div className="xs muted">Ready for a manager</div>}
                       </td>
                       <td>{p.talent_name}
                         <div className="xs muted">
                           {p.days} days in seat · last check-in {day(p.lastCheckin)}
-                          {p.overdueTasks > 0 && ` · ${p.overdueTasks} late`}
+                          {p.overdueTasks > 0 && ` · ${p.overdueTasks} to follow up on`}
                         </div>
                       </td>
                       <td className="amount">{money(p.rate_month_cents)}</td>
                       <td>
                         <span className={`pill ${h.tone}`}><span className="dot" />{h.label}</span>
-                        {p.pulseFlagged && <div className="xs muted">Executive flagged it</div>}
+                        {p.pulseFlagged && <div className="xs muted">Executive shared feedback</div>}
                       </td>
                     </tr>
                   );

@@ -49,7 +49,7 @@ export default async function SignaturePage({ searchParams }: {
             {sig.validity && (
               <span className={`pill ${validityWord}`}>
                 <span className="dot" />
-                {sig.validity.verdict === 'Valid' ? 'Profile verified' : sig.validity.verdict === 'Review' ? 'Flagged for review' : 'Needs retaking'}
+                {sig.validity.verdict === 'Valid' ? 'Profile verified' : sig.validity.verdict === 'Review' ? 'Up for review' : 'Needs retaking'}
               </span>
             )}
             <span className={`pill ${conf.level === 'High' ? 'good' : conf.level === 'Moderate' ? 'warn' : 'crit'}`}>

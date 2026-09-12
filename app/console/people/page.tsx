@@ -57,7 +57,7 @@ export default async function People() {
             <p className="small">
               Send the onboarding email above once you have had the discovery call. It opens their
               search, and they can sign in any time with the email you put on file — no invitation
-              to chase and no password to set.
+              to wait on and no password to set.
             </p>
           </div>
         )}

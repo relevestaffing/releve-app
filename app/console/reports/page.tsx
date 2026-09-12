@@ -133,7 +133,7 @@ export default async function Reports() {
           <div className="n">{c.talent ? Math.round((c.vetted / c.talent) * 100) : 0}%</div>
           <div className="k">Releasable</div></div>
         <div className={`money-stat ${c.checkinsFlagged ? 'alert' : ''}`}>
-          <div className="n">{c.checkinsFlagged}</div><div className="k">Check-ins flagged</div></div>
+          <div className="n">{c.checkinsFlagged}</div><div className="k">Check-ins to review</div></div>
       </div>
 
       <h3 className="section-h">Placements</h3>

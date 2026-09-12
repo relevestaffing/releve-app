@@ -85,7 +85,7 @@ export default async function InvoiceDetail({ params }: { params: Promise<{ id: 
         <div style={{ marginTop: 20 }}>
           <Explain>
             Something not right about this invoice? Message your Client Success Manager
-            rather than paying it — we would rather fix it than have you chase us afterwards.
+            rather than paying it — we would rather fix it now than sort it out afterwards.
           </Explain>
         </div>
       </div>

@@ -325,11 +325,11 @@ const rawTemplates = {
      the quieter second option, the same shape depositReady already uses. */
   invoiceIssued: (o: { name: string; number: string; amount: string; period: string; due: string; payUrl?: string }) => ({
     subject: `Relève invoice ${o.number} — ${o.period}`,
-    text: `${o.name},\n\nInvoice ${o.number} for ${o.period}.\n\nAmount: ${o.amount}\nDue: ${o.due}\n\n${o.payUrl ? `Pay it directly, no sign-in needed: ${o.payUrl}\n\n` : ''}The full invoice is in your account under Billing, along with everything issued before it.\n\n${SITE}/app/billing\n\nIf anything on it looks wrong, reply to this email rather than paying it — we would rather fix it than have you chase us afterwards.\n\n— Relève`,
+    text: `${o.name},\n\nInvoice ${o.number} for ${o.period}.\n\nAmount: ${o.amount}\nDue: ${o.due}\n\n${o.payUrl ? `Pay it directly, no sign-in needed: ${o.payUrl}\n\n` : ''}The full invoice is in your account under Billing, along with everything issued before it.\n\n${SITE}/app/billing\n\nIf anything on it looks wrong, reply to this email rather than paying it — we would rather fix it now than sort it out afterwards.\n\n— Relève`,
     html: shell(`Invoice ${o.number}`,
       p(`${o.name},`) +
       p(`<b>${o.amount}</b> for ${o.period}, due ${o.due}.`) +
-      p('If anything on it looks wrong, reply to this email rather than paying it — we would rather fix it than have you chase us afterwards.'),
+      p('If anything on it looks wrong, reply to this email rather than paying it — we would rather fix it now than sort it out afterwards.'),
       o.payUrl ? { label: `Pay ${o.amount} now`, href: o.payUrl } : { label: 'See it in your account', href: `${SITE}/app/billing` },
       o.payUrl ? { label: 'Or see it in your account first', href: `${SITE}/app/billing` } : undefined)
   }),
@@ -659,9 +659,9 @@ const rawTemplates = {
 
   checkinFlagged: (o: { talent: string; why: string }) => ({
     subject: `Check-in needs a look — ${o.talent}`,
-    text: `${o.talent}'s weekly check-in raised a flag.\n\n${o.why}\n\n${SITE}/console/checkins\n\n— Relève`,
+    text: `${o.talent}'s weekly check-in needs a closer look.\n\n${o.why}\n\n${SITE}/console/checkins\n\n— Relève`,
     html: shell('A check-in needs a look',
-      p(`<b>${o.talent}</b>'s weekly check-in raised a flag.`) +
+      p(`<b>${o.talent}</b>'s weekly check-in needs a closer look.`) +
       `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #7A2E26;">${o.why}</p>`,
       { label: 'Open check-ins', href: `${SITE}/console/checkins` })
   })
