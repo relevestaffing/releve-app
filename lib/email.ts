@@ -17,6 +17,17 @@ const PASS = process.env.SMTP_PASS;              // the Google app password
 const FROM = process.env.SMTP_FROM ?? (USER ? `Relève <${USER}>` : '');
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 
+/* The one moment an email should read as a person, not a brand blast — the
+   very first letter after a real conversation. Same mailbox, same DKIM,
+   just a name in front of it: "Relève <...>" reads as a company; "Sage
+   Jackson, Relève <...>" reads as someone who was just on the call. Falls
+   back to the ordinary FROM untouched if it is ever in a shape this cannot
+   parse, rather than risk a malformed header on every outbound message. */
+const PERSONAL_FROM = (() => {
+  const m = FROM.match(/^(.*)<(.+)>$/);
+  return m ? `Sage Jackson, Relève <${m[2].trim()}>` : FROM;
+})();
+
 export function emailReady() { return Boolean(USER && PASS); }
 
 let cached: nodemailer.Transporter | null = null;
@@ -32,7 +43,7 @@ function transport() {
 /* One built message. Every template returns this shape, and `kind` is the
    template's own name — added automatically at the bottom of this file, so a
    new template cannot be added without also being loggable. */
-export type Message = { subject: string; text: string; html: string; kind: string };
+export type Message = { subject: string; text: string; html: string; kind: string; from?: string };
 
 /* Every attempt leaves a row behind.
    ---------------------------------
@@ -73,7 +84,7 @@ export async function sendOrThrow(to: string, msg: Message) {
   }
   try {
     const info = await transport().sendMail({
-      from: FROM, to, subject: msg.subject, text: msg.text, html: msg.html
+      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html
     });
     await record(msg.kind, to, msg.subject, true);
     return info;
@@ -94,7 +105,7 @@ export async function send(to: string, msg: Message) {
     return false;
   }
   try {
-    await transport().sendMail({ from: FROM, to, subject: msg.subject, text: msg.text, html: msg.html });
+    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html });
     await record(msg.kind, to, msg.subject, true);
     return true;
   } catch (e: any) {
@@ -122,30 +133,36 @@ function shell(
      email reads as a dark one nobody designed. These two lines are what
      that inversion checks for; without them, every message this file sends
      is at the mercy of whatever mode the reader's phone happens to be in. */
+  /* White throughout, fern for every word that isn't a rule or a border —
+     the cream-on-cream card this replaced looked like a printed pamphlet
+     next to a real letter. A plain white page reads like the latter, and
+     is also the least "template-shaped" a transactional email can look —
+     the boxed, tinted-background layout it replaced is exactly the shape
+     Gmail's own filter has learned to call promotional. */
   return `<!DOCTYPE html><html><head>
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
-</head><body style="margin:0;padding:0;background:#F3EFE6;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3EFE6;padding:40px 16px;">
+</head><body style="margin:0;padding:0;background:#FFFFFF;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;padding:40px 16px;">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FAF8F2;border:1px solid #DDE5DC;">
-  <tr><td style="padding:34px 40px 26px;border-bottom:1px solid #DDE5DC;text-align:center;">
-    <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:7px;text-transform:uppercase;color:#22302A;">Relève</div>
-    <div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#66736A;margin-top:7px;">Executive Staffing</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FFFFFF;">
+  <tr><td style="padding:0 4px 22px;border-bottom:1px solid #E4E9E3;text-align:center;">
+    <div style="font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:6px;text-transform:uppercase;color:#35443A;">Relève</div>
+    <div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#7C897F;margin-top:6px;">Executive Staffing</div>
   </td></tr>
-  <tr><td style="padding:38px 40px 34px;font-family:Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.65;color:#3C463F;">
-    <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:25px;line-height:1.25;color:#22302A;margin:0 0 18px;">${headline}</h1>
+  <tr><td style="padding:32px 4px 30px;font-family:Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.65;color:#3F4C43;">
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:24px;line-height:1.3;color:#35443A;margin:0 0 18px;">${headline}</h1>
     ${inner}
-    ${cta ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px 0 6px;">
-      <tr><td style="background:#35443A;">
-        <a href="${cta.href}" style="display:inline-block;padding:14px 30px;color:#FAF8F2;text-decoration:none;font-size:14px;letter-spacing:1.4px;text-transform:uppercase;">${cta.label}</a>
+    ${cta ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;">
+      <tr><td style="background:#35443A;border-radius:2px;">
+        <a href="${cta.href}" style="display:inline-block;padding:14px 30px;color:#FFFFFF;text-decoration:none;font-size:14px;letter-spacing:0.6px;">${cta.label}</a>
       </td></tr></table>` : ''}
     ${links.map(s => `<p style="margin:16px 0 0;font-size:13.5px;">
       <a href="${s.href}" style="color:#4C594F;">${s.label} →</a>
     </p>`).join('')}
   </td></tr>
-  <tr><td style="padding:22px 40px 30px;border-top:1px solid #DDE5DC;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#66736A;">
-    Relève Executive Staffing · <a href="https://relevestaffing.com" style="color:#66736A;">relevestaffing.com</a><br>
+  <tr><td style="padding:20px 4px 0;border-top:1px solid #E4E9E3;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#7C897F;">
+    Relève Executive Staffing · <a href="https://relevestaffing.com" style="color:#7C897F;">relevestaffing.com</a><br>
     Replies to this address reach a person, not a mailbox nobody reads.
   </td></tr>
 </table></td></tr></table></body></html>`;
@@ -200,27 +217,32 @@ const rawTemplates = {
       { n: 3, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` }
     ];
     const stepRow = (s: typeof steps[number]) => `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px;border:1px solid #DDE5DC;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px;border:1px solid #E4E9E3;">
         <tr>
           <td style="width:44px;padding:20px 0 20px 20px;vertical-align:top;">
-            <div style="width:26px;height:26px;border-radius:50%;background:#35443A;color:#FAF8F2;font-family:Helvetica,Arial,sans-serif;font-size:13px;text-align:center;line-height:26px;">${s.n}</div>
+            <div style="width:26px;height:26px;border-radius:50%;background:#35443A;color:#FFFFFF;font-family:Helvetica,Arial,sans-serif;font-size:13px;text-align:center;line-height:26px;">${s.n}</div>
           </td>
           <td style="padding:20px 20px 20px 14px;font-family:Helvetica,Arial,sans-serif;">
-            <div style="font-size:15.5px;color:#22302A;margin:0 0 12px;">${s.label}</div>
-            <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#35443A;">
-              <a href="${s.href}" style="display:inline-block;padding:10px 20px;color:#FAF8F2;text-decoration:none;font-size:12.5px;letter-spacing:1px;text-transform:uppercase;">${s.cta}</a>
+            <div style="font-size:15.5px;color:#35443A;margin:0 0 12px;">${s.label}</div>
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#35443A;border-radius:2px;">
+              <a href="${s.href}" style="display:inline-block;padding:10px 20px;color:#FFFFFF;text-decoration:none;font-size:12.5px;">${s.cta}</a>
             </td></tr></table>
           </td>
         </tr>
       </table>`;
+    const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
-      subject: 'Welcome to Relève',
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nIt was good to talk. Relève has opened your search — three things get you to candidates, in whichever order suits you:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nThe ${amount} deposit is non-refundable and credited in full against your first month once you are placed.\n\n— Relève`,
-      html: shell('Welcome to Relève',
+      subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
+      from: PERSONAL_FROM,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.\n\nRelève has opened your search. Three short steps get you to your first candidate, and you can take them in whichever order suits you:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nThe ${amount} deposit secures your search and is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Sage`,
+      html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
-        p(`It was good to talk. Relève has opened your search — three things get you to candidates, in whichever order suits you.`) +
+        p(`Thank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.`) +
+        p(`Relève has opened your search. Three short steps get you to your first candidate, and you can take them in whichever order suits you.`) +
         steps.map(stepRow).join('') +
-        `<p style="margin:18px 0 0;font-size:13px;color:#7A8A7D;">The ${amount} deposit is non-refundable and credited in full against your first month once you are placed.</p>`)
+        `<p style="margin:18px 0 0;font-size:13px;color:#7C897F;">The ${amount} deposit secures your search and is credited in full toward your first month once you are placed.</p>` +
+        `<p style="margin:20px 0 0;">We are already thinking about who is right for you — talk soon.</p>` +
+        `<p style="margin:14px 0 0;">— Sage</p>`)
     };
   },
 
@@ -435,14 +457,14 @@ const rawTemplates = {
 
   /* The invitation out of the applicant pile and into the roster. */
   applicationInvited: (o: { name: string; role: string }) => ({
-    subject: `Good to talk — your next step at Relève`,
-    text: `${o.name},\n\nIt was good to talk. We would like to take this further.\n\nThe next step is your Relève account and the assessment inside it: twenty to twenty-five minutes across two parts — how you work, and what you are strongest at. It saves as you go, so you can do it in pieces.\n\nIt is the heart of what we do. It is how we place people with leaders they genuinely suit, rather than whoever happens to be free.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
-    html: shell('It was good to talk',
+    subject: `Welcome to Relève, ${o.name}`,
+    from: PERSONAL_FROM,
+    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\nThe next step is setting up your Relève account. Relève is a matching platform, not a job board: two short assessments inside your account (twenty to twenty-five minutes total, and they save as you go) are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nOnce your account is set up, it will walk you through everything else that's next.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
+    html: shell(`Welcome to Relève, ${o.name}`,
       p(`${o.name},`) +
-      p('We would like to take this further.') +
-      p('The next step is your Relève account and the assessment inside it: twenty to twenty-five minutes across two parts — how you work, and what you are strongest at. It saves as you go, so you can do it in pieces.') +
-      p('It is how we place people with leaders they genuinely suit, rather than whoever happens to be free.') +
-      p('Create your account with this same email address and everything will be waiting for you.'),
+      p('Thank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.') +
+      p('The next step is setting up your Relève account. Relève is a matching platform, not a job board: two short assessments inside your account, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
+      p("Once your account is set up, it will walk you through everything else that's next."),
       { label: 'Create your account', href: SITE })
   }),
 
@@ -673,7 +695,7 @@ const rawTemplates = {
    written by hand at each of the twenty call sites is a `kind` that goes stale
    the first time somebody copies a line. Taking it from the key means a new
    template is loggable the moment it exists, and cannot be mislabelled. */
-type Built = { subject: string; text: string; html: string };
+type Built = { subject: string; text: string; html: string; from?: string };
 type Tagged<T> = {
   [K in keyof T]: T[K] extends (...args: infer A) => Built
     ? (...args: A) => Message
