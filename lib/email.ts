@@ -234,13 +234,13 @@ const rawTemplates = {
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
       from: PERSONAL_FROM,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.\n\nRelève has opened your search. Three short steps get you to your first candidate, and you can take them in whichever order suits you:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nThe ${amount} deposit secures your search and is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Sage`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.\n\nEverything from here happens in your Relève account. Set it up, sign the agreement, and pay your deposit — that last step is what opens your search, and we start sourcing your first candidate the moment it's in:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Sage`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
         p(`Thank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.`) +
-        p(`Relève has opened your search. Three short steps get you to your first candidate, and you can take them in whichever order suits you.`) +
+        p(`Everything from here happens in your Relève account. Set it up, sign the agreement, and pay your deposit — that last step is what opens your search, and we start sourcing your first candidate the moment it's in.`) +
         steps.map(stepRow).join('') +
-        `<p style="margin:18px 0 0;font-size:13px;color:#7C897F;">The ${amount} deposit secures your search and is credited in full toward your first month once you are placed.</p>` +
+        `<p style="margin:18px 0 0;font-size:13px;color:#7C897F;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you — talk soon.</p>` +
         `<p style="margin:14px 0 0;">— Sage</p>`)
     };
@@ -459,12 +459,12 @@ const rawTemplates = {
   applicationInvited: (o: { name: string; role: string }) => ({
     subject: `Welcome to Relève, ${o.name}`,
     from: PERSONAL_FROM,
-    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\nThe next step is setting up your Relève account. Relève is a matching platform, not a job board: two short assessments inside your account (twenty to twenty-five minutes total, and they save as you go) are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nOnce your account is set up, it will walk you through everything else that's next.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
+    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\nEverything from here starts inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nSet it up and it will walk you through the rest.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
     html: shell(`Welcome to Relève, ${o.name}`,
       p(`${o.name},`) +
       p('Thank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.') +
-      p('The next step is setting up your Relève account. Relève is a matching platform, not a job board: two short assessments inside your account, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
-      p("Once your account is set up, it will walk you through everything else that's next."),
+      p('Everything from here starts inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
+      p('Set it up and it will walk you through the rest.'),
       { label: 'Create your account', href: SITE })
   }),
 
