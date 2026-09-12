@@ -17,16 +17,10 @@ const PASS = process.env.SMTP_PASS;              // the Google app password
 const FROM = process.env.SMTP_FROM ?? (USER ? `Relève <${USER}>` : '');
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 
-/* The one moment an email should read as a person, not a brand blast — the
-   very first letter after a real conversation. Same mailbox, same DKIM,
-   just a name in front of it: "Relève <...>" reads as a company; "Sage
-   Jackson, Relève <...>" reads as someone who was just on the call. Falls
-   back to the ordinary FROM untouched if it is ever in a shape this cannot
-   parse, rather than risk a malformed header on every outbound message. */
-const PERSONAL_FROM = (() => {
-  const m = FROM.match(/^(.*)<(.+)>$/);
-  return m ? `Sage Jackson, Relève <${m[2].trim()}>` : FROM;
-})();
+/* Tried a personal sender name here once ("Sage Jackson, Relève <...>") —
+   reverted on request: every outbound message is signed and sent as the
+   Relève brand, never a named person, no exceptions. Left as a note so
+   nobody re-adds it thinking it was an oversight. */
 
 export function emailReady() { return Boolean(USER && PASS); }
 
@@ -212,7 +206,7 @@ const rawTemplates = {
   depositReady: (o: { name: string; payUrl: string; cents: number; docsUrl?: string }) => {
     const amount = (o.cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     const steps = [
-      { n: 1, label: 'Sign the agreement', href: o.docsUrl ?? SITE, cta: 'Sign the agreement' },
+      { n: 1, label: 'Review the agreement', href: o.docsUrl ?? SITE, cta: 'Review agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
     ];
@@ -233,16 +227,17 @@ const rawTemplates = {
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      from: PERSONAL_FROM,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.\n\nHere's what's next: sign the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Sage`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for the time today — it was genuinely good hearing what you're building, and being honest about where you need support to get there.\n\nRunning a growing business without the right person beside you means everything eventually lands on your desk — the calendar, the inbox, the fires only you seem to have time for. That is what this changes. Relève is not filling a task list; we are placing your right hand — someone who takes what is overwhelming you off your plate, so you can go back to running the business instead of holding it together.\n\nConsider it handled.\n\nHere's what's next: review the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account. None of it takes long:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Relève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
-        p(`Thank you for the time today — it was genuinely good hearing what you're building and what kind of person would make the real difference on your team.`) +
-        p(`Here's what's next: sign the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account.`) +
+        p(`Thank you for the time today — it was genuinely good hearing what you're building, and being honest about where you need support to get there.`) +
+        p(`Running a growing business without the right person beside you means everything eventually lands on your desk — the calendar, the inbox, the fires only you seem to have time for. That is what this changes. Relève is not filling a task list; we are placing your right hand — someone who takes what is overwhelming you off your plate, so you can go back to running the business instead of holding it together.`) +
+        `<p style="margin:22px 0 22px;font-family:Georgia,'Times New Roman',serif;font-size:19px;color:#35443A;">Consider it handled.</p>` +
+        p(`Here's what's next: review the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account. None of it takes long.`) +
         steps.map(stepRow).join('') +
         `<p style="margin:18px 0 0;font-size:13px;color:#7C897F;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you — talk soon.</p>` +
-        `<p style="margin:14px 0 0;">— Sage</p>`)
+        `<p style="margin:14px 0 0;">— Relève</p>`)
     };
   },
 
@@ -458,7 +453,6 @@ const rawTemplates = {
   /* The invitation out of the applicant pile and into the roster. */
   applicationInvited: (o: { name: string; role: string; docsUrl?: string }) => ({
     subject: `Welcome to Relève, ${o.name}`,
-    from: PERSONAL_FROM,
     text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nSet it up and it will walk you through the rest.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
     html: shell(`Welcome to Relève, ${o.name}`,
       p(`${o.name},`) +
