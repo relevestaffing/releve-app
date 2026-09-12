@@ -6,6 +6,7 @@ import { getSelfProfile } from '@/lib/store';
 import { L1, L2, facetsOf } from '@/lib/signature/model';
 import { talentSelfLines, talentSummary } from '@/lib/plain';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
 import { AxisBars, Portrait } from '@/components/Viz';
 import { WORDS } from '@/lib/words';
 import { getSkills, skillsShape, DISCIPLINE } from '@/lib/roles';
@@ -67,6 +68,10 @@ export default async function TalentProfile() {
         {self.bio
           ? <p className="small" style={{ maxWidth: 640 }}>{self.bio}</p>
           : <p className="small muted">You have not written an introduction yet — it is the part executives read first.</p>}
+        {self.intro_video_url && (
+          <video src={self.intro_video_url} controls playsInline preload="metadata"
+            style={{ width: '100%', maxWidth: 320, borderRadius: 8, background: 'var(--ink)', display: 'block', marginTop: 16 }} />
+        )}
         {shape ? (
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 18 }}>
             {(skills?.disciplines ?? []).map(d => (
@@ -106,11 +111,26 @@ export default async function TalentProfile() {
         <div className="card">
           <div className="card-head"><h3>What to watch for</h3></div>
           <p className="small">{type.friction}</p>
-          <p className="xs muted" style={{ marginTop: 14 }}>
-            This is not a criticism. It is what we tell an executive so they work with you well from day one.
-          </p>
+          <div style={{ marginTop: 14 }}>
+            <Explain>
+              This is not a criticism. It is what we tell an executive so they work with you well from day one.
+            </Explain>
+          </div>
         </div>
       </div>
+
+      {type.strengths?.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>{type.n}, at your best</h3></div>
+          <ul className="plain">{type.strengths.map((s: string) => <li key={s}>{s}</li>)}</ul>
+        </div>
+      )}
+      {type.growth && (
+        <div className="card">
+          <div className="card-head"><h3>Where to grow</h3></div>
+          <p className="small">{type.growth}</p>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-head"><h3>Your results in full</h3><span className="pill">See the full assessment</span></div>

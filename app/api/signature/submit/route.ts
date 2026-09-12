@@ -4,15 +4,20 @@ import { configured, currentProfile, supabaseServer } from '@/lib/supabase/serve
 
 /* The only place a Signature is scored. Answers in, scores out. */
 export async function POST(req: Request) {
+  const profile = await currentProfile();
+  if (!profile) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
   const { side, answers, pairs, timings, conditions } = await req.json();
   if (side !== 'client' && side !== 'talent')
     return NextResponse.json({ error: 'unknown instrument' }, { status: 400 });
 
   const clean = (timings ?? []).filter((t: number | null): t is number => t != null);
-  const result = scoreInstrument(side, answers, side === 'talent' ? pairs : null, clean);
+  /* Both instruments carry a forced-choice section now, not just talent's —
+     this used to hardcode pairs to the talent side only, which meant an
+     executive's forced-choice answers were collected on screen and then
+     silently thrown away instead of scored. */
+  const result = scoreInstrument(side, answers, pairs ?? null, clean);
   const type = archetype(result.scores, side);
 
-  const profile = await currentProfile();
   if (configured() && profile) {
     const sb = await supabaseServer();
     const { error: sigErr } = await sb.from('signatures').upsert({
@@ -38,7 +43,8 @@ export async function POST(req: Request) {
   return NextResponse.json({
     scores: result.scores, facets: result.facets,
     validity: result.validity, confidence: result.confidence,
-    archetype: { id: type.id, n: type.n, r: type.r, tag: type.tag, d: type.d, seek: type.seek, friction: type.friction },
+    archetype: { id: type.id, n: type.n, r: type.r, tag: type.tag, d: type.d, seek: type.seek, friction: type.friction,
+      strengths: type.strengths, growth: type.growth },
     disposition: dispositionLine(result.scores),
     saved: configured() && !!profile
   });

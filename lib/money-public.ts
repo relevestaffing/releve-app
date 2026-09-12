@@ -14,7 +14,12 @@ export const MINIMUM_MONTHS = 3;
 export const NOTICE_DAYS = 30;
 
 export type InvoiceKind = 'deposit' | 'retainer';
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'void';
+/* processing and failed exist because bank debit is not a card: it is
+   accepted, clears days later, and can still fail after being accepted.
+   Without a state for money in flight an invoice has to be called either
+   unpaid, which chases a client who has paid, or paid, which is untrue until
+   it lands. */
+export type InvoiceStatus = 'draft' | 'sent' | 'processing' | 'paid' | 'failed' | 'void';
 export type DepositStatus = 'due' | 'paid' | 'waived';
 
 export type Invoice = {
@@ -39,9 +44,11 @@ export type Invoice = {
 
 export const INVOICE_STATUS: { key: InvoiceStatus; label: string; tone: string }[] = [
   { key: 'draft', label: 'Draft', tone: '' },
-  { key: 'sent',  label: 'Sent',  tone: 'warn' },
-  { key: 'paid',  label: 'Paid',  tone: 'good' },
-  { key: 'void',  label: 'Void',  tone: '' }
+  { key: 'sent',       label: 'Sent',     tone: 'warn' },
+  { key: 'processing', label: 'Clearing', tone: '' },
+  { key: 'paid',       label: 'Paid',     tone: 'good' },
+  { key: 'failed',     label: 'Failed',   tone: 'crit' },
+  { key: 'void',       label: 'Void',     tone: '' }
 ];
 
 export const DEPOSIT_STATUS: { key: DepositStatus; label: string; tone: string }[] = [

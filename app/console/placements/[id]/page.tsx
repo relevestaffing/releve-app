@@ -10,6 +10,11 @@ import FirstFortnight from '@/components/FirstFortnight';
 import ManagerPicker from '@/components/ManagerPicker';
 import { feedbackFor, pulseFor, stepsFor, timeOffFor, teamRoles, GOING, WORKLOADS, TIME_OFF_STATE, nights } from '@/lib/care';
 import { fmtDate, fmtWhen } from '@/lib/words';
+import TaskBoard from '@/components/TaskBoard';
+import RateSetter from '@/components/RateSetter';
+import EndPlacement from '@/components/EndPlacement';
+import { TimeOffDecider } from '@/components/CareControls';
+import { configured, supabaseServer } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +41,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
     timeOffFor(id),
   ]);
   const team = await teamRoles();
+  const terms = await termsFor(id);
   const mine = checkins.filter(c => c.placement_id === id);
   const alerts = alertsFor({ tasks, checkins: mine, startedOn: p.started_on, thisWeek: week });
   const open = tasks.filter(t => !t.done);
@@ -87,6 +93,9 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
             <dt>Started</dt><dd>{day(p.started_on)}</dd>
             {p.ended_on && <><dt>Ended</dt>
               <dd>{day(p.ended_on)}{p.ended_reason ? ` · ${p.ended_reason}` : ''}</dd></>}
+            <dt>Client pays</dt>
+            <dd><RateSetter placementId={id} cents={terms?.rate_month_cents ?? null} />
+              {terms?.notice_given_on && <div className="xs muted" style={{ marginTop: 4 }}>Notice given {day(terms.notice_given_on)}</div>}</dd>
           </dl>
           <div className="hr" style={{ margin: '18px 0 16px' }} />
           <div className="eyebrow" style={{ marginBottom: 12 }}>Who looks after this</div>
@@ -128,21 +137,10 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
         ))}
       </div>
 
-      <div className="card">
-        <div className="card-head"><h3>Open work</h3><span className="pill">{open.length}</span></div>
-        {open.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing outstanding.</p></div>
-        ) : (
-          <ul className="past-list">
-            {open.slice(0, 12).map(t => (
-              <li key={t.id}>
-                <span className="past-date">{t.due_on ? day(t.due_on) : 'No date'}</span>
-                <span className="small"><span className={`pri ${t.priority}`}>{t.priority}</span> {t.title}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {/* The shared task list, live — the console used to show a read-only
+          excerpt, with no way to add, assign or unblock anything from the one
+          place where Relève is looking at the whole placement. */}
+      <TaskBoard placementId={id} me={profile.id} side="admin" counterpart={p.talent_name} />
 
       <div className="card">
         <div className="card-head">
@@ -178,6 +176,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
                   <div className="xs muted">{nights(t.starts_on, t.ends_on)} days
                     {t.reason ? ` · ${t.reason}` : ''}{t.cover_note ? ` · cover: ${t.cover_note}` : ''}</div></div>
                 <span className={`pill ${st?.tone ?? ''}`}>{st?.label}</span>
+                {t.state === 'requested' && <div style={{ width: '100%' }}><TimeOffDecider id={t.id} state={t.state} /></div>}
               </div>
             );
           })}
@@ -186,6 +185,8 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
 
       <FeedbackWriter placementId={id} talentId={p.talent_id}
         talentName={p.talent_name} existing={feedback} />
+
+      <EndPlacement placementId={id} noticeGivenOn={terms?.notice_given_on ?? null} endedOn={p.ended_on} />
 
       <FirstFortnight steps={steps} startedOn={p.started_on} side="admin" />
 
@@ -208,4 +209,12 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       </div>
     </Shell>
   );
+}
+
+/* The commercial terms on this placement, for the pairing card. */
+async function termsFor(placementId: string): Promise<{ rate_month_cents: number | null; notice_given_on: string | null } | null> {
+  if (!configured()) return null;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('placement_terms').select('rate_month_cents, notice_given_on').eq('placement_id', placementId).maybeSingle();
+  return (data as any) ?? null;
 }

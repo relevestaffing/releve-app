@@ -85,8 +85,10 @@ export async function updateTask(id: string, patch: Partial<Task>, byUser: strin
     body.done_at = patch.done ? new Date().toISOString() : null;
     body.done_by = patch.done ? byUser : null;
   }
-  const { error } = await sb.from('tasks').update(body).eq('id', id);
+  const { data, error } = await sb.from('tasks').update(body).eq('id', id)
+    .select('id, placement_id, title, done, done_by, created_by').maybeSingle();
   if (error) throw new Error(error.message);
+  return (data ?? null) as { id: string; placement_id: string; title: string; done: boolean; done_by: string | null; created_by: string } | null;
 }
 
 export async function deleteTask(id: string) {
@@ -136,33 +138,81 @@ export async function listMessages(subjectId: string): Promise<Message[]> {
   return (data ?? []) as Message[];
 }
 
+/* The direct line for one placement — a client and the talent they're
+   paired with, talking to each other rather than to Relève. Same table,
+   same row shape, just keyed by placement_id instead of subject_id; row
+   level security (in_placement()) is what actually keeps this to the two
+   people on that placement, plus the team. */
+export async function listPlacementMessages(placementId: string): Promise<Message[]> {
+  if (!configured()) return [];
+  const sb = await supabaseServer();
+  const { data } = await sb.from('messages').select('*')
+    .eq('placement_id', placementId).order('created_at', { ascending: true });
+  return (data ?? []) as Message[];
+}
+
 export async function sendMessage(row: {
-  subject_id: string; sender_id: string; body: string; from_team: boolean;
+  subject_id?: string; placement_id?: string; sender_id: string; body: string; from_team: boolean;
 }) {
   const sb = await supabaseServer();
   const { error } = await sb.from('messages').insert(row);
   if (error) throw new Error(error.message);
 }
 
-/* Every thread with its latest line — the Relève inbox. */
+/* Every thread with its latest line — the Relève inbox. Unread threads lead,
+   newest first within that group, the way a phone's own messages app sorts
+   them — so the moment there is something to answer, it is the first thing
+   seen rather than wherever it happened to fall in time.
+
+   Aggregated in the database by message_threads() (schema PART 23) rather
+   than by pulling recent rows into JavaScript and grouping them here: a flat
+   "most recent 400 messages" query is capped across every conversation
+   combined, not per thread, so once there is enough real volume a thread
+   that has gone quiet — its last message older than the 400th most recent
+   message system-wide — silently drops off the inbox entirely, unread and
+   all. The RPC has one row per thread no matter how many messages it holds,
+   so nothing goes missing. */
 export async function listThreads() {
   if (!configured()) return [];
   const sb = await supabaseServer();
-  const { data } = await sb.from('messages')
-    .select('*, subject:subject_id(full_name, email, role, org_name)')
-    .order('created_at', { ascending: false }).limit(400);
-  const seen = new Map<string, any>();
-  (data ?? []).forEach((m: any) => {
-    if (!seen.has(m.subject_id)) seen.set(m.subject_id, {
-      subject_id: m.subject_id,
-      name: m.subject?.full_name ?? m.subject?.email ?? 'Someone',
-      role: m.subject?.role ?? 'talent',
-      org_name: m.subject?.org_name ?? null,
-      last: m.body, last_at: m.created_at,
-      waiting: !m.from_team          // their last word — Relève owes a reply
-    });
+  const { data: rows } = await sb.rpc('message_threads');
+  if (!rows?.length) return [];
+
+  const ids = (rows as any[]).map(r => r.subject_id);
+  const { data: profiles } = await sb.from('profiles')
+    .select('id, full_name, email, role, org_name').in('id', ids);
+  const byId = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+
+  const threads = (rows as any[]).map(r => {
+    const p = byId.get(r.subject_id);
+    return {
+      subject_id: r.subject_id,
+      name: p?.full_name ?? p?.email ?? 'Someone',
+      role: p?.role ?? 'talent',
+      org_name: p?.org_name ?? null,
+      last: r.last, last_at: r.last_at,
+      waiting: r.waiting,             // their last word — Relève owes a reply
+      /* read_at is only ever set by markThreadRead(), below, the instant the
+         console actually opens a thread — so a count of what is still null
+         is a true "Relève has not looked at this yet" tally, not a guess. */
+      unread: r.unread ?? 0
+    };
   });
-  return [...seen.values()];
+  threads.sort((a, b) =>
+    (b.unread > 0 ? 1 : 0) - (a.unread > 0 ? 1 : 0) ||
+    +new Date(b.last_at) - +new Date(a.last_at));
+  return threads;
+}
+
+/* Opening a thread is what reading it means — called the moment the console
+   asks for one person's messages, so the unread count above reflects what
+   Relève has actually looked at rather than needing its own "mark as read"
+   button nobody would remember to press. */
+export async function markThreadRead(subjectId: string) {
+  if (!configured()) return;
+  const sb = await supabaseServer();
+  await sb.from('messages').update({ read_at: new Date().toISOString() })
+    .eq('subject_id', subjectId).eq('from_team', false).is('read_at', null);
 }
 
 /* ---------- placements: making and ending them ---------- */
@@ -180,22 +230,31 @@ export async function listPeople(): Promise<Person[]> {
   return (data ?? []) as Person[];
 }
 
-export async function listAllPlacements(): Promise<(Placement & { ended_on: string | null })[]> {
+export async function listAllPlacements():
+  Promise<(Placement & { ended_on: string | null; notice_given_on: string | null })[]> {
   if (!configured()) return [];
   const sb = await supabaseServer();
   const { data } = await sb.from('placements')
-    .select('id, client_id, talent_id, started_on, ended_on, client:client_id(full_name, org_name), talent:talent_id(full_name)')
+    .select('id, client_id, talent_id, started_on, ended_on, ' +
+            'terms:placement_terms(notice_given_on), ' +
+            'client:client_id(full_name, org_name), talent:talent_id(full_name)')
     .order('started_on', { ascending: false });
-  return (data ?? []).map((r: any) => ({
-    id: r.id, client_id: r.client_id, talent_id: r.talent_id,
-    started_on: r.started_on, ended_on: r.ended_on,
-    client_name: r.client?.full_name ?? 'Executive',
-    talent_name: r.talent?.full_name ?? 'Talent',
-    org_name: r.client?.org_name ?? null
-  }));
+  return (data ?? []).map((r: any) => {
+    const t = Array.isArray(r.terms) ? r.terms[0] : r.terms;
+    return {
+      id: r.id, client_id: r.client_id, talent_id: r.talent_id,
+      started_on: r.started_on, ended_on: r.ended_on,
+      notice_given_on: t?.notice_given_on ?? null,
+      client_name: r.client?.full_name ?? 'Executive',
+      talent_name: r.talent?.full_name ?? 'Talent',
+      org_name: r.client?.org_name ?? null
+    };
+  });
 }
 
-export async function createPlacement(clientId: string, talentId: string, startedOn?: string | null) {
+export async function createPlacement(
+  clientId: string, talentId: string, startedOn?: string | null, replacesId?: string | null
+) {
   const sb = await supabaseServer();
 
   /* What the engine predicted for this pairing, captured now while it is still
@@ -207,14 +266,81 @@ export async function createPlacement(clientId: string, talentId: string, starte
     .select('overall').eq('client_id', clientId).eq('talent_id', talentId)
     .order('created_at', { ascending: false }).limit(1).maybeSingle();
 
-  const { error } = await sb.from('placements').insert({
+  const { data: made, error } = await sb.from('placements').insert({
     client_id: clientId, talent_id: talentId,
     started_on: startedOn || new Date().toISOString().slice(0, 10),
-    predicted_fit: m?.overall ?? null
-  });
+    predicted_fit: m?.overall ?? null,
+    /* Writing this is what settles a replacement guarantee. Nothing had ever
+       written it, so every guaranteed ending stayed on the owed list for good
+       and the list became noise. */
+    replaces_id: replacesId || null,
+    /* A brand new placement starts unrevealed on both sides, so whoever
+       signs in next — client or talent — gets the Placement Reveal screen. */
+    talent_reveal_seen: false,
+    client_reveal_seen: false
+  }).select('id').maybeSingle();
   if (error) throw new Error(error.message);
   /* A placed person is no longer on the bench. */
   await sb.from('profiles').update({ stage: 'Placed' }).eq('id', talentId);
+  return (made as any)?.id as string | undefined;
+}
+
+/* ---------- placement reveal ---------- */
+
+export type PlacementRevealSide = 'talent' | 'client';
+
+export type UnrevealedPlacement = {
+  id: string; startedOn: string; roleTitle: string | null;
+  /* The OTHER party — for a talent that's the client (executive) they were
+     placed with; for a client it's the talent. */
+  counterpartName: string;
+  /* Only meaningful for side === 'client': the talent's own headline, used
+     as the role-title fallback when the placement carries no offer. A
+     talent's own fallback (their own headline) is looked up separately,
+     right where side === 'talent' is already known — see
+     app/placement-confirmed/page.tsx. */
+  counterpartHeadline: string | null;
+};
+
+/** The most recent placement this person has not yet had revealed to them
+    on their own side, or null. One indexed lookup, not the full placements
+    list — safe to call on every page load for either side. */
+export async function getUnrevealedPlacement(userId: string, side: PlacementRevealSide): Promise<UnrevealedPlacement | null> {
+  if (!configured()) return null;
+  const sb = await supabaseServer();
+  const idCol = side === 'talent' ? 'talent_id' : 'client_id';
+  const seenCol = side === 'talent' ? 'talent_reveal_seen' : 'client_reveal_seen';
+  const counterpartSelect = side === 'talent' ? 'client:client_id(full_name)' : 'talent:talent_id(full_name, headline)';
+
+  const { data } = await sb.from('placements')
+    .select(`id, started_on, ${counterpartSelect}, offers(role_title)`)
+    .eq(idCol, userId).eq(seenCol, false).is('ended_on', null)
+    .order('started_on', { ascending: false }).limit(1).maybeSingle();
+  if (!data) return null;
+  const r: any = data;
+  const counterpart = side === 'talent' ? r.client : r.talent;
+
+  return {
+    id: r.id, startedOn: r.started_on,
+    /* Only placements made from an accepted offer carry a role_title — a
+       manually-created placement (the admin tool in PlacementMaker) has none,
+       so the reveal screen falls back to a generic line rather than showing
+       nothing. */
+    roleTitle: r.offers?.[0]?.role_title ?? null,
+    counterpartName: counterpart?.full_name ?? (side === 'talent' ? 'your new executive' : 'your new team member'),
+    counterpartHeadline: side === 'client' ? (counterpart?.headline ?? null) : null
+  };
+}
+
+/** Marks the reveal seen for the given side. Goes through
+    mark_placement_reveal_seen() in the database rather than a plain update —
+    placements are admin-write-only by RLS, and this is the one thing either
+    side is allowed to change on their own row. */
+export async function markRevealSeen(placementId: string, side: PlacementRevealSide) {
+  if (!configured()) return;
+  const sb = await supabaseServer();
+  const { error } = await sb.rpc('mark_placement_reveal_seen', { placement: placementId, side });
+  if (error) throw new Error(error.message);
 }
 
 export async function endPlacement(id: string, endedOn?: string | null, reason?: string | null) {
@@ -334,11 +460,15 @@ export async function listDecisions(clientId: string): Promise<Decision[]> {
 export async function setDecision(row: {
   client_id: string; talent_id: string; state: DecisionState;
   reason?: string | null; note?: string | null;
+  /* the team member who wrote down an answer given on a call; null when
+     the executive answered in their own account */
+  recorded_by?: string | null;
 }) {
   const sb = await supabaseServer();
   const { error } = await sb.from('talent_decisions').upsert({
     client_id: row.client_id, talent_id: row.talent_id, state: row.state,
-    reason: row.reason || null, note: row.note || null, decided_at: new Date().toISOString()
+    reason: row.reason || null, note: row.note || null, decided_at: new Date().toISOString(),
+    recorded_by: row.recorded_by ?? null
   }, { onConflict: 'client_id,talent_id' });
   if (error) throw new Error(error.message);
 }
@@ -397,6 +527,26 @@ export async function listVetting(talentId: string): Promise<Vetting[]> {
   return (data ?? []) as Vetting[];
 }
 
+/* Which of these people are fully verified — identity plus a signed
+   agreement — for the console's matching table, so a release that the
+   database will refuse is visible before the button is pressed. */
+export async function verifiedSet(ids: string[]): Promise<Set<string>> {
+  const out = new Set<string>();
+  if (!configured() || !ids.length) return out;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('vetting').select('talent_id, kind, state, expires_on').in('talent_id', ids);
+  const today = new Date().toISOString().slice(0, 10);
+  const kinds = new Map<string, Set<string>>();
+  for (const v of (data ?? []) as any[]) {
+    if (v.state !== 'verified') continue;
+    if (v.expires_on && v.expires_on < today) continue;
+    if (!kinds.has(v.talent_id)) kinds.set(v.talent_id, new Set());
+    kinds.get(v.talent_id)!.add(String(v.kind));
+  }
+  for (const [id, k] of kinds) if (k.has('identity') && k.has('agreement')) out.add(id);
+  return out;
+}
+
 /* Everyone with something outstanding, for the Relève queue. */
 export async function vettingQueue() {
   if (!configured()) return [];
@@ -408,6 +558,7 @@ export async function vettingQueue() {
 }
 
 export async function recordVetting(row: {
+  signed_on?: string | null;
   talent_id: string; kind: string; file_path: string; file_name: string;
   expires_on?: string | null; issued_by_team?: boolean; verified?: boolean;
 }) {
@@ -418,6 +569,7 @@ export async function recordVetting(row: {
     file_path: row.file_path, file_name: row.file_name,
     issued_by_team: row.issued_by_team ?? false,
     expires_on: row.expires_on || null,
+    signed_on: row.signed_on || null,
     submitted_at: new Date().toISOString(),
     verified_at: row.verified ? new Date().toISOString() : null,
     reject_reason: null
@@ -449,19 +601,27 @@ export async function vettingFileLink(path: string, seconds = 120) {
 
 /* ---------- who to tell ---------- */
 
+/* Through team_emails(), a definer function: a talent, an executive or an
+   anonymous applicant cannot see the admin rows in profiles, so reading them
+   through their own session returned nobody and every "tell the team" email
+   went to an empty list while reporting success. */
 export async function teamEmails(): Promise<string[]> {
   if (!configured()) return [];
   const sb = await supabaseServer();
-  const { data } = await sb.from('profiles').select('email').eq('role', 'admin');
-  return (data ?? []).map((r: any) => r.email).filter(Boolean);
+  const { data, error } = await sb.rpc('team_emails');
+  if (error) { console.error('[teamEmails]', error.message); return []; }
+  return ((data ?? []) as any[]).map(r => (typeof r === 'string' ? r : r?.email ?? r?.team_emails)).filter(Boolean);
 }
 
-export async function personEmail(id: string): Promise<{ email: string; name: string } | null> {
+/** `name` is the first name, for greeting someone in a letter. `full` is the
+    whole thing, for records that other people will read. */
+export async function personEmail(id: string): Promise<{ email: string; name: string; full: string } | null> {
   if (!configured()) return null;
   const sb = await supabaseServer();
   const { data } = await sb.from('profiles').select('email, full_name').eq('id', id).maybeSingle();
   if (!data) return null;
-  return { email: (data as any).email, name: ((data as any).full_name ?? '').split(' ')[0] || 'there' };
+  const full = ((data as any).full_name ?? '').trim();
+  return { email: (data as any).email, name: full.split(/\s+/)[0] || 'there', full: full || 'Executive' };
 }
 
 
@@ -472,7 +632,11 @@ export async function benchPay(ids: string[]): Promise<Record<string, number | n
   const out: Record<string, number | null> = {};
   if (!configured() || !ids.length) return out;
   const sb = await supabaseServer();
-  const { data } = await sb.from('talent_pay').select('talent_id, rate_month').in('talent_id', ids);
-  for (const r of (data ?? []) as any[]) out[r.talent_id] = r.rate_month ?? null;
+  const { data } = await sb.from('talent_pay').select('talent_id, rate_month, rate_month_cents').in('talent_id', ids);
+  /* rate_month_cents is the real column; the dollar one is deprecated and
+     kept in step by trigger. Returned in dollars, which is what the page has
+     always taken. */
+  for (const r of (data ?? []) as any[])
+    out[r.talent_id] = r.rate_month_cents != null ? r.rate_month_cents / 100 : (r.rate_month ?? null);
   return out;
 }

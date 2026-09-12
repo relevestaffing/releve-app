@@ -10,6 +10,20 @@ const MAX_BYTES = 10 * 1024 * 1024;
 const OK_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const KINDS = ['identity', 'agreement', 'nda'];
 
+/* The browser's declared content-type is whatever the uploader's OS or a
+   rename said it was, not a fact about the bytes — this is what actually
+   looks at them before anything with that extension lands in the bucket. */
+function looksLike(type: string, bytes: Buffer): boolean {
+  if (bytes.length < 12) return false;
+  if (type === 'application/pdf') return bytes.subarray(0, 5).toString('latin1') === '%PDF-';
+  if (type === 'image/jpeg') return bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+  if (type === 'image/png')
+    return bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+  if (type === 'image/webp')
+    return bytes.subarray(0, 4).toString('latin1') === 'RIFF' && bytes.subarray(8, 12).toString('latin1') === 'WEBP';
+  return false;
+}
+
 /* A signed, short-lived link. These are passports — nothing here is ever public. */
 export async function GET(req: Request) {
   const me = await currentProfile();
@@ -35,6 +49,7 @@ export async function POST(req: Request) {
 
   /* Relève files the agreement on a candidate's behalf — they never upload it. */
   const onBehalfOf = String(form.get('talent_id') ?? '');
+  const signedOn = String(form.get('signed_on') ?? '').trim();
   if (onBehalfOf && me.role !== 'admin')
     return NextResponse.json({ error: 'not permitted' }, { status: 403 });
   const owner = onBehalfOf || me.id;
@@ -48,6 +63,8 @@ export async function POST(req: Request) {
   const ext = file.type === 'application/pdf' ? 'pdf' : file.type.split('/')[1];
   const path = `${owner}/${kind}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
+  if (!looksLike(file.type, bytes))
+    return NextResponse.json({ error: 'that file does not look like a PDF or a photo — try saving it again and re-uploading' }, { status: 415 });
 
   const sb = await supabaseServer();
   const { error } = await sb.storage.from('vetting')
@@ -60,9 +77,12 @@ export async function POST(req: Request) {
       file_name: (file as File).name ?? `${kind}.${ext}`,
       expires_on: expires || null,
       issued_by_team: byTeam,
-      /* Relève filing a signed agreement is the verification. */
-      verified: byTeam
-    });
+      signed_on: signedOn || null,
+      /* A filed agreement counts as verified only when somebody states the
+         date on the signature. Without that, "verified" meant a file of the
+         right type had landed in a bucket. */
+      verified: byTeam && !!signedOn
+    } as any);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 400 });
@@ -87,7 +107,7 @@ export async function PATCH(req: Request) {
         const tpl = b.verdict === 'verified'
           ? templates.vettingVerified(who.name)
           : templates.vettingRejected(who.name, label, b.reason ?? 'Please send another.');
-        await send(who.email, tpl.subject, { text: tpl.text, html: tpl.html });
+        await send(who.email, tpl);
       }
     }
     return NextResponse.json({ ok: true });

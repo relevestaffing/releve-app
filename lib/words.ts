@@ -85,14 +85,14 @@ export type Empty = { title: string; body: string; cta?: { label: string; href: 
 
 export const EMPTY: Record<string, Empty> = {
   shortlist: {
-    title: 'Your shortlist is being built',
-    body: 'Nobody has been put forward yet, and that is deliberate — we do not hand you a directory to search. Your Client Success Manager reviews the roster against your Signature and puts forward only the people worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
+    title: 'Your candidate is being chosen',
+    body: 'Nobody has been put forward yet, and that is deliberate — we do not hand you a stack to sort through. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
     cta: { label: 'Ask where things stand', href: '/app/messages' }
   },
   interviewsClient: {
     title: 'No interviews yet',
-    body: 'Once you tell us who you would like to meet, we arrange the time, send the invitations and put the joining link here.',
-    cta: { label: 'See your shortlist', href: '/app/pipeline' }
+    body: 'Once you approve your candidate, we arrange the time, send the invitations and put the joining link here.',
+    cta: { label: 'See your candidate', href: '/app/pipeline' }
   },
   interviewsTalent: {
     title: 'No interviews yet',
@@ -100,8 +100,9 @@ export const EMPTY: Record<string, Empty> = {
     cta: { label: 'Check your hours are right', href: '/app/availability' }
   },
   tasksClient: {
-    title: 'Nothing assigned yet',
-    body: 'This is where you hand work over. Add the first three things you would rather not do yourself — small and finishable beats big and vague in the first week.'
+    title: 'Nothing to hand over yet',
+    body: 'This is where you assign work and watch it move, once someone is in the seat. There is nothing to add until your placement starts — which is deliberate: the first week goes better when the list is written with them, not before they arrive.',
+    cta: { label: 'See where your search is', href: '/app/pipeline' }
   },
   tasksTalent: {
     title: 'Nothing on your list',
@@ -114,15 +115,15 @@ export const EMPTY: Record<string, Empty> = {
   },
   messages: {
     title: 'No messages yet',
-    body: 'This goes straight to your Relève manager — not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need.'
+    body: 'This goes straight to your Success Manager — not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need. A person reads these, usually the same working day.'
   },
   careClient: {
     title: 'Nothing here until someone starts',
-    body: 'Once your talent is in place, this is where you tell us each month how it is really going, and where the first two weeks are planned out step by step.'
+    body: 'Once your talent is in place, this is where you tell us each month how it is really going, and where your first ninety days are planned out step by step.'
   },
   careTalent: {
     title: 'Nothing here until you are placed',
-    body: 'Once you start, this is where you ask for time off, follow the first two weeks, and read the feedback written about your work.'
+    body: 'Once you start, this is where you ask for time off, follow your first ninety days, and read the feedback written about your work.'
   }
 };
 

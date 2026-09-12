@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from './Toast';
 import PhotoUpload from './PhotoUpload';
+import VideoUpload from './VideoUpload';
 
 
 export default function ProfileEditor({ initial }: { initial: any }) {
@@ -10,15 +11,14 @@ export default function ProfileEditor({ initial }: { initial: any }) {
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  function toggle(s: string) {
-    setSaved(false);
-  }
-
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true);
     const f = new FormData(e.currentTarget);
     const body: any = {};
-    f.forEach((v, k) => { if (v !== '') body[k] = k === 'years_exp' ? Number(v) : v; });
+    f.forEach((v, k) => {
+      const str = String(v).trim();
+      body[k] = str === '' ? null : k === 'years_exp' ? Number(str) : str;
+    });
     const ok = await saving(() => fetch('/api/profile', {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
     }), 'Profile saved');
@@ -63,13 +63,26 @@ export default function ProfileEditor({ initial }: { initial: any }) {
         </a>
       </div>
 
-      <div className="card">
+      {/* The checklist links here with #photo; without the id it landed at the
+          top of a long form with no clue what to do. */}
+      <div className="card" id="photo" style={{ scrollMarginTop: 90 }}>
         <div className="card-head"><h3>Photo</h3><span className="pill">Optional, but it helps</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
           A clear photo of your face. A plain background and good light is all it takes —
           it saves on its own, you do not need to press save below for this one.
         </p>
         <PhotoUpload initial={initial.photo_url} name={initial.full_name ?? ''} />
+      </div>
+
+      {/* The checklist links here with #video, same reasoning as #photo. */}
+      <div className="card" id="video" style={{ scrollMarginTop: 90 }}>
+        <div className="card-head"><h3>Introduction video</h3><span className="pill">Optional, but it stands out</span></div>
+        <p className="small muted" style={{ marginBottom: 18 }}>
+          Executives read a lot of profiles. Thirty seconds of you, in your own voice,
+          is the fastest way to become a person rather than a row — it saves on its own,
+          you do not need to press save below for this one.
+        </p>
+        <VideoUpload initial={initial.intro_video_url} name={initial.full_name ?? ''} />
       </div>
 
       <div className="row" style={{ gap: 14 }}>

@@ -36,7 +36,13 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
       body: JSON.stringify({ action: 'role', data: draft })
     }), done ? 'Role breakdown saved' : 'Saved — you can finish the rest later');
     setBusy(false);
-    if (ok) router.refresh();
+    /* Refreshing in place left the same editable form on screen after a
+       successful save, so there was nothing to tell someone it had actually
+       gone through — it just looked like they were still mid-edit. Saving
+       now leaves the page; the checklist link back to /app/role is what
+       gives them a deliberate way to reopen it and add more, rather than
+       the form defaulting to open every time. */
+    if (ok) router.push('/app');
   }
 
   return (
@@ -155,15 +161,6 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
             <label>The three or four things that matter most</label>
             <textarea rows={3} value={priorities} onChange={e => setPriorities(e.target.value)}
               placeholder="Inbox at zero by 9am. Board pack ready two days before. Nobody books over Thursday mornings." />
-          </div>
-
-          <div className="ff">
-            <label>What is never delegated, however well it goes</label>
-            <textarea rows={2} value={never} onChange={e => setNever(e.target.value)}
-              placeholder="Anything to the board. Hiring decisions. My family calendar." />
-            <p className="xs muted" style={{ marginTop: 6 }}>
-              Saying this once saves a month of hesitation on both sides.
-            </p>
           </div>
 
           <div className="grid-2" style={{ gap: 14 }}>

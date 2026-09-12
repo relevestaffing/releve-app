@@ -8,7 +8,10 @@ import type { CondSet } from './signature/score';
 export type Person = {
   id: string; name: string; role: string; loc: string; tz: string;
   yrs: number; eng: string; rate: string; stage: string;
-  photo_url?: string | null; bio?: string | null; skills?: string[] | null;
+  photo_url?: string | null; bio?: string | null; skills?: string[] | null; intro_video_url?: string | null;
+  /* from talent_directory: whether they have claimed a discipline, and whether
+     Taking The Watch has cleared them — the console's release gate */
+  has_disciplines?: boolean; watch_cleared?: boolean;
   scores: Scores; facets: Record<string, number>;
   validity: Validity; confidence: Record<string, Conf>; cond: CondSet;
 };
@@ -84,10 +87,19 @@ export const DEMO_BENCH: Person[] = Object.keys(meta).map(id => {
   return { ...meta[id], scores, facets, validity: vals[id], confidence: seedConfidence(facets), cond: conds[id] };
 });
 
+/* seedFacets mutates the trait scores it is given, averaging them back up
+   from the facets it invents — the same treatment every bench profile gets,
+   so the demo executive's report is not the one place still showing the
+   flat, pre-facet numbers. */
+const execScores: Scores = { tempo:83, direction:33, cadence:33, candor:83, initiative:92, structure:50,
+  composure:85, warmth:35, rigor:88, adaptability:82, assertion:78, drive:70 };
+const execFacets = seedFacets('exec', execScores);
+
 export const DEMO_EXEC = {
   name: 'Elena Marsh', org: 'Marsh & Co.',
-  scores: { tempo:83, direction:33, cadence:33, candor:83, initiative:92, structure:50,
-            composure:85, warmth:35, rigor:88, adaptability:82, assertion:78, drive:70 } as Scores,
+  scores: execScores,
+  facets: execFacets,
+  confidence: seedConfidence(execFacets),
   cond: { overlap:'Full working day', volume:'Heavy — 25+', discretion:'Maximum — personal & deal-sensitive',
           mix:'Mostly heads-down', tools:['Google Workspace','Slack','Notion'],
           never:'Client relationships and anything that speaks for me on a deal.' } as CondSet,

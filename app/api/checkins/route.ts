@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         : 'Rated the working relationship 2 or below';
       for (const addr of await teamEmails()) {
         const tpl = templates.checkinFlagged({ talent: me.full_name ?? me.email, why });
-        await send(addr, tpl.subject, { text: tpl.text, html: tpl.html });
+        await send(addr, tpl);
       }
     }
     return NextResponse.json({ ok: true });

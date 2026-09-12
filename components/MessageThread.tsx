@@ -3,20 +3,48 @@ import { useEffect, useRef, useState } from 'react';
 import type { Message } from '@/lib/work-public';
 import { saving } from './Toast';
 
-export default function MessageThread({ subject, me, asTeam = false, theirName }: {
-  subject: string; me: string; asTeam?: boolean; theirName?: string;
+export default function MessageThread({ subject, placement, me, asTeam = false, theirName, onLoaded }: {
+  /* Exactly one of subject / placement is set by the caller — subject for
+     the thread with a Success Manager, placement for the direct line
+     between a client and the talent they're paired with. */
+  subject?: string; placement?: string; me: string; asTeam?: boolean; theirName?: string;
+  /* Fired once this thread's messages have genuinely loaded — the console
+     uses this to clear the unread badge, rather than clearing it the instant
+     a thread is clicked. A click that never actually loads (a dropped
+     connection, an expired session) used to leave the badge saying "read"
+     while nothing had actually been read. */
+  onLoaded?: () => void;
 }) {
   const [msgs, setMsgs] = useState<Message[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const foot = useRef<HTMLDivElement>(null);
+  const key = placement ? `placement:${placement}` : `subject:${subject}`;
 
   async function load() {
-    const r = await fetch(`/api/messages?subject=${subject}`);
-    const d = await r.json();
-    setMsgs(d.messages ?? []);
+    setFailed(false);
+    try {
+      const qs = placement ? `placement=${placement}` : `subject=${subject}`;
+      const r = await fetch(`/api/messages?${qs}`);
+      if (!r.ok) throw new Error(String(r.status));
+      const d = await r.json();
+      setMsgs(d.messages ?? []);
+      onLoaded?.();
+    } catch {
+      setFailed(true);
+    }
   }
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [subject]);
+  useEffect(() => { setMsgs(null); load(); /* eslint-disable-next-line */ }, [key]);
   useEffect(() => { foot.current?.scrollIntoView({ block: 'nearest' }); }, [msgs]);
+
+  if (failed) return (
+    <div className="card chat-card">
+      <div className="empty" style={{ flex: 1 }}><span className="tick" />
+        <p className="small">Could not load this conversation.</p>
+        <button className="btn sm ghost" onClick={load}>Try again</button>
+      </div>
+    </div>
+  );
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,7 +54,7 @@ export default function MessageThread({ subject, me, asTeam = false, theirName }
     setBusy(true);
     const ok = await saving(() => fetch('/api/messages', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ body, subject_id: subject })
+      body: JSON.stringify(placement ? { body, placement_id: placement } : { body, subject_id: subject })
     }), 'Sent');
     setBusy(false);
     if (ok) { form.reset(); load(); }
@@ -58,7 +86,7 @@ export default function MessageThread({ subject, me, asTeam = false, theirName }
   return (
     <div className="card chat-card">
       <div className="card-head">
-        <h3>{asTeam ? theirName : 'Your account manager'}</h3>
+        <h3>{asTeam || placement ? theirName : 'Your Success Manager'}</h3>
         <span className="xs muted">{msgs.length} message{msgs.length === 1 ? '' : 's'}</span>
       </div>
 
@@ -66,6 +94,7 @@ export default function MessageThread({ subject, me, asTeam = false, theirName }
         <div className="empty" style={{ flex: 1 }}><span className="tick" />
           <p className="small">
             {asTeam ? 'Nothing here yet.'
+              : placement ? `Nothing here yet — write to ${theirName ?? 'them'} directly.`
               : 'Anything at all — a question, something that is not working, or something you want us to know. A person reads these.'}
           </p></div>
       ) : (
@@ -99,14 +128,16 @@ export default function MessageThread({ subject, me, asTeam = false, theirName }
 
       <form onSubmit={send} className="composer">
         <textarea name="body" rows={1} required
-          placeholder={asTeam ? 'Reply…' : 'Write to your account manager…'}
+          placeholder={asTeam ? 'Reply…' : placement ? `Write to ${theirName ?? 'them'}…` : 'Write to your account manager…'}
           onInput={e => {
             const el = e.currentTarget;
             el.style.height = 'auto';
             el.style.height = Math.min(el.scrollHeight, 160) + 'px';
           }}
           onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.currentTarget.form?.requestSubmit();
+            /* Enter sends, the way chat apps train people to expect — Shift+Enter
+               is the escape hatch for anyone who actually wants a line break. */
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); }
           }} />
         <button className="btn solid sm" disabled={busy} aria-label="Send">
           {busy ? '…' : 'Send'}

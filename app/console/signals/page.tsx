@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { allDecisions, allFeedback } from '@/lib/work';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
 import { fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
@@ -32,12 +33,12 @@ export default async function Signals() {
 
   return (
     <Shell profile={profile} active="/console/signals" title="Match Accuracy"
-      crumb="How well the shortlists are landing">
+      crumb="How well the matches are landing">
 
-      <div className="card tight" style={{ marginBottom: 22 }}>
+      <div className="card tight">
         <p className="small" style={{ margin: 0, maxWidth: 660 }}>
           <b>Are the people you put forward the right people?</b> This is the early
-          answer — how often an executive shortlists rather than passes, how they
+          answer — how often an executive approves rather than declines, how they
           score the interviews, and what they say when someone is not right. The
           later answer, six months in, is on Reports under <i>Is the assessment right?</i>
         </p>
@@ -46,7 +47,7 @@ export default async function Signals() {
       <div className="grid-4">
         <div className="card stat"><div className="eyebrow">Decisions recorded</div>
           <div className="score">{decisions.length}</div></div>
-        <div className="card stat"><div className="eyebrow">Shortlisted</div>
+        <div className="card stat"><div className="eyebrow">Approved</div>
           <div className="score">{rate === null ? '—' : `${rate}%`}</div></div>
         <div className="card stat"><div className="eyebrow">Interviews scored</div>
           <div className="score">{rated.length}</div></div>
@@ -56,10 +57,10 @@ export default async function Signals() {
 
       {decisions.length < 8 && (
         <div className="card">
-          <p className="small muted" style={{ margin: 0 }}>
+          <Explain>
             These numbers only start meaning something after a few dozen decisions.
             Until then, read the individual reasons rather than the percentages.
-          </p>
+          </Explain>
         </div>
       )}
 
@@ -97,7 +98,7 @@ export default async function Signals() {
           <div className="empty"><span className="tick" /><p className="small">Nothing recorded yet.</p></div>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Executive</th><th>Candidate</th><th>Decision</th><th>Reason</th><th>When</th></tr></thead>
+            <thead><tr><th>Executive</th><th>Candidate</th><th>Decision</th><th>In their words</th><th>When</th></tr></thead>
             <tbody>
               {decisions.slice(0, 25).map(d => (
                 <tr key={d.id}>
@@ -105,7 +106,8 @@ export default async function Signals() {
                     {d.client?.org_name && <div className="small muted">{d.client.org_name}</div>}</td>
                   <td>{d.talent?.full_name ?? '—'}</td>
                   <td><span className={`pill ${d.state === 'shortlisted' || d.state === 'hired' ? 'good' : ''}`}>
-                    {d.state}</span></td>
+                    {d.state === 'shortlisted' ? 'Approved' : d.state === 'passed' ? 'Declined'
+                      : d.state === 'interviewing' ? 'Interviewing' : 'Hired'}</span></td>
                   <td className="small muted">{d.reason ?? '—'}{d.note ? ` · ${d.note}` : ''}</td>
                   <td className="small muted">{day(d.decided_at)}</td>
                 </tr>

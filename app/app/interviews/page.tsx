@@ -6,11 +6,12 @@ import { getAvailability, listInterviews, listMatches, bookedSlots, getCalendar,
 import { busyIntervals } from '@/lib/google-calendar';
 import { overlappingSlots, formatSlot, formatTime } from '@/lib/scheduling';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
 import { Portrait } from '@/components/Viz';
 import BookInterview from '@/components/BookInterview';
 import InterviewStatus from '@/components/InterviewStatus';
 import InterviewFeedback from '@/components/InterviewFeedback';
-import { listFeedback } from '@/lib/work';
+import { listFeedback, listDecisions } from '@/lib/work';
 import Empty from '@/components/Empty';
 import { EMPTY } from '@/lib/words';
 
@@ -22,7 +23,12 @@ export default async function Interviews() {
   if (!profile) redirect('/');
   const isClient = profile.role === 'client';
   const mine = await listInterviews(isClient ? { clientId: profile.id } : { talentId: profile.id });
-  const myAvail = await getAvailability(profile.id, 'America/Los_Angeles');
+  /* No availability row yet: fall back to the timezone on their profile,
+     then UTC — never Los Angeles for a talent in Manila, which rendered
+     every time on this page eight hours wrong under a plausible label. */
+  const self = await getSelfProfile(profile.id);
+  const myAvail = await getAvailability(profile.id, (self as any).timezone?.trim() || 'UTC');
+  const hasAvailRow = !!myAvail.windows?.length && !!myAvail.timezone?.trim();
   /* availability.timezone is NOT NULL but can be an empty string, and Intl
      throws RangeError on one — which took the whole page down. */
   const tz = myAvail.timezone?.trim() || 'UTC';
@@ -48,7 +54,11 @@ export default async function Interviews() {
   let bookable: { id: string; name: string; role: string; slots: any[] }[] = [];
   if (isClient) {
     const sig = await getMySignature(profile, 'client');
-    const released = (await listMatches(profile.id)).filter(m => m.released).map(m => m.talent_id);
+    /* Released, and not declined — a candidate the executive already said
+       no to stayed bookable here, against the promise that they are never
+       told. */
+    const declined = new Set((await listDecisions(profile.id)).filter(d => d.state === 'passed').map(d => d.talent_id));
+    const released = (await listMatches(profile.id)).filter(m => m.released && !declined.has(m.talent_id)).map(m => m.talent_id);
     const bench = await getBench();
     const busy = await bookedSlots(profile.id);
     const from = new Date();
@@ -77,9 +87,43 @@ export default async function Interviews() {
     }
   }
 
+  /* The next one that has not happened yet. On a phone the Join link sits in
+     the last column of a table that scrolls sideways under a fade — which is a
+     poor place for the most important tap in the whole journey. This lifts it
+     out into the open. */
+  const next = mine
+    .filter(iv => !past(iv.starts_at) && !['Cancelled', 'Declined', 'Completed', 'No-show'].includes(iv.status))
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0] ?? null;
+
   return (
     <Shell profile={profile} active="/app/interviews" title="Interviews" crumb={isClient ? 'Book and track' : 'Your schedule'}
       action={<Link className="btn sm ghost" href="/app/availability">Set your availability</Link>}>
+
+      {!hasAvailRow && (
+        <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
+          <p className="small" style={{ margin: 0 }}>
+            <b>Your availability is not set</b>, so times here are shown in {tz.replace('_', ' ')} and{' '}
+            {isClient ? 'nobody can be booked from times you are both free' : 'no executive can book you'}.{' '}
+            <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set it now</Link> — it takes two minutes.
+          </p>
+        </div>
+      )}
+
+      {next && (
+        <div className="card" style={{ borderLeft: '3px solid var(--fern)' }}>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>Next interview</div>
+          <h3 style={{ margin: '0 0 4px' }}>{isClient ? next.talent_name : next.client_name}</h3>
+          <p className="small" style={{ margin: '0 0 16px' }}>
+            {formatSlot(next.starts_at, tz)}{tzLabel && ` · ${tzLabel}`}
+          </p>
+          {next.meeting_url
+            ? <a className="btn solid" href={next.meeting_url} target="_blank" rel="noreferrer"
+                style={{ width: '100%', justifyContent: 'center' }}>Join the call</a>
+            : <p className="small muted" style={{ margin: 0 }}>
+                The joining link appears here as soon as it is issued. You will get it by email too.
+              </p>}
+        </div>
+      )}
 
       <div className="card">
         <div className="card-head"><h3>Scheduled</h3>
@@ -88,14 +132,14 @@ export default async function Interviews() {
           ? <Empty of={isClient ? EMPTY.interviewsClient : EMPTY.interviewsTalent} />
           : (
             <table className="data">
-              <thead><tr><th>{isClient ? 'Candidate' : 'Client'}</th><th>Stage</th><th>When{tzLabel && ` (${tzLabel})`}</th><th>Status</th><th></th></tr></thead>
+              <thead><tr><th>{isClient ? 'Candidate' : 'Executive'}</th><th>Stage</th><th>When{tzLabel && ` (${tzLabel})`}</th><th>Status</th><th></th></tr></thead>
               <tbody>
                 {mine.map(iv => (
                   <tr key={iv.id}>
                     <td><b>{isClient ? iv.talent_name : iv.client_name}</b></td>
                     <td className="small">{iv.stage}</td>
                     <td className="small">{formatSlot(iv.starts_at, tz)}</td>
-                    <td><InterviewStatus id={iv.id} status={iv.status} canEdit={!isClient} /></td>
+                    <td><InterviewStatus id={iv.id} status={iv.status} mode={isClient ? 'client' : 'talent'} /></td>
                     <td>{past(iv.starts_at) || iv.status === 'Completed'
                       ? <InterviewFeedback interviewId={iv.id}
                           who={(isClient ? iv.talent_name : iv.client_name).split(' ')[0]}
@@ -165,10 +209,10 @@ export default async function Interviews() {
 
       {!isClient && (
         <div className="card tight">
-          <p className="small muted">
+          <Explain>
             Executives can only book you inside the hours you have marked as free.
             Keep them current and you will never be offered a call at 3am.
-          </p>
+          </Explain>
         </div>
       )}
     </Shell>

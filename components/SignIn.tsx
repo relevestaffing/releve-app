@@ -1,13 +1,33 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
 
-export default function SignIn() {
+/* A message the friendliest way to say "that link didn't work" can manage —
+   Supabase's own wording (e.g. "Email link is invalid or has expired") is
+   accurate but reads like a stack trace. Anything unrecognised still shows
+   verbatim rather than being swallowed. */
+function friendly(raw: string): string {
+  const low = raw.toLowerCase();
+  if (low.includes('expired') || low.includes('invalid'))
+    return 'That link has already been used or has expired — links are one-time and last an hour. Send yourself a new one below.';
+  return raw;
+}
+
+export default function SignIn({ initialError }: { initialError?: string }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(initialError ? friendly(initialError) : null);
   const [busy, setBusy] = useState(false);
   const live = hasSupabase();
+
+  /* Drop ?error=… from the address bar once it has been shown, so refreshing
+     this page — or coming back to it later — does not keep repeating it. */
+  useEffect(() => {
+    if (initialError && typeof window !== 'undefined') {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function magicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +63,7 @@ export default function SignIn() {
             </>
           ) : (
             <>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>Accounts Center</div>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Accounts Centre</div>
               <h2 style={{ fontSize: 24, marginBottom: 10 }}>Sign in</h2>
               <p className="note" style={{ marginBottom: 24 }}>
                 {live ? 'Enter the email address your account is under. We will send you a link.'

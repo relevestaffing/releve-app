@@ -5,7 +5,10 @@ import { loadAttempt } from '@/lib/attempts';
 
 /* Sends the browser the statements only — never which axis they load onto. */
 export async function POST(req: Request) {
-  const { side } = await req.json();
+  /* The instrument is the product's own IP: signed-in accounts only. */
+  const me = await currentProfile();
+  if (!me) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
+  const { side, fresh } = await req.json();
   if (side !== 'client' && side !== 'talent')
     return NextResponse.json({ error: 'unknown instrument' }, { status: 400 });
 
@@ -24,12 +27,17 @@ export async function POST(req: Request) {
   }));
   const pairs = inst.pairs.map((p, n) => ({ i: inst.items.length + n, kind: 'pair' as const, a: p.a.s, b: p.b.s }));
 
-  const profile = await currentProfile();
-  const saved = await loadAttempt(side, profile?.id ?? null);
+  /* A retake starts clean. Loading the old attempt on a retake dropped the
+     person straight onto the final screen with every previous answer intact
+     — an Invalid Signature resubmitted the identical answers and failed the
+     same way, with no way out. */
+  const saved = fresh ? null : await loadAttempt(side, me.id);
 
   return NextResponse.json({
     total: inst.total, itemCount: inst.items.length,
     screens, pairs, scale: SCALE, sections: sections(side),
-    saved: saved ? { answers: saved.answers, pairs: saved.pairs } : null
+    saved: saved
+      ? { answers: saved.answers, pairs: saved.pairs, conditions: saved.conditions ?? {} }
+      : null
   });
 }

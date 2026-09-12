@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import Shell from '@/components/Shell';
+import NextStep from '@/components/NextStep';
+import { setupFor } from '@/lib/setup';
 import AvailabilityEditor from '@/components/AvailabilityEditor';
 import CalendarConnect from '@/components/CalendarConnect';
 
@@ -15,6 +17,7 @@ export default async function AvailabilityPage() {
     <Shell profile={profile} active="/app/availability" title="Availability" crumb="Interviews">
       <CalendarConnect />
       <AvailabilityEditor who={who} />
+      <NextStep steps={await setupFor(profile)} current="availability" />
     </Shell>
   );
 }

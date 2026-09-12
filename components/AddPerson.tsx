@@ -73,6 +73,8 @@ export default function AddPerson({ role }: { role: 'client' | 'talent' }) {
               <select name="stage"><option>Applied</option><option>Screening</option><option>Vetted</option></select></div>
           </>
         )}
+        <div className="ff"><label>Documents link — optional</label>
+          <input name="docs_url" type="url" placeholder="Paste the DocuSign link once it's out, or leave blank and send it separately" /></div>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : `Add ${role === 'client' ? 'client' : 'talent'}`}</button>
         {msg && <p className="small" style={{ marginTop: 14, color: 'var(--good)' }}>{msg}</p>}
         {err && <div className="err">{err}</div>}

@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
+import SWRegister from '@/components/SWRegister';
 
 export const metadata: Metadata = {
   title: 'Relève — Accounts Center',
@@ -26,11 +27,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {/* Set before first paint. Every reveal in globals.css is gated on
+            html.js, so a browser with scripting off — or a script that fails
+            to load — renders the whole app visible rather than blank. */}
+        <script dangerouslySetInnerHTML={{ __html:
+          "var d=document.documentElement;d.classList.add('js');" +
+          "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},6000)"
+        }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=WindSong:wght@500&family=Tenor+Sans&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}<Toaster /></body>
+      <body>{children}<Toaster /><SWRegister /></body>
     </html>
   );
 }

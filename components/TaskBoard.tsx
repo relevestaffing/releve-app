@@ -5,6 +5,34 @@ import { saving, toast } from './Toast';
 
 const PRI_ORDER: Record<Priority, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
 
+/* Overdue first regardless of priority — a low-priority task three days late
+   still needs to outrank a high-priority one due next month. Inside each
+   bucket, priority breaks the tie the way it always has. */
+type Group = { label: string; tasks: Task[] };
+function groupTasks(tasks: Task[]): Group[] {
+  const today = new Date().toISOString().slice(0, 10);
+  const weekOut = new Date(); weekOut.setDate(weekOut.getDate() + 7);
+  const weekOutStr = weekOut.toISOString().slice(0, 10);
+  const buckets = { overdue: [] as Task[], today: [] as Task[], week: [] as Task[], later: [] as Task[], none: [] as Task[] };
+  for (const t of tasks) {
+    if (!t.due_on) buckets.none.push(t);
+    else if (t.due_on < today) buckets.overdue.push(t);
+    else if (t.due_on === today) buckets.today.push(t);
+    else if (t.due_on <= weekOutStr) buckets.week.push(t);
+    else buckets.later.push(t);
+  }
+  const byPriority = (a: Task, b: Task) =>
+    PRI_ORDER[a.priority] - PRI_ORDER[b.priority] || (a.due_on ?? '9999').localeCompare(b.due_on ?? '9999');
+  Object.values(buckets).forEach(g => g.sort(byPriority));
+  return [
+    { label: 'Overdue', tasks: buckets.overdue },
+    { label: 'Due today', tasks: buckets.today },
+    { label: 'This week', tasks: buckets.week },
+    { label: 'Later', tasks: buckets.later },
+    { label: 'No date', tasks: buckets.none }
+  ].filter(g => g.tasks.length > 0);
+}
+
 function dueLabel(d: string | null) {
   if (!d) return null;
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -17,8 +45,12 @@ function dueLabel(d: string | null) {
   return { text: due.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }), tone: '' };
 }
 
-export default function TaskBoard({ placementId, me, side, counterpart }: {
+export default function TaskBoard({ placementId, me, side, counterpart, limit, seeAllHref }: {
   placementId: string; me: string; side: 'client' | 'talent' | 'admin'; counterpart: string;
+  /* Cap how many open tasks render before the list hands off to a link — the
+     dashboard's glance view sets this; the full Tasks page leaves it unset
+     and shows everything. */
+  limit?: number; seeAllHref?: string;
 }) {
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [open, setOpen] = useState(false);
@@ -31,6 +63,15 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
     setTasks(d.tasks ?? []);
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [placementId]);
+  /* The other side's activity showed up only on a manual refresh. Coming
+     back to the tab is the moment somebody expects to see what changed. */
+  useEffect(() => {
+    const onFocus = () => { if (document.visibilityState === 'visible') load(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => { window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onFocus); };
+    /* eslint-disable-next-line */
+  }, [placementId]);
 
   async function add(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,17 +101,35 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
     else if (!t.done) toast.saved('Done');
   }
 
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   async function remove(t: Task) {
+    if (confirmId !== t.id) { setConfirmId(t.id); return; }
     const ok = await saving(() => fetch(`/api/tasks?id=${t.id}`, { method: 'DELETE' }), 'Task removed');
+    setConfirmId(null);
     if (ok) load();
   }
 
   if (!tasks) return <div className="empty"><span className="tick" /><p className="small">Loading…</p></div>;
 
-  const live = tasks.filter(t => !t.done).sort((a, b) =>
-    PRI_ORDER[a.priority] - PRI_ORDER[b.priority] ||
-    (a.due_on ?? '9999').localeCompare(b.due_on ?? '9999'));
+  const live = tasks.filter(t => !t.done);
   const done = tasks.filter(t => t.done);
+  const groups = groupTasks(live);
+  const truncated = limit != null && live.length > limit;
+
+  /* Fill the cap group by group, in the order groupTasks already ranked
+     them, so a glance view never cuts a group in half without saying so. */
+  const visibleGroups: Group[] = [];
+  if (limit != null) {
+    let shown = 0;
+    for (const g of groups) {
+      if (shown >= limit) break;
+      const slice = g.tasks.slice(0, limit - shown);
+      visibleGroups.push({ label: g.label, tasks: slice });
+      shown += slice.length;
+    }
+  } else {
+    visibleGroups.push(...groups);
+  }
 
   return (
     <>
@@ -89,34 +148,57 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
             </p>
           </div>
         ) : (
-          <ul className="task-list">
-            {live.map(t => {
-              const due = dueLabel(t.due_on);
-              const origin = ORIGINS.find(o => o.key === t.origin);
-              return (
-                <li key={t.id} className="task">
-                  <button disabled={!!busy} className="task-check" onClick={() => toggle(t)} aria-label={`Mark ${t.title} done`} />
-                  <div className="task-body">
-                    <div className="task-top">
-                      <span className={`pri ${t.priority}`}>{PRIORITIES.find(p => p.key === t.priority)?.label}</span>
-                      <span className="task-title">{t.title}</span>
-                    </div>
-                    {t.detail && <p className="small muted task-detail">{t.detail}</p>}
-                    <div className="task-meta xs">
-                      {due && <span className={`due ${due.tone}`}>{due.text}</span>}
-                      <span className="muted">
-                        {origin?.label ?? 'Self-directed'}{t.origin_note ? ` · ${t.origin_note}` : ''}
-                      </span>
-                      <span className="muted">{t.created_by === me ? 'Added by you' : `From ${counterpart}`}</span>
-                    </div>
-                  </div>
-                  {t.created_by === me && (
-                    <button disabled={!!busy} className="task-x" onClick={() => remove(t)} aria-label="Remove task">×</button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            <ul className="task-list">
+              {visibleGroups.flatMap(g => [
+                <li key={`h-${g.label}`} className="task-group">{g.label}</li>,
+                ...g.tasks.map(t => {
+                  const due = dueLabel(t.due_on);
+                  const origin = ORIGINS.find(o => o.key === t.origin);
+                  return (
+                    <li key={t.id} className="task">
+                      <button disabled={!!busy} className="task-check" onClick={() => toggle(t)} aria-label={`Mark ${t.title} done`} />
+                      <div className="task-body">
+                        <div className="task-top">
+                          <span className={`pri ${t.priority}`}>{PRIORITIES.find(p => p.key === t.priority)?.label}</span>
+                          <span className="task-title">{t.title}</span>
+                        </div>
+                        {t.detail && <p className="small muted task-detail">{t.detail}</p>}
+                        <div className="task-meta xs">
+                          {due && <span className={`due ${due.tone}`}>{due.text}</span>}
+                          {/* "Self-directed" with no note is the silent default — it fires for
+                             every task the executive assigns straight through the app (there is
+                             no "where did this come from" for them to answer) and adds nothing
+                             next to "Added by you"/"From {counterpart}" below, so it only earns
+                             its place when there is a real origin or a note to go with it. */}
+                          {(origin && (origin.key !== 'self' || t.origin_note)) && (
+                            <span className="muted">
+                              {origin.label}{t.origin_note ? ` · ${t.origin_note}` : ''}
+                            </span>
+                          )}
+                          <span className="muted">{t.created_by === me ? 'Added by you' : `From ${counterpart}`}</span>
+                        </div>
+                      </div>
+                      {t.created_by === me && (confirmId === t.id
+                        ? <span className="row" style={{ gap: 6 }}>
+                            <button disabled={!!busy} className="btn sm solid" onClick={() => remove(t)}>Remove</button>
+                            <button className="btn sm ghost" onClick={() => setConfirmId(null)}>Keep</button>
+                          </span>
+                        : <button disabled={!!busy} className="task-x" onClick={() => remove(t)}
+                            aria-label={`Remove ${t.title}`}>×</button>
+                      )}
+                    </li>
+                  );
+                })
+              ])}
+            </ul>
+
+            {truncated && seeAllHref && (
+              <a href={seeAllHref} className="btn sm ghost" style={{ marginTop: 4, marginBottom: 4 }}>
+                See all {live.length} open tasks →
+              </a>
+            )}
+          </>
         )}
 
         {!open ? (
@@ -137,14 +219,20 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
                 </select></div>
               <div className="ff"><label>Due</label><input type="date" name="due_on" /></div>
             </div>
-            <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label>Where it came from</label>
-                <select name="origin" defaultValue={side === 'client' ? 'meeting' : 'self'}>
-                  {ORIGINS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
-                </select></div>
-              <div className="ff"><label>Which one</label>
-                <input name="origin_note" placeholder="Tuesday board call" /></div>
-            </div>
+            {/* "Where did this come from" is a talent-side question — it is how they
+               log a request that reached them by call, email or a check-in before it
+               became a task. An executive assigning something is typing it straight
+               into the app; there is no source to name, so the fields don't ask. */}
+            {side !== 'client' && (
+              <div className="grid-2" style={{ gap: 14 }}>
+                <div className="ff"><label>Where it came from</label>
+                  <select name="origin" defaultValue="self">
+                    {ORIGINS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select></div>
+                <div className="ff"><label>Which one</label>
+                  <input name="origin_note" placeholder="Tuesday board call" /></div>
+              </div>
+            )}
             <div className="row" style={{ gap: 12, marginTop: 6 }}>
               <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Add to the list'}</button>
               <button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>Cancel</button>
@@ -166,7 +254,16 @@ export default function TaskBoard({ placementId, me, side, counterpart }: {
               {done.map(t => (
                 <li key={t.id} className="task">
                   <button disabled={!!busy} className="task-check on" onClick={() => toggle(t)} aria-label={`Reopen ${t.title}`}>✓</button>
-                  <div className="task-body"><span className="task-title">{t.title}</span></div>
+                  <div className="task-body">
+                    <span className="task-title">{t.title}</span>
+                    {/* Who finished it, and when — recorded all along, shown nowhere. */}
+                    <div className="task-meta xs">
+                      <span className="muted">
+                        Done{t.done_by ? (t.done_by === me ? ' by you' : ` by ${counterpart}`) : ''}
+                        {t.done_at ? `, ${new Date(t.done_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}` : ''}
+                      </span>
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>

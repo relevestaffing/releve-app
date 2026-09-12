@@ -8,10 +8,17 @@ type Pair = { i: number; kind: 'pair'; a: string; b: string };
 type Section = { from: number; to: number; name: string; note: string };
 type Started = {
   total: number; itemCount: number; screens: Screen[]; pairs: Pair[];
-  sections: Section[]; saved: { answers: (number | null)[]; pairs: ('a' | 'b' | null)[] } | null;
+  sections: Section[];
+  saved: { answers: (number | null)[]; pairs: ('a' | 'b' | null)[];
+           conditions?: Record<string, any> } | null;
 };
+type Conds = Record<string, any>;
 
-export default function SignatureFlow({ side, existing }: { side: 'client' | 'talent'; existing: boolean }) {
+export default function SignatureFlow({ side, existing, fresh = false }: {
+  side: 'client' | 'talent'; existing: boolean;
+  /* start over rather than resume — a retake, or an Invalid result */
+  fresh?: boolean;
+}) {
   const [data, setData] = useState<Started | null>(null);
   const [qi, setQi] = useState(-2);                       // -2 loading, -1 intro
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -21,21 +28,37 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
   const [chip, setChip] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [busy, setBusy] = useState(false);
+  const [conds, setConds] = useState<Conds>({});
+  /* The load can fail. It used to have no catch and no ok check, so a phone on
+     patchy internet sat on "Preparing your assessment" forever, with no error
+     and no way to retry — on the one screen the whole product depends on. */
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const shown = useRef<number>(0);
 
   useEffect(() => {
+    let alive = true;
     (async () => {
-      const r = await fetch('/api/signature/start', {
-        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ side })
-      });
-      const d: Started = await r.json();
-      setData(d);
-      setAnswers(d.saved?.answers ?? new Array(d.itemCount).fill(null));
-      setPairs(d.saved?.pairs ?? new Array(d.pairs.length).fill(null));
-      setTimings(new Array(d.itemCount).fill(null));
-      setQi(-1);
+      setLoadFailed(false);
+      try {
+        const r = await fetch('/api/signature/start', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ side, fresh })
+        });
+        if (!r.ok) throw new Error(String(r.status));
+        const d: Started = await r.json();
+        if (!alive) return;
+        setData(d);
+        setAnswers(d.saved?.answers ?? new Array(d.itemCount).fill(null));
+        setPairs(d.saved?.pairs ?? new Array(d.pairs.length).fill(null));
+        setConds(d.saved?.conditions ?? {});
+        setTimings(new Array(d.itemCount).fill(null));
+        setQi(-1);
+      } catch {
+        if (alive) setLoadFailed(true);
+      }
     })();
-  }, [side]);
+    return () => { alive = false; };
+  }, [side, attempt]);
 
   useEffect(() => { shown.current = Date.now(); }, [qi]);
 
@@ -49,8 +72,8 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
      also failed, so a momentary blip does not interrupt anyone mid-question. */
   const saveWarned = useRef(false);
 
-  async function persist(a: (number | null)[], p: ('a' | 'b' | null)[], t: (number | null)[]) {
-    const body = JSON.stringify({ side, answers: a, pairs: p, timings: t });
+  async function persist(a: (number | null)[], p: ('a' | 'b' | null)[], t: (number | null)[], c: Conds = conds) {
+    const body = JSON.stringify({ side, answers: a, pairs: p, timings: t, conditions: c });
     const send = () => fetch('/api/signature/save', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body
     });
@@ -97,19 +120,27 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
     const n = qi - data.itemCount;
     const p = [...pairs]; p[n] = side_;
     setPairs(p); persist(answers, p, timings);
-    if (n === data.pairs.length - 1) note('Forced choice complete');
+    if (n === data.pairs.length - 1) note('Last section next');
     setTimeout(() => advance(qi + 1), 260);
   }
+  /* Every condition change is saved the moment it is made, like every other
+     answer in the assessment. */
+  function setCond(key: string, value: any) {
+    const next = { ...conds, [key]: value };
+    setConds(next);
+    persist(answers, pairs, timings, next);
+  }
+  function toggleTool(t: string) {
+    const have: string[] = conds.tools ?? [];
+    setCond('tools', have.includes(t) ? have.filter(x => x !== t) : [...have, t]);
+  }
+
+  const condsMissing = COND_PUBLIC.filter(c => !conds[c.key]).length;
+
   async function submit() {
     if (!data) return;
     setBusy(true);
-    const conditions: Record<string, any> = {};
-    COND_PUBLIC.forEach(c => {
-      conditions[c.key] = (document.getElementById(`cd-${c.key}`) as HTMLSelectElement).value;
-    });
-    conditions.tools = TOOLS.filter(t => (document.getElementById(`tl-${t.replace(/\W/g, '')}`) as HTMLInputElement)?.checked);
-    const never = document.getElementById('cd-never') as HTMLTextAreaElement | null;
-    if (never) conditions.never = never.value.trim();
+    const conditions: Conds = { ...conds, tools: conds.tools ?? [] };
     try {
       const r = await fetch('/api/signature/submit', {
         method: 'POST', headers: { 'content-type': 'application/json' },
@@ -130,6 +161,18 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
     setBusy(false);
   }
 
+  if (loadFailed) return (
+    <div className="card empty-card">
+      <div className="empty-mark" aria-hidden="true" />
+      <h3>We could not load your assessment</h3>
+      <p className="small">
+        That is almost always the connection rather than anything you did. Nothing you
+        have already answered is lost — it is saved on our side.
+      </p>
+      <button className="btn sm solid" style={{ marginTop: 16 }}
+        onClick={() => { setQi(-2); setAttempt(n => n + 1); }}>Try again</button>
+    </div>
+  );
   if (!data || qi === -2) return <div className="empty"><span className="tick" /><p className="small">Preparing your assessment</p></div>;
   if (result) return <Results result={result} side={side} />;
   if (interlude) return <Interlude sec={interlude} n={data.sections.findIndex(s => s.name === interlude.name) + 1} />;
@@ -144,14 +187,20 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
       <p style={{ maxWidth: 680, marginBottom: 14 }}>
         {side === 'talent'
           ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly — a flattering profile in the wrong seat is a failed placement, and the controls will find it anyway.'
-          : 'This measures how you actually run your day, what your environment demands of the person beside you, and the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
+          : 'This measures how you actually run your day and what your environment demands of the person beside you — across the same eighteen facets every candidate is measured on, not a rougher version of it — plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
-        {data.total} screens · about {side === 'talent' ? '22' : '13'} minutes · your answers save as you go, so you can stop and come back.
-        {' '}Scoring happens on our servers — the answer key never reaches this browser.
+        {data.total} screens, about {side === 'talent' ? 'twenty to twenty-five' : 'twelve to sixteen'} minutes.
       </p>
-      <button className="btn solid" onClick={() => setQi(answeredCount && answeredCount < data.total ? answeredCount : 0)}>
-        {answeredCount && answeredCount < data.total ? `Resume — ${answeredCount} of ${data.total} answered`
+      {/* Answering everything and stopping on the Conditions screen — the
+          likeliest place to stop, since it is the only one with typing — used
+          to send people back to question one with the button reading "Begin".
+          A finished set of answers now resumes at the last screen. */}
+      <button className="btn solid" onClick={() => setQi(
+        answeredCount >= data.total ? data.total
+          : answeredCount ? answeredCount : 0)}>
+        {answeredCount >= data.total && !existing ? 'Resume — one section left'
+          : answeredCount && answeredCount < data.total ? `Resume — ${answeredCount} of ${data.total} answered`
           : existing ? 'Retake the assessment' : 'Begin the assessment'}
       </button>
       {chip && <div className="chip-note"><span className="tick" />{chip}</div>}
@@ -167,10 +216,17 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
       <p className="small muted" style={{ marginBottom: 30 }}>
         Not scored — checked. A match that clears every axis and fails on hours or discretion is not a match.
       </p>
+      {/* Controlled and saved on change. These used to be read out of the DOM
+          at submit time only, with the middle option pre-selected — so Back
+          wiped them, and a distracted person could submit an answer they had
+          never actually chosen. */}
       {COND_PUBLIC.map(c => (
         <div className="ff" key={c.key}>
           <label>{c.label} — {side === 'client' ? c.cQ : c.tQ}</label>
-          <select id={`cd-${c.key}`} defaultValue={c.ord[1]}>{c.ord.map(o => <option key={o}>{o}</option>)}</select>
+          <select value={conds[c.key] ?? ''} onChange={e => setCond(c.key, e.target.value)}>
+            <option value="" disabled>Choose one…</option>
+            {c.ord.map(o => <option key={o}>{o}</option>)}
+          </select>
         </div>
       ))}
       <div className="ff">
@@ -178,19 +234,35 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
         <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
           {TOOLS.map(t => (
             <label className="pill" style={{ cursor: 'pointer', gap: 9 }} key={t}>
-              <input type="checkbox" id={`tl-${t.replace(/\W/g, '')}`} style={{ width: 'auto', margin: 0 }} /> {t}
+              <input type="checkbox" checked={(conds.tools ?? []).includes(t)}
+                onChange={() => toggleTool(t)} style={{ width: 'auto', margin: 0 }} /> {t}
             </label>
           ))}
         </div>
+        {/* The list is never going to be complete. The first person to use it
+            worked in Wix, Gmail and a social scheduler and had nowhere to say so. */}
+        <div className="ff" style={{ marginTop: 14 }}>
+          <label>{side === 'client' ? 'Anything else the work runs on' : 'Anything else you are fluent in'}</label>
+          <input value={conds.tools_other ?? ''}
+            onChange={e => setConds({ ...conds, tools_other: e.target.value })}
+            onBlur={e => setCond('tools_other', e.target.value.trim())}
+            placeholder="Wix, Mailchimp, a booking system — whatever it actually is" />
+        </div>
       </div>
-      {side === 'client' && (
-        <div className="ff"><label>What you will never delegate</label>
-          <textarea id="cd-never" rows={2} placeholder="The things that stay with you, whoever we place" /></div>
-      )}
       <div className="assess-foot">
         <button className="btn ghost sm" onClick={() => setQi(qi - 1)}>← Back</button>
-        <button className="btn solid" onClick={submit} disabled={busy}>{busy ? 'Scoring…' : 'Complete my Signature'}</button>
+        <div className="row" style={{ gap: 12 }}>
+          {condsMissing > 0 && <span className="xs muted">
+            {condsMissing} still to answer
+          </span>}
+          <button className="btn solid" onClick={submit} disabled={busy || condsMissing > 0}>
+            {busy ? 'Scoring…' : 'Complete my Signature'}
+          </button>
+        </div>
       </div>
+      <p className="xs muted" style={{ marginTop: 14 }}>
+        These save as you go, the same as your answers. You can leave this page and come back.
+      </p>
     </div>
   );
 
@@ -199,10 +271,10 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
     const n = qi - data.itemCount, p = data.pairs[n], cur = pairs[n];
     return (
       <div className="assess-wrap">
-        <div className="row between"><span className="eyebrow">Forced choice</span>
+        <div className="row between"><span className="eyebrow">Two at a time</span>
           <span className="xs muted">{n + 1} of {data.pairs.length}</span></div>
         <div className="progress-rail"><span style={{ width: `${(qi / data.total) * 100}%` }} /></div>
-        <div className="q-num">BOTH ARE GOOD — PICK THE TRUER ONE</div>
+        <div className="q-num">BOTH SOUND GOOD. WHICH IS MORE LIKE YOU?</div>
         <div className="grid-2" style={{ gap: 18, marginBottom: 20 }}>
           {(['a', 'b'] as const).map(k => (
             <button key={k} className={`card pair-card ${cur === k ? 'picked' : ''} ${cur && cur !== k ? 'dimmed' : ''}`}
@@ -234,7 +306,7 @@ export default function SignatureFlow({ side, existing }: { side: 'client' | 'ta
         <span className="xs muted">{qi - sec.from + 1} of {sec.to - sec.from + 1} · {qi + 1}/{data.total} overall</span>
       </div>
       <div className="progress-rail"><span style={{ width: `${(qi / data.total) * 100}%` }} /></div>
-      <div className="q-num">{it.tag.toUpperCase()}</div>
+      <div className="q-num">STATEMENT {qi + 1}</div>
       <div className="q-text">{it.text}</div>
       <div className="scale">
         {SCALE.map((s, n) => (
@@ -283,6 +355,40 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
         <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 18 }}>{a.tag}</p>
         <p className="small">{a.d}</p>
       </div>
+
+      {/* The twenty minutes used to end here — a name and one paragraph,
+          with the same depth already written for every archetype (what to
+          look for, what stands out, where the growth edge is) sitting
+          unused in the data. This is that depth, finally shown. */}
+      {(a.seek || a.friction) && (
+        <div className="grid-2">
+          {a.seek && (
+            <div className="card">
+              <div className="card-head"><h3>{side === 'talent' ? 'Where you thrive' : 'What to look for'}</h3></div>
+              <p className="small">{a.seek}</p>
+            </div>
+          )}
+          {a.friction && (
+            <div className="card">
+              <div className="card-head"><h3>What to watch for</h3></div>
+              <p className="small">{a.friction}</p>
+            </div>
+          )}
+        </div>
+      )}
+      {a.strengths?.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>What stands out</h3></div>
+          <ul className="plain">{a.strengths.map((s: string) => <li key={s}>{s}</li>)}</ul>
+        </div>
+      )}
+      {a.growth && (
+        <div className="card">
+          <div className="card-head"><h3>The growth edge</h3></div>
+          <p className="small">{a.growth}</p>
+        </div>
+      )}
+
       <div className="card">
         <div className="card-head"><h3>Scored and saved</h3>
           <span className="pill">{result.saved ? 'Stored to your account' : 'Demo — not stored'}</span></div>
@@ -292,12 +398,12 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
           <div className="card-head">
             <h3>{result.validity.verdict === 'Invalid'
               ? 'This one did not come out usable'
-              : 'One thing worth a second look'}</h3>
+              : 'One note on how we read this'}</h3>
           </div>
           <p className="small" style={{ marginBottom: 14 }}>
             {result.validity.verdict === 'Invalid'
               ? 'The answers did not hold together well enough to build a match on. That is almost always the assessment\u2019s fault rather than yours \u2014 usually a reading check missed, or a run of answers that contradict each other. Nothing is held against you.'
-              : 'Your profile is usable. One control flagged something worth knowing about, which we take into account rather than hold against you.'}
+              : 'Your profile is good and it is being used. This is only a note on how we weigh it, and it reflects the questions rather than you.'}
           </p>
           {result.validity.flags?.length > 0 && (
             <ul className="plain" style={{ marginBottom: 16 }}>
@@ -313,13 +419,17 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
                 answer as you actually are rather than as you would like to be, and watch for the
                 two screens tagged <b>Instruction</b> — those ask you to pick a specific answer.
               </p>
-              <button className="btn solid" onClick={() => window.location.reload()}>Take it again</button>
+              <a className="btn solid" href="/app/signature?retake=1">Take it again</a>
             </>
           )}
         </div>
       )}
-        <p className="small">Your Signature has been scored on the server and every match in your account has been recalculated.
-          {' '}<a href="/app" style={{ textDecoration: 'underline' }}>Back to your dashboard</a>.</p>
+        <p className="small">Your Signature has been scored on the server and every match in your account has been recalculated.</p>
+        {/* Thirteen to twenty minutes of work used to end at an underlined
+            phrase inside a sentence, with no mention of what came next. */}
+        <div className="row" style={{ gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
+          <a className="btn solid" href="/app">See what is left to do</a>
+        </div>
       </div>
     </div>
   );

@@ -26,6 +26,23 @@ export async function allOffers(): Promise<Offer[]> {
   })) as Offer[];
 }
 
+export async function getOffer(id: string): Promise<Offer | null> {
+  if (!configured()) return null;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('offers')
+    .select('*, client:client_id(full_name, org_name), talent:talent_id(full_name, headline)')
+    .eq('id', id).maybeSingle();
+  if (!data) return null;
+  const r = data as any;
+  return {
+    ...r,
+    client_name: r.client?.full_name ?? 'Executive',
+    org_name: r.client?.org_name ?? null,
+    talent_name: r.talent?.full_name ?? 'Talent',
+    talent_role: r.talent?.headline ?? null
+  } as Offer;
+}
+
 export async function makeOffer(o: {
   client_id: string; talent_id: string; role_title: string; starts_on: string;
   hours?: string; scope?: string;
@@ -60,12 +77,19 @@ export async function sendOffer(id: string) {
 export async function withdrawOffer(id: string, reason?: string) {
   if (!configured()) return;
   const sb = await supabaseServer();
-  const { error } = await sb.from('offers').update({
+  /* Only an offer still in flight can be withdrawn. Once both sides have
+     said yes it either already has a placement or is one button away from
+     one, and once either side has said no it is already decided — writing
+     'withdrawn' over either would overwrite the real outcome with a
+     different one. */
+  const { data, error } = await sb.from('offers').update({
     state: 'withdrawn', declined_by: 'releve',
     decline_reason: reason?.trim() || null,
     decided_on: new Date().toISOString().slice(0, 10)
-  }).eq('id', id);
+  }).eq('id', id).in('state', ['draft', 'sent', 'client_yes', 'talent_yes'])
+    .select('id').maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error('That offer has already been decided and can no longer be withdrawn.');
 }
 
 /* Whichever side is signed in, answering their own offer. */

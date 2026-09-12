@@ -27,7 +27,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
     } catch (e: any) {
       setErr(e?.name === 'AbortError'
         ? 'That took too long. Check the app is still running, then try again.'
-        : 'Could not reach the server. Check the app is still running.');
+        : 'Could not reach the server. Check your connection and try again.');
       setBusy(null);
     }
   }
@@ -42,15 +42,23 @@ export default function ChooseRole({ name }: { name?: string | null }) {
         </div>
 
         <div className="choose-grid">
-          <button className="choose-card" disabled={!!busy} onClick={() => choose('client')}>
+          {/* An executive account is never self-selected — it starts with a
+             discovery call, which is what puts the record here in the first
+             place. Anyone reaching this screen has not had one yet, so the
+             card explains that instead of offering a button that would only
+             fail. */}
+          <a className="choose-card" href="mailto:hello@relevestaffing.com?subject=Booking a discovery call">
             <div className="eyebrow">I am hiring</div>
             <h3>Executive</h3>
             <p>
               You need a right hand. We find, vet and manage the person, and match them to how you
               actually work rather than to a job description.
             </p>
-            <span className="choose-go">{busy === 'client' ? 'One moment…' : 'This is me →'}</span>
-          </button>
+            <p className="xs muted" style={{ marginTop: 10 }}>
+              This starts with a short discovery call, not a sign-up form — reach out and we will find a time.
+            </p>
+            <span className="choose-go">Talk to us →</span>
+          </a>
 
           <button className="choose-card" disabled={!!busy} onClick={() => choose('talent')}>
             <div className="eyebrow">I am looking to be placed</div>

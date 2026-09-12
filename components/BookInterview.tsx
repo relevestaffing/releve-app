@@ -5,8 +5,11 @@ import { toast } from '@/components/Toast';
 
 type Slot = { startISO: string; endISO: string; label: string; day: string };
 
-export default function BookInterview({ talentId, talentName, slots, tz }: {
+export default function BookInterview({ talentId, talentName, slots, tz, clientId }: {
   talentId: string; talentName: string; slots: Slot[]; tz: string;
+  /* Set when Relève is booking on an executive's behalf from the console.
+     Left out when the executive books for themselves. */
+  clientId?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -23,7 +26,7 @@ export default function BookInterview({ talentId, talentName, slots, tz }: {
     try {
       r = await fetch('/api/interviews', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ talentId, startISO: s.startISO, durationMin: 45 })
+        body: JSON.stringify({ talentId, clientId, startISO: s.startISO, durationMin: 45 })
       });
       d = await r.json().catch(() => ({}));
     } catch {
@@ -52,7 +55,10 @@ export default function BookInterview({ talentId, talentName, slots, tz }: {
           <div className="small"><b>{talentName}</b> · {done.when} ({tz.replace('_', ' ')})</div>
           {done.url
             ? <a className="small" href={done.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>Join link</a>
-            : <div className="xs muted" style={{ marginTop: 6 }}>Relève will send the meeting link shortly.</div>}
+            : clientId
+              /* Relève booking it: say plainly that the link is owed, and why. */
+              ? <div className="xs" style={{ marginTop: 6, color: 'var(--warn, #B4762E)' }}>No meeting link was made{done.warning ? ` — ${done.warning}` : ''}. Both sides were told it is coming; send it yourself.</div>
+              : <div className="xs muted" style={{ marginTop: 6 }}>Relève will send the meeting link shortly.</div>}
         </div>
         <span className="pill good"><span className="dot" />Confirmed</span>
       </div>

@@ -10,17 +10,32 @@ import { toast } from '@/components/Toast';
    The links open in a new tab so nobody loses their place, and the button
    stays disabled until the box is ticked — a pre-ticked box is not consent in
    most of the places Relève operates. */
-export default function TermsGate({ name }: { name?: string | null }) {
+export default function TermsGate({ name, side }: {
+  name?: string | null;
+  side?: 'client' | 'talent';
+}) {
   const [agreed, setAgreed] = useState(false);
+  const [signed, setSigned] = useState('');
   const [busy, setBusy] = useState(false);
 
+  /* The executive signs. Talent tick, because they sign a separate agreement
+     with a recorded signature during vetting — asking twice would be theatre. */
+  const signs = side === 'client';
+  const tidy = (v: string) => v.trim().replace(/\s+/g, ' ');
+  const onFile = tidy(name ?? '');
+  const nameOk = !signs
+    || (tidy(signed).length >= 3
+        && (!onFile || tidy(signed).toLowerCase() === onFile.toLowerCase()));
+  const mismatch = signs && tidy(signed).length >= 3 && !nameOk;
+  const ready = agreed && nameOk;
+
   async function accept() {
-    if (!agreed) return;
+    if (!ready) return;
     setBusy(true);
     try {
       const r = await fetch('/api/terms', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ version: TERMS_VERSION })
+        body: JSON.stringify({ version: TERMS_VERSION, signed_name: signs ? tidy(signed) : null })
       });
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
@@ -55,10 +70,15 @@ export default function TermsGate({ name }: { name?: string | null }) {
           </div>
 
           <p className="small muted" style={{ marginTop: 18 }}>
-            Worth knowing before you tick the box: placements carry a three-month
-            minimum, invoices go out on the first Monday of each month, and there
-            is a twelve-month non-circumvention clause covering anyone we
-            introduce you to. All of it is in Section 5 and Section 6.
+            {side === 'talent'
+              ? <>Worth knowing before you tick the box: you work as a contractor rather
+                  than an employee, Relève pays you directly each month, and for twelve
+                  months after we introduce you to an executive, work with them goes
+                  through us. All of it is in Section 5 and Section 6.</>
+              : <>Worth knowing before you tick the box: placements carry a three-month
+                  minimum, invoices go out on the first Monday of each month, and there
+                  is a twelve-month non-circumvention clause covering anyone we
+                  introduce you to. All of it is in Section 5 and Section 6.</>}
           </p>
 
           <label className="terms-tick">
@@ -66,12 +86,39 @@ export default function TermsGate({ name }: { name?: string | null }) {
             <span>I have read and accept the Terms of Service and the Privacy Policy.</span>
           </label>
 
-          <button className="btn solid" disabled={!agreed || busy} onClick={accept}>
-            {busy ? 'One moment…' : 'Continue'}
+          {signs && (
+            <div style={{ marginTop: 18 }}>
+              <div className="ff" style={{ marginBottom: 0 }}>
+                <label htmlFor="tg-sign">Sign by typing your full name</label>
+                <input
+                  id="tg-sign" type="text" value={signed} autoComplete="name" spellCheck={false}
+                  placeholder={onFile || 'Your full name'}
+                  onChange={e => setSigned(e.target.value)}
+                  aria-invalid={mismatch || undefined}
+                />
+              </div>
+              {mismatch ? (
+                <p className="xs" style={{ color: '#8C4A3F', marginTop: 6 }}>
+                  That does not match the name on this account{onFile ? ` (${onFile})` : ''}.
+                  Sign as yourself, or tell us to correct the name first.
+                </p>
+              ) : (
+                <p className="xs muted" style={{ marginTop: 6 }}>
+                  Typing your name here is your signature. It is recorded with the date
+                  and the version of the terms you were shown.
+                </p>
+              )}
+            </div>
+          )}
+
+          <button className="btn solid" disabled={!ready || busy} onClick={accept}
+            style={{ marginTop: signs ? 20 : undefined }}>
+            {busy ? 'One moment…' : signs ? 'Sign and continue' : 'Continue'}
           </button>
 
           <p className="xs muted" style={{ marginTop: 16 }}>
-            We record the date you accepted and which version you saw. Version {TERMS_VERSION}.
+            We record the date you accepted{signs ? ', the name you signed with,' : ''} and
+            which version you saw. Version {TERMS_VERSION}.
           </p>
         </div>
       </div>

@@ -5,7 +5,7 @@
    never travels.
    ============================================================ */
 import {
-  AXES, AXIS, L1, L2, FACETS, facetsOf, INSTRUMENT, PAIRS, COND,
+  AXES, AXIS, L1, L2, FACETS, facetsOf, INSTRUMENT, PAIRS, PAIRS_CLIENT, COND,
   CLIENT_TYPES, TALENT_TYPES, type Side, type Scores, type Conf, type Validity
 } from './model';
 
@@ -37,33 +37,34 @@ export function scoreInstrument(
     (bag[it.key] = bag[it.key] || []).push(val01(raw, it.sign));
   });
 
+  /* Both sides measure disposition at facet granularity — three facets per
+     trait, one or more items per facet depending on the side's own bank —
+     and the trait score is the average of its facets rather than a flat,
+     less-diagnostic direct report. */
   const facets: Record<string, number> = {};
   const scores: Scores = {};
-  if (side === 'talent') {
-    FACETS.forEach(f => {
-      const a = bag[f.key] || [];
-      facets[f.key] = a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : 50;
-    });
-    L2.forEach(t => {
-      const fs = facetsOf(t.key).map(f => facets[f.key]);
-      scores[t.key] = Math.round(fs.reduce((x, y) => x + y, 0) / fs.length);
-    });
-  } else {
-    L2.forEach(t => {
-      const a = bag[t.key] || [];
-      scores[t.key] = a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : 50;
-    });
-  }
+  FACETS.forEach(f => {
+    const a = bag[f.key] || [];
+    facets[f.key] = a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : 50;
+  });
+  L2.forEach(t => {
+    const fs = facetsOf(t.key).map(f => facets[f.key]);
+    scores[t.key] = Math.round(fs.reduce((x, y) => x + y, 0) / fs.length);
+  });
   L1.forEach(a => {
     const arr = bag[a.key] || [];
     scores[a.key] = arr.length ? Math.round(arr.reduce((x, y) => x + y, 0) / arr.length) : 50;
   });
 
-  /* forced choice — ±4, so no one can inflate every trait at once */
+  /* forced choice — ±4, so no one can inflate every trait at once.
+     Both sides now run a forced-choice section, each with its own eight
+     pairs in its own voice, so which bank scores an index has to follow
+     the side answering rather than always reading the talent list. */
   if (pairAnswers) {
+    const pairBank = side === 'talent' ? PAIRS : PAIRS_CLIENT;
     pairAnswers.forEach((choice, i) => {
       if (!choice) return;
-      const p = PAIRS[i];
+      const p = pairBank[i];
       const up = choice === 'a' ? p.a.t : p.b.t;
       const dn = choice === 'a' ? p.b.t : p.a.t;
       scores[up] = clamp((scores[up] ?? 50) + 4);
@@ -74,10 +75,8 @@ export function scoreInstrument(
   const validity = scoreValidity(side, answers, timings);
   const confidence: Record<string, Conf> = {};
   L2.forEach(t => {
-    if (side === 'talent') {
-      const fs = facetsOf(t.key).map(f => facets[f.key]);
-      confidence[t.key] = confFrom(Math.max(...fs) - Math.min(...fs), validity);
-    } else confidence[t.key] = confFrom(18, validity);
+    const fs = facetsOf(t.key).map(f => facets[f.key]);
+    confidence[t.key] = confFrom(Math.max(...fs) - Math.min(...fs), validity);
   });
   return { scores, facets, validity, confidence };
 }
@@ -124,12 +123,12 @@ export function scoreValidity(side: Side, answers: (number | null)[], timings: n
   }
   const medSec = timings.length ? median(timings) : null;
 
-  if (im >= 82) flags.push({ k: 'Impression management', v: `${im}/100`, d: 'Endorsed implausibly flattering statements — trait highs may be inflated.' });
-  if (attFails > 0) flags.push({ k: 'Attention checks', v: `${attFails} failed`, d: 'Instructed-response items were answered incorrectly.' });
-  if (inconsistency >= 52) flags.push({ k: 'Inconsistency', v: `${inconsistency}/100`, d: 'Near-duplicate items were answered differently.' });
-  if (longest >= 15) flags.push({ k: 'Straight-lining', v: `${longest} in a row`, d: 'A long run of identical answers suggests low engagement.' });
-  if (extreme >= 88) flags.push({ k: 'Extreme responding', v: `${extreme}%`, d: 'Almost every answer sat at one end of the scale.' });
-  if (medSec != null && medSec < 1.2) flags.push({ k: 'Completion speed', v: `${medSec.toFixed(1)}s per item`, d: 'Completed faster than the items can reasonably be read.' });
+  if (im >= 82) flags.push({ k: 'Answered generously', v: `${im}/100`, d: 'A few statements were the kind nobody can honestly say always applies to them. It says nothing about you as a person or a manager — it just means we read the very highest scores as a little generous, and lean on the rest.' });
+  if (attFails > 0) flags.push({ k: 'A couple of answers slipped', v: `${attFails}`, d: 'One or two questions asked for a specific answer to check the page was being read, and got a different one.' });
+  if (inconsistency >= 52) flags.push({ k: 'Two similar questions, two answers', v: `${inconsistency}/100`, d: 'A few statements meant much the same thing and were answered differently. Usually tiredness rather than anything else.' });
+  if (longest >= 15) flags.push({ k: 'A long run of the same answer', v: `${longest} in a row`, d: 'Which can be perfectly true, and can also mean the questions stopped being read.' });
+  if (extreme >= 88) flags.push({ k: 'Answers sat at the ends', v: `${extreme}%`, d: 'Almost everything was answered at one extreme or the other rather than in between.' });
+  if (medSec != null && medSec < 1.2) flags.push({ k: 'Answered quickly', v: `${medSec.toFixed(1)}s per question`, d: 'Faster than the questions can comfortably be read, so the profile is held a little more loosely.' });
 
   const hard = (im >= 93 ? 1 : 0) + (attFails >= 2 ? 1 : 0) + (inconsistency >= 72 ? 1 : 0);
   const verdict: Validity['verdict'] = hard > 0 ? 'Invalid' : flags.length ? 'Review' : 'Valid';
@@ -248,7 +247,7 @@ export function matchScore(
     confidence: matchConfidence(opts)
   };
 }
-function matchConfidence(opts?: { validity?: Validity | null; confidence?: Record<string, Conf> | null }) {
+export function matchConfidence(opts?: { validity?: Validity | null; confidence?: Record<string, Conf> | null }) {
   const v = opts?.validity, conf = opts?.confidence;
   let level = 'High', why = 'Profile verified; trait facets agree.';
   if (conf) {

@@ -1,14 +1,18 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { getBench, archetype, dispositionLine } from '@/lib/data';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
 import { Portrait } from '@/components/Viz';
 import AddPerson from '@/components/AddPerson';
+import TalentOnboardingSender from '@/components/TalentOnboardingSender';
 import { listPending, getAvailability } from '@/lib/store';
 import { bookableIds } from '@/lib/store';
 import { benchPay } from '@/lib/work';
 import { money } from '@/lib/money-public';
 import TableSearch from '@/components/TableSearch';
+import PaySetter from '@/components/PaySetter';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -29,14 +33,16 @@ export default async function Bench() {
   const unbookable = bench.filter(t => !bookable.has(t.id));
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent Roster" crumb="Everyone we can put forward">
-      <div className="card tight" style={{ marginBottom: 22 }}>
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent" crumb="Everyone we can put forward">
+      <div className="card tight">
         <p className="small" style={{ margin: 0, maxWidth: 660 }}>
           Everyone Relève can put forward: assessed, verified, and not currently
           placed. A person joins the roster once their Talent Signature is done,
           and leaves it when they take a seat.
         </p>
       </div>
+
+      <TalentOnboardingSender />
 
       <div className="card">
         <div className="card-head"><h3>Every assessed profile</h3>
@@ -61,13 +67,13 @@ export default async function Bench() {
             {bench.map(t => (
               <tr key={t.id}>
                 <td><div className="row"><Portrait id={t.id} name={t.name} url={t.photo_url} />
-                  <div><b>{t.name}</b><div className="small muted">{t.yrs} yrs · {t.loc}</div></div></div></td>
+                  <div><Link href={`/console/talent/${t.id}`}><b>{t.name}</b></Link><div className="small muted">{t.yrs} yrs · {t.loc}</div></div></div></td>
                 <td className="small">{t.role}</td>
                 <td><span className="pill">{archetype(t.scores, 'talent').n}</span></td>
                 <td className="small muted">{dispositionLine(t.scores)}</td>
                 <td><span className={`pill ${t.validity.verdict === 'Valid' ? 'good' : t.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>
                   <span className="dot" />{t.validity.verdict}</span></td>
-                <td className="amount">{pay[t.id] != null ? money(pay[t.id]! * 100) : <span className="muted">—</span>}</td>
+                <td className="amount"><PaySetter talentId={t.id} cents={pay[t.id] != null ? pay[t.id]! * 100 : null} compact /></td>
                 <td><span className={`pill ${t.stage === 'Placed' ? 'good' : t.stage === 'Vetted' ? '' : 'warn'}`}>
                   <span className="dot" />{t.stage}</span></td>
               </tr>
@@ -79,9 +85,11 @@ export default async function Bench() {
       {bench.length > 0 && (
       <div className="card">
         <div className="card-head"><h3>Validity detail</h3><span className="pill">Internal only</span></div>
-        <p className="small muted" style={{ marginBottom: 8 }}>
-          Clients see a verified badge and confidence bands. These numbers stay here.
-        </p>
+        <div style={{ marginBottom: 8 }}>
+          <Explain>
+            Clients see a verified badge and confidence bands. These numbers stay here.
+          </Explain>
+        </div>
         <details className="more">
           <summary>Show the raw control measures</summary>
           <div className="inner">
@@ -121,9 +129,11 @@ export default async function Bench() {
       {pending.length > 0 && (
         <div className="card">
           <div className="card-head"><h3>Added, not yet signed in</h3><span className="pill warn"><span className="dot" />{pending.length}</span></div>
-          <p className="small muted" style={{ marginBottom: 16 }}>
-            These records attach themselves the first time each person signs in with the email on file.
-          </p>
+          <div style={{ marginBottom: 16 }}>
+            <Explain>
+              These records attach themselves the first time each person signs in with the email on file.
+            </Explain>
+          </div>
           <table className="data">
             <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th></tr></thead>
             <tbody>{pending.map((p: any) => (

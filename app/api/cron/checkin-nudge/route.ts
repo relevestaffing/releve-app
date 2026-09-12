@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { timingSafeEqual } from 'crypto';
 import { send, templates } from '@/lib/email';
 import { weekEnding } from '@/lib/work-public';
 
 export const dynamic = 'force-dynamic';
+
+/* A plain !== on a secret leaks its length and contents one comparison at a
+   time to anyone who can measure response timing closely enough — the same
+   reason the Stripe webhook and the signed pay links use a constant-time
+   compare instead of a plain string comparison. */
+function safeEqual(a: string, b: string) {
+  const ab = Buffer.from(a), bb = Buffer.from(b);
+  return ab.length === bb.length && timingSafeEqual(ab, bb);
+}
 
 /* Friday's nudge. There is no scheduler inside the app, so this is called by
    a scheduled task. Guarded by a shared secret — without it, anyone could
@@ -14,7 +24,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET;
   const given = req.headers.get('x-cron-key');
-  if (!secret || given !== secret)
+  if (!secret || !given || !safeEqual(given, secret))
     return NextResponse.json({ error: 'no' }, { status: 401 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -54,9 +64,21 @@ export async function POST(req: Request) {
     if (done.has(p.id)) { skipped++; continue; }
     const email = p.talent?.email;
     if (!email) { skipped++; continue; }
+
+    /* If the scheduler ever fires twice for the same week — a retry, a
+       duplicate trigger, someone re-running it by hand — this is what stops
+       a second identical nudge reaching someone who simply has not filed
+       yet. email_log is the only record of what has actually gone out, so
+       it is what this checks against rather than trying to track it apart. */
+    const { data: already } = await sb.from('email_log')
+      .select('id').eq('kind', 'checkinNudge').eq('to_addr', email)
+      .gt('sent_at', new Date(Date.now() - 6 * 86_400_000).toISOString())
+      .limit(1).maybeSingle();
+    if (already) { skipped++; continue; }
+
     const first = String(p.talent?.full_name ?? '').split(' ')[0] || 'there';
     const tpl = templates.checkinNudge(first);
-    if (await send(email, tpl.subject, { text: tpl.text, html: tpl.html })) sent++;
+    if (await send(email, tpl)) sent++;
   }
 
   return NextResponse.json({ ok: true, week, sent, skipped });

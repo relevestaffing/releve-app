@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { auditTrail, teamRoles, TEAM_ROLES } from '@/lib/care';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
+import EmailCheck from '@/components/EmailCheck';
 import { RolePicker } from '@/components/CareControls';
 
 export const dynamic = 'force-dynamic';
@@ -36,16 +38,95 @@ export default async function ConsoleTeam() {
 
   const [team, log] = await Promise.all([teamRoles(), auditTrail(150)]);
 
+  /* Every send attempt, worst first. Reading this used to be impossible:
+     send() caught its own failure and almost every caller ignored the result,
+     so a page said "Sent" whether or not anything left the building. */
+  let mail: { kind: string; to_addr: string; subject: string; ok: boolean;
+              detail: string | null; sent_at: string }[] = [];
+  let mailEverWorked = false;
+  if (configured()) {
+    const sb = await supabaseServer();
+    const [{ data: rows }, { data: health }] = await Promise.all([
+      sb.from('email_log')
+        .select('kind, to_addr, subject, ok, detail, sent_at')
+        .order('sent_at', { ascending: false }).limit(60),
+      sb.from('email_health').select('last_success').maybeSingle()
+    ]);
+    mail = (rows ?? []) as typeof mail;
+    mailEverWorked = Boolean((health as any)?.last_success);
+  }
+  const failed = mail.filter(m => !m.ok);
+
   return (
     <Shell profile={profile} active="/console/team" title="Team"
       crumb="Who can do what, and what has been done">
 
-      <div className="card" style={{ marginBottom: 26 }}>
-        <div className="card-head"><h3>The Relève team</h3></div>
+      <EmailCheck />
+
+      <div className="card">
+        <div className="card-head">
+          <h3>Every email, and whether it arrived</h3>
+          <span className="xs muted">Last 60 attempts</span>
+        </div>
+        {!mailEverWorked && (
+          <p className="small" style={{
+            marginBottom: 16, padding: '13px 17px', background: 'var(--cream)',
+            borderLeft: '2px solid #8C4A3F' }}>
+            <b>No email has ever been sent successfully from this platform.</b> Until
+            that changes, every invitation, receipt and interview confirmation is going
+            nowhere — and the page that sent it said nothing was wrong. Use the check
+            above; it reports the mail host&rsquo;s own words.
+          </p>
+        )}
         <p className="small muted" style={{ marginBottom: 18 }}>
-          Everyone here can see client and talent records. The role decides who
-          manages the team itself — only an owner can change these.
+          {failed.length > 0
+            ? `${failed.length} of the last ${mail.length} were refused. Each one is somebody who was told something and never heard it.`
+            : 'One row per attempt, successful or not. This is the only evidence that email works.'}
         </p>
+        {!mail.length ? (
+          <p className="small muted">
+            Nothing attempted yet. It fills the moment anything sends — or fails to.
+          </p>
+        ) : (
+          <table className="data">
+            <thead><tr><th>When</th><th>Message</th><th>To</th><th>Result</th></tr></thead>
+            <tbody>
+              {mail.map((m, i) => (
+                <tr key={i}>
+                  <td className="xs" style={{ whiteSpace: 'nowrap' }}>{when(m.sent_at)}</td>
+                  <td>
+                    <b style={{ fontFamily: 'Marcellus,serif', fontSize: 13.5 }}>{m.kind}</b>
+                    <div className="xs muted">{m.subject}</div>
+                  </td>
+                  <td className="xs">{m.to_addr}</td>
+                  <td>
+                    <span className={`pill ${m.ok ? 'good' : 'crit'}`}>
+                      <span className="dot" />{m.ok ? 'Accepted' : 'Refused'}
+                    </span>
+                    {m.detail && <div className="xs muted" style={{ marginTop: 4, maxWidth: 320 }}>{m.detail}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        <div style={{ marginTop: 16 }}>
+          <Explain>
+            &ldquo;Accepted&rdquo; means the mail host took it, not that it reached an
+            inbox. If something is accepted here and still missing, that is
+            deliverability rather than configuration — check spam first.
+          </Explain>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-head"><h3>The Relève team</h3></div>
+        <div style={{ marginBottom: 18 }}>
+          <Explain>
+            Everyone here can see client and talent records. The role decides who
+            manages the team itself — only an owner can change these.
+          </Explain>
+        </div>
         {!team.length ? <p className="small muted">Just you so far.</p> : (
           <table className="data">
             <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
@@ -69,7 +150,7 @@ export default async function ConsoleTeam() {
           ))}
         </div>
         <p className="xs muted" style={{ marginTop: 16 }}>
-          To add a manager, create their account and ask Relève to grant console access. They appear here once it is granted.
+          To add a manager: they sign in once so their account exists, then set their role to admin in Supabase. Building that into this page is on the list. They appear here once it is granted.
         </p>
       </div>
 
@@ -78,11 +159,13 @@ export default async function ConsoleTeam() {
           <h3>What has been done</h3>
           <span className="xs muted">Newest first</span>
         </div>
-        <p className="small muted" style={{ marginBottom: 18 }}>
-          Releases, verifications and invoices, with who did them. This log is
-          append-only — nothing here can be edited or removed through the app,
-          including by an owner.
-        </p>
+        <div style={{ marginBottom: 18 }}>
+          <Explain>
+            Releases, verifications and invoices, with who did them. This log is
+            append-only — nothing here can be edited or removed through the app,
+            including by an owner.
+          </Explain>
+        </div>
         {!log.length ? (
           <p className="small muted">Nothing recorded yet. It starts filling the moment anyone acts.</p>
         ) : (

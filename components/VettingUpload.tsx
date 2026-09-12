@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
 import { toast } from './Toast';
@@ -8,11 +8,38 @@ const TONE: Record<string, string> = {
   verified: 'good', rejected: 'crit', expired: 'warn', submitted: '', not_started: ''
 };
 
-export default function VettingUpload({ rows }: { rows: Vetting[] }) {
+export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; docusignOn?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
   const byKind = Object.fromEntries(rows.map(r => [r.kind, r]));
+
+  /* DocuSign lands them back here (returnUrl in the sign route) once the
+     embedded ceremony ends — signed, declined, or just closed. The webhook
+     files the result; this only clears the "?signed=1" the redirect left
+     behind and gives them something to see in the meantime. Reads the URL
+     directly rather than useSearchParams, which would force this whole
+     page out of static rendering. */
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('signed') === '1') {
+      toast.saved('Signed — we will verify it shortly');
+      router.replace('/app/vetting');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function sign(kind: string) {
+    setBusy(kind);
+    try {
+      const res = await fetch('/api/vetting/docusign/sign', { method: 'POST' });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error ?? 'Could not open that for signing.');
+      window.location.href = out.url;
+    } catch (e: any) {
+      toast.bad(e.message);
+      setBusy(null);
+    }
+  }
 
   async function upload(kind: string, file: File, expires: string) {
     setBusy(kind);
@@ -82,14 +109,23 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
               </span>
             </div>
 
-            {/* Relève issues and files this one. Nothing for the candidate to do
-                but read it, so the row is a status and a link, nothing more. */}
+            {/* Relève issues this one. Once there is a filed copy — DocuSign's
+                webhook, or a manual upload — it is read-only; before that,
+                DocuSign switched on means they can sign it themselves right
+                here, and switched off means Relève is still filing it. */}
             {item.issuedByTeam ? (
-              row?.file_path && (
+              row?.file_path ? (
                 <div className="vet-actions">
                   <button className="btn sm ghost" onClick={() => view(row.file_path!)}>
                     Read your {item.label.toLowerCase()}
                   </button>
+                </div>
+              ) : docusignOn && state !== 'verified' && (
+                <div className="vet-actions">
+                  <button className="btn sm solid" disabled={busy === item.kind} onClick={() => sign(item.kind)}>
+                    {busy === item.kind ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}
+                  </button>
+                  {state === 'submitted' && <span className="xs muted">Started earlier — pick up where you left off.</span>}
                 </div>
               )
             ) : state !== 'verified' && (

@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { listClients, getSearch } from '@/lib/store';
 import Shell from '@/components/Shell';
-import AddPerson from '@/components/AddPerson';
+import Explain from '@/components/Explain';
+import OnboardingSender from '@/components/OnboardingSender';
 import RoleBriefEditor from '@/components/RoleBriefEditor';
 import TableSearch from '@/components/TableSearch';
 
@@ -21,16 +22,16 @@ export default async function People() {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/people" title="Executives" crumb="Accounts and open roles">
-      <AddPerson role="client" />
+      <OnboardingSender />
 
       {missing > 0 && (
         <div className="card" style={{ borderColor: 'var(--pale)' }}>
           <div className="card-head"><h3>No role brief yet</h3>
             <span className="pill warn"><span className="dot" />{missing}</span></div>
-          <p className="small muted">
+          <Explain>
             The Signature tells you how someone works. The brief tells you what the job is.
-            Matching runs without it, but nobody on your team can sanity-check a shortlist against a role that was never written down.
-          </p>
+            Matching runs without it, but nobody on your team can sanity-check a candidate against a role that was never written down.
+          </Explain>
         </div>
       )}
 
@@ -41,18 +42,21 @@ export default async function People() {
               <TableSearch scope="exec-list" rows=".client-row" placeholder="Search executives…" />}
             <span className="pill">{clients.length} on file</span>
           </div></div>
-        <p className="small muted" style={{ marginBottom: 20 }}>
-          Add a client here and they can sign in immediately with the email on file — no invitation, no password.
-          The role brief is yours to fill in from the intro call; clients are never asked to write their own.
-        </p>
+        <div style={{ marginBottom: 20 }}>
+          <Explain>
+            Send the onboarding email right after the discovery call and the record is made for you —
+            no separate add step. They can sign in any time with the email on file, no password.
+            The role brief is yours to fill in from the intro call; clients are never asked to write their own.
+          </Explain>
+        </div>
 
         {rows.length === 0 && (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
             <h3>No executives yet</h3>
             <p className="small">
-              Add one with the button above. They can sign in straight away with the
-              email you put on file — the account attaches itself, with no invitation
+              Send the onboarding email above once you have had the discovery call. It opens their
+              search, and they can sign in any time with the email you put on file — no invitation
               to chase and no password to set.
             </p>
           </div>

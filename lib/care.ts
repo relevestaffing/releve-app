@@ -94,20 +94,22 @@ export async function requestTimeOff(a: {
   if (!configured()) return;
   if (a.ends_on < a.starts_on) throw new Error('the last day cannot be before the first');
   const sb = await supabaseServer();
-  const { error } = await sb.from('time_off').insert({
+  const { data, error } = await sb.from('time_off').insert({
     placement_id: a.placement_id, starts_on: a.starts_on, ends_on: a.ends_on,
     reason: a.reason?.trim() || null
-  });
+  }).select('id').maybeSingle();
   if (error) throw new Error(error.message);
+  return (data as any)?.id as string | undefined;
 }
 
 export async function decideTimeOff(id: string, state: TimeOffState, coverNote?: string) {
   if (!configured()) return;
   const sb = await supabaseServer();
-  const { error } = await sb.from('time_off').update({
+  const { data, error } = await sb.from('time_off').update({
     state, cover_note: coverNote?.trim() || null, decided_at: new Date().toISOString()
-  }).eq('id', id);
+  }).eq('id', id).select('id, placement_id, starts_on, ends_on, cover_note').maybeSingle();
   if (error) throw new Error(error.message);
+  return (data ?? null) as { id: string; placement_id: string; starts_on: string; ends_on: string; cover_note: string | null } | null;
 }
 
 /* Time off starting in the next few weeks, so cover can be arranged rather
@@ -116,11 +118,15 @@ export async function upcomingTimeOff(days = 30): Promise<TimeOff[]> {
   if (!configured()) return [];
   const sb = await supabaseServer();
   const until = new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+  /* Every request still waiting on a decision, however far ahead — the form
+     says "ask as far ahead as you can", and a wedding three months out used
+     to sit invisible until it drifted inside the window. Approved leave keeps
+     the window: that is about arranging cover, which is a near-term job. */
   const { data } = await sb.from('time_off')
     .select('*, placement:placement_id(client:client_id(full_name, org_name), talent:talent_id(full_name))')
     .in('state', ['requested', 'approved'])
     .gte('ends_on', new Date().toISOString().slice(0, 10))
-    .lte('starts_on', until)
+    .or(`state.eq.requested,starts_on.lte.${until}`)
     .order('starts_on');
   return (data ?? []).map((r: any) => ({
     ...r,
@@ -165,17 +171,24 @@ export async function saveFeedback(f: {
 /* Written first, released deliberately. A half-finished review appearing in
    someone's account is worse than no review. */
 export async function shareFeedback(id: string, shared: boolean) {
-  if (!configured()) return;
+  if (!configured()) return null;
   const sb = await supabaseServer();
-  const { error } = await sb.from('talent_feedback').update({ shared }).eq('id', id);
+  const { data, error } = await sb.from('talent_feedback').update({ shared }).eq('id', id)
+    .select('id, talent_id, period, shared').maybeSingle();
   if (error) throw new Error(error.message);
+  return (data ?? null) as { id: string; talent_id: string; period: string; shared: boolean } | null;
 }
 
+/* Runs through mark_feedback_seen(), a definer function, because the only
+   write policy on talent_feedback is the team's — a plain update from the
+   talent's session matched nothing and said nothing, so the "new feedback"
+   banner never cleared. */
 export async function markFeedbackSeen(id: string) {
-  if (!configured()) return;
+  if (!configured()) return false;
   const sb = await supabaseServer();
-  await sb.from('talent_feedback')
-    .update({ seen_at: new Date().toISOString() }).eq('id', id).is('seen_at', null);
+  const { data, error } = await sb.rpc('mark_feedback_seen', { p_id: id });
+  if (error) throw new Error(error.message);
+  return Boolean(data);
 }
 
 /* ---------- the first fortnight ---------- */

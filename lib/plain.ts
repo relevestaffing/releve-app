@@ -4,7 +4,7 @@
    should not have to. This turns a scored profile into sentences
    a person reads once and understands.
    ============================================================ */
-import { AXES, L1, L2 } from './signature/model';
+import { AXES, FACETS, L1, L2 } from './signature/model';
 import type { Scores } from './signature/model';
 import type { Match } from './signature/score';
 
@@ -51,8 +51,71 @@ function lines(scores: Scores, table: Record<string, [string, string]>, n: numbe
   return out.slice(0, n).map(l => l.text);
 }
 
-export const execSelfLines = (s: Scores) => lines(s, EXEC_LINES, 4);
-export const talentSelfLines = (s: Scores) => lines(s, TALENT_LINES, 4);
+export const execSelfLines = (s: Scores) => lines(s, EXEC_LINES, 6);
+export const talentSelfLines = (s: Scores) => lines(s, TALENT_LINES, 6);
+
+/* ---- facet-level narrative ----
+   The instrument has always measured eighteen facets; until now only four
+   axis-level lines ever reached the page, so the extra resolution was
+   invisible. This surfaces it: one sentence per facet that reads as
+   pronounced, grouped by the trait it belongs to. */
+const FACET_EXEC_LINES: Record<string, [string, string]> = {
+  c_pressure: ['Your week rarely stacks more than one urgent thing at a time.', 'Multiple things can go wrong on you at once, and often do.'],
+  c_recovery: ["When something goes wrong, you're happy to give it a day before revisiting.", 'You expect whoever supports you to reset within the hour, not the day.'],
+  c_evenness: ["You don't need the same face from the person beside you every day.", 'You want the same steady presence from them, whatever the week is doing.'],
+  w_warmth:   ['You keep the relationship with whoever supports you professional and contained.', 'You want the person supporting you to actually know you.'],
+  w_empathy:  ["You'd rather someone ask than guess how you're feeling.", 'You expect them to read the room, especially remotely.'],
+  w_rapport:  ['Trust with you builds slowly, over time.', 'You extend trust fast to someone who earns it in the first conversation.'],
+  r_detail:   ['A small slip rarely changes anything for you.', "A typo in something that goes out is a real problem, not a small one."],
+  r_follow:   ["You're forgiving if something occasionally falls off the list.", "If it was promised, you expect it closed — no exceptions."],
+  r_standard: ['Good enough is genuinely good enough, most of the time.', "You'd rather something take longer and be exactly right."],
+  a_change:   ['What you need on Monday is what you still need on Friday.', 'Your priorities can reverse in a single day, without warning.'],
+  a_switch:   ["You'd rather someone finish one thing before starting the next.", "You expect them to drop what they're doing and pick it back up later, without losing the thread."],
+  a_ambig:    ["You'd rather give the full picture before anything moves.", 'You expect them to act on an incomplete picture and adjust as it fills in.'],
+  s_voice:    ["You'd rather execute what you asked for than have it debated.", "You want to be told, plainly, when you're wrong."],
+  s_boundary: ['You expect the answer to be yes, and for it to get done.', 'You want someone who can tell you no when the ask is unrealistic.'],
+  s_influence:['You want your call carried out, not re-argued.', "You want someone who can actually change your mind, not just register that they disagree."],
+  d_ambition: ["This seat will look roughly the same in two years, and that's fine.", 'You are looking for someone who could grow into something much bigger than this role.'],
+  d_learning: ["You'd rather they master what the role already needs.", "You want someone who teaches themselves whatever the role doesn't yet require."],
+  d_grit:     ["You don't expect anyone to push through work that's stopped being interesting.", 'You expect them to keep going long after the work stops being interesting.']
+};
+
+const FACET_TALENT_LINES: Record<string, [string, string]> = {
+  c_pressure: ['High-pressure weeks genuinely drain you.', 'When everything is urgent at once, you get calmer, not tenser.'],
+  c_recovery: ['A sharp word can stay with you for the rest of the day.', 'You can be corrected in the morning and be fully yourself by lunch.'],
+  c_evenness: ["Your mood is visible before you decide to show it.", 'People would say your temperament is the same whatever the week is doing.'],
+  w_warmth:   ['You keep things professional and to the point.', 'You build a real relationship with the people you work for.'],
+  w_empathy:  ["Reading how someone feels over a call doesn't come naturally.", 'You can tell when someone is upset before they say so.'],
+  w_rapport:  ["You'd rather work alone than spend the day with people.", 'You can build trust with someone new inside one conversation.'],
+  r_detail:   ["Small errors can slip past you when you're moving fast.", 'You notice when a detail is off even when nobody else does.'],
+  r_follow:   ['Things occasionally fall off your list.', "If you said you'd do it, it's done."],
+  r_standard: ["You move on once something is good enough.", 'A small error in something client-facing bothers you for days.'],
+  a_change:   ['Frequent changes of direction wear you down.', "A reversed priority doesn't bother you — you just re-plan."],
+  a_switch:   ['You need to finish what you started before switching.', 'You can drop what you are doing and pick it up later without losing your place.'],
+  a_ambig:    ['Unclear instructions stop you until you get clarity.', 'You can act without knowing the full picture.'],
+  s_voice:    ["You'd rather do it their way than have the conversation.", "You'll tell an executive plainly that they're wrong."],
+  s_boundary: ['You take on more than you should rather than push back.', 'You can say no to someone senior.'],
+  s_influence:['You state your view once and then leave it.', "You can change a decision-maker's mind."],
+  d_ambition: ['You are content doing excellent work in the same role for years.', "You are building toward something bigger than this job."],
+  d_learning: ['You prefer work that uses what you already know.', 'You teach yourself new tools without being asked.'],
+  d_grit:     ['You lose momentum when progress is slow.', 'You keep going after a setback that would stop most people.']
+};
+
+export type FacetLine = { key: string; name: string; trait: string; value: number; caption: string | null };
+
+/* Every facet, grouped implicitly by trait order (FACETS is already ordered
+   trait by trait). A caption only appears where the score is actually
+   pronounced — the same |v-50| >= 12 bar the axis lines use — so a facet
+   sitting near the middle shows its bar with no invented sentence. */
+export function facetDetail(side: 'client' | 'talent', facets: Record<string, number>): FacetLine[] {
+  const table = side === 'client' ? FACET_EXEC_LINES : FACET_TALENT_LINES;
+  return FACETS.map(f => {
+    const v = facets[f.key] ?? 50;
+    const pronounced = Math.abs(v - 50) >= 12;
+    return { key: f.key, name: f.name, trait: f.trait, value: v,
+      caption: pronounced ? table[f.key][v >= 50 ? 1 : 0] : null };
+  });
+}
 
 /* ---- client-facing sentences ----
    The internal notes are written for the console. These are written for

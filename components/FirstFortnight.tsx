@@ -8,8 +8,12 @@ const WHOSE: Record<string, string> = {
   client: 'Executive', talent: 'Talent', both: 'Both of you'
 };
 
-/* The same plan every time, so week one is not improvised. Either side can
-   tick their own steps; nobody has to wait for Relève to mark it off. */
+/* The same plan every time, so week one is not improvised. Ticking used to
+   be open to whichever side a step names — an executive or their talent
+   could mark their own steps done. That let the checklist go stale in
+   either direction: ticked early to look tidy, or never ticked at all with
+   no one else able to catch it. Only the console ticks now; both sides
+   still see exactly where the placement stands. */
 export default function FirstFortnight({ steps, startedOn, side }: {
   steps: Step[]; startedOn: string; side: 'client' | 'talent' | 'admin';
 }) {
@@ -33,22 +37,33 @@ export default function FirstFortnight({ steps, startedOn, side }: {
   return (
     <div className="card">
       <div className="card-head">
-        <h3>The first two weeks</h3>
+        <h3>{side === 'admin' ? 'The 30/60/90 day plan' : 'Your 30/60/90 day plan'}</h3>
         <span className="xs muted">{done} of {steps.length} done</span>
       </div>
       <div className="fortnight-bar"><i style={{ width: `${(done / steps.length) * 100}%` }} /></div>
+      {side !== 'admin' && (
+        <p className="xs muted" style={{ margin: '0 0 14px', maxWidth: 560 }}>
+          Relève ticks these off as each one is confirmed, so both of you see the same plan.
+          Finished one of yours? Tell your {side === 'client' ? 'Client' : 'Talent'} Success Manager
+          in a message and it is ticked.
+        </p>
+      )}
 
       {steps.map(s => {
         const due = dueOn(startedOn, s.day);
         const late = !s.done && due < today;
-        const mine = side === 'admin' || s.whose === 'both' || s.whose === side;
+        const mine = side === 'admin';
         return (
           <div key={s.id} className={`step ${s.done ? 'done' : ''}`}>
-            <button className="step-tick" disabled={!mine || busy === s.id}
-              onClick={() => tick(s)}
-              aria-label={s.done ? 'Mark not done' : 'Mark done'}>
-              {s.done ? '✓' : ''}
-            </button>
+            {mine ? (
+              <button className="step-tick" disabled={busy === s.id}
+                onClick={() => tick(s)}
+                aria-label={s.done ? 'Mark not done' : 'Mark done'}>
+                {s.done ? '✓' : ''}
+              </button>
+            ) : (
+              <span className="step-tick" aria-hidden="true">{s.done ? '✓' : ''}</span>
+            )}
             <div className="step-body">
               <div className="row between" style={{ gap: 10, flexWrap: 'wrap' }}>
                 <b className="small">{s.title}</b>

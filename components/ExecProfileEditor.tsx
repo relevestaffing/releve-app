@@ -5,10 +5,15 @@ import PhotoUpload from './PhotoUpload';
 import { saving } from './Toast';
 
 /* The executive's own profile. Deliberately shorter than the talent one —
-   an executive is not being assessed here, they are being introduced. */
+   an executive is not being assessed here, they are being introduced.
+
+   Opens read-only. The dark card above this one already shows how the
+   profile reads to a candidate, so a page that also drops straight into an
+   open form reads like nothing here is finished — "Edit profile" is the one
+   door in, and saving walks back out through it. */
 export default function ExecProfileEditor({ initial }: { initial: any }) {
   const router = useRouter();
-  const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -19,11 +24,31 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
     const ok = await saving(() => fetch('/api/profile', {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
     }), 'Profile saved');
-    setBusy(false); setSaved(ok); if (ok) router.refresh();
+    setBusy(false);
+    if (ok) { router.refresh(); setEditing(false); }
+  }
+
+  if (!editing) {
+    return (
+      <div className="card">
+        <div className="card-head">
+          <h3>Your details</h3>
+          <button type="button" className="btn sm ghost" onClick={() => setEditing(true)}>Edit profile</button>
+        </div>
+        <dl className="brief-facts">
+          <dt>Name</dt><dd>{initial.full_name || '—'}</dd>
+          <dt>Title</dt><dd>{initial.headline || '—'}</dd>
+          <dt>Company</dt><dd>{initial.org_name || '—'}</dd>
+          <dt>Based in</dt><dd>{initial.location || '—'}</dd>
+          <dt>Timezone</dt><dd>{initial.timezone || '—'}</dd>
+        </dl>
+        {initial.bio && <p className="small muted" style={{ marginTop: 16, maxWidth: 620 }}>{initial.bio}</p>}
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={submit} onChange={() => setSaved(false)}>
+    <form onSubmit={submit}>
       <div className="card">
         <div className="card-head">
           <h3>You</h3>
@@ -70,7 +95,8 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
       </div>
 
       <div className="row" style={{ gap: 14 }}>
-        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save'}</button>
+        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+        <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Cancel</button>
         <span className="small muted">Only matched candidates see this — never the wider roster.</span>
       </div>
     </form>

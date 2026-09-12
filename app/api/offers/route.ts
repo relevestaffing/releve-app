@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
-import { answerOffer, makeOffer, placeFromOffer, sendOffer, withdrawOffer } from '@/lib/offer';
+import { answerOffer, getOffer, makeOffer, placeFromOffer, sendOffer, withdrawOffer } from '@/lib/offer';
 import { send, templates } from '@/lib/email';
-import { personEmail } from '@/lib/work';
+import { personEmail, teamEmails } from '@/lib/work';
+import { fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,30 @@ export async function POST(req: Request) {
     switch (action) {
       /* ---- either side answering their own offer ---- */
       case 'answer': {
-        const out = await answerOffer(String(b.id), b.answer === 'yes' ? 'yes' : 'no');
+        const answer: 'yes' | 'no' = b.answer === 'yes' ? 'yes' : 'no';
+        const out = await answerOffer(String(b.id), answer);
+        /* The answer is the moment the business earns money, and nobody was
+           told: not Relève, not the other side. Now the team hears every
+           answer, and both sides hear when it is agreed. Nothing here can
+           undo the answer if the mail server is down. */
+        try {
+          const o = await getOffer(String(b.id));
+          if (o) {
+            const side = me.role === 'client' ? 'executive' : 'talent';
+            const both = out === 'accepted';
+            const who = me.role === 'client' ? (o.client_name ?? 'The executive') : (o.talent_name ?? 'The talent');
+            for (const t of await teamEmails())
+              await send(t, templates.offerAnswered({ who, side, answer, role: o.role_title, both }));
+            if (both) {
+              const on = o.starts_on;
+              const [exec, talent] = await Promise.all([personEmail(o.client_id), personEmail(o.talent_id)]);
+              if (exec?.email && talent)
+                await send(exec.email, templates.offerAgreed({ name: exec.name, withWhom: talent.full, role: o.role_title, startsOn: on }));
+              if (talent?.email && exec)
+                await send(talent.email, templates.offerAgreed({ name: talent.name, withWhom: exec.full, role: o.role_title, startsOn: on }));
+            }
+          }
+        } catch { /* the answer stands */ }
         return NextResponse.json({ ok: true, result: out });
       }
 
@@ -34,16 +58,32 @@ export async function POST(req: Request) {
             if (p?.email) {
               const tpl = templates.offerMade(
                 (p.name ?? '').split(' ')[0] || 'there', o.role_title, o.starts_on);
-              await send(p.email, tpl.subject, { text: tpl.text, html: tpl.html });
+              await send(p.email, tpl);
             }
           }
         }
         return NextResponse.json({ ok: true, offer: o });
       }
-      case 'send':
+      case 'send': {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
         await sendOffer(String(b.id));
-        return NextResponse.json({ ok: true });
+        /* "Send" used to flip the state and tell nobody, while the console
+           toasted "Sent to both sides". Same letter the make-and-send path
+           already sends. */
+        const o = await getOffer(String(b.id));
+        let mailed = 0;
+        if (o) {
+          for (const who of [o.client_id, o.talent_id]) {
+            const p = await personEmail(who);
+            if (p?.email) {
+              const ok = await send(p.email, templates.offerMade(
+                (p.name ?? '').split(' ')[0] || 'there', o.role_title, o.starts_on));
+              if (ok) mailed++;
+            }
+          }
+        }
+        return NextResponse.json({ ok: true, mailed });
+      }
 
       case 'withdraw':
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
@@ -52,7 +92,30 @@ export async function POST(req: Request) {
 
       case 'place': {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
+        const offer = await getOffer(String(b.id));
         const pid = await placeFromOffer(String(b.id));
+
+        /* This used to tell nobody — an accepted offer became a real
+           placement in silence, and the two-week onboarding plan sat in an
+           account neither side had been pointed at. Same letter the hand-made
+           placement path already sends. */
+        if (offer) {
+          try {
+            const on = fmtDate(offer.starts_on);
+            const [exec, talent] = await Promise.all([
+              personEmail(offer.client_id), personEmail(offer.talent_id)
+            ]);
+            if (exec?.email && talent) {
+              await send(exec.email, templates.placementStarted({
+                name: exec.name, withWhom: talent.full, startsOn: on, side: 'client' }));
+            }
+            if (talent?.email && exec) {
+              await send(talent.email, templates.placementStarted({
+                name: talent.name, withWhom: exec.full, startsOn: on, side: 'talent' }));
+            }
+          } catch { /* the placement stands whether or not the mail went */ }
+        }
+
         return NextResponse.json({ ok: true, placement_id: pid });
       }
       default:

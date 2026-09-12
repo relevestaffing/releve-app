@@ -5,6 +5,19 @@ import { saving } from './Toast';
 
 const HOURS = Array.from({ length: 15 }, (_, i) => (i + 6) * 60);   // 6am – 8pm
 
+/* Every interview time either side ever sees is computed from this, and it
+   used to be read once from the browser and shown as a read-only label. A
+   phone on the wrong setting, or a VPN, and there was no way to fix it. */
+const ZONES = [
+  'America/Los_Angeles', 'America/Denver', 'America/Chicago', 'America/New_York',
+  'America/Phoenix', 'America/Anchorage', 'Pacific/Honolulu',
+  'Europe/London', 'Europe/Dublin', 'Europe/Lisbon', 'Europe/Madrid', 'Europe/Paris',
+  'Europe/Berlin', 'Europe/Athens', 'Africa/Nairobi', 'Asia/Dubai', 'Asia/Karachi',
+  'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Manila',
+  'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Tokyo', 'Australia/Perth',
+  'Australia/Sydney', 'Pacific/Auckland', 'UTC'
+];
+
 export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }) {
   const [tz, setTz] = useState('UTC');
   const [windows, setWindows] = useState<Window[]>([]);
@@ -50,7 +63,17 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
     <div className="card">
       <div className="card-head">
         <h3>When you are free</h3>
-        <span className="pill">{tz.replace('_', ' ')}</span>
+      </div>
+      <div className="ff" style={{ maxWidth: 340 }}>
+        <label>Your timezone</label>
+        <select value={ZONES.includes(tz) ? tz : ''} onChange={e => { setTz(e.target.value); setSaved(false); }}>
+          {!ZONES.includes(tz) && <option value="">{tz.replace(/_/g, ' ')} (detected)</option>}
+          {ZONES.map(z => <option key={z} value={z}>{z.replace(/_/g, ' ').replace('/', ' — ')}</option>)}
+        </select>
+        <span className="xs muted">
+          Every time you are shown, and every slot offered to you, is worked out from this.
+          We guessed it from your device — change it if that is wrong.
+        </span>
       </div>
       <p className="small muted" style={{ marginBottom: 20 }}>
         {who === 'talent'
@@ -73,7 +96,25 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
         ))}
       </div>
       </div>
-      <div className="row" style={{ marginTop: 22, gap: 14 }}>
+      {/* Forty individual taps for a normal working week was the whole job. */}
+      <div className="row" style={{ marginTop: 18, gap: 8, flexWrap: 'wrap' }}>
+        <button className="btn sm ghost" onClick={() => { setWindows(
+          [1, 2, 3, 4, 5].map(d => ({ weekday: d, start_min: 9 * 60, end_min: 17 * 60 }))); setSaved(false); }}>
+          Weekdays, 9 to 5
+        </button>
+        <button className="btn sm ghost" onClick={() => { setWindows(
+          [1, 2, 3, 4, 5].map(d => ({ weekday: d, start_min: 9 * 60, end_min: 12 * 60 }))); setSaved(false); }}>
+          Weekday mornings
+        </button>
+        <button className="btn sm ghost" onClick={() => { setWindows(
+          [1, 2, 3, 4, 5].map(d => ({ weekday: d, start_min: 13 * 60, end_min: 18 * 60 }))); setSaved(false); }}>
+          Weekday afternoons
+        </button>
+        {windows.length > 0 &&
+          <button className="btn sm ghost" onClick={() => { setWindows([]); setSaved(false); }}>Clear</button>}
+      </div>
+
+      <div className="row" style={{ marginTop: 22, gap: 14, flexWrap: 'wrap' }}>
         <button className="btn solid" disabled={busy} onClick={save}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save availability'}</button>
         <span className="small muted">{windows.length ? `${windows.length} window${windows.length > 1 ? 's' : ''} set` : 'Nothing set — you will not be offered any interviews'}</span>
       </div>

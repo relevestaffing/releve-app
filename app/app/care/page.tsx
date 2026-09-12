@@ -1,20 +1,26 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { dayLabel } from '@/lib/money-public';
 import { currentProfile } from '@/lib/supabase/server';
 import { listPlacementsFor } from '@/lib/work';
-import { feedbackFor, pulseFor, stepsFor, timeOffFor, FEEDBACK_SCORES } from '@/lib/care';
 import Shell from '@/components/Shell';
-import PulseForm from '@/components/PulseForm';
-import TimeOffForm from '@/components/TimeOffForm';
-import FirstFortnight from '@/components/FirstFortnight';
-import SeenFeedback from '@/components/SeenFeedback';
+import Explain from '@/components/Explain';
+import PlacementView from '@/components/PlacementView';
+import { Portrait } from '@/components/Viz';
 import Empty from '@/components/Empty';
-import { firstName, EMPTY, WORDS } from '@/lib/words';
+import { firstName, EMPTY } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
-/* Everything about the placement itself, on one page, for whichever side is
-   looking. The executive gets the monthly pulse; the talent gets time off and
-   the feedback written about them. Both get the first-fortnight plan. */
+/* Everything about the placement itself, for whichever side is looking.
+   ---------------------------------------------------------------------
+   This used to read listPlacementsFor(...)[0] and throw the rest away, which
+   was invisible right up until an executive hired a second assistant — at
+   which point that person existed in the database, was being invoiced for,
+   and could not be reached through the interface at all.
+
+   One placement still renders in place, because making somebody click through
+   a list of one is a worse product. Several get a list. */
 export default async function Care() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
@@ -22,67 +28,60 @@ export default async function Care() {
 
   const side = profile.role === 'client' ? 'client' : 'talent';
   const placements = await listPlacementsFor(profile.id);
-  const p = placements[0] ?? null;
 
-  if (!p) return (
+  if (!placements.length) return (
     <Shell profile={profile} active="/app/care" title="Your placement"
       crumb="Once you are placed, this is where it lives">
       <Empty of={side === 'client' ? EMPTY.careClient : EMPTY.careTalent} />
     </Shell>
   );
 
-  const [steps, pulse, off, feedback] = await Promise.all([
-    stepsFor(p.id),
-    side === 'client' ? pulseFor(p.id) : Promise.resolve(null),
-    side === 'talent' ? timeOffFor(p.id) : Promise.resolve([]),
-    side === 'talent' ? feedbackFor(profile.id) : Promise.resolve([])
-  ]);
+  if (placements.length === 1) {
+    const p = placements[0];
+    return (
+      <Shell profile={profile} active="/app/care"
+        title={side === 'client' ? `Working with ${firstName(p.talent_name)}` : 'Your placement'}
+        crumb={side === 'client' ? p.talent_name : (p.org_name ?? p.client_name)}>
+        <PlacementView placement={p} side={side} userId={profile.id} />
+      </Shell>
+    );
+  }
 
-  const shared = feedback.filter(f => f.shared);
-  const unseen = shared.find(f => !f.seen_at);
-
+  /* Several placements. For the executive that is their team; for a talent
+     it is the executives they work with — the list used to show a talent
+     their own name and photo on every row. */
   return (
     <Shell profile={profile} active="/app/care"
-      title={side === 'client' ? `Working with ${firstName(p.talent_name)}` : 'Your placement'}
-      crumb={side === 'client' ? p.talent_name : (p.org_name ?? p.client_name)}>
-
+      title={side === 'client' ? 'Your team' : 'Your placements'}
+      crumb={side === 'client'
+        ? `${placements.length} people placed with you`
+        : `${placements.length} executives you work with`}>
+      <div style={{ marginBottom: 22 }}>
+        <Explain>
+          {side === 'client'
+            ? 'Each person has their own page: what they are working on, how the month has gone, and their ninety-day onboarding plan. Tasks and billing cover everyone together.'
+            : 'Each placement has its own page: the ninety-day plan, time off and feedback for that role. Your tasks and check-ins cover every placement together.'}
+        </Explain>
+      </div>
       <div className="stack">
-        {side === 'client' && (
-          <PulseForm key={pulse?.filed_at ?? "new"} placementId={p.id} talentName={p.talent_name} existing={pulse} />
-        )}
-
-        {side === 'talent' && (
-          <>
-            {unseen && <SeenFeedback id={unseen.id} />}
-            <div className="card">
-              <div className="card-head"><h3>How you are doing</h3></div>
-              {!shared.length ? (
-                <p className="small muted">
-                  Nothing yet. {WORDS.tsm}s write this after your first full month,
-                  and you will see it here the moment it is ready.
-                </p>
-              ) : shared.map(f => (
-                <div key={f.id} style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid var(--mist)' }}>
-                  <div className="eyebrow" style={{ marginBottom: 10 }}>{f.period}</div>
-                  <div className="fb-scores">
-                    {FEEDBACK_SCORES.map(s => (
-                      <div key={s.key} className="fb-score">
-                        <div className="n">{f[s.key] ?? '—'}<small> / 5</small></div>
-                        <div className="k">{s.label}</div>
-                      </div>
-                    ))}
+        {placements.map(p => {
+          const otherId = side === 'client' ? p.talent_id : p.client_id;
+          const otherName = side === 'client' ? p.talent_name : (p.org_name ?? p.client_name);
+          return (
+            <Link key={p.id} href={`/app/care/${p.id}`} className="card link-card">
+              <div className="row between" style={{ alignItems: 'center', gap: 16 }}>
+                <div className="row">
+                  <Portrait id={otherId} name={otherName} cls="lg" />
+                  <div>
+                    <h3 style={{ marginBottom: 2 }}>{otherName}</h3>
+                    <div className="small muted">Started {dayLabel(p.started_on)}</div>
                   </div>
-                  <p className="small" style={{ marginBottom: 12 }}><b>What is going well.</b> {f.strengths}</p>
-                  {f.growing && <p className="small"><b>What to build on.</b> {f.growing}</p>}
                 </div>
-              ))}
-            </div>
-
-            <TimeOffForm placementId={p.id} existing={off} />
-          </>
-        )}
-
-        <FirstFortnight steps={steps} startedOn={p.started_on} side={side} />
+                <span className="choose-go">Open →</span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </Shell>
   );

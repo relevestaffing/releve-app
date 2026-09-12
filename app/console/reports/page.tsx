@@ -3,6 +3,7 @@ import { currentProfile, supabaseServer, configured } from '@/lib/supabase/serve
 import { moneySummary, money } from '@/lib/money';
 import { calibration } from '@/lib/care';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
 
 export const dynamic = 'force-dynamic';
 
@@ -145,16 +146,18 @@ export default async function Reports() {
         <div className="money-stat"><div className="n">{cal.length}</div><div className="k">Reviewed at six months</div></div>
       </div>
 
-      <div className="card" style={{ marginTop: 26 }}>
+      <div className="card">
         <div className="card-head">
           <h3>Is the assessment right?</h3>
           <span className="xs muted">Six-month calibration</span>
         </div>
-        <p className="small muted" style={{ marginBottom: 16, maxWidth: 640 }}>
-          What the engine predicted, against what actually happened. If it runs
-          consistently high it is promising more than it delivers; consistently
-          low and you are turning down people you should be placing.
-        </p>
+        <div style={{ marginBottom: 16, maxWidth: 640 }}>
+          <Explain>
+            What the engine predicted, against what actually happened. If it runs
+            consistently high it is promising more than it delivers; consistently
+            low and you are turning down people you should be placing.
+          </Explain>
+        </div>
         {!cal.length ? (
           <p className="small muted">
             Nothing to compare yet. Every six-month review you record on the Care page

@@ -75,6 +75,27 @@ export function AxisBars({ values, axes, captions }: {
   );
 }
 
+/* Facet-level bars — the same track as AxisBars, but for the eighteen
+   sub-measurements that sit under the six disposition traits. No lo/hi
+   pole labels: a facet reads by name and a sentence, not by two adjectives. */
+export function FacetBars({ items }: {
+  items: { key: string; name: string; value: number; caption: string | null }[];
+}) {
+  return (
+    <>
+      {items.map(f => (
+        <div className="axis-row" key={f.key}>
+          <div className="axis-labels" style={{ justifyContent: 'space-between' }}>
+            <b>{f.name}</b><span>{f.value}</span>
+          </div>
+          <div className="axis-track"><span className="axis-fill" style={{ width: `${f.value}%` }} /></div>
+          {f.caption && <div className="axis-caption">{f.caption}</div>}
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
     <div className="card tight">

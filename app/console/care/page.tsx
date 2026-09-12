@@ -5,6 +5,7 @@ import {
   upcomingTimeOff, GOING, WORKLOADS, TIME_OFF_STATE, nights
 } from '@/lib/care';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
 import { TimeOffDecider, OutcomeForm } from '@/components/CareControls';
 import { fmtDate } from '@/lib/words';
 
@@ -48,10 +49,12 @@ export default async function ConsoleCare() {
         {watch.length > 0 && (
           <div className="card">
             <div className="card-head"><h3>The 14-day promise</h3></div>
-            <p className="small muted" style={{ marginBottom: 16 }}>
-              Searches with nobody put forward yet, at or near the fourteen days
-              you promise. This is the one that costs you a client quietly.
-            </p>
+            <div style={{ marginBottom: 16 }}>
+              <Explain>
+                Searches with nobody put forward yet, at or near the fourteen days
+                you promise. This is the one that costs you a client quietly.
+              </Explain>
+            </div>
             {watch.map((w: any) => (
               <div key={w.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
                 <div><b className="small">{w.org_name ?? w.client_name}</b>
@@ -67,10 +70,12 @@ export default async function ConsoleCare() {
         {owed.length > 0 && (
           <div className="card">
             <div className="card-head"><h3>Replacements owed</h3></div>
-            <p className="small muted" style={{ marginBottom: 16 }}>
-              These ended in a way your guarantee covers, and no replacement has
-              been placed yet.
-            </p>
+            <div style={{ marginBottom: 16 }}>
+              <Explain>
+                These ended in a way your guarantee covers, and no replacement has
+                been placed yet.
+              </Explain>
+            </div>
             {owed.map((r: any) => (
               <div key={r.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
                 <div><b className="small">{r.client_name}</b>
@@ -144,10 +149,12 @@ export default async function ConsoleCare() {
 
         <div className="card">
           <div className="card-head"><h3>Six-month reviews due</h3></div>
-          <p className="small muted" style={{ marginBottom: 16 }}>
-            This is the only thing that teaches the matching engine anything. Skip
-            it and every future match stays as good as the first one was.
-          </p>
+          <div style={{ marginBottom: 16 }}>
+            <Explain>
+              This is the only thing that teaches the matching engine anything. Skip
+              it and every future match stays as good as the first one was.
+            </Explain>
+          </div>
           {!due.length ? <p className="small muted">Nothing due.</p> : due.map((d: any) => (
             <div key={d.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
               <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>

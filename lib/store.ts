@@ -17,6 +17,11 @@ export type MatchRow = {
   id: string; client_id: string; talent_id: string;
   overall: number | null; manual: boolean; released: boolean;
   client_state: string | null;
+  /* the approval behind a release: who sent them, when, and what the
+     executive was told about why this person */
+  release_note?: string | null;
+  released_at?: string | null;
+  released_by?: string | null;
 };
 /* The role a client is hiring for. Captured by the Relève team on the intro
    call — an executive is never asked to fill in a form about their own search. */
@@ -28,7 +33,14 @@ export type RoleBrief = {
   tools?: string;                     // the stack they must be fluent in
   target_at?: string;                 // when it needs to start
   stage?: string;                     // Sourcing | Shortlisted | Interviewing | Placed
+  /* The fact behind the label. Null means the executive is hiring and sees
+     candidate screens; set means the search is over and their account is
+     about the people already working with them. A placement sets it. */
+  closed_at?: string | null;
+  closed_reason?: 'placed' | 'withdrawn' | 'on_hold' | null;
   updated_at?: string;
+  opened_at?: string;                 // when the search opened — what the 14-day promise counts from
+  first_candidate_on?: string | null; // set the day the first candidate was released
 };
 export type ClientRow = {
   key: string; full_name: string; email: string; org_name: string | null;
@@ -154,10 +166,38 @@ export async function setAvailability(userId: string, timezone: string, windows:
 export async function getSearch(clientKey: string): Promise<RoleBrief | null> {
   if (!configured()) { seed(); return mem.searches.get(clientKey) ?? null; }
   const sb = await supabaseServer();
-  const { data } = await sb.from('searches').select('*')
-    .or(`client_id.eq.${clientKey},pending_id.eq.${clientKey}`).maybeSingle();
+  /* The open search, or failing that the most recent one. A repeat client
+     has several rows; maybeSingle() over them errored and the error was
+     thrown away, so the guarantee badge, the role card and the talent's
+     pre-interview brief all went blank for exactly the clients who had
+     hired before. */
+  const base = () => sb.from('searches').select('*')
+    .or(`client_id.eq.${clientKey},pending_id.eq.${clientKey}`)
+    .order('opened_at', { ascending: false }).limit(1);
+  let { data } = await base().is('closed_at', null).maybeSingle();
+  if (!data) ({ data } = await base().maybeSingle());
   return data ? { ...(data as any), client_key: clientKey } as RoleBrief : null;
 }
+/* Start hiring again, or stop.
+   ----------------------------
+   closed_at is what the executive's whole account keys off: with it set they
+   see placement management, with it null they see candidate screens. It is
+   set automatically the moment somebody starts, so this exists for the other
+   direction — an executive with one assistant who now wants a second.
+
+   Reopening deliberately clears the reason as well, so a search that was put
+   on hold and restarted does not still claim to be on hold. */
+export async function setSearchOpen(clientId: string, open: boolean, reason?: 'withdrawn' | 'on_hold') {
+  if (!configured()) return;
+  const sb = await supabaseServer();
+  const { error } = await sb.from('searches').update(
+    open
+      ? { closed_at: null, closed_reason: null, stage: 'Sourcing' }
+      : { closed_at: new Date().toISOString(), closed_reason: reason ?? 'withdrawn', stage: 'On hold' }
+  ).eq('client_id', clientId);
+  if (error) throw new Error(error.message);
+}
+
 export async function saveSearch(clientKey: string, patch: Partial<RoleBrief>, pending: boolean) {
   if (!configured()) {
     seed();
@@ -171,9 +211,12 @@ export async function saveSearch(clientKey: string, patch: Partial<RoleBrief>, p
   const key: Record<string, string> = pending ? { pending_id: clientKey } : { client_id: clientKey };
   const { data } = await sb.from('searches').select('id')
     .or(`client_id.eq.${clientKey},pending_id.eq.${clientKey}`).maybeSingle();
+  /* target_at is a real date column — an empty string from a cleared date
+     picker is not null, and Postgres rejects it the same way it used to
+     reject the free-text "Within six weeks" this field asked for. */
   const row: Record<string, unknown> = { ...key, role_title: patch.role_title ?? '', scope: patch.scope ?? null,
     hours: patch.hours ?? null, tools: patch.tools ?? null,
-    target_at: patch.target_at ?? null, stage: patch.stage ?? 'Sourcing' };
+    target_at: patch.target_at || null, stage: patch.stage ?? 'Sourcing' };
   /* A row claimed from a pending person still carries pending_id, and the
      one-owner constraint rejects a write that sets both. Clear it in the
      same statement, and read the error — this used to fail in silence and
@@ -281,6 +324,14 @@ export async function setInterviewStatus(id: string, status: InterviewStatus) {
   const { error } = await sb.from('interviews').update({ status }).eq('id', id);
   if (error) throw new Error(error.message);
 }
+/** One interview, with both names resolved — so a status change can say who
+    the other side is without a second round trip. */
+export async function getInterview(id: string): Promise<Interview | null> {
+  if (!configured()) { seed(); return mem.interviews.find(i => i.id === id) ?? null; }
+  const sb = await supabaseServer();
+  const { data } = await sb.from('interview_list').select('*').eq('id', id).maybeSingle();
+  return (data as Interview) ?? null;
+}
 export async function bookedSlots(userId: string): Promise<string[]> {
   const all = await listInterviews();
   return all.filter(i => (i.client_id === userId || i.talent_id === userId) &&
@@ -349,6 +400,7 @@ export async function noteCalendarError(userId: string, message: string) {
 export type SelfProfile = {
   full_name?: string; headline?: string; org_name?: string; location?: string; timezone?: string;
   years_exp?: number; english?: string; bio?: string; skills?: string[]; photo_url?: string;
+  intro_video_url?: string;
   onboarded_at?: string | null; role_chosen_at?: string | null;
   assigned_by_releve?: boolean;
 };

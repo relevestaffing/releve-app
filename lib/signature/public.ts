@@ -3,17 +3,19 @@
 export type PublicAxis = { key: string; name: string; layer: 1 | 2; lo: string; hi: string; def_?: string };
 export type PublicFacet = { key: string; trait: string; name: string; d: string };
 
-export const SCALE = ['Not like me', 'Rarely', 'Sometimes', 'Often', 'Exactly like me'];
-export const TOOLS = ['Google Workspace','Microsoft 365','Slack','Notion','Airtable','HubSpot','QuickBooks','Canva'];
+export const SCALE = ['Not like me', 'A little like me', 'Somewhat like me', 'Mostly like me', 'Exactly like me'];
+export const TOOLS = ['Google Workspace','Microsoft 365','Gmail','Slack','Notion','Airtable','HubSpot','QuickBooks','Canva','Wix or Squarespace','Social media schedulers'];
 export const COND_PUBLIC = [
-  { key:'overlap', label:'Hours overlap', ord:['2 hours','4 hours','Full working day'],
-    cQ:'How much of your working day must they cover?', tQ:'How much of the client day can you cover?' },
-  { key:'volume', label:'Volume', ord:['Light — under 10 requests/week','Steady — 10 to 25','Heavy — 25+'],
-    cQ:'How much work will you send in a week?', tQ:'What volume do you work best at?' },
-  { key:'discretion', label:'Discretion', ord:['Standard','High — financial & legal','Maximum — personal & deal-sensitive'],
-    cQ:'How sensitive is what they will see?', tQ:'What level of confidential work have you held?' },
-  { key:'mix', label:'Work mix', ord:['Mostly heads-down','Balanced','Mostly people-facing'],
-    cQ:'Is this role facing your people and clients, or behind them?', tQ:'Where do you do your best work?' }
+  { key:'overlap', label:'Overlapping hours', ord:['About 2 hours','About 4 hours','A full working day'],
+    cQ:'How many hours of your day do you need them working alongside you?',
+    tQ:'How many hours of a US working day can you be online for?' },
+  { key:'volume', label:'How much work', ord:['Light — a few things a week','Steady — something most days','Heavy — a constant stream'],
+    cQ:'Roughly how much will you hand over in a week?', tQ:'How much work do you handle best?' },
+  { key:'discretion', label:'How sensitive', ord:['Ordinary business information','Financial and legal','Personal and deal-sensitive'],
+    cQ:'What kind of information will they see?', tQ:'What kind of confidential work have you handled?' },
+  { key:'mix', label:'Who they deal with', ord:['Mostly on their own','A mix of both','Mostly talking to people'],
+    cQ:'Will they be talking to your clients and team, or working quietly behind you?',
+    tQ:'Do you do your best work talking to people, or heads-down on your own?' }
 ];
 /* What the browser receives for a question: text only. */
 export type Screen =

@@ -12,9 +12,9 @@ export type SignatureRow = {
 
 export async function getMySignature(profile: Profile | null, side: 'client'|'talent'): Promise<SignatureRow | null> {
   if (!configured()) {
-    if (side === 'client') return { scores: DEMO_EXEC.scores, facets: {}, conditions: DEMO_EXEC.cond,
+    if (side === 'client') return { scores: DEMO_EXEC.scores, facets: DEMO_EXEC.facets, conditions: DEMO_EXEC.cond,
       validity: { verdict:'Valid', im:30, attFails:0, inconsistency:14, extreme:36, straight:4, medSec:5.8, flags:[] },
-      confidence: {}, archetype: null };
+      confidence: DEMO_EXEC.confidence, archetype: null };
     /* the signature of whoever is actually previewing, not a fixed row */
     const me = DEMO_BENCH.find(b => b.id === profile?.id) ?? DEMO_BENCH[0];
     return { scores: me.scores, facets: me.facets, validity: me.validity, confidence: me.confidence, conditions: me.cond, archetype: null };
@@ -39,9 +39,9 @@ export async function getBench(): Promise<Person[]> {
    bench against the right person rather than against whoever is signed in. */
 export async function signatureOf(userId: string, side: 'client' | 'talent'): Promise<SignatureRow | null> {
   if (!configured()) {
-    if (side === 'client') return { scores: DEMO_EXEC.scores, facets: {}, conditions: DEMO_EXEC.cond,
+    if (side === 'client') return { scores: DEMO_EXEC.scores, facets: DEMO_EXEC.facets, conditions: DEMO_EXEC.cond,
       validity: { verdict:'Valid', im:30, attFails:0, inconsistency:14, extreme:36, straight:4, medSec:5.8, flags:[] },
-      confidence: {}, archetype: null };
+      confidence: DEMO_EXEC.confidence, archetype: null };
     const me = DEMO_BENCH.find(b => b.id === userId) ?? DEMO_BENCH[0];
     return { scores: me.scores, facets: me.facets, validity: me.validity,
              confidence: me.confidence, conditions: me.cond, archetype: null };

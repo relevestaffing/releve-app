@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { listInvoicesFor } from '@/lib/money';
@@ -6,6 +7,11 @@ import {
   MINIMUM_MONTHS, NOTICE_DAYS, minimumTermEnds, INVOICE_STATUS
 } from '@/lib/money-public';
 import Shell from '@/components/Shell';
+import Explain from '@/components/Explain';
+import PaymentMethod from '@/components/PaymentMethod';
+import PayInvoiceButton from '@/components/PayInvoiceButton';
+import { billingAccount } from '@/lib/billing';
+import { stripeReady } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +25,7 @@ export default async function Billing() {
   if (profile.role !== 'client') redirect('/app');
 
   const invoices = await listInvoicesFor(profile.id);
+  const account = await billingAccount(profile.id);
 
   let live: any[] = [];
   if (configured()) {
@@ -36,12 +43,18 @@ export default async function Billing() {
     });
   }
 
-  const open = invoices.filter(i => i.status === 'draft' || i.status === 'sent');
+  /* Money already collected and clearing is not outstanding — showing it as
+     owed makes a client think they have missed something days after they
+     paid, which is the most annoying possible way to be wrong. */
+  const open = invoices.filter(i => i.status === 'sent' || i.status === 'failed');
+  const clearing = invoices.filter(i => i.status === 'processing');
   const owed = open.reduce((n, i) => n + i.amount_cents, 0);
   const monthly = live.reduce((n, p) => n + (p.rate_month_cents ?? 0), 0);
 
   return (
     <Shell profile={profile} active="/app/billing" title="Billing" crumb="What you are paying, and when">
+
+      <PaymentMethod account={account} ready={stripeReady()} />
 
       <div className="money-strip">
         <div className="money-stat">
@@ -52,10 +65,16 @@ export default async function Billing() {
           <div className="n">{money(owed)}</div>
           <div className="k">{owed > 0 ? `Outstanding · ${open.length}` : 'Nothing outstanding'}</div>
         </div>
+        {clearing.length > 0 && (
+          <div className="money-stat">
+            <div className="n">{money(clearing.reduce((n, i) => n + i.amount_cents, 0))}</div>
+            <div className="k">Clearing</div>
+          </div>
+        )}
       </div>
 
       {live.length > 0 && (
-        <div className="card" style={{ marginBottom: 24 }}>
+        <div className="card">
           <div className="card-head"><h3>Your placements</h3></div>
           {live.map((p: any) => {
             const ends = minimumTermEnds(p.started_on, p.minimum_months ?? MINIMUM_MONTHS);
@@ -87,16 +106,20 @@ export default async function Billing() {
           <table className="data">
             <thead><tr>
               <th>Number</th><th>For</th><th>Issued</th>
-              <th style={{ textAlign: 'right' }}>Amount</th><th>Status</th>
+              <th style={{ textAlign: 'right' }}>Amount</th><th>Status</th><th></th>
             </tr></thead>
             <tbody>
               {invoices.map(i => {
                 const late = daysOverdue(i.due_on);
-                const openInv = i.status === 'draft' || i.status === 'sent';
+                const openInv = i.status === 'sent' || i.status === 'failed';
                 const tone = INVOICE_STATUS.find(s => s.key === i.status)?.tone ?? '';
                 return (
                   <tr key={i.id}>
-                    <td className="inv-num xs">{i.number ?? <span className="muted">pending</span>}</td>
+                    <td className="inv-num xs">
+                      <Link href={`/app/billing/${i.id}`}>
+                        {i.number ?? <span className="muted">pending</span>}
+                      </Link>
+                    </td>
                     <td className="xs">
                       {i.kind === 'deposit' ? 'Search deposit' : monthLabel(i.period_start)}
                     </td>
@@ -110,18 +133,24 @@ export default async function Billing() {
                     <td><span className={`pill ${tone}`}>
                       {INVOICE_STATUS.find(s => s.key === i.status)?.label}
                     </span></td>
+                    <td>
+                      {openInv && stripeReady() &&
+                        <PayInvoiceButton invoiceId={i.id} label="Pay" className="btn sm ghost" />}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         )}
-        <p className="xs muted" style={{ marginTop: 14 }}>
-          Invoices are issued on the first Monday of each month and are due on
-          receipt. Placements carry a {MINIMUM_MONTHS}-month minimum; after that
-          either side may end the engagement with {NOTICE_DAYS} days' written
-          notice. The full terms are at relevestaffing.com/terms.
-        </p>
+        <div style={{ marginTop: 14 }}>
+          <Explain>
+            Invoices are issued on the first Monday of each month and are due on
+            receipt. Placements carry a {MINIMUM_MONTHS}-month minimum; after that
+            either side may end the engagement with {NOTICE_DAYS} days' written
+            notice. The full terms are at relevestaffing.com/terms.
+          </Explain>
+        </div>
       </div>
     </Shell>
   );

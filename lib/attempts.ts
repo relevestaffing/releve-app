@@ -8,6 +8,9 @@ export type Attempt = {
   answers: (number | null)[];
   pairs: ('a' | 'b' | null)[];
   timings: (number | null)[];
+  /* The final Conditions screen. It used to live only in the DOM, so pressing
+     Back wiped it and a dropped connection at submit lost it. */
+  conditions: Record<string, any>;
   submitted: boolean;
 };
 const memory = new Map<string, Attempt>();
@@ -21,7 +24,7 @@ export async function loadAttempt(side: 'client' | 'talent', userId: string | nu
   if (!configured()) return memory.get((await demoKey()) + side) ?? null;
   const sb = await supabaseServer();
   const { data } = await sb.from('signature_attempts')
-    .select('side, answers, pairs, timings, submitted')
+    .select('side, answers, pairs, timings, conditions, submitted')
     .eq('user_id', userId).eq('side', side).maybeSingle();
   return (data as Attempt) ?? null;
 }
@@ -32,8 +35,13 @@ export async function saveAttempt(side: 'client' | 'talent', userId: string | nu
     return;
   }
   const sb = await supabaseServer();
-  await sb.from('signature_attempts').upsert({
+  const { error } = await sb.from('signature_attempts').upsert({
     user_id: userId, side, answers: a.answers, pairs: a.pairs, timings: a.timings,
+    conditions: a.conditions ?? {},
     submitted: false, updated_at: new Date().toISOString()
   }, { onConflict: 'user_id,side' });
+  /* Autosave failing silently is the worst failure this screen can have —
+     someone answers forty questions believing each one is being kept, and
+     only finds out otherwise at Submit. The caller has to hear about it. */
+  if (error) throw new Error(error.message);
 }

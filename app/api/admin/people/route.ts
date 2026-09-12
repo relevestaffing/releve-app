@@ -21,10 +21,16 @@ export async function POST(req: Request) {
   try {
     const made = await createPerson(body);
 
-    /* Tell them they exist. Until now nobody was ever told. */
+    /* Tell them they exist. Until now nobody was ever told. docs_url is
+       whatever signing link (DocuSign, most likely) the admin already has in
+       hand for this person — it is not stored, only used for this one send,
+       so there is no schema to migrate for it. */
     const first = String(body.full_name ?? '').split(' ')[0] ?? '';
-    const tpl = body.role === 'client' ? templates.clientInvite(first) : templates.talentInvite(first);
-    const sent = await send(body.email, tpl.subject, { text: tpl.text, html: tpl.html });
+    const docsUrl = String(body.docs_url ?? '').trim() || undefined;
+    const tpl = body.role === 'client'
+      ? templates.clientInvite(first, { docsUrl })
+      : templates.talentInvite(first, { docsUrl });
+    const sent = await send(body.email, tpl);
 
     return NextResponse.json({ ok: true, ...made, emailed: sent });
   } catch (e: any) {

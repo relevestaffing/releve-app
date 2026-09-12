@@ -17,6 +17,13 @@ export * from './money-public';
    Evidence you can quietly rewrite is not evidence. */
 export async function recordAcceptance(args: {
   user_id: string; version: string; ip?: string | null; user_agent?: string | null;
+  /* What the executive typed as their signature. A tick is enough to form a
+     contract in most places and nowhere near enough to enforce one
+     comfortably — which matters most for the non-circumvention clause, the one
+     protecting the whole business model and the one most likely to be tested.
+     Null on the talent side, who sign a separate agreement during vetting, and
+     null on the older rows, which is itself the record that they only ticked. */
+  signed_name?: string | null;
 }) {
   if (!configured()) return;
   const sb = await supabaseServer();
@@ -29,7 +36,8 @@ export async function recordAcceptance(args: {
     .upsert(
       (['terms', 'privacy'] as const).map(document => ({
         user_id: args.user_id, document, version: args.version,
-        ip: args.ip ?? null, user_agent: args.user_agent ?? null
+        ip: args.ip ?? null, user_agent: args.user_agent ?? null,
+        signed_name: args.signed_name ?? null
       })),
       { onConflict: 'user_id,document,version', ignoreDuplicates: true }
     );
@@ -63,19 +71,29 @@ export async function setDeposit(searchId: string, status: DepositStatus, paidOn
 }
 
 /* The deposit is invoiced once, when the search opens. Returns the invoice
-   that now exists, whether this call made it or an earlier one did. */
-export async function invoiceDeposit(searchId: string, clientId: string) {
-  if (!configured()) return null;
-  const sb = await supabaseServer();
+   that now exists, whether this call made it or an earlier one did.
 
-  const { data: already } = await sb.from('invoices')
+   Takes an optional client: the console calls this as the signed-in admin,
+   who has a write policy on invoices. The executive's own "pay my deposit"
+   button needs the same ensure-it-exists step to happen from their own
+   session, where they have none — that caller passes an elevated client
+   instead, scoped to nothing but this one insert. Either way the amount
+   comes from the search's own deposit_cents, never from the caller. */
+export async function invoiceDeposit(searchId: string, clientId: string, sb?: Awaited<ReturnType<typeof supabaseServer>>) {
+  if (!configured()) return null;
+  const db = sb ?? await supabaseServer();
+
+  const { data: already } = await db.from('invoices')
     .select('*').eq('search_id', searchId).eq('kind', 'deposit').maybeSingle();
   if (already) return already as Invoice;
 
+  const { data: search } = await db.from('searches')
+    .select('deposit_cents').eq('id', searchId).maybeSingle();
+
   const today = new Date().toISOString().slice(0, 10);
-  const { data, error } = await sb.from('invoices').insert({
+  const { data, error } = await db.from('invoices').insert({
     client_id: clientId, search_id: searchId, kind: 'deposit',
-    amount_cents: DEPOSIT_CENTS, issued_on: today, due_on: today,
+    amount_cents: (search as any)?.deposit_cents ?? DEPOSIT_CENTS, issued_on: today, due_on: today,
     status: 'draft',
     note: 'Search deposit. Non-refundable, credited against the first monthly invoice.'
   }).select().single();
@@ -119,11 +137,15 @@ const SHAPE =
   'id, number, client_id, placement_id, search_id, kind, period_start, period_end, ' +
   'amount_cents, issued_on, due_on, status, paid_on, note';
 
+/* The executive's own invoices — everything that has actually been issued
+   to them. A draft has not: it is Relève's working copy, and showing it
+   (with a Pay button that Stripe then refused) told a client they owed
+   money nobody had asked for. */
 export async function listInvoicesFor(clientId: string): Promise<Invoice[]> {
   if (!configured()) return [];
   const sb = await supabaseServer();
   const { data } = await sb.from('invoices').select(SHAPE)
-    .eq('client_id', clientId).order('issued_on', { ascending: false });
+    .eq('client_id', clientId).neq('status', 'draft').order('issued_on', { ascending: false });
   /* The column list is a shared constant, so the client cannot infer the row
      shape from it. The shape is asserted here and guaranteed by SHAPE above. */
   return (data ?? []) as unknown as Invoice[];
@@ -155,13 +177,35 @@ export async function setInvoiceStatus(id: string, status: InvoiceStatus, paidOn
 export async function editInvoice(id: string, patch: { amount_cents?: number; note?: string; due_on?: string | null }) {
   if (!configured()) return;
   const sb = await supabaseServer();
-  const { error } = await sb.from('invoices').update(patch).eq('id', id);
+  /* Only an invoice that has not already moved money can be edited. Once it
+     is processing, paid or void, the amount on the row either matches a real
+     Stripe charge already made or is settled for good — changing it here
+     would leave the invoice saying something different from what actually
+     happened, with nothing to reconcile the two. */
+  const { data, error } = await sb.from('invoices').update(patch)
+    .eq('id', id).in('status', ['draft', 'sent', 'failed'])
+    .select('id').maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error('That invoice has already moved money and can no longer be edited.');
 }
 
 /* The monthly run. All the arithmetic lives in the database function, which
    is idempotent — running it twice in a month creates nothing the second
    time. Returns how many drafts it actually made. */
+export async function getInvoice(id: string): Promise<Invoice | null> {
+  if (!configured()) return null;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('invoices').select('*').eq('id', id).maybeSingle();
+  return (data as Invoice) ?? null;
+}
+
+/** Records that the invoice genuinely left the building, which is a different
+    fact from somebody having set its status to "sent". */
+export async function markInvoiceSent(id: string) {
+  const sb = await supabaseServer();
+  await sb.from('invoices').update({ sent_at: new Date().toISOString() }).eq('id', id);
+}
+
 export async function issueMonthlyRetainers(forMonth?: string): Promise<number> {
   if (!configured()) return 0;
   const sb = await supabaseServer();
@@ -182,22 +226,32 @@ export type MoneySummary = {
   overdueCount: number;
   suspendableCount: number;
   placementsWithoutRate: number;
+  /* Issued but never delivered. Kept apart from everything above, because
+     money you have not asked for is not money anybody owes you yet. */
+  draftCount: number;
+  draftCents: number;
 };
 
 export async function moneySummary(): Promise<MoneySummary> {
   const empty: MoneySummary = {
     outstandingCents: 0, overdueCents: 0, monthlyRunRateCents: 0,
-    unpaidCount: 0, overdueCount: 0, suspendableCount: 0, placementsWithoutRate: 0
+    unpaidCount: 0, overdueCount: 0, suspendableCount: 0, placementsWithoutRate: 0,
+    draftCount: 0, draftCents: 0
   };
   if (!configured()) return empty;
   const sb = await supabaseServer();
 
   const { data: open } = await sb.from('invoices')
-    .select('amount_cents, due_on, status').in('status', ['draft', 'sent']);
+    .select('amount_cents, due_on, status, sent_at').in('status', ['draft', 'sent', 'failed']);
 
   const today = new Date().toISOString().slice(0, 10);
   const out = { ...empty };
   for (const i of (open ?? []) as any[]) {
+    /* A draft is money you have not asked for. Counting drafts as outstanding
+       meant pressing "Issue this month" and doing nothing else produced, two
+       weeks later, a top-ranked alert saying invoices were unpaid and the
+       placement could be suspended — for invoices the client had never seen. */
+    if (i.status === 'draft') { out.draftCount++; out.draftCents += i.amount_cents; continue; }
     out.outstandingCents += i.amount_cents;
     out.unpaidCount++;
     if (i.due_on && i.due_on < today) {

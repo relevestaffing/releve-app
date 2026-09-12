@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
@@ -32,6 +32,27 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
 
   const draft: SkillsProfile = { disciplines: picked, levels, details, years, primary, best, growing, tools };
   const done = skillsComplete(draft);
+
+  /* Autosave, because this is ten to fifteen minutes of work on a phone and
+     every answer lived in memory until the button at the very bottom was
+     pressed. A backgrounded tab or a dropped connection took the lot. The
+     endpoint already accepts a partial profile. */
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    if (!picked.length) return;
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch('/api/roles', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'skills', data: draft })
+        });
+        if (r.ok) setSavedAt(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      } catch { /* the explicit Save button is still there, and still reports */ }
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [picked, levels, details, years, primary, best, growing, tools]);
 
   async function save() {
     if (!picked.length) { toast.bad('Pick at least one kind of work you are good at.'); return; }
@@ -118,11 +139,20 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
                 onChange={e => setYears({ ...years, [dk]: Number(e.target.value) })} />
             </div>
 
-            <p className="small muted" style={{ margin: '6px 0 20px' }}>
+            <p className="small muted" style={{ margin: '6px 0 14px' }}>
               Honestly, for each one. <b>Never done it</b> is a perfectly good answer —
               nobody is strong across all twelve, and a profile claiming otherwise
               is the one we cannot place.
             </p>
+            {/* What each level means used to live in a hover tooltip, which does
+                not exist on a phone — where most of these are filled in. */}
+            <ul className="tokens" style={{ marginBottom: 20 }}>
+              {PROFS.filter(pr => pr.hint).map(pr => (
+                <li key={pr.key} style={{ fontSize: 11.5 }}>
+                  <b style={{ fontWeight: 400 }}>{pr.label}</b> — {pr.hint}
+                </li>
+              ))}
+            </ul>
 
             {d.comps.map(c => (
               <div className="comp" key={c.key}>
@@ -209,9 +239,14 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             </p>
           )}
 
-          <button className="btn solid" disabled={busy} onClick={save}>
-            {busy ? 'Saving…' : done ? 'Save your skills profile' : 'Save what I have so far'}
-          </button>
+          <div className="row" style={{ gap: 14, flexWrap: 'wrap' }}>
+            <button className="btn solid" disabled={busy} onClick={save}>
+              {busy ? 'Saving…' : done ? 'Save your skills profile' : 'Save what I have so far'}
+            </button>
+            <span className="xs muted">
+              {savedAt ? `Saved automatically at ${savedAt}` : 'This saves as you go.'}
+            </span>
+          </div>
         </div>
       )}
     </div>

@@ -30,12 +30,35 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
     if (ok) router.refresh();
   }
 
-  const waiting = rows.filter(r => r.state === 'submitted');
+  /* An agreement sent through DocuSign lands in 'submitted' with nothing
+     for Relève to open or decide — there is no document to review, only a
+     signature still pending from the candidate. It would be wrong to offer
+     Verify/Reject on it the way an uploaded identity photo gets those, so
+     it gets its own quiet status line instead of a place in the queue that
+     implies a decision is waiting on you. The webhook files it the moment
+     it comes back; nothing here needs to. */
+  const pendingSignature = rows.filter(r => r.kind === 'agreement' && r.state === 'submitted');
+  const waiting = rows.filter(r => r.state === 'submitted' && !(r.kind === 'agreement'));
   const rest = rows.filter(r => r.state !== 'submitted');
   const labelOf = (k: string) => VETTING_ITEMS.find(i => i.kind === k)?.label ?? k;
 
   return (
     <>
+      {pendingSignature.length > 0 && (
+        <div className="card tight">
+          <div className="card-head"><h3>Out for signature</h3>
+            <span className="pill">{pendingSignature.length}</span></div>
+          {pendingSignature.map(r => (
+            <p key={r.id} className="small" style={{ margin: '4px 0' }}>
+              <b>{r.talent?.full_name ?? r.talent?.email ?? 'Candidate'}</b> — sent
+              {r.submitted_at && ` ${new Date(r.submitted_at)
+                .toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`}, nothing to do here until
+              it comes back signed.
+            </p>
+          ))}
+        </div>
+      )}
+
       <div className="card">
         <div className="card-head"><h3>Waiting on you</h3>
           <span className={`pill ${waiting.length ? 'warn' : 'good'}`}>

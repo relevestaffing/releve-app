@@ -15,21 +15,42 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
   const router = useRouter();
   const [value, setValue] = useState<InvoiceStatus>(inv.status);
   const [busy, setBusy] = useState(false);
+  /* Paid and void are the two that matter and the two that are awkward to
+     undo. On a phone this control is a spinning wheel next to a scroll
+     gesture, so those two now ask first. Draft and sent still fire straight. */
+  const [ask, setAsk] = useState<InvoiceStatus | null>(null);
   const tone = INVOICE_STATUS.find(s => s.key === value)?.tone ?? '';
+
+  async function apply(next: InvoiceStatus) {
+    const prev = value;
+    setValue(next); setBusy(true); setAsk(null);
+    const ok = await saving(
+      () => post({ action: 'invoice_status', id: inv.id, status: next }),
+      next === 'paid' ? `${money(inv.amount_cents)} marked paid` : `Marked ${next}`
+    );
+    setBusy(false);
+    if (ok) router.refresh(); else setValue(prev);
+  }
+
+  if (ask) return (
+    <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+      <span className="xs">
+        {ask === 'paid'
+          ? `${money(inv.amount_cents)} from ${inv.org_name ?? inv.client_name ?? 'them'} — received?`
+          : 'Void this invoice?'}
+      </span>
+      <button className="btn sm solid" disabled={busy} onClick={() => apply(ask)}>Yes</button>
+      <button className="btn sm ghost" onClick={() => setAsk(null)}>No</button>
+    </div>
+  );
 
   return (
     <select className={`pill ${tone}`} value={value} disabled={busy}
       style={{ padding: '5px 10px', cursor: 'pointer' }}
-      onChange={async e => {
-        const prev = value;
+      onChange={e => {
         const next = e.target.value as InvoiceStatus;
-        setValue(next); setBusy(true);
-        const ok = await saving(
-          () => post({ action: 'invoice_status', id: inv.id, status: next }),
-          next === 'paid' ? `${money(inv.amount_cents)} marked paid` : `Marked ${next}`
-        );
-        setBusy(false);
-        if (ok) router.refresh(); else setValue(prev);
+        if (next === 'paid' || next === 'void') { setAsk(next); return; }
+        apply(next);
       }}>
       {INVOICE_STATUS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
     </select>
@@ -63,7 +84,7 @@ export function RunTheMonth({ month }: { month: string }) {
 
   return (
     <button className="btn sm solid" disabled={busy} onClick={run}>
-      {busy ? 'Working…' : 'Issue this month'}
+      {busy ? 'Working…' : 'Run the month'}
     </button>
   );
 }
