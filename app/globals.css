@@ -998,7 +998,11 @@ span.step-tick{cursor:default}
 .attention li.high .att-n{background:rgba(140,74,63,.09);border-color:rgba(140,74,63,.32);color:var(--crit)}
 .att-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .att-body b{font-weight:400;font-size:15px;color:var(--ink);line-height:1.45}
-.att-title{display:flex;align-items:center;gap:9px}
+/* One sentence, not a label plus a hidden footnote: the bold lead (what's
+   true, from .att-body b above) runs straight into the plain-weight
+   consequence in the same line, muted just enough to read as the second
+   half of a thought rather than a separate caption. */
+.att-line{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
 .attention .btn{flex:none}
 
 @media (max-width:820px){

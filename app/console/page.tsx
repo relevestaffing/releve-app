@@ -4,7 +4,6 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { consoleSnapshot } from '@/lib/console';
 import { money } from '@/lib/money-public';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
 
 /* Line icons at a single 1.25px stroke, matching MobileNav/QuickBar's. Kept
    local rather than pulled into QuickBar's icon set — that one is the
@@ -59,15 +58,20 @@ export default async function Console() {
       {/* ---------- the five things this console exists to make easy ----------
          Every manager's first question is "where do I go to do the thing",
          not "what needs attention" — that comes next, in Today. One-click
-         launchers, in the order she asked for them: client onboarding,
-         talent onboarding, invoices and money, payroll, then the matching
-         and placements system itself. */}
+         launchers, in the order she asked for them: her calendar, matching
+         and placements, client onboarding, talent onboarding, payroll, then
+         invoices and money. */}
       <h3 className="section-h" style={{ marginTop: 0 }}>Dashboard</h3>
       <div className="qa-grid">
         <Link className="qa-tile" href="/console/calendar">
           <QaIcon k="calendar" />
           <div><div className="qa-t">Your calendar</div>
             <div className="qa-s">Discovery calls, interviews and everything else on hello@.</div></div>
+        </Link>
+        <Link className="qa-tile" href="/console/matching">
+          <QaIcon k="match" />
+          <div><div className="qa-t">Matching and placements</div>
+            <div className="qa-s">Move a search from candidates to an offer to a seat filled.</div></div>
         </Link>
         <Link className="qa-tile" href="/console/people">
           <QaIcon k="send" />
@@ -79,24 +83,24 @@ export default async function Console() {
           <div><div className="qa-t">Send talent onboarding</div>
             <div className="qa-s">Sourced someone yourself — email their account and assessment link.</div></div>
         </Link>
-        <Link className="qa-tile" href="/console/money#invoices">
-          <QaIcon k="invoice" />
-          <div><div className="qa-t">Send invoices, see money</div>
-            <div className="qa-s">Draft, send and track what every executive owes.</div></div>
-        </Link>
         <Link className="qa-tile" href="/console/money#money-out">
           <QaIcon k="payroll" />
           <div><div className="qa-t">Run and track payroll</div>
             <div className="qa-s">Pay every live placement and keep the record of it.</div></div>
         </Link>
-        <Link className="qa-tile" href="/console/matching">
-          <QaIcon k="match" />
-          <div><div className="qa-t">Matching and placements</div>
-            <div className="qa-s">Move a search from candidates to an offer to a seat filled.</div></div>
+        <Link className="qa-tile" href="/console/money#invoices">
+          <QaIcon k="invoice" />
+          <div><div className="qa-t">Send invoices, see money</div>
+            <div className="qa-s">Draft, send and track what every executive owes.</div></div>
         </Link>
       </div>
 
-      {/* ---------- what needs a person ---------- */}
+      {/* ---------- what needs a person ----------
+         Each row used to be a short label plus a "why" hidden behind a tap
+         on a question mark, so the one thing that would tell her whether to
+         actually care was the one thing not on the screen. It reads as one
+         sentence now — what's true, then what happens if it sits — nothing
+         to open, worst first. */}
       <div className="card">
         <div className="card-head">
           <h3>Today</h3>
@@ -134,7 +138,7 @@ export default async function Console() {
               <li key={a.key} className={a.level}>
                 <span className="att-n">{a.count}</span>
                 <div className="att-body">
-                  <div className="att-title"><b>{a.what}</b><Explain>{a.why}</Explain></div>
+                  <p className="att-line"><b>{a.what}</b> — {a.why}</p>
                 </div>
                 <Link className="btn sm solid" href={a.href}>{a.cta}</Link>
               </li>

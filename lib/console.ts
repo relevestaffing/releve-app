@@ -241,6 +241,11 @@ export async function consoleSnapshot(): Promise<{
   const attention: Attention[] = [];
   const add = (a: Attention) => { if (a.count > 0) attention.push(a); };
 
+  /* Read the count once, agree the sentence to it — "1 search is" instead of
+     "1 searches are". The number badge still carries the count on its own;
+     this only keeps the sentence next to it grammatical. */
+  const agree = (n: number, one: string, many: string) => n === 1 ? one : many;
+
   /* Rank 0. Nothing else on this list matters if the platform cannot reach
      anybody — an unpaid invoice is a problem you can see, and an email that
      never arrived is one you cannot. This row is the whole reason email_log
@@ -250,60 +255,68 @@ export async function consoleSnapshot(): Promise<{
   const neverWorked = !health || health.last_success === null;
   const failedWeek = Number(health?.failed_week ?? 0);
 
+  /* Each item used to be a terse label plus a "why" hidden behind a tap on a
+     question mark — meaning the reason nothing here mattered was the one
+     thing not on the screen. It is folded into one sentence now: what's
+     true, then a dash, then what happens if it sits. Nothing to open. */
   if (neverWorked) {
     attention.push({
       key: 'email_never', rank: 0, level: 'high', count: 1,
       what: 'email has never gone out successfully',
-      why: 'Invitations, receipts and interview confirmations are all silently going nowhere. Nothing else on this list matters until this does.',
+      why: 'invitations, receipts and interview confirmations are all going nowhere, silently — nothing else on this list matters until this is fixed',
       href: '/console/team', cta: 'Test email now'
     });
   } else if (failedWeek > 0) {
     attention.push({
       key: 'email_failing', rank: 0, level: 'high', count: failedWeek,
-      what: `emails bounced this week`,
-      why: 'Each one is somebody who was told something and never heard it. The log names the message and the address.',
+      what: `${agree(failedWeek, 'email', 'emails')} bounced this week`,
+      why: 'each one is somebody who was told something and never heard it — the log names the message and the address',
       href: '/console/team', cta: 'See what failed'
     });
   }
 
-  add({ key: 'guarantee', rank: 1, level: 'high', count: guaranteeAtRisk.length,
-    what: 'searches near the 14-day promise, nobody sent',
-    why: 'This is the one that loses a client quietly, before they complain.',
+  const guaranteeCount = guaranteeAtRisk.length;
+  add({ key: 'guarantee', rank: 1, level: 'high', count: guaranteeCount,
+    what: `${agree(guaranteeCount, 'search is', 'searches are')} about to miss the 14-day promise`,
+    why: 'this is how a client is lost quietly, before they ever complain',
     href: '/console/care', cta: 'See the searches' });
 
   add({ key: 'suspendable', rank: 2, level: 'high', count: suspendable,
-    what: 'invoices unpaid 14+ days',
-    why: 'Section 5 lets you suspend the placement. Decide before it drifts.',
+    what: `${agree(suspendable, 'invoice has', 'invoices have')} gone unpaid two weeks or more`,
+    why: 'Section 5 lets you suspend the placement — decide before it drifts',
     href: '/console/money', cta: 'Open the money' });
 
   /* Split, because these live on two different pages and the old single row
      sent her to Check-ins half the time when the flag was an executive's
      monthly pulse — which is only rendered on Care, and is the expensive kind. */
-  add({ key: 'poor_pulse', rank: 3, level: 'high', count: flaggedPulse.size,
-    what: 'executives with a flagged problem',
-    why: 'An unhappy executive does not complain twice. They leave.',
+  const poorPulseCount = flaggedPulse.size;
+  add({ key: 'poor_pulse', rank: 3, level: 'high', count: poorPulseCount,
+    what: `${agree(poorPulseCount, 'executive', 'executives')} flagged a problem`,
+    why: 'an unhappy executive does not complain twice — they just leave',
     href: '/console/care', cta: 'Read what they said' });
 
-  add({ key: 'poor_checkin', rank: 4, level: 'high', count: flaggedCheckin.size,
-    what: 'check-ins that raised a flag',
-    why: 'A flagged check-in does not fix itself, and they were brave to write it.',
+  const poorCheckinCount = flaggedCheckin.size;
+  add({ key: 'poor_checkin', rank: 4, level: 'high', count: poorCheckinCount,
+    what: `${agree(poorCheckinCount, 'check-in', 'check-ins')} raised a flag`,
+    why: 'it will not fix itself, and they were brave enough to write it',
     href: '/console/checkins', cta: 'Read what they said' });
 
-  add({ key: 'vetting', rank: 5, level: 'high', count: new Set(vettingPending).size,
-    what: 'documents waiting on verification',
-    why: 'Nobody can be released to a client until their vetting is cleared.',
+  const vettingCount = new Set(vettingPending).size;
+  add({ key: 'vetting', rank: 5, level: 'high', count: vettingCount,
+    what: `${agree(vettingCount, 'person is', 'people are')} waiting on verification`,
+    why: 'nobody can be released to a client until it clears',
     href: '/console/vetting', cta: 'Verify them' });
 
-  add({ key: 'offer_ready', rank: 4, level: 'high',
-    count: ((offers.data ?? []) as any[]).filter(o => o.state === 'accepted' && !o.placement_id).length,
-    what: 'offers accepted, not yet placed',
-    why: 'The terms are agreed and nothing is running. One button turns each into a placement.',
+  const offerReadyCount = ((offers.data ?? []) as any[]).filter(o => o.state === 'accepted' && !o.placement_id).length;
+  add({ key: 'offer_ready', rank: 4, level: 'high', count: offerReadyCount,
+    what: `${agree(offerReadyCount, 'offer was', 'offers were')} accepted, and nothing is running yet`,
+    why: 'one click turns each into a placement',
     href: '/console/offers', cta: 'Place them' });
 
-  add({ key: 'offer_open', rank: 6, level: 'medium',
-    count: ((offers.data ?? []) as any[]).filter(o => ['sent','client_yes','talent_yes'].includes(o.state)).length,
-    what: 'offers out and unanswered',
-    why: 'An offer left hanging is how a candidate takes something else.',
+  const offerOpenCount = ((offers.data ?? []) as any[]).filter(o => ['sent','client_yes','talent_yes'].includes(o.state)).length;
+  add({ key: 'offer_open', rank: 6, level: 'medium', count: offerOpenCount,
+    what: `${agree(offerOpenCount, 'offer is', 'offers are')} still unanswered`,
+    why: 'leave it hanging and the candidate takes something else',
     href: '/console/offers', cta: 'Chase it' });
 
   /* A search that is open with nobody in front of the executive is the work
@@ -313,38 +326,38 @@ export async function consoleSnapshot(): Promise<{
     s.stage !== 'Placed' && s.stage !== 'On hold' && !s.closed_at
     && s.client_id && !clientsWithRelease.has(s.client_id)).length;
   add({ key: 'nobody_released', rank: 6.8, level: 'medium', count: openWithNobody,
-    what: 'open searches with nobody released yet',
-    why: 'The 14-day promise is counting down from the day the search opened.',
+    what: `${agree(openWithNobody, 'open search has', 'open searches have')} nobody released yet`,
+    why: 'the 14-day clock is already running',
     href: '/console/matching', cta: 'Rank and release' });
 
   add({ key: 'decision', rank: 7, level: 'medium', count: vitals.awaitingDecision,
-    what: 'candidates out with no answer yet',
-    why: 'A candidate left waiting is a search that has stalled.',
+    what: `${agree(vitals.awaitingDecision, 'candidate is', 'candidates are')} out with no answer yet`,
+    why: 'a stalled decision is a stalled search',
     href: '/console/matching', cta: 'Chase it' });
 
   /* Somebody wrote to you asking for work. Answering slowly is how a good
      applicant ends up somewhere else. */
   const apps = (applications.data ?? []) as any[];
-  add({ key: 'applications', rank: 8, level: 'medium',
-    count: apps.filter(a => a.state === 'new').length,
-    what: 'applications not yet read',
-    why: 'A good applicant who waits a week is applying somewhere else.',
+  const newAppsCount = apps.filter(a => a.state === 'new').length;
+  add({ key: 'applications', rank: 8, level: 'medium', count: newAppsCount,
+    what: `${agree(newAppsCount, 'application is', 'applications are')} unread`,
+    why: 'a good one waits about a week, then applies somewhere else',
     href: '/console/applications', cta: 'Read them' });
 
   /* A screening call whose time has come and gone with no outcome recorded is
      the quietest way for a promising person to be lost entirely. */
-  add({ key: 'call_result', rank: 8.5, level: 'medium',
-    count: apps.filter(a =>
-      (a.call_state === 'invited' && (!a.call_at || Date.parse(a.call_at) <= Date.now()))
-      || a.call_state === 'no_show').length,
-    what: 'screening calls with no outcome recorded',
-    why: 'Say whether it happened, while you still remember how it went.',
+  const callResultCount = apps.filter(a =>
+    (a.call_state === 'invited' && (!a.call_at || Date.parse(a.call_at) <= Date.now()))
+    || a.call_state === 'no_show').length;
+  add({ key: 'call_result', rank: 8.5, level: 'medium', count: callResultCount,
+    what: `${agree(callResultCount, 'screening call has', 'screening calls have')} no outcome recorded`,
+    why: 'write it down while you still remember how it went',
     href: '/console/applications', cta: 'Record them' });
 
-  add({ key: 'call_decide', rank: 8.6, level: 'medium',
-    count: apps.filter(a => a.call_state === 'held' && a.state !== 'invited' && a.state !== 'declined').length,
-    what: "people you've spoken to, still waiting",
-    why: 'They met you, they liked it, and now they are waiting. This is the worst place to leave someone.',
+  const callDecideCount = apps.filter(a => a.call_state === 'held' && a.state !== 'invited' && a.state !== 'declined').length;
+  add({ key: 'call_decide', rank: 8.6, level: 'medium', count: callDecideCount,
+    what: `${agree(callDecideCount, 'person met you, liked it, and is', 'people met you, liked it, and are')} still waiting`,
+    why: 'this is the worst place to leave someone',
     href: '/console/applications', cta: 'Decide' });
 
   /* Revenue collection began when somebody remembered to press a button. */
@@ -355,21 +368,21 @@ export async function consoleSnapshot(): Promise<{
     .some(i => i.kind === 'retainer' && i.period_start === thisPeriod);
   add({ key: 'run_month', rank: 2.5, level: 'high',
     count: billedThisMonth || placements.length === 0 ? 0 : 1,
-    what: 'this month not billed yet',
-    why: 'Nobody is invoiced until the run happens, and nothing else tells you it did not.',
+    what: 'this month has not been billed yet',
+    why: 'nobody is invoiced until the run happens, and nothing else tells you it did not',
     href: '/console/money', cta: 'Run the month' });
 
   const drafted = ((allInv.data ?? []) as any[]).filter(i => i.status === 'draft').length;
   add({ key: 'draft_invoices', rank: 6.5, level: 'medium', count: drafted,
-    what: 'invoices drafted and never sent',
-    why: 'A drafted invoice has not been asked for, so it will never be paid.',
+    what: `${agree(drafted, 'invoice is', 'invoices are')} drafted and never sent`,
+    why: 'a bill nobody sends is a bill nobody pays',
     href: '/console/money', cta: 'Send them' });
 
   /* Money out. Owing somebody their wages is worse than being owed. */
-  add({ key: 'pay_due', rank: 1.5, level: 'high',
-    count: ((payouts.data ?? []) as any[]).filter(p => p.state === 'due').length,
-    what: 'people waiting to be paid',
-    why: 'This is somebody\'s rent. It outranks everything else on this list.',
+  const payDueCount = ((payouts.data ?? []) as any[]).filter(p => p.state === 'due').length;
+  add({ key: 'pay_due', rank: 1.5, level: 'high', count: payDueCount,
+    what: `${agree(payDueCount, 'person is', 'people are')} waiting to be paid`,
+    why: 'this is somebody\'s rent — it outranks everything else on this list',
     href: '/console/money', cta: 'Pay them' });
 
   /* Compared live placements against every payout row there was — including
@@ -378,45 +391,45 @@ export async function consoleSnapshot(): Promise<{
   const payoutBy = new Set(((payoutDetails.data ?? []) as any[]).map(p => p.talent_id));
   const livePlacedTalent = new Set(((places.data ?? []) as any[])
     .filter(p => !p.ended_on).map(p => p.talent_id));
-  add({ key: 'payout_missing', rank: 7.5, level: 'medium',
-    count: [...livePlacedTalent].filter(t => !payoutBy.has(t)).length,
-    what: 'placed people missing payment details',
-    why: 'You cannot pay somebody whose bank details you do not have.',
+  const payoutMissingCount = [...livePlacedTalent].filter(t => !payoutBy.has(t)).length;
+  add({ key: 'payout_missing', rank: 7.5, level: 'medium', count: payoutMissingCount,
+    what: `${agree(payoutMissingCount, 'placed person is', 'placed people are')} missing payment details`,
+    why: 'you cannot pay somebody whose bank details you do not have',
     href: '/console/placements', cta: 'Chase them' });
 
   add({ key: 'timeoff', rank: 9, level: 'medium', count: timeOffWaiting,
-    what: 'time-off requests waiting on you',
-    why: 'Cover has to be arranged before the day, not on it.',
+    what: `${agree(timeOffWaiting, 'time-off request is', 'time-off requests are')} waiting on you`,
+    why: 'cover has to be arranged before the day, not on it',
     href: '/console/care', cta: 'Decide' });
 
   add({ key: 'reviews', rank: 14, level: 'medium', count: reviewsDue,
-    what: 'six-month reviews due',
-    why: 'This is the only thing that teaches the matching engine anything.',
+    what: `${agree(reviewsDue, 'six-month review is', 'six-month reviews are')} due`,
+    why: 'this is the only thing that teaches the matching engine anything',
     href: '/console/care', cta: 'Record the outcomes' });
 
   add({ key: 'stale', rank: 12, level: 'medium', count: staleCheckin,
-    what: 'placements quiet for over a week',
-    why: 'Silence is not the same as fine. It is usually the opposite.',
+    what: `${agree(staleCheckin, 'placement has', 'placements have')} gone quiet for over a week`,
+    why: 'silence is not the same as fine — it is usually the opposite',
     href: '/console/checkins', cta: 'See who is quiet' });
 
   add({ key: 'norate', rank: 11, level: 'medium', count: noRate,
-    what: 'live placements with no rate set',
-    why: 'They are skipped by the monthly run, so nothing is billed for them.',
+    what: `${agree(noRate, 'live placement has', 'live placements have')} no rate set`,
+    why: 'the monthly run skips it, so nothing gets billed',
     href: '/console/money', cta: 'Set the rates' });
 
   add({ key: 'deposit', rank: 10, level: 'medium', count: depositsDue,
-    what: 'searches with an outstanding deposit',
-    why: 'The deposit covers the sourcing you have already started.',
+    what: `${agree(depositsDue, 'search has', 'searches have')} an outstanding deposit`,
+    why: 'the deposit covers sourcing that has already started',
     href: '/console/money', cta: 'Chase the deposits' });
 
   add({ key: 'manager', rank: 13, level: 'medium', count: noManager,
-    what: 'placements with no manager assigned',
-    why: 'Nobody owns them, so nobody notices when they slip. Open the placement and set one on the pairing card.',
+    what: `${agree(noManager, 'placement has', 'placements have')} no manager assigned`,
+    why: 'nobody owns it, so nobody notices when it slips — set one on the pairing card',
     href: '/console/placements', cta: 'Assign someone' });
 
   add({ key: 'unread', rank: 15, level: 'medium', count: unread,
-    what: 'unread messages',
-    why: 'Both sides were told they could reach you here.',
+    what: `${agree(unread, 'message is', 'messages are')} unread`,
+    why: 'both sides were told they could reach you here',
     href: '/console/messages', cta: 'Open the inbox' });
 
   attention.sort((a, b) => a.rank - b.rank);
