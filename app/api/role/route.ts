@@ -44,9 +44,13 @@ export async function POST(req: Request) {
   /* read it back, so a silently-ignored update surfaces instead of looping */
   const { data: after } = await sb.from('profiles').select('role, role_chosen_at').eq('id', me.id).maybeSingle();
   if (!after?.role_chosen_at) {
+    /* The technical cause stays in the server log — a brand-new user choosing
+       their side for the first time should never see a schema-migration
+       instruction; that is a note for whoever operates the console, not
+       something they can act on. */
     console.error('[role] update was ignored — is PART 7 of schema.sql applied?');
     return NextResponse.json(
-      { error: 'Your account could not be set up. Run PART 7 of schema.sql in Supabase, then try again.' },
+      { error: 'Your account could not be set up. Please try again, or write to hello@relevestaffing.com.' },
       { status: 500 });
   }
   return NextResponse.json({ ok: true, role: after.role });

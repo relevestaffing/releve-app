@@ -163,6 +163,18 @@ function shell(
 }
 const p = (s: string) => `<p style="margin:0 0 15px;">${s}</p>`;
 
+/* HTML-escapes a value before it goes into a template built from someone
+   else's typed text. Only newApplication needs this: it is the one message
+   in this file built entirely from an anonymous applicant's own words — full
+   name, links, resume filename, and every free-text answer — with nothing in
+   between checking what they typed. Every other template's free text comes
+   from someone already signed in, doing something narrower than "write
+   anything" (a decline reason, a time-off note), so this stays scoped to the
+   one template that needs it rather than touched everywhere on principle. */
+const esc = (s: unknown) => String(s ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 /* ---------- the messages ---------- */
 
 const rawTemplates = {
@@ -403,9 +415,13 @@ const rawTemplates = {
       english,
       o.heard_via ? `found us via ${o.heard_via.toLowerCase()}` : null
     ].filter(Boolean).join(' · ');
+    /* Every value here is a stranger's own typing, HTML-escaped before it
+       goes into the letter — an applicant with a hostile "note" or "links"
+       field should produce ugly text in the team's inbox, never a link, an
+       image, or markup that changes how the message renders. */
     const block = (label: string, v: string | null | undefined) => v
-      ? `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7C8B7E;margin-bottom:5px;">${label}</div>` +
-        `<p style="margin:0;padding:12px 16px;background:#F3EFE6;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${v}</p></div>`
+      ? `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7C8B7E;margin-bottom:5px;">${esc(label)}</div>` +
+        `<p style="margin:0;padding:12px 16px;background:#F3EFE6;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${esc(v)}</p></div>`
       : '';
     const textAnswers = [
       ...APPLY_QUESTIONS.map(q => o.answers[q.key] ? `${q.label}\n${o.answers[q.key]}\n` : ''),
@@ -415,10 +431,10 @@ const rawTemplates = {
       subject: `${o.full_name} applied — ${o.role}`,
       text: `${o.full_name} applied for ${o.role}.\n\n${o.email}${o.phone ? ` · ${o.phone}` : ''}${facts ? `\n${facts}` : ''}\n${o.links ? `\nLinks: ${o.links}\n` : ''}${o.resume_name ? `Resume: ${o.resume_name} (in the console)\n` : ''}${textAnswers ? `\n${textAnswers}` : ''}\n${SITE}/console/applications`,
       html: shell('A new application',
-        p(`<b>${o.full_name}</b> applied for <b>${o.role}</b>.`) +
-        p(`<a href="mailto:${o.email}">${o.email}</a>${o.phone ? ` · ${o.phone}` : ''}${facts ? ` · ${facts}` : ''}`) +
-        (o.links ? p(`Links: ${o.links}`) : '') +
-        (o.resume_name ? p(`Resume attached — ${o.resume_name}, open in the console to read it.`) : '') +
+        p(`<b>${esc(o.full_name)}</b> applied for <b>${esc(o.role)}</b>.`) +
+        p(`<a href="mailto:${esc(o.email)}">${esc(o.email)}</a>${o.phone ? ` · ${esc(o.phone)}` : ''}${facts ? ` · ${esc(facts)}` : ''}`) +
+        (o.links ? p(`Links: ${esc(o.links)}`) : '') +
+        (o.resume_name ? p(`Resume attached — ${esc(o.resume_name)}, open in the console to read it.`) : '') +
         APPLY_QUESTIONS.map(q => block(q.label, o.answers[q.key])).join('') +
         block('Anything else', o.note),
         { label: 'Open in the console', href: `${SITE}/console/applications` })

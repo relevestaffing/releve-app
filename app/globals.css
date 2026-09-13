@@ -718,12 +718,12 @@ html,body{max-width:100%;overflow-x:hidden}
    areas rather than column order, so the rail — what used to open this
    page before the redesign — still reads first once the screen is too
    narrow for two columns, regardless of where each sits in the markup. */
-.dash-grid{display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start;
+.dash-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:22px;align-items:start;
   grid-template-areas:"main rail"}
 .dash-main{grid-area:main}
 .dash-rail{grid-area:rail}
 @media (max-width:980px){
-  .dash-grid{grid-template-columns:1fr;grid-template-areas:"rail" "main"}
+  .dash-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"rail" "main"}
 }
 .inbox-list ul{list-style:none}
 .inbox-list li{border-top:1px solid var(--line)}
@@ -1128,7 +1128,7 @@ span.step-tick{cursor:default}
    consecutive cards) doubles up with the gap above wherever a card sits
    directly in the page body — the two were stacking to 36px on top of each
    other. Same fix as the three rules above, same reason. */
-.page-body > .card{ margin-bottom:0 }
+.page-body > .card, .stack > .card{ margin-bottom:0 }
 
 /* A form field's own margin-bottom (for stacking .ff elements with nothing
    else spacing them) doubles up with a parent grid's own gap wherever .ff

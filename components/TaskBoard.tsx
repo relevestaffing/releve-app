@@ -56,11 +56,18 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showDone, setShowDone] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function load() {
-    const r = await fetch(`/api/tasks?placement=${placementId}`);
-    const d = await r.json();
-    setTasks(d.tasks ?? []);
+    setFailed(false);
+    try {
+      const r = await fetch(`/api/tasks?placement=${placementId}`);
+      if (!r.ok) throw new Error(String(r.status));
+      const d = await r.json();
+      setTasks(d.tasks ?? []);
+    } catch {
+      setFailed(true);
+    }
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [placementId]);
   /* The other side's activity showed up only on a manual refresh. Coming
@@ -108,6 +115,15 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
     setConfirmId(null);
     if (ok) load();
   }
+
+  if (failed) return (
+    <div className="card">
+      <div className="empty"><span className="tick" />
+        <p className="small">Could not load {side === 'client' ? `${counterpart}'s tasks` : 'your tasks'}.</p>
+        <button className="btn sm ghost" onClick={load}>Try again</button>
+      </div>
+    </div>
+  );
 
   if (!tasks) return <div className="empty"><span className="tick" /><p className="small">Loading…</p></div>;
 

@@ -55,6 +55,12 @@ export async function POST(req: Request) {
   const owner = onBehalfOf || me.id;
   const byTeam = Boolean(onBehalfOf);
   if (!KINDS.includes(kind)) return NextResponse.json({ error: 'unknown document type' }, { status: 400 });
+  /* The agreement is Relève's to file, never the talent's to upload — the
+     Verification screen never offers this control for it, but nothing
+     server-side stopped a direct call from overwriting an already-filed,
+     possibly already-verified agreement with a self-supplied file. */
+  if (kind === 'agreement' && me.role !== 'admin')
+    return NextResponse.json({ error: 'Relève issues and files this one — nothing for you to upload here.' }, { status: 403 });
   if (!(file instanceof Blob)) return NextResponse.json({ error: 'no file received' }, { status: 400 });
   if (file.size > MAX_BYTES) return NextResponse.json({ error: 'that file is over 10MB' }, { status: 413 });
   if (!OK_TYPES.includes(file.type))

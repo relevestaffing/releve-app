@@ -80,10 +80,21 @@ export async function startWatchAttempt(talentId: string, discipline: string): P
   if (!configured()) return 'demo-attempt';
 
   const sb = await supabaseServer();
+  /* "submitted" only means still open — awaiting review — while nobody has
+     scored it yet. Once a reviewer has (cleared, or needs another attempt),
+     the row stays "submitted" forever (nothing ever moves it on), so without
+     this check "Start again" on a needs_retake discipline just handed back
+     the same already-scored, now read-only attempt — a dead end with no way
+     to actually retake it. */
   const { data: existing } = await sb.from('taking_the_watch_attempts')
     .select('id').eq('talent_id', talentId).eq('discipline', discipline)
-    .in('status', ['in_progress', 'submitted']).maybeSingle();
-  if (existing) return (existing as any).id as string;
+    .in('status', ['in_progress', 'submitted'])
+    .order('started_at', { ascending: false }).limit(1).maybeSingle();
+  if (existing) {
+    const { data: scored } = await sb.from('taking_the_watch_scores')
+      .select('attempt_id').eq('attempt_id', (existing as any).id).maybeSingle();
+    if (!scored) return (existing as any).id as string;
+  }
 
   const { data: attempt, error } = await sb.from('taking_the_watch_attempts')
     .insert({ talent_id: talentId, discipline, time_limit_minutes: template.timeLimitMinutes })
@@ -151,6 +162,19 @@ export async function submitWatchAttempt(attemptId: string) {
   const sb = await supabaseServer();
   const { error } = await sb.rpc('submit_watch_attempt', { attempt: attemptId });
   if (error) throw new Error(error.message);
+
+  /* submit_watch_attempt() only updates a row that still belongs to the
+     caller and is still in_progress — it does not raise when nothing
+     matched (a stale id, an already-submitted attempt, someone else's
+     row), so the call above can return with no error while nothing
+     actually moved. Read the row back through the caller's own session
+     (the same read policy that lets a talent see their own attempt) so a
+     silent no-op is reported as the failure it is, rather than the false
+     "ok" a flaky connection or a double-submit would otherwise produce. */
+  const { data: after } = await sb.from('taking_the_watch_attempts')
+    .select('status').eq('id', attemptId).maybeSingle();
+  if (after?.status !== 'submitted')
+    throw new Error('That attempt could not be submitted — refresh the page and check its status before trying again.');
 }
 
 /* ---------- console side ---------- */

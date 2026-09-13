@@ -112,7 +112,10 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
             {/* Relève issues this one. Once there is a filed copy — DocuSign's
                 webhook, or a manual upload — it is read-only; before that,
                 DocuSign switched on means they can sign it themselves right
-                here, and switched off means Relève is still filing it. */}
+                here, and switched off means Relève is still filing it — which
+                used to render nothing at all here, leaving a new talent with a
+                label, a "Not started" pill and no explanation of what happens
+                next or when. */}
             {item.issuedByTeam ? (
               row?.file_path ? (
                 <div className="vet-actions">
@@ -120,13 +123,19 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
                     Read your {item.label.toLowerCase()}
                   </button>
                 </div>
-              ) : docusignOn && state !== 'verified' && (
-                <div className="vet-actions">
-                  <button className="btn sm solid" disabled={busy === item.kind} onClick={() => sign(item.kind)}>
-                    {busy === item.kind ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}
-                  </button>
-                  {state === 'submitted' && <span className="xs muted">Started earlier — pick up where you left off.</span>}
-                </div>
+              ) : state !== 'verified' && (
+                docusignOn ? (
+                  <div className="vet-actions">
+                    <button className="btn sm solid" disabled={busy === item.kind} onClick={() => sign(item.kind)}>
+                      {busy === item.kind ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}
+                    </button>
+                    {state === 'submitted' && <span className="xs muted">Started earlier — pick up where you left off.</span>}
+                  </div>
+                ) : (
+                  <div className="vet-actions">
+                    <span className="xs muted">We are preparing this for signature and will email you the moment it is ready.</span>
+                  </div>
+                )
               )
             ) : state !== 'verified' && (
               <div className="vet-actions">

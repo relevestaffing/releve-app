@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Placement } from '@/lib/work-public';
 import { Portrait } from '@/components/Viz';
 import { firstName } from '@/lib/words';
+import { dayLabel } from '@/lib/money-public';
 
 /* Who is working for this executive, at the top of their dashboard.
    ----------------------------------------------------------------
@@ -39,7 +40,7 @@ export default function PlacedSummary({
                   <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>
                     {p.talent_name}
                   </b>
-                  <div className="xs muted">Since {p.started_on}</div>
+                  <div className="xs muted">Since {dayLabel(p.started_on)}</div>
                 </div>
               </Link>
               <div className="row" style={{ gap: 16 }}>

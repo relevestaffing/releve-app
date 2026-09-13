@@ -10,12 +10,24 @@ type Thread = {
 
 export default function TeamInbox({ me }: { me: string }) {
   const [threads, setThreads] = useState<Thread[] | null>(null);
+  const [failed, setFailed] = useState(false);
   const [open, setOpen] = useState<Thread | null>(null);
 
-  useEffect(() => {
-    fetch('/api/messages').then(r => r.json()).then(d => setThreads(d.threads ?? []));
-  }, []);
+  function load() {
+    setFailed(false);
+    fetch('/api/messages')
+      .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(d => setThreads(d.threads ?? []))
+      .catch(() => setFailed(true));
+  }
+  useEffect(() => { load(); }, []);
 
+  if (failed) return (
+    <div className="card"><div className="empty"><span className="tick" />
+      <p className="small">Could not load your threads.</p>
+      <button className="btn sm ghost" onClick={load}>Try again</button>
+    </div></div>
+  );
   if (!threads) return <div className="empty"><span className="tick" /><p className="small">Loading…</p></div>;
   if (!threads.length) return (
     <div className="card"><div className="empty"><span className="tick" />

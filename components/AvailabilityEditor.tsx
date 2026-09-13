@@ -24,14 +24,21 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const r = await fetch('/api/availability'); const d = await r.json();
+  async function load() {
+    setLoadFailed(false);
+    try {
+      const r = await fetch('/api/availability');
+      if (!r.ok) throw new Error(String(r.status));
+      const d = await r.json();
       setTz(d.timezone && d.timezone !== 'UTC' ? d.timezone : Intl.DateTimeFormat().resolvedOptions().timeZone);
       setWindows(d.windows ?? []); setLoaded(true);
-    })();
-  }, []);
+    } catch {
+      setLoadFailed(true);
+    }
+  }
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   const isOn = (weekday: number, min: number) =>
     windows.some(w => w.weekday === weekday && min >= w.start_min && min < w.end_min);
@@ -57,6 +64,14 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
     }), 'Availability saved');
     setBusy(false); setSaved(ok);
   }
+  if (loadFailed) return (
+    <div className="card">
+      <div className="empty"><span className="tick" />
+        <p className="small">Could not load your availability.</p>
+        <button className="btn sm ghost" onClick={load}>Try again</button>
+      </div>
+    </div>
+  );
   if (!loaded) return <div className="empty"><span className="tick" /><p className="small">Loading…</p></div>;
 
   return (

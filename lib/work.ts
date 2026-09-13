@@ -93,8 +93,15 @@ export async function updateTask(id: string, patch: Partial<Task>, byUser: strin
 
 export async function deleteTask(id: string) {
   const sb = await supabaseServer();
-  const { error } = await sb.from('tasks').delete().eq('id', id);
+  /* Row level security ("delete own tasks") silently matches zero rows for a
+     task that is not the caller's own or not in a placement they are on — a
+     delete against a row RLS refuses raises no error, it just deletes
+     nothing, and the route above would otherwise report { ok: true } for a
+     task that is still sitting there. Asking for the row back is what turns
+     that into a real error instead of a false success. */
+  const { data, error } = await sb.from('tasks').delete().eq('id', id).select('id').maybeSingle();
   if (error) throw new Error(error.message);
+  if (!data) throw new Error('That task could not be deleted — it may not be yours to remove.');
 }
 
 /* ---------- check-ins ---------- */

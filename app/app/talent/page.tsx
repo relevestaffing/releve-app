@@ -17,6 +17,7 @@ export const dynamic = 'force-dynamic';
 export default async function TalentProfile() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  if (profile.role !== 'talent') redirect('/app');
   const sig = await getMySignature(profile, 'talent');
   /* Sending someone into a twenty-minute assessment without warning is not a
      redirect, it is an ambush. Say why, and let them choose the moment. */

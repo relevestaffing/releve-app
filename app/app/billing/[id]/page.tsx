@@ -48,7 +48,7 @@ export default async function InvoiceDetail({ params }: { params: Promise<{ id: 
           <div><b>{dayLabel(inv.due_on)}</b><span>due</span></div>
         </div>
 
-        {(inv.status === 'draft' || inv.status === 'sent') && late > 0 && (
+        {(inv.status === 'sent' || inv.status === 'failed') && late > 0 && (
           <p style={{ marginTop: 16 }}>
             <span className={`pill ${late >= 14 ? 'crit' : 'warn'}`}>
               {late} day{late === 1 ? '' : 's'} late

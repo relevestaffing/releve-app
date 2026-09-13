@@ -15,8 +15,13 @@ import PersonPicker, { type Person } from './PersonPicker';
    clearing immediately on "Change" and only navigating once a real id is
    chosen; the effect keeps it in sync after that navigation lands, so a
    fresh pick from elsewhere (or the back button) still shows correctly. */
-export default function ClientSwitcher({ clients, current }: {
+export default function ClientSwitcher({ clients, current, basePath = '/console/matching' }: {
   clients: Person[]; current: string;
+  /* Which page's query string to update. Matching and Interviews both use
+     this picker; without this it always pushed to Matching, so switching
+     executives from Interviews silently navigated you away from the page
+     you were on. */
+  basePath?: string;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState(current);
@@ -27,7 +32,7 @@ export default function ClientSwitcher({ clients, current }: {
       <PersonPicker people={clients} value={selected}
         onChange={id => {
           setSelected(id);
-          if (id) router.push(`/console/matching?client=${id}`);
+          if (id) router.push(`${basePath}?client=${id}`);
         }}
         placeholder="Search executives…" />
     </div>

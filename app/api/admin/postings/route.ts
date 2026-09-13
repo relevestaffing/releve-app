@@ -19,6 +19,16 @@ export async function POST(req: Request) {
 
   if (b.action === 'delete') {
     if (!b.id) return NextResponse.json({ error: 'which posting?' }, { status: 400 });
+    /* The console only shows Delete on a draft — a role that has ever gone
+       live keeps its row (and its URL) even once closed, because the link
+       may already be out there and its applications point back to it. That
+       was a UI-only rule until now: nothing stopped this same action from
+       being called directly on a live or closed posting. */
+    const existing = await getPosting(b.id);
+    if (existing && existing.state !== 'draft')
+      return NextResponse.json({
+        error: 'A posting that has been live can only be closed, not deleted — its link may already be shared, and its applications point back to it.'
+      }, { status: 400 });
     try { await deletePosting(b.id); return NextResponse.json({ ok: true }); }
     catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
   }

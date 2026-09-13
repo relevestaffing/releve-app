@@ -126,7 +126,7 @@ export default async function ConsoleInterviews({ searchParams }: {
       {/* ---------- book one ---------- */}
       <div className="section-title">
         <h2>Book an introduction</h2>
-        <ClientSwitcher clients={clients as any} current={clientId} />
+        <ClientSwitcher clients={clients as any} current={clientId} basePath="/console/interviews" />
       </div>
 
       {!clients.length ? (
