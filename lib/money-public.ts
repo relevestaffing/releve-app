@@ -118,7 +118,12 @@ export function daysOverdue(dueOn: string | null): number {
   return Math.floor((Date.now() - due) / 86_400_000);
 }
 
-/* Section 5: an invoice unpaid for fourteen days may suspend the placement. */
+/* Section 5: an invoice unpaid for fourteen days may suspend the placement.
+   An invoice is only outstanding once it has actually been asked for — a
+   draft has not been sent, so its due date hasn't started meaning anything
+   yet. Same rule moneySummary() and the Overview's "outstanding" count use
+   (see the comment in lib/console.ts); this used to count drafts too, which
+   could suspend a placement over an invoice nobody had even sent. */
 export function suspendable(inv: Invoice): boolean {
-  return (inv.status === 'sent' || inv.status === 'draft') && daysOverdue(inv.due_on) >= 14;
+  return (inv.status === 'sent' || inv.status === 'failed') && daysOverdue(inv.due_on) >= 14;
 }

@@ -22,13 +22,19 @@ const TALENT: Panel[] = [
     ],
     note: 'Executives never see your pay, and never see how you rank against other candidates.' },
   { h: 'What happens next',
-    lede: 'Three things, in this order. Your dashboard tracks them until they are done.',
+    /* This used to list Signature, availability and profile as the whole of
+       it — true when it was written, wrong since Vetting, Skills and the
+       Watch joined the checklist. A first-time talent reading "three things"
+       here and then meeting a nine-item dashboard is exactly the kind of
+       first impression that costs trust nobody gets back. */
+    lede: 'Your dashboard tracks all of it until it is done. Four things carry your account itself:',
     points: [
-      'Take the Signature — nothing is matched until it exists.',
-      'Set your availability — without it, no executive can book you, however good your profile is.',
-      'Complete your profile — skills, experience, and a photo. This is what an executive reads first.'
+      'Verify who you are, and sign your agreement — a document check we run once, never shown to an executive.',
+      'Take the Signature — twenty to twenty-five minutes, saved as you go. Nothing is matched until it exists.',
+      'Break down your skills — every discipline you claim opens its own quick breakdown.',
+      'Take the Watch for each discipline you claimed — a real day of work, done once, that clears you to be put forward.'
     ],
-    note: 'Once those are done, we do the work. You will hear from your Talent Success Manager when a role fits.' }
+    note: 'Set your availability along the way, so an executive can actually book you. Once everything is cleared, we do the work — you will hear from your Talent Success Manager when a role fits.' }
 ];
 
 const CLIENT: Panel[] = [

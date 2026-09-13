@@ -71,26 +71,39 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
      Now it tells them — once, quietly, and only after a second attempt has
      also failed, so a momentary blip does not interrupt anyone mid-question. */
   const saveWarned = useRef(false);
+  /* Each save is a full snapshot, upserted whole rather than merged — so
+     whichever request the server finishes last wins, not whichever was
+     truest. Firing these un-awaited (the caller never waited on the last
+     one before starting the next) let a slower earlier request land after
+     a faster later one and quietly overwrite the newest answer with a
+     stale one, on the one screen where losing an answer no one saw fail
+     matters most. Chaining every call onto the tail of the one before it
+     keeps them leaving in the order they were made. */
+  const saveChain = useRef<Promise<void>>(Promise.resolve());
 
-  async function persist(a: (number | null)[], p: ('a' | 'b' | null)[], t: (number | null)[], c: Conds = conds) {
+  function persist(a: (number | null)[], p: ('a' | 'b' | null)[], t: (number | null)[], c: Conds = conds) {
     const body = JSON.stringify({ side, answers: a, pairs: p, timings: t, conditions: c });
     const send = () => fetch('/api/signature/save', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body
     });
-    try {
-      const r = await send();
-      if (r.ok) { if (saveWarned.current) { saveWarned.current = false; toast.saved('Saved again'); } return; }
-      throw new Error(String(r.status));
-    } catch {
+    const run = async () => {
       try {
-        const again = await send();
-        if (again.ok) { if (saveWarned.current) { saveWarned.current = false; toast.saved('Saved again'); } return; }
-      } catch { /* fall through to the warning */ }
-      if (!saveWarned.current) {
-        saveWarned.current = true;
-        toast.bad('Your answers have stopped saving. Stay on this page — we will keep trying.');
+        const r = await send();
+        if (r.ok) { if (saveWarned.current) { saveWarned.current = false; toast.saved('Saved again'); } return; }
+        throw new Error(String(r.status));
+      } catch {
+        try {
+          const again = await send();
+          if (again.ok) { if (saveWarned.current) { saveWarned.current = false; toast.saved('Saved again'); } return; }
+        } catch { /* fall through to the warning */ }
+        if (!saveWarned.current) {
+          saveWarned.current = true;
+          toast.bad('Your answers have stopped saving. Stay on this page — we will keep trying.');
+        }
       }
-    }
+    };
+    saveChain.current = saveChain.current.then(run);
+    return saveChain.current;
   }
 
   function advance(next: number) {

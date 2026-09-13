@@ -69,7 +69,7 @@ export default async function ConsoleInterviews({ searchParams }: {
       for (const id of released) {
         const person = bench.find(b => b.id === id);
         if (!person) continue;
-        const theirs = await getAvailability(id, 'Asia/Manila');
+        const theirs = await getAvailability(id, 'UTC');
         const theirBusy = await bookedSlots(id);
         const slots = overlappingSlots(theirAvail, theirs, from, 10, 45, [...busy, ...theirBusy], [])
           .slice(0, 20)

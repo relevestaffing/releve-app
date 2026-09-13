@@ -217,8 +217,15 @@ const rawTemplates = {
      named but not gated on one another. */
   depositReady: (o: { name: string; payUrl: string; cents: number; docsUrl?: string }) => {
     const amount = (o.cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    /* Step 1 falls back to the Terms of Service page (the same link TermsGate
+       itself opens, and where the placement terms actually live — Sections 5
+       and 6) rather than to SITE, which is step 3's own link. It used to fall
+       back to SITE too: harmless once signed in, since the terms gate is the
+       first thing anyone hits — but it meant two differently-worded steps
+       pointed at the exact same URL, which is exactly the "one CTA with two
+       footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Review the agreement', href: o.docsUrl ?? SITE, cta: 'Review agreement' },
+      { n: 1, label: 'Review the agreement', href: o.docsUrl ?? 'https://relevestaffing.com/terms', cta: 'Review agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
     ];
@@ -466,16 +473,26 @@ const rawTemplates = {
       o.url ? { label: 'Join the call', href: o.url } : undefined)
   }),
 
-  /* The invitation out of the applicant pile and into the roster. */
+  /* The invitation out of the applicant pile and into the roster.
+     ---------------------------------------------------------------
+     "Two short assessments, twenty to twenty-five minutes total" used to
+     be the whole promise here — true only if Skills, Vetting and the
+     Watch did not exist. They do, and the Watch alone runs two and a half
+     to three hours per discipline claimed. Overselling the time in the
+     first email a candidate reads is not a warm welcome, it is a broken
+     promise waiting to happen a week in — so this now names the Signature
+     specifically (the one part the twenty-to-twenty-five-minute figure is
+     actually true of) and leaves the rest to the account itself, which
+     tracks each step honestly as it comes. */
   applicationInvited: (o: { name: string; role: string; docsUrl?: string }) => ({
     subject: `Welcome to Relève, ${o.name}`,
-    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nSet it up and it will walk you through the rest.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
+    text: `${o.name},\n\nThank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform, not a job board: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification — all of it is what lets us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\n— Relève`,
     html: shell(`Welcome to Relève, ${o.name}`,
       p(`${o.name},`) +
       p('Thank you for taking the time to interview with us — we enjoyed learning how you work, and we would like to move forward.') +
       (o.docsUrl ? p(`Before you get started, you are welcome to sign your <a href="${o.docsUrl}" style="color:#4C594F;">NDA and contractor agreement</a> whenever suits you.`) : '') +
-      p('Everything else happens inside your Relève account. Relève is a matching platform, not a job board: two short assessments there, twenty to twenty-five minutes total and saved as you go, are what let us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
-      p('Set it up and it will walk you through the rest.'),
+      p('Everything else happens inside your Relève account. Relève is a matching platform, not a job board: it starts with the Talent Signature — twenty to twenty-five minutes, saved as you go — followed by a short skills breakdown and identity verification. All of it is what lets us place you with a leader you are genuinely suited to for the long term, rather than whoever happens to be hiring this week.') +
+      p('Set it up and it will walk you through the rest, one step at a time.'),
       { label: 'Create your account', href: SITE })
   }),
 

@@ -27,9 +27,19 @@ export default async function PayDeposit({ params }: { params: Promise<{ token: 
       /* redirect() throws internally to unwind the render — never treat
          that as "the payment failed" and swallow the navigation. */
       if (e?.digest?.startsWith?.('NEXT_REDIRECT')) throw e;
-      message = e?.message === 'That deposit is already settled.'
-        ? 'This deposit is already settled — nothing more to do here.'
-        : 'This link has expired. Ask your Client Success Manager to send a fresh one.';
+      if (e?.message === 'That deposit is already settled.') {
+        message = 'This deposit is already settled — nothing more to do here.';
+      } else if (String(e?.message ?? '').includes('Stripe is not configured')) {
+        /* Card payment is not switched on yet — the deposit is still owed and
+           still real, it is just collected by hand for now. Without this
+           check, a valid link with nowhere to send the card hit the generic
+           branch below and told a paying customer their link had "expired",
+           which sends them straight back to ask for a new one that would
+           fail the exact same way. */
+        message = 'Card payment is not switched on yet — your Client Success Manager will take this deposit directly. Nothing is wrong with your link.';
+      } else {
+        message = 'This link has expired. Ask your Client Success Manager to send a fresh one.';
+      }
     }
   } else {
     message = 'This link has expired. Ask your Client Success Manager to send a fresh one.';

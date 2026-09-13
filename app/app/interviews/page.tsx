@@ -76,7 +76,7 @@ export default async function Interviews() {
     for (const id of released) {
       const person = bench.find(b => b.id === id);
       if (!person) continue;
-      const theirs = await getAvailability(id, 'Asia/Manila');
+      const theirs = await getAvailability(id, 'UTC');
       const theirBusy = await bookedSlots(id);
       const theirBusyCal = await calendarBusy(id);
       const slots = overlappingSlots(myAvail, theirs, from, 10, 45,

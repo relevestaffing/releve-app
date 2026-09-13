@@ -63,7 +63,9 @@ export default function AddPerson({ role }: { role: 'client' | 'talent' }) {
               <div className="ff"><label>Location</label><input name="location" placeholder="Cebu, Philippines" /></div>
             </div>
             <div className="grid-4" style={{ gap: 14 }}>
-              <div className="ff"><label>Timezone</label><input name="timezone" placeholder="Asia/Manila" defaultValue="Asia/Manila" /></div>
+              {/* No default value — the talent's actual timezone, not an assumed one, since this
+                  is also what interview-slot matching uses once they're bookable. */}
+              <div className="ff"><label>Timezone</label><input name="timezone" placeholder="Asia/Manila" /></div>
               <div className="ff"><label>Years</label><input name="years_exp" type="number" min="0" placeholder="9" /></div>
               <div className="ff"><label>English</label>
                 <select name="english"><option>Native-fluent</option><option>Fluent</option><option>Conversational</option></select></div>
