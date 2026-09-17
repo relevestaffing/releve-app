@@ -47,7 +47,8 @@ export async function POST(req: Request) {
 
       /* Moving a call should not leave the old meeting standing. */
       if (b.action === 'move_call' && app.call_id) {
-        try { await cancelZoomMeeting(app.call_id); } catch { /* the booking still moves */ }
+        try { await cancelZoomMeeting(app.call_id); }
+        catch (e) { console.error('[applications] could not cancel Zoom meeting', app.call_id, e); /* the booking still moves */ }
       }
 
       let meeting: { url: string; id: string } | null = null;

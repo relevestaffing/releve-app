@@ -11,7 +11,7 @@ export type Person = {
   photo_url?: string | null; bio?: string | null; skills?: string[] | null; intro_video_url?: string | null;
   /* from talent_directory: whether they have claimed a discipline, and whether
      Taking The Watch has cleared them — the console's release gate */
-  has_disciplines?: boolean; watch_cleared?: boolean;
+  has_disciplines?: boolean; watch_cleared?: boolean; has_signature?: boolean;
   scores: Scores; facets: Record<string, number>;
   validity: Validity; confidence: Record<string, Conf>; cond: CondSet;
 };

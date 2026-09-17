@@ -30,13 +30,22 @@ export default async function Billing() {
   let live: any[] = [];
   if (configured()) {
     const sb = await supabaseServer();
-    const { data } = await sb.from('placements')
-      .select('id, started_on, talent:talent_id(full_name), ' +
-              'terms:placement_terms(rate_month_cents, minimum_months, notice_given_on)')
+    const { data: placements } = await sb.from('placements')
+      .select('id, started_on, talent:talent_id(full_name)')
       .eq('client_id', profile.id).is('ended_on', null);
-    /* The client may read their own terms row; talent may not read it at all. */
-    live = (data ?? []).map((r: any) => {
-      const t = Array.isArray(r.terms) ? r.terms[0] : r.terms;
+    /* The client may read their own rate; talent pay lives on the same row
+       and must never reach them, so this reads my_placement_terms (PART 33)
+       rather than placement_terms directly — that base table has no client
+       policy left at all. */
+    const ids = (placements ?? []).map((p: any) => p.id);
+    const { data: terms } = ids.length
+      ? await sb.from('my_placement_terms')
+          .select('placement_id, rate_month_cents, minimum_months, notice_given_on')
+          .in('placement_id', ids)
+      : { data: [] as any[] };
+    const byId = new Map((terms ?? []).map((t: any) => [t.placement_id, t]));
+    live = (placements ?? []).map((r: any) => {
+      const t = byId.get(r.id);
       return { ...r, rate_month_cents: t?.rate_month_cents ?? null,
                minimum_months: t?.minimum_months ?? MINIMUM_MONTHS,
                notice_given_on: t?.notice_given_on ?? null };

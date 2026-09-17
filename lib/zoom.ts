@@ -51,6 +51,11 @@ export async function createZoomMeeting(opts: {
 export async function cancelZoomMeeting(id: string) {
   if (!zoomConfigured() || !id) return;
   const t = await token();
-  await fetch(`https://api.zoom.us/v2/meetings/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` } })
-    .catch(() => {});
+  const r = await fetch(`https://api.zoom.us/v2/meetings/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${t}` } });
+  /* 404 means Zoom already has no record of it (deleted by hand, or never
+     really created) — not a failure worth surfacing. Anything else is a
+     real failure and used to disappear here silently (admin-console audit). */
+  if (!r.ok && r.status !== 404) {
+    throw new Error(`Zoom could not cancel meeting ${id} (${r.status}): ${await r.text().catch(() => '')}`);
+  }
 }

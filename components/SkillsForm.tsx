@@ -100,7 +100,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
 
         {picked.length > 1 && (
           <div className="ff" style={{ marginTop: 22 }}>
-            <label>Which of these is your home ground?</label>
+            <label>Which one do you know best?</label>
             <div className="pick-row">
               {picked.map(d => (
                 <button key={d} type="button"

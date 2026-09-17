@@ -64,7 +64,11 @@ export type Ranked = { person: Person; match: Match; checks: ReturnType<typeof c
 export async function rankBench(exec: SignatureRow): Promise<Ranked[]> {
   const bench = await getBench();
   return bench
-    .filter(p => p.stage !== 'Placed')
+    /* has_signature === false means the talent hasn't finished onboarding yet
+       (PART 33) — they now show up in People/Bench instead of vanishing, but
+       there is no Signature to score them against, so they're excluded from
+       ranking specifically rather than from the roster generally. */
+    .filter(p => p.stage !== 'Placed' && (p as any).has_signature !== false && !!p.scores)
     .map(p => ({
       person: p,
       match: matchScore(exec.scores, p.scores, { validity: p.validity, confidence: p.confidence }),

@@ -293,7 +293,7 @@ export async function consoleSnapshot(): Promise<{
 
   add({ key: 'suspendable', rank: 2, level: 'high', count: suspendable,
     what: `${agree(suspendable, 'invoice has', 'invoices have')} gone unpaid two weeks or more`,
-    why: 'Section 5 gives you the option to pause the placement — worth a quick look while it is fresh',
+    why: 'worth reaching out before more time passes — Money has the full history to work from',
     href: '/console/money', cta: 'Open the money' });
 
   /* Split, because these live on two different pages and the old single row
@@ -429,8 +429,8 @@ export async function consoleSnapshot(): Promise<{
 
   add({ key: 'deposit', rank: 10, level: 'medium', count: depositsDue,
     what: `${agree(depositsDue, 'search has', 'searches have')} an outstanding deposit`,
-    why: 'the deposit covers sourcing that has already started',
-    href: '/console/money', cta: 'Send a reminder' });
+    why: 'the deposit covers sourcing that has already started — worth a follow-up',
+    href: '/console/money', cta: 'Follow up' });
 
   add({ key: 'manager', rank: 13, level: 'medium', count: noManager,
     what: `${agree(noManager, 'placement has', 'placements have')} no manager assigned`,

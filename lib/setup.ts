@@ -52,9 +52,13 @@ export async function setupFor(profile: Profile): Promise<Step[]> {
     watch: await watchStep(profile.id, skills),
     hasIntroVideo: !!self.intro_video_url,
     hasSkills: skillsComplete(skills),
-    hasProfile: !!(self.bio && (self.skills?.length ?? 0) > 0),
+    hasProfile: !!self.bio,
     hasPhoto: !!self.photo_url,
-    vettingDone: vetting.filter(v => v.state === 'verified').length,
+    /* Counted by name, not by any verified row: the real release gate
+       (lib/work.ts) requires identity AND agreement specifically, and a
+       verified legacy 'nda' or 'right_to_work' row was inflating this to
+       '2/2 done' without either of the two that actually matter. */
+    vettingDone: vetting.filter(v => v.state === 'verified' && (v.kind === 'identity' || v.kind === 'agreement')).length,
     vettingTotal: 2,
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),

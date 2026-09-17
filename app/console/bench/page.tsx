@@ -22,7 +22,14 @@ export default async function Bench() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
-  const bench = await getBench();
+  const allBench = await getBench();
+  /* PART 33: talent_directory now includes people mid-onboarding with no
+     Signature yet (has_signature === false) instead of hiding them. The main
+     table below reads scores/validity, which don't exist until the Signature
+     is done, so it keeps to the assessed group; the unsigned group gets its
+     own section further down instead of vanishing. */
+  const bench = allBench.filter((t: any) => t.has_signature !== false);
+  const unsigned = allBench.filter((t: any) => t.has_signature === false);
   const pending = (await listPending()).filter((p: any) => p.role === 'talent');
   /* Someone with no availability looks ready and cannot be booked — surface it.
      One query for everybody, not one per person: the old version made a round
@@ -126,6 +133,29 @@ export default async function Bench() {
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {unbookable.map(t => <span className="pill warn" key={t.id}>{t.name}</span>)}
           </div>
+        </div>
+      )}
+      {unsigned.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>Mid-onboarding, no Signature yet</h3><span className="pill warn"><span className="dot" />{unsigned.length}</span></div>
+          <p className="small muted" style={{ marginBottom: 14 }}>
+            Signed in and started, but haven't finished their Talent Signature — nothing to match
+            against yet, so they sit here rather than on the roster below. Worth a nudge if it's
+            been a while.
+          </p>
+          <table className="data">
+            <thead><tr><th>Name</th><th>Role</th><th>Location</th></tr></thead>
+            <tbody>
+              {unsigned.map((t: any) => (
+                <tr key={t.id}>
+                  <td><div className="row"><Portrait id={t.id} name={t.name} url={t.photo_url} />
+                    <b>{t.name}</b></div></td>
+                  <td className="small">{t.role || '—'}</td>
+                  <td className="small muted">{t.loc || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
       {pending.length > 0 && (

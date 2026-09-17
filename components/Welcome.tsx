@@ -18,7 +18,7 @@ const TALENT: Panel[] = [
     points: [
       'The Signature asks how you work and who you are under pressure, across eighteen facets.',
       'It takes twenty to twenty-five minutes. It saves as you go, so you can stop and come back.',
-      'There is no right answer. A flattering profile in the wrong seat is a failed placement — for you more than anyone.'
+      'There is no right answer. A flattering profile in the wrong role is a failed placement — for you more than anyone.'
     ],
     note: 'Executives never see your pay, and never see how you rank against other candidates.' },
   { h: 'What happens next',

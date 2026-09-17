@@ -199,7 +199,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <h2 style={{ fontSize: 32, margin: '0 0 16px' }}>{side === 'client' ? 'Executive Signature' : 'Talent Signature'}</h2>
       <p style={{ maxWidth: 680, marginBottom: 14 }}>
         {side === 'talent'
-          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly — a flattering profile in the wrong seat is a failed placement, and the controls will find it anyway.'
+          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly — a flattering profile in the wrong role is a failed placement, and the controls will find it anyway.'
           : 'This measures how you actually run your day and what your environment demands of the person beside you — across the same eighteen facets every candidate is measured on, not a rougher version of it — plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
@@ -428,9 +428,10 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
           {result.validity.verdict === 'Invalid' && (
             <>
               <p className="small muted" style={{ marginBottom: 16 }}>
-                Take it again when you have twenty uninterrupted minutes. Read each statement,
-                answer as you actually are rather than as you would like to be, and watch for the
-                two screens tagged <b>Instruction</b> — those ask you to pick a specific answer.
+                Take it again when you have twenty uninterrupted minutes. Read each statement, and
+                answer as you actually are rather than as you would like to be — a couple of
+                statements ask you to pick one specific answer rather than rate yourself, so read
+                each one carefully before responding.
               </p>
               <a className="btn solid" href="/app/signature?retake=1">Take it again</a>
             </>

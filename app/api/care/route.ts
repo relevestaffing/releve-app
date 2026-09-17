@@ -151,7 +151,7 @@ export async function POST(req: Request) {
         /* give_notice now stores the true end date — the first Monday of the
            following month, matching the written terms and the boundary billing
            runs on. Read it back rather than recomputing a different rule here. */
-        const { data: term } = await sb.from('placement_terms')
+        const { data: term } = await sb.from('my_placement_terms')
           .select('notice_ends_on').eq('placement_id', String(b.placement_id)).maybeSingle();
         const endsOn = dayLabel((term as any)?.notice_ends_on ?? String(on));
         try {

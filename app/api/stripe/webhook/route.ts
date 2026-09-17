@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyWebhook, webhookReady } from '@/lib/stripe';
 import { send, templates } from '@/lib/email';
+import { teamEmails } from '@/lib/work';
 import { money } from '@/lib/money-public';
 import { safeMessage } from '@/lib/errors';
 
@@ -165,10 +166,37 @@ export async function POST(req: Request) {
          processing for ever. */
       case 'payment_intent.payment_failed': {
         const id = obj.metadata?.invoice_id;
-        if (id) await sb.from('invoices').update({
-          status: 'failed',
-          failure_reason: obj.last_payment_error?.message ?? 'The bank refused it.'
-        }).eq('id', id);
+        if (id) {
+          const reason = obj.last_payment_error?.message ?? 'The bank refused it.';
+          await sb.from('invoices').update({
+            status: 'failed',
+            failure_reason: reason
+          }).eq('id', id);
+
+          /* Unlike payment_intent.succeeded 40 lines up, this used to update
+             only the database — no email to the client, no alert to the
+             team, so a failed retainer charge could sit unnoticed for up to
+             14 days until the "late" flag caught it (admin-console audit,
+             P1). Mirrors the success handler's own send, both sides. */
+          const { data: inv } = await sb.from('invoices')
+            .select('number, amount_cents, client:client_id(full_name, email)')
+            .eq('id', id).maybeSingle();
+          const who: any = (inv as any)?.client;
+          const amount = money((inv as any)?.amount_cents ?? 0);
+          const number = (inv as any)?.number ?? '';
+          if (who?.email) {
+            await send(who.email, templates.paymentFailed({
+              name: String(who.full_name ?? '').split(' ')[0] || 'there',
+              number, amount
+            })).catch(e => console.error('[stripe webhook] paymentFailed send failed', id, e));
+          }
+          try {
+            for (const t of await teamEmails())
+              await send(t, templates.paymentFailedTeam({
+                client: who?.full_name ?? 'A client', number, amount, reason
+              }));
+          } catch (e) { console.error('[stripe webhook] paymentFailedTeam send failed', id, e); }
+        }
         break;
       }
 

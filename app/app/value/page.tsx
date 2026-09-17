@@ -11,21 +11,32 @@ export default async function ValuePage() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role === 'admin') redirect('/console');
+  /* Executive-facing pricing ($130k/yr vs. under $55k here) is not for a
+     talent account to see — nothing in the talent nav links here, but
+     nothing server-side blocked a direct hit either (talent-experience
+     audit, P1). */
+  if (profile.role !== 'client') redirect('/app');
 
   let retainerMonthlyCents: number | null = null;
   if (configured()) {
     const sb = await supabaseServer();
-    const { data } = await sb
+    const { data: pl } = await sb
       .from('placements')
-      .select('id, terms:placement_terms(rate_month_cents)')
+      .select('id')
       .eq('client_id', profile.id)
       .is('ended_on', null)
       .order('started_on', { ascending: false })
       .limit(1)
       .maybeSingle();
-    const cents = (data as any)?.terms?.rate_month_cents
-      ?? (Array.isArray((data as any)?.terms) ? (data as any)?.terms?.[0]?.rate_month_cents : null);
-    if (typeof cents === 'number' && cents > 0) retainerMonthlyCents = cents;
+    /* my_placement_terms (PART 33 RLS fix), not placement_terms directly —
+       the base table's client policy no longer exists, because it used to
+       hand over talent_pay_cents on the same row. */
+    if (pl?.id) {
+      const { data: term } = await sb.from('my_placement_terms')
+        .select('rate_month_cents').eq('placement_id', pl.id).maybeSingle();
+      const cents = (term as any)?.rate_month_cents;
+      if (typeof cents === 'number' && cents > 0) retainerMonthlyCents = cents;
+    }
   }
 
   return (

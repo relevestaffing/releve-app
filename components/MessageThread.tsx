@@ -128,7 +128,7 @@ export default function MessageThread({ subject, placement, me, asTeam = false, 
 
       <form onSubmit={send} className="composer">
         <textarea name="body" rows={1} required
-          placeholder={asTeam ? 'Reply…' : placement ? `Write to ${theirName ?? 'them'}…` : 'Write to your account manager…'}
+          placeholder={asTeam ? 'Reply…' : placement ? `Write to ${theirName ?? 'them'}…` : 'Write to your Success Manager…'}
           onInput={e => {
             const el = e.currentTarget;
             el.style.height = 'auto';

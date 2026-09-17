@@ -3,7 +3,7 @@ import { send, templates } from '@/lib/email';
 import { personEmail, teamEmails } from '@/lib/work';
 import { currentProfile } from '@/lib/supabase/server';
 import { createInterview, setInterviewStatus, listInterviews, getInterview, getAvailability } from '@/lib/store';
-import { createZoomMeeting, zoomConfigured } from '@/lib/zoom';
+import { createZoomMeeting, zoomConfigured, cancelZoomMeeting } from '@/lib/zoom';
 import { getBench } from '@/lib/data';
 
 /* Each side reads a time in their own timezone, never the other person's. */
@@ -121,6 +121,18 @@ export async function PATCH(req: Request) {
   }
 
   await setInterviewStatus(id, status);
+
+  /* A booked Zoom meeting stays live and joinable (no waiting room) until
+     someone tells Zoom otherwise. That used to only happen for 'Cancelled' —
+     'Declined' and 'No-show' are just as final and left the link open
+     indefinitely. All three end the meeting now. cancelZoomMeeting() itself
+     swallows the fetch on failure; this logs that failure server-side
+     instead of letting it disappear silently (admin-console audit, P0/P1). */
+  const TERMINAL = ['Cancelled', 'Declined', 'No-show'];
+  if (before && before.meeting_id && TERMINAL.includes(status) && !TERMINAL.includes(before.status)) {
+    try { await cancelZoomMeeting(before.meeting_id); }
+    catch (e) { console.error('[interviews] could not cancel Zoom meeting', before.meeting_id, 'for interview', id, e); }
+  }
 
   /* "Cancelled" is the one status either side can set on themselves — the
      copy in InterviewStatus.tsx promises the other person will be told,

@@ -72,11 +72,11 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'travel', label: 'Travel and itineraries', hint: 'Flights, hotels, ground, visas, and rebooking when it collapses' },
       { key: 'meeting_prep', label: 'Meeting preparation', hint: 'Agendas, briefing notes, background on who you are meeting' },
       { key: 'minutes', label: 'Minutes and action capture', hint: 'What was decided, who owns it, by when' },
-      { key: 'chasing', label: 'Chasing on your behalf', hint: 'Politely relentless with people who owe you things' },
+      { key: 'chasing', label: 'Following up on your behalf', hint: 'Staying on top of people who owe you things, without being pushy' },
       { key: 'gatekeeping', label: 'Gatekeeping', hint: 'Saying no to people without damaging the relationship' },
       { key: 'confidential', label: 'Handling confidential material', hint: 'Board papers, comp, legal, personal matters' },
       { key: 'events', label: 'Events and offsites', hint: 'Venue, logistics, run of day, budget' },
-      { key: 'exec_reporting', label: 'Board and investor prep', hint: 'Assembling the pack, chasing inputs, formatting' }
+      { key: 'exec_reporting', label: 'Board and investor prep', hint: 'Assembling the pack, following up on inputs, formatting' }
     ],
     details: [
       { key: 'inbox_volume', kind: 'choice',
@@ -140,7 +140,7 @@ export const DISCIPLINES: Discipline[] = [
     aka: ['Bookkeeper', 'Finance Assistant', 'Accounts Manager'],
     comps: [
       { key: 'ap', label: 'Accounts payable', hint: 'Bills in, approved, scheduled, paid on time' },
-      { key: 'ar', label: 'Accounts receivable', hint: 'Invoicing out and chasing what is owed' },
+      { key: 'ar', label: 'Accounts receivable', hint: 'Invoicing out and following up on what is owed' },
       { key: 'reconcile', label: 'Bank reconciliation', hint: 'Matching transactions and finding what does not' },
       { key: 'expenses', label: 'Expense management', hint: 'Receipts, categories, card reconciliation, policy' },
       { key: 'payroll', label: 'Payroll administration', hint: 'Running or coordinating payroll and contractor payments' },
@@ -217,10 +217,10 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'prospecting', label: 'Prospect research', hint: 'Building a list that is actually qualified' },
       { key: 'outreach_cold', label: 'Cold outreach', hint: 'Writing and sending sequences that get replies' },
       { key: 'followup', label: 'Follow-up discipline', hint: 'Nobody goes cold because someone forgot' },
-      { key: 'proposals', label: 'Proposals and quotes', hint: 'Assembling, formatting, sending, chasing' },
+      { key: 'proposals', label: 'Proposals and quotes', hint: 'Assembling, formatting, sending, and following up' },
       { key: 'demo_booking', label: 'Booking meetings', hint: 'Getting a qualified call in the diary' },
       { key: 'pipeline_report', label: 'Pipeline reporting', hint: 'What is where, what is stuck, what will close' },
-      { key: 'contracts', label: 'Contract administration', hint: 'Sending, chasing signature, filing' },
+      { key: 'contracts', label: 'Contract administration', hint: 'Sending, following up for a signature, filing' },
       { key: 'crm_build', label: 'Configuring the CRM', hint: 'Building fields, stages, automations — not just using them' },
       { key: 'objections', label: 'Handling first objections', hint: 'Confident on the phone with a sceptical prospect' },
       { key: 'upsell', label: 'Spotting expansion', hint: 'Noticing when an account is ready for more' },
@@ -250,8 +250,8 @@ export const DISCIPLINES: Discipline[] = [
     comps: [
       { key: 'plan', label: 'Planning a project', hint: 'Scope, milestones, owners, dependencies' },
       { key: 'track', label: 'Tracking to a deadline', hint: 'Knowing what is late before it is late' },
-      { key: 'coordinate', label: 'Coordinating other people', hint: 'Chasing across departments without authority' },
-      { key: 'sop', label: 'Writing process documentation', hint: 'An SOP someone else can follow without asking' },
+      { key: 'coordinate', label: 'Coordinating other people', hint: 'Following up across departments without authority' },
+      { key: 'sop', label: 'Writing process documentation', hint: 'A standard operating procedure (SOP) someone else can follow without asking' },
       { key: 'automate', label: 'Building automations', hint: 'Zapier, Make, native integrations' },
       { key: 'tools_admin', label: 'Administering the tool stack', hint: 'Notion, Asana, ClickUp, Monday — setting them up' },
       { key: 'vendor_ops', label: 'Vendor management', hint: 'Selecting, briefing and holding suppliers to account' },
@@ -326,7 +326,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'contracts_hr', label: 'Contracts and paperwork', hint: 'Offer letters, agreements, right-to-work records' },
       { key: 'hris', label: 'HR systems', hint: 'BambooHR, Rippling, Gusto, Deel' },
       { key: 'policy', label: 'Policies and handbook', hint: 'Drafting and keeping them current' },
-      { key: 'reviews_hr', label: 'Performance review admin', hint: 'Running the cycle, chasing the inputs' },
+      { key: 'reviews_hr', label: 'Performance review admin', hint: 'Running the cycle, following up on the inputs' },
       { key: 'culture', label: 'Team events and culture', hint: 'The things that make a remote team feel like one' },
       { key: 'payroll_hr', label: 'Payroll coordination', hint: 'Working with finance to get people paid correctly' },
       { key: 'compliance_hr', label: 'Compliance record-keeping', hint: 'Knowing what must be kept, and keeping it' }

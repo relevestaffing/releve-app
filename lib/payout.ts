@@ -41,9 +41,36 @@ export async function setTaxForm(talentId: string, held: boolean) {
 /* ---------- what Relève pays them ---------- */
 
 /** Set, or change, what Relève pays a person each month. Cents in; the
-    database keeps the deprecated dollar column in step by trigger. */
+    database keeps the deprecated dollar column in step by trigger.
+
+    Since PART 31, a live placement's pay is read from
+    placement_terms.talent_pay_cents, not this roster-wide row — payroll has
+    preferred the per-placement number since then. Writing only here used to
+    look saved and change nothing for anyone already placed (admin-console
+    audit, P0). This now finds that talent's active placement(s) first:
+    - none: they aren't placed yet, so the roster default is the only number
+      that exists — write it here, same as before.
+    - exactly one: that placement is what payroll will actually pay, so the
+      write goes there instead, and the roster row is left as the pre-
+      placement default for next time.
+    - more than one (a talent can serve two executives at once, PART 31):
+      a single editor can't safely guess which placement's pay is meant, so
+      this refuses rather than silently updating the wrong one. */
 export async function setTalentPay(talentId: string, cents: number) {
   const sb = await supabaseServer();
+  const { data: live } = await sb.from('placements')
+    .select('id').eq('talent_id', talentId).is('ended_on', null);
+  const activeIds = ((live ?? []) as any[]).map(p => p.id);
+  if (activeIds.length > 1) {
+    throw new Error('This person is on two active placements at once — open each placement and set pay there instead of from the roster.');
+  }
+  if (activeIds.length === 1) {
+    const { error } = await sb.from('placement_terms')
+      .update({ talent_pay_cents: cents, updated_at: new Date().toISOString() })
+      .eq('placement_id', activeIds[0]);
+    if (error) throw new Error(error.message);
+    return;
+  }
   const { error } = await sb.from('talent_pay')
     .upsert({ talent_id: talentId, rate_month_cents: cents, rate_month: Math.round(cents / 100),
               updated_at: new Date().toISOString() }, { onConflict: 'talent_id' });

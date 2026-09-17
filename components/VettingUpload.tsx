@@ -141,7 +141,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
               <div className="vet-actions">
                 <input
                   ref={el => { inputs.current[item.kind] = el; }}
-                  type="file" accept="application/pdf,image/*" hidden
+                  type="file" accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp" hidden
                   onChange={e => {
                     const f = e.target.files?.[0];
                     if (!f) return;

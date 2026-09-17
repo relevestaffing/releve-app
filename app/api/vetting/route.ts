@@ -68,8 +68,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Relève issues and files this one — nothing for you to upload here.' }, { status: 403 });
   if (!(file instanceof Blob)) return NextResponse.json({ error: 'no file received' }, { status: 400 });
   if (file.size > MAX_BYTES) return NextResponse.json({ error: 'that file is over 10MB' }, { status: 413 });
-  if (!OK_TYPES.includes(file.type))
-    return NextResponse.json({ error: 'send a PDF or a photo' }, { status: 415 });
+  if (!OK_TYPES.includes(file.type)) {
+    /* The iPhone default camera format — the file picker's accept attribute
+       keeps it from being offered, but a photo already saved to the device
+       (or AirDropped, or from an app that ignores accept) can still land
+       here, and "send a PDF or a photo" reads as wrong to someone who just
+       sent a photo. Name the actual problem instead. */
+    const name = (file as File).name ?? '';
+    if (file.type === 'image/heic' || file.type === 'image/heif' || /\.hei[cf]$/i.test(name))
+      return NextResponse.json({
+        error: 'that photo is saved in HEIC format, which we cannot read — in Photos, choose Share, then "Save as JPEG" (or turn off Camera > Formats > High Efficiency in Settings), and upload that version instead'
+      }, { status: 415 });
+    return NextResponse.json({ error: 'send a PDF or a photo (JPG, PNG, or WEBP)' }, { status: 415 });
+  }
 
   const ext = file.type === 'application/pdf' ? 'pdf' : file.type.split('/')[1];
   const path = `${owner}/${kind}.${ext}`;
@@ -80,7 +91,7 @@ export async function POST(req: Request) {
   const sb = await supabaseServer();
   const { error } = await sb.storage.from('vetting')
     .upload(path, bytes, { contentType: file.type, upsert: true });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: safeMessage(error) }, { status: 500 });
 
   try {
     await recordVetting({

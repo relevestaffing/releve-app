@@ -531,7 +531,7 @@ const rawTemplates = {
       p(`${o.name},`) +
       p(`<b>${o.who}</b> has declined <b>${o.candidate}</b>.`) +
       (o.reason || o.note
-        ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #9A7B3F;">${o.reason ? `<b>${o.reason}</b>` : ''}${o.reason && o.note ? '<br>' : ''}${o.note ? `“${o.note}”` : ''}</p>`
+        ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #9A7B3F;">${o.reason ? `<b>${esc(o.reason)}</b>` : ''}${o.reason && o.note ? '<br>' : ''}${o.note ? `“${esc(o.note)}”` : ''}</p>`
         : '') +
       p('The candidate has not been told. Release the next person from Matching.'),
       { label: 'Open Matching', href: `${SITE}/console/matching` })
@@ -562,6 +562,55 @@ const rawTemplates = {
       p(`We have received <b>${o.amount}</b>${o.number ? ` against invoice <b>${o.number}</b>` : ''}. Nothing further is needed from you.`) +
       p('Bank transfers can take a few days to clear, so this may arrive a little after the debit appeared on your statement.'),
       { label: 'See your billing', href: `${SITE}/app/billing` })
+  }),
+
+  /* A charge that did not go through, told the moment it happens rather than
+     left for the 14-day-late flag to eventually surface (admin-console
+     audit, P1). Points at the fix (retry from Billing), never at the miss. */
+  paymentFailed: (o: { name: string; number: string; amount: string }) => ({
+    subject: `A payment needs another try — ${o.amount}`,
+    text: `${o.name},\n\nThe ${o.amount}${o.number ? ` for invoice ${o.number}` : ''} did not go through this time — most often a bank declined a debit that clears on its own the next attempt. Retry it any time from your billing page, or let us know if you would rather use a different method.\n\n${SITE}/app/billing\n\n— Relève`,
+    html: shell('A payment needs another try',
+      p(`${o.name},`) +
+      p(`The <b>${o.amount}</b>${o.number ? ` for invoice <b>${o.number}</b>` : ''} did not go through this time — most often a bank declined a debit that clears fine on the next attempt.`) +
+      p('Retry it any time from your billing page, or write in if you would rather use a different payment method.'),
+      { label: 'Retry on Billing', href: `${SITE}/app/billing` })
+  }),
+
+  /* To the team, the same moment — so a failed charge is a task on Money
+     today, not a discovery two weeks from now. */
+  paymentFailedTeam: (o: { client: string; number: string; amount: string; reason?: string | null }) => ({
+    subject: `Payment failed — ${o.client}, ${o.amount}`,
+    text: `${o.client}'s ${o.amount}${o.number ? ` (invoice ${o.number})` : ''} was declined.${o.reason ? ` Reason: ${o.reason}` : ''}\n\nThey have already been emailed with a retry link. Worth a follow-up if it is still open in a few days.\n\n${SITE}/console/money\n\n— Relève`,
+    html: shell('Payment failed',
+      p(`<b>${o.client}</b>'s <b>${o.amount}</b>${o.number ? ` (invoice <b>${o.number}</b>)` : ''} was declined.`) +
+      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #8C4A3F;">${esc(o.reason)}</p>` : '') +
+      p('They have already been emailed with a retry link. Worth a follow-up if it is still open in a few days.'),
+      { label: 'Open Money', href: `${SITE}/console/money` })
+  }),
+
+  /* A talent's own monthly pay, marked sent or failed by the team on
+     Payroll — the notification half of that screen that never existed
+     (talent-experience audit, P0). 'due' fires nothing; a talent already
+     sees that state by simply not having a payment yet. */
+  talentPaymentSent: (o: { name: string; amount: string; period: string; reference?: string | null }) => ({
+    subject: `You were paid — ${o.amount}`,
+    text: `${o.name},\n\n${o.amount} for ${o.period} is on its way to you.${o.reference ? ` Reference: ${o.reference}.` : ''}\n\nSee it any time on your pay page.\n\n${SITE}/app/pay\n\n— Relève`,
+    html: shell('You were paid',
+      p(`${o.name},`) +
+      p(`<b>${o.amount}</b> for ${o.period} is on its way to you.${o.reference ? ` Reference: <b>${esc(o.reference)}</b>.` : ''}`) +
+      p('You can see this any time on your pay page.'),
+      { label: 'See your pay', href: `${SITE}/app/pay` })
+  }),
+
+  talentPaymentFailed: (o: { name: string; amount: string; period: string }) => ({
+    subject: `A problem with your ${o.period} payment`,
+    text: `${o.name},\n\nYour ${o.amount} payment for ${o.period} did not go through this time. We are on it — no action needed from you, but write in if you would like an update.\n\n${SITE}/app/pay\n\n— Relève`,
+    html: shell('A problem with your payment',
+      p(`${o.name},`) +
+      p(`Your <b>${o.amount}</b> payment for ${o.period} did not go through this time.`) +
+      p('We are on it — no action needed from you, but write in any time if you would like an update.'),
+      { label: 'See your pay', href: `${SITE}/app/pay` })
   }),
 
   /* ---- offers: the answer is the moment the business earns money ---- */
@@ -605,7 +654,7 @@ const rawTemplates = {
     text: `${o.talent} has asked for time off from ${o.from} to ${o.to}.${o.reason ? `\n\n“${o.reason}”` : ''}\n\nApprove it and record who covers from Care.\n\n${SITE}/console/care\n\n— Relève`,
     html: shell('Time off requested',
       p(`<b>${o.talent}</b> has asked for time off from <b>${o.from}</b> to <b>${o.to}</b>.`) +
-      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #35443A;">“${o.reason}”</p>` : '') +
+      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #35443A;">“${esc(o.reason)}”</p>` : '') +
       p('Approve it and record who covers from Care.'),
       { label: 'Open Care', href: `${SITE}/console/care` })
   }),

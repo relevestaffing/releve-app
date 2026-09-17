@@ -67,6 +67,12 @@ async function act(me: { id: string }, { clientId, talentId, action, overall, no
     const who0 = bench.find(b => b.id === talentId);
     if (who0 && who0.has_disciplines && who0.watch_cleared === false)
       throw new Error('Taking The Watch has not cleared this candidate yet. Score their attempt on the Watch page first, or ask them to take it.');
+    /* Editing the release note re-runs this same action — setMatch is an
+       upsert, so "release" and "edit the note on an already-released
+       candidate" look identical from here. Without this check, every note
+       edit re-sent the "you have someone to see" email (admin-console
+       audit, P1). Only a true first release (was not already released) mails. */
+    const already = (await listMatches(clientId)).find(m => m.talent_id === talentId)?.released === true;
     await setMatch(clientId, talentId, {
       released: true,
       release_note: typeof note === 'string' && note.trim() ? note.trim() : null,
@@ -75,7 +81,7 @@ async function act(me: { id: string }, { clientId, talentId, action, overall, no
     /* The copy promises an email the moment there is someone to see. Until now
        nothing sent one, so an executive could have a candidate waiting and no
        reason to look. A failed send must not undo the approval. */
-    try {
+    if (!already) try {
       const to = await personEmail(clientId);
       const who = await personEmail(talentId);
       if (to?.email) {
@@ -85,7 +91,7 @@ async function act(me: { id: string }, { clientId, talentId, action, overall, no
         });
         await send(to.email, tpl);
       }
-    } catch { /* the approval stands whether or not the mail server answered */ }
+    } catch (e) { console.error('[matches] candidateReady send failed', clientId, talentId, e); }
   }
   else if (action === 'unrelease') await setMatch(clientId, talentId, { released: false });
   else return NextResponse.json({ error: 'unknown action' }, { status: 400 });

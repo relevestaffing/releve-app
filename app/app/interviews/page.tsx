@@ -35,7 +35,7 @@ export default async function Interviews() {
   const tz = myAvail.timezone?.trim() || 'UTC';
   /* An account with no timezone set rendered the header as "When ()" — on the
      one screen where the time is the entire point. */
-  const tzLabel = (tz ?? '').split('/')[1]?.replace(/_/g, ' ') ?? '';
+  const tzLabel = tz.split('/')[1]?.replace(/_/g, ' ') ?? tz;
   const feedback = await listFeedback({ authorId: profile.id });
   const fbByInterview = Object.fromEntries(feedback.map(f => [f.interview_id, f]));
   const past = (iso: string) => new Date(iso).getTime() < Date.now();

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
 import { saveSelfProfile, getSelfProfile } from '@/lib/store';
 import { looksLike } from '@/lib/filetype';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
   const path = `${me.id}/photo.jpg`;
   const { error } = await sb.storage.from(BUCKET)
     .upload(path, bytes, { contentType: 'image/jpeg', upsert: true, cacheControl: '3600' });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: safeMessage(error) }, { status: 500 });
 
   /* Not a public URL. The bucket is private, so what we store is a pointer at
      our own route, which checks who is asking before minting a short-lived

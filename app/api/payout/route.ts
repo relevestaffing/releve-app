@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { currentProfile } from '@/lib/supabase/server';
+import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { savePayout, confirmPayout, setPaymentState, payTheMonth, setTaxForm, setTalentPay } from '@/lib/payout';
-import { PAYOUT_METHODS, TAX_RESIDENCE_PROMPT, TAX_COUNTRY_PROMPT } from '@/lib/payout-public';
+import { PAYOUT_METHODS, TAX_RESIDENCE_PROMPT, TAX_COUNTRY_PROMPT, periodLabel } from '@/lib/payout-public';
+import { money } from '@/lib/money-public';
+import { send, templates } from '@/lib/email';
 import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -75,6 +77,29 @@ export async function POST(req: Request) {
         reference: String(b.reference ?? '').trim().slice(0, 160) || null,
         note: String(b.note ?? '').trim().slice(0, 600) || null
       });
+      /* The talent's own notification for their own payment status — the
+         notification half of this screen that never existed (talent-
+         experience audit, P0). 'due' fires nothing: that state is the
+         absence of news, not news itself. */
+      if ((b.state === 'sent' || b.state === 'failed') && configured()) {
+        try {
+          const sb = await supabaseServer();
+          const { data: payment } = await sb.from('talent_payments')
+            .select('talent_id, amount_cents, period_start, talent:talent_id(full_name, email)')
+            .eq('id', String(b.id)).maybeSingle();
+          const talent = (payment as any)?.talent;
+          if (talent?.email) {
+            const args = {
+              name: talent.full_name?.split(/\s+/)?.[0] || 'there',
+              amount: money((payment as any).amount_cents),
+              period: periodLabel((payment as any).period_start),
+              reference: b.reference ? String(b.reference).trim().slice(0, 160) : null
+            };
+            const msg = b.state === 'sent' ? templates.talentPaymentSent(args) : templates.talentPaymentFailed(args);
+            await send(talent.email, msg);
+          }
+        } catch (e) { console.error('talent payment notice failed to send', e); }
+      }
       return NextResponse.json({ ok: true });
     }
     if (b.action === 'set_pay') {

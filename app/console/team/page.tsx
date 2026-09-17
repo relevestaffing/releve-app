@@ -22,7 +22,11 @@ const SAYS: Record<string, string> = {
   invoice_draft: 'drafted an invoice',
   invoice_sent: 'sent an invoice',
   invoice_paid: 'marked an invoice paid',
-  invoice_void: 'voided an invoice'
+  invoice_void: 'voided an invoice',
+  rate_set: 'changed what a client is charged',
+  talent_pay_set: 'changed what a talent is paid',
+  payout_details_set: 'added payout details',
+  payout_details_changed: 'changed payout details'
 };
 
 export default async function ConsoleTeam() {
@@ -45,24 +49,57 @@ export default async function ConsoleTeam() {
   let mail: { kind: string; to_addr: string; subject: string; ok: boolean;
               detail: string | null; sent_at: string }[] = [];
   let mailEverWorked = false;
+  let backup: { last_success: string | null; last_failure: string | null; failed_week: number } | null = null;
   if (configured()) {
     const sb = await supabaseServer();
-    const [{ data: rows }, { data: health }] = await Promise.all([
+    const [{ data: rows }, { data: health }, { data: backupHealth }] = await Promise.all([
       sb.from('email_log')
         .select('kind, to_addr, subject, ok, detail, sent_at')
         .order('sent_at', { ascending: false }).limit(60),
-      sb.from('email_health').select('last_success').maybeSingle()
+      sb.from('email_health').select('last_success').maybeSingle(),
+      sb.from('backup_health').select('last_success, last_failure, failed_week').maybeSingle()
     ]);
     mail = (rows ?? []) as typeof mail;
     mailEverWorked = Boolean((health as any)?.last_success);
+    backup = (backupHealth as any) ?? null;
   }
   const failed = mail.filter(m => !m.ok);
+  const backupAge = backup?.last_success
+    ? (Date.now() - new Date(backup.last_success).getTime()) / 86400000 : null;
+  const backupState: 'good' | 'warn' | 'crit' =
+    backupAge == null ? 'crit' : backupAge > 2 ? 'crit' : backupAge > 1.25 ? 'warn' : 'good';
 
   return (
     <Shell profile={profile} active="/console/team" title="Team"
       crumb="Who can do what, and what has been done">
 
       <EmailCheck />
+
+      <div className="card">
+        <div className="card-head">
+          <h3>Database backup</h3>
+          <span className={`pill ${backupState === 'good' ? 'good' : backupState === 'warn' ? 'warn' : 'crit'}`}>
+            <span className="dot" />
+            {backupState === 'good' ? 'Ran recently' : backupState === 'warn' ? 'Getting stale' : 'Not confirmed'}
+          </span>
+        </div>
+        {!backup?.last_success ? (
+          <p className="small" style={{
+            marginBottom: 0, padding: '13px 17px', background: 'var(--cream)',
+            borderLeft: '2px solid #8C4A3F' }}>
+            <b>No successful backup has ever reported in.</b> Either the daily job
+            isn&rsquo;t installed yet, or it hasn&rsquo;t run since this page started
+            watching for it. Run <code>./scripts/backup.sh</code> once by hand to check,
+            and see Still Open in the Book for the one-time <code>crontab</code> step.
+          </p>
+        ) : (
+          <p className="small muted" style={{ marginBottom: 0 }}>
+            Last successful backup: <b>{when(backup.last_success)}</b>.
+            {backup.last_failure && ` Most recent failure: ${when(backup.last_failure)}.`}
+            {backup.failed_week > 0 && ` ${backup.failed_week} failed attempt${backup.failed_week === 1 ? '' : 's'} in the last 7 days.`}
+          </p>
+        )}
+      </div>
 
       <div className="card">
         <div className="card-head">
@@ -152,7 +189,7 @@ export default async function ConsoleTeam() {
           ))}
         </div>
         <p className="xs muted" style={{ marginTop: 16 }}>
-          To add a manager: they sign in once, then we grant admin access from our side — usually within the hour. Ask in Messages and we'll take care of it. A one-click version of this is on the list; they appear here once it's granted.
+          To add a manager: they sign in once with the email on file, then add them above — one click, and they appear in this list right away.
         </p>
       </div>
 

@@ -358,8 +358,23 @@ export async function endPlacement(id: string, endedOn?: string | null, reason?:
   /* Why it ended decides whether the replacement guarantee is owed, so it is
      recorded at the moment it is known rather than remembered later. */
   if (reason) patch.ended_reason = reason;
+  const { data: row } = await sb.from('placements').select('talent_id').eq('id', id).maybeSingle();
   const { error } = await sb.from('placements').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
+  /* A talent can hold two placements at once (see schema PART 31), so freeing
+     them for Bench/Matching only happens once none of their placements are
+     still live — otherwise ending one silently pulled them off a job they're
+     still doing. Without this, profiles.stage stayed 'Placed' forever and
+     rankBench() excluded them from reassignment for good. */
+  const talentId = (row as any)?.talent_id as string | undefined;
+  if (talentId) {
+    const { count } = await sb.from('placements')
+      .select('id', { count: 'exact', head: true })
+      .eq('talent_id', talentId).is('ended_on', null);
+    if (!count) {
+      await sb.from('profiles').update({ stage: 'Vetted' }).eq('id', talentId).eq('stage', 'Placed');
+    }
+  }
 }
 
 /* ---------- the placement file ---------- */
@@ -634,16 +649,46 @@ export async function personEmail(id: string): Promise<{ email: string; name: st
 
 /* What Relève pays each of these people, for the console only. talent_pay has
    a single is_admin() policy, so a client session gets an empty map rather
-   than a refusal. */
+   than a refusal.
+
+   Since PART 31, a live placement's real pay lives on
+   placement_terms.talent_pay_cents, not this roster row — showing the
+   roster figure here made an already-placed person's pay look unchanged
+   right after it actually changed (admin-console audit, P0, same bug as
+   setTalentPay). This now prefers the single active placement's number when
+   there is exactly one, and falls back to the roster row otherwise (not yet
+   placed, or two placements at once — the roster row is the least-wrong
+   single number to show until a per-placement editor exists). */
 export async function benchPay(ids: string[]): Promise<Record<string, number | null>> {
   const out: Record<string, number | null> = {};
   if (!configured() || !ids.length) return out;
   const sb = await supabaseServer();
-  const { data } = await sb.from('talent_pay').select('talent_id, rate_month, rate_month_cents').in('talent_id', ids);
+  const [{ data: roster }, { data: live }] = await Promise.all([
+    sb.from('talent_pay').select('talent_id, rate_month, rate_month_cents').in('talent_id', ids),
+    sb.from('placements').select('id, talent_id').in('talent_id', ids).is('ended_on', null)
+  ]);
   /* rate_month_cents is the real column; the dollar one is deprecated and
      kept in step by trigger. Returned in dollars, which is what the page has
      always taken. */
-  for (const r of (data ?? []) as any[])
+  for (const r of (roster ?? []) as any[])
     out[r.talent_id] = r.rate_month_cents != null ? r.rate_month_cents / 100 : (r.rate_month ?? null);
+
+  const byTalent = new Map<string, string[]>();
+  for (const p of (live ?? []) as any[]) {
+    const arr = byTalent.get(p.talent_id) ?? [];
+    arr.push(p.id);
+    byTalent.set(p.talent_id, arr);
+  }
+  const singlePlacement = [...byTalent.entries()].filter(([, ps]) => ps.length === 1).map(([, ps]) => ps[0]);
+  if (singlePlacement.length) {
+    const { data: terms } = await sb.from('placement_terms')
+      .select('placement_id, talent_pay_cents').in('placement_id', singlePlacement);
+    const byPlacement = new Map(((terms ?? []) as any[]).map(t => [t.placement_id, t.talent_pay_cents]));
+    for (const [talentId, ps] of byTalent.entries()) {
+      if (ps.length !== 1) continue;
+      const cents = byPlacement.get(ps[0]);
+      if (cents != null) out[talentId] = cents / 100;
+    }
+  }
   return out;
 }

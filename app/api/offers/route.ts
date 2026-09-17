@@ -20,13 +20,23 @@ export async function POST(req: Request) {
       /* ---- either side answering their own offer ---- */
       case 'answer': {
         const answer: 'yes' | 'no' = b.answer === 'yes' ? 'yes' : 'no';
+        /* A double-click or a retried request re-runs this same case with
+           the same answer. answer_offer() itself blocks a repeat once the
+           offer is fully decided, but not a repeat of the SAME side's answer
+           while the other side still hasn't gone — that used to re-send the
+           team's "X said yes" notice every time (admin-console audit, P1).
+           Recording the answer already on file first is enough to tell a
+           genuine transition from a repeat. */
+        const before = await getOffer(String(b.id));
+        const priorAnswer = before ? (me.role === 'client' ? before.client_answer : before.talent_answer) : null;
+        const isNewAnswer = priorAnswer !== answer;
         const out = await answerOffer(String(b.id), answer);
         /* The answer is the moment the business earns money, and nobody was
            told: not Relève, not the other side. Now the team hears every
            answer, and both sides hear when it is agreed. Nothing here can
            undo the answer if the mail server is down. */
         try {
-          const o = await getOffer(String(b.id));
+          const o = isNewAnswer ? await getOffer(String(b.id)) : null;
           if (o) {
             const side = me.role === 'client' ? 'executive' : 'talent';
             const both = out === 'accepted';
@@ -67,11 +77,19 @@ export async function POST(req: Request) {
       }
       case 'send': {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
+        /* sendOffer() only actually flips state on a row that is still
+           'draft' — calling this again on an offer already sent matches no
+           row, updates nothing, and used to fall straight through to
+           re-sending the offerMade letter to both sides anyway (admin-
+           console audit, P1). Checking beforehand is enough: only a real
+           draft-to-sent transition mails. */
+        const before = await getOffer(String(b.id));
+        const wasDraft = before?.state === 'draft';
         await sendOffer(String(b.id));
         /* "Send" used to flip the state and tell nobody, while the console
            toasted "Sent to both sides". Same letter the make-and-send path
            already sends. */
-        const o = await getOffer(String(b.id));
+        const o = wasDraft ? await getOffer(String(b.id)) : null;
         let mailed = 0;
         if (o) {
           for (const who of [o.client_id, o.talent_id]) {

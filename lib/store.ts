@@ -425,6 +425,28 @@ export async function deleteAccount(id: string) {
   if (!url || !key) throw new Error('Server is missing its Supabase service key.');
   const admin = createClient(url, key, { auth: { persistSession: false } });
 
+  /* This is the one call that permanently destroys placement, invoice and
+     payment history (see the comment above) — typing a name is friction, not
+     a safeguard. Refuse it outright while a live placement or an unpaid
+     invoice is still on this person's record, and say what to do instead.
+     (Admin-console audit, approved 17 Sep 2026.) */
+  {
+    const { count: livePlacements } = await admin.from('placements')
+      .select('id', { count: 'exact', head: true })
+      .or(`client_id.eq.${id},talent_id.eq.${id}`)
+      .is('ended_on', null);
+    if (livePlacements) {
+      throw new Error('This person has a live placement on file. End the placement first, then remove them.');
+    }
+    const { count: unpaidInvoices } = await admin.from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('client_id', id)
+      .in('status', ['draft', 'sent', 'failed']);
+    if (unpaidInvoices) {
+      throw new Error('This person has an unpaid invoice on file. Settle or void it first, then remove them.');
+    }
+  }
+
   /* Deleting the auth user cascades every database row that references it.
      But identity documents, the photo and the intro video live in storage
      BUCKETS keyed by the person's id — not database rows — so the cascade

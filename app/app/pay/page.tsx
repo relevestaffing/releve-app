@@ -20,17 +20,40 @@ export default async function PayPage() {
   const payments = await listPayments(profile.id);
 
   /* Their own rate, and only theirs. The client's number lives in another
-     table that no policy admits them to. */
+     table that no policy admits them to. A talent can now hold two active
+     placements at once (schema PART 31), each with its own agreed pay, so
+     this reads my_placement_pay() — one row per active placement — rather
+     than the single roster-wide rate, which only ever showed one number. */
   let rate: number | null = null;
+  let placementRates: { placement_id: string; talent_pay_cents: number | null }[] = [];
   if (configured()) {
     const sb = await supabaseServer();
-    const { data } = await sb.from('my_pay').select('rate_month_cents').maybeSingle();
-    rate = (data as any)?.rate_month_cents ?? null;
+    const { data: perPlacement } = await sb.rpc('my_placement_pay');
+    placementRates = ((perPlacement as any[]) ?? []).filter(r => r.talent_pay_cents != null);
+    if (!placementRates.length) {
+      const { data } = await sb.from('my_pay').select('rate_month_cents').maybeSingle();
+      rate = (data as any)?.rate_month_cents ?? null;
+    }
   }
 
   return (
     <Shell profile={profile} active="/app/pay" title="Your pay" crumb="What you are paid, and how it reaches you">
-      {rate != null && (
+      {placementRates.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>{placementRates.length > 1 ? 'Your rates' : 'Your rate'}</h3></div>
+          {placementRates.map(p => (
+            <div key={p.placement_id} style={{ marginBottom: 10 }}>
+              <div className="score" style={{ marginBottom: 4 }}>{money(p.talent_pay_cents ?? 0)}</div>
+            </div>
+          ))}
+          <p className="small muted" style={{ margin: 0 }}>
+            {placementRates.length > 1
+              ? 'A month, each, paid by Relève — one per placement. This is what was agreed in each offer.'
+              : 'A month, paid by Relève. This is what was agreed in your offer.'}
+          </p>
+        </div>
+      )}
+      {!placementRates.length && rate != null && (
         <div className="card">
           <div className="card-head"><h3>Your rate</h3></div>
           <div className="score" style={{ marginBottom: 4 }}>{money(rate)}</div>
@@ -59,6 +82,7 @@ export default async function PayPage() {
                   <td>{periodLabel(p.period_start)}</td>
                   <td className="amount">{money(p.amount_cents)}</td>
                   <td className="small">{p.sent_on ? fmtDate(p.sent_on)
+                    : p.state === 'failed' ? <span className="pill crit"><span className="dot" />Failed — we are on it</span>
                     : <span className="pill warn"><span className="dot" />Due</span>}</td>
                   <td className="xs muted">{p.reference ?? '—'}</td>
                 </tr>
