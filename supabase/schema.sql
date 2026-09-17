@@ -4346,3 +4346,228 @@ comment on view candidate_directory is
 grant select on candidate_directory to authenticated;
 
 do $$ begin raise notice 'PART 32 applied: clients can no longer read candidate validity or facets.'; end $$;
+
+
+-- ============================================================
+-- PART 33 — talent mid-onboarding no longer vanish from the roster
+-- (admin-console audit, approved 17 Sep 2026)
+--
+-- talent_directory required a completed Signature (inner join) before a
+-- talent appeared anywhere in the console — not flagged as pending, simply
+-- absent from People and Bench. Anyone who started onboarding but hadn't
+-- finished their Signature was invisible to the team that needed to follow
+-- up with them. Fixed by switching to a left join and adding has_signature,
+-- so the console can show them as in progress instead of hiding them.
+-- Idempotent and safe to re-run.
+-- ============================================================
+
+drop view if exists talent_directory;
+create view talent_directory with (security_invoker = true) as
+select
+  p.id, p.full_name as name, p.headline as role, p.location as loc, p.timezone as tz,
+  p.years_exp as yrs, p.english as eng, p.stage, p.photo_url, p.intro_video_url,
+  s.scores, s.facets, s.validity, s.confidence, s.conditions as cond,
+  (s.user_id is not null) as has_signature,
+  coalesce((select jsonb_array_length(sp.disciplines) from skills_profile sp
+             where sp.talent_id = p.id), 0) > 0                          as has_disciplines,
+  exists (select 1 from talent_verification_badges b
+           where b.talent_id = p.id and b.verified_through_taking_the_watch) as watch_cleared
+from profiles p
+left join signatures s on s.user_id = p.id and s.side = 'talent'
+where p.role = 'talent';
+
+comment on view talent_directory is
+  'Admin-only full talent roster. Left-joined to signatures (PART 33) so a talent mid-onboarding with no Signature yet still appears, flagged via has_signature = false, instead of being silently excluded.';
+
+do $$ begin raise notice 'PART 33 applied: talent_directory left-joins signatures; mid-onboarding talent are visible again.'; end $$;
+
+
+-- ============================================================
+-- PART 34 — backup health becomes visible in the console
+-- (admin-console audit, approved 17 Sep 2026)
+--
+-- The only backup was a local script + a manually-installed cron job, with
+-- nothing in the app confirming it had ever run. Mirrors the email_log /
+-- email_health pattern exactly: one row per attempt, one small view the
+-- console reads. scripts/backup.sh now writes to this itself, using the same
+-- SUPABASE_DB_URL it already has in .env.local — no new credential involved.
+-- Idempotent and safe to re-run.
+-- ============================================================
+
+create table if not exists backup_log (
+  id         uuid primary key default gen_random_uuid(),
+  ok         boolean not null,
+  size_bytes bigint,
+  detail     text,
+  ran_at     timestamptz not null default now()
+);
+alter table backup_log enable row level security;
+drop policy if exists "team reads the backup log" on backup_log;
+create policy "team reads the backup log" on backup_log for select using (is_admin());
+
+create or replace function log_backup(p_ok boolean, p_size bigint default null, p_detail text default null)
+returns void language plpgsql security definer as $$
+begin
+  insert into backup_log (ok, size_bytes, detail) values (p_ok, p_size, left(coalesce(p_detail,''), 2000));
+end $$;
+comment on function log_backup is
+  'Called by scripts/backup.sh over the same SUPABASE_DB_URL it already uses for pg_dump — no separate credential.';
+
+create or replace view backup_health with (security_invoker = true) as
+select
+  max(ran_at) filter (where ok)     as last_success,
+  max(ran_at) filter (where not ok) as last_failure,
+  count(*)    filter (where not ok and ran_at > now() - interval '7 days') as failed_week
+from backup_log;
+comment on view backup_health is
+  'Read by the console Team page. security_invoker, so it obeys backup_log''s own policy and only Relève sees it.';
+
+do $$ begin raise notice 'PART 34 applied: backup_log/backup_health exist; scripts/backup.sh now reports into them.'; end $$;
+
+
+-- ============================================================
+-- PART 35 — three RLS gaps closed: talent could read un-released matches,
+-- talent had no safe read on their own per-placement pay, and a client
+-- could read their placed talent's pay off the same row as their own rate.
+-- (Talent-experience audit + admin-console audit, approved 17 Sep 2026)
+-- Idempotent and safe to re-run.
+-- ============================================================
+
+-- ---------- 1. matches: the talent clause had no `released` gate ----------
+-- Every other clause on this policy checks `released`; the talent one did
+-- not, so a talent could read a match row that named them before it was
+-- ever released — including one the executive already declined, which
+-- candidateDeclined's own copy ("The candidate has not been told") assumes
+-- never happens.
+drop policy if exists "read released matches" on matches;
+create policy "read released matches" on matches for select using (
+  is_admin()
+  or (client_id = auth.uid() and released)
+  or exists (select 1 from searches se
+              where se.id = matches.search_id
+                and se.client_id = auth.uid()
+                and matches.released)
+  or (talent_id = auth.uid() and released)
+);
+
+-- ---------- 2. a talent's own per-placement pay, safely ----------
+-- placement_terms admits no policy for talent at all, by design — the same
+-- row carries rate_month_cents, what the CLIENT pays, which talent must
+-- never see. A talent can now hold two active placements at once (PART 31),
+-- each with its own agreed pay, so a single roster-wide rate (my_pay) is no
+-- longer enough. This function reaches into placement_terms the same way
+-- pay_the_month() already does, and returns only the two safe columns —
+-- rate_month_cents is never selected here, so there is nothing to leak even
+-- from a direct REST call.
+create or replace function my_placement_pay()
+returns table(placement_id uuid, talent_pay_cents int, currency text)
+language sql security definer set search_path = public as $$
+  select t.placement_id, t.talent_pay_cents, coalesce(tp.currency, 'USD')
+  from placement_terms t
+  join placements pl on pl.id = t.placement_id
+  left join talent_pay tp on tp.talent_id = pl.talent_id
+  where pl.talent_id = auth.uid()
+    and pl.ended_on is null;
+$$;
+comment on function my_placement_pay() is
+  'A talent''s own pay, per active placement, and nothing else on placement_terms — rate_month_cents (what the client pays) is never selected here. security definer because placement_terms admits no policy for talent directly.';
+grant execute on function my_placement_pay() to authenticated;
+
+-- ---------- 3. a client could read their placed talent's pay ----------
+-- "client reads own terms" granted the whole placement_terms row, which was
+-- safe until PART 31 put talent_pay_cents on that same row — after which a
+-- signed-in client could pull their talent's pay with a direct Supabase
+-- call, breaking the one number that must never cross sides. Row-level
+-- security filters rows, not columns, so the fix is the same shape as
+-- PART 32's candidate_directory: the client loses direct table access
+-- entirely, and reads through a view that only ever selects the safe
+-- columns, scoped to their own placements.
+drop policy if exists "client reads own terms" on placement_terms;
+create policy "client reads own terms" on placement_terms for select using (is_admin());
+
+create or replace view my_placement_terms as
+select t.placement_id, t.rate_month_cents, t.minimum_months, t.notice_given_on, t.notice_ends_on, t.updated_at
+from placement_terms t
+where is_admin() or exists (
+  select 1 from placements p where p.id = t.placement_id and p.client_id = auth.uid()
+);
+comment on view my_placement_terms is
+  'What a client (or admin) may read from placement_terms: everything except talent_pay_cents, which this view never selects. Runs as owner (not security_invoker) and does its own auth.uid() scoping, the same shape as candidate_directory — replaces direct client access to placement_terms, which PART 35 removed.';
+grant select on my_placement_terms to authenticated;
+
+do $$ begin raise notice 'PART 35 applied: matches release gate closed, my_placement_pay() and my_placement_terms in place.'; end $$;
+
+
+-- ============================================================
+-- PART 36 — compensation and bank-detail changes now write to the audit log
+-- (admin-console audit, approved 17 Sep 2026)
+--
+-- Only four action families ever reached audit_log (vetting, invoice status,
+-- offer-to-placement, match release) — "rate_set" was named in this table's
+-- own column comment from the start but nothing ever wrote it. Editing what
+-- a client is charged, what a talent is paid, or where their pay is sent
+-- left no trace of who changed it or when. Same trigger shape as
+-- audit_vetting() above; both call the existing note_action(). Bank/account
+-- values themselves are never written to the log — only that they changed,
+-- and by whom — so the log doesn't become a second copy of sensitive
+-- financial detail. Idempotent and safe to re-run.
+-- ============================================================
+
+create or replace function audit_placement_terms() returns trigger
+language plpgsql security definer as $$
+begin
+  if tg_op = 'UPDATE' and new.rate_month_cents is distinct from old.rate_month_cents then
+    perform note_action('rate_set', 'placement_terms', new.placement_id,
+      jsonb_build_object('field', 'rate_month_cents', 'from', old.rate_month_cents, 'to', new.rate_month_cents));
+  end if;
+  if tg_op = 'UPDATE' and new.talent_pay_cents is distinct from old.talent_pay_cents then
+    perform note_action('talent_pay_set', 'placement_terms', new.placement_id,
+      jsonb_build_object('field', 'talent_pay_cents', 'from', old.talent_pay_cents, 'to', new.talent_pay_cents));
+  end if;
+  return new;
+end $$;
+drop trigger if exists audit_placement_terms_t on placement_terms;
+create trigger audit_placement_terms_t after update on placement_terms
+for each row execute function audit_placement_terms();
+
+create or replace function audit_talent_pay() returns trigger
+language plpgsql security definer as $$
+begin
+  if tg_op = 'UPDATE' and new.rate_month_cents is distinct from old.rate_month_cents then
+    perform note_action('talent_pay_set', 'talent_pay', new.talent_id,
+      jsonb_build_object('from', old.rate_month_cents, 'to', new.rate_month_cents));
+  end if;
+  return new;
+end $$;
+drop trigger if exists audit_talent_pay_t on talent_pay;
+create trigger audit_talent_pay_t after update on talent_pay
+for each row execute function audit_talent_pay();
+
+-- Bank/payout details: log that something changed and which fields, never
+-- the values themselves (method and country are not sensitive on their own
+-- and are kept for context; beneficiary, currency, detail and note are not).
+create or replace function audit_talent_payout() returns trigger
+language plpgsql security definer as $$
+declare changed_fields text[] := '{}';
+begin
+  if tg_op = 'INSERT' then
+    perform note_action('payout_details_set', 'talent_payout', new.talent_id,
+      jsonb_build_object('event', 'first added', 'method', new.method));
+    return new;
+  end if;
+  if new.method       is distinct from old.method       then changed_fields := changed_fields || 'method'; end if;
+  if new.beneficiary  is distinct from old.beneficiary  then changed_fields := changed_fields || 'beneficiary'; end if;
+  if new.country      is distinct from old.country      then changed_fields := changed_fields || 'country'; end if;
+  if new.currency     is distinct from old.currency     then changed_fields := changed_fields || 'currency'; end if;
+  if new.detail       is distinct from old.detail       then changed_fields := changed_fields || 'detail'; end if;
+  if array_length(changed_fields, 1) > 0 then
+    perform note_action('payout_details_changed', 'talent_payout', new.talent_id,
+      jsonb_build_object('fields', to_jsonb(changed_fields), 'method', new.method));
+  end if;
+  return new;
+end $$;
+drop trigger if exists audit_talent_payout_t on talent_payout;
+create trigger audit_talent_payout_t after insert or update on talent_payout
+for each row execute function audit_talent_payout();
+
+do $$ begin raise notice 'PART 36 applied: rate, talent pay and payout-detail changes now write to audit_log.'; end $$;
