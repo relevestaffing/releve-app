@@ -83,12 +83,52 @@ async function counts(): Promise<Counts> {
   return c;
 }
 
+/* Revenue concentration — the exposure the rest of the reports do not show.
+   Run rate on its own hides how much of it leans on one relationship; if the
+   biggest client is a third of the money, their notice is a third of the
+   business gone in a month. Built from live placements and their rates, summed
+   per client, so it is always consistent with the run rate above it. */
+type Exposure = {
+  clientsPaying: number; totalCents: number;
+  topShare: number | null; top3Share: number | null; topName: string | null;
+};
+
+async function exposure(): Promise<Exposure> {
+  const zero: Exposure = { clientsPaying: 0, totalCents: 0, topShare: null, top3Share: null, topName: null };
+  if (!configured()) return zero;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('placements')
+    .select('client_id, client:client_id(full_name, org_name), terms:placement_terms(rate_month_cents)')
+    .is('ended_on', null);
+
+  const byClient = new Map<string, { cents: number; name: string }>();
+  for (const p of (data ?? []) as any[]) {
+    const cents = Array.isArray(p.terms) ? (p.terms[0]?.rate_month_cents ?? 0) : (p.terms?.rate_month_cents ?? 0);
+    if (!cents) continue;
+    const name = p.client?.org_name ?? p.client?.full_name ?? 'A client';
+    const cur = byClient.get(p.client_id) ?? { cents: 0, name };
+    cur.cents += cents; cur.name = name;
+    byClient.set(p.client_id, cur);
+  }
+
+  const rows = [...byClient.values()].sort((a, b) => b.cents - a.cents);
+  const total = rows.reduce((s, r) => s + r.cents, 0);
+  if (!total) return { ...zero, clientsPaying: rows.length };
+  return {
+    clientsPaying: rows.length,
+    totalCents: total,
+    topShare: Math.round((rows[0].cents / total) * 100),
+    top3Share: Math.round((rows.slice(0, 3).reduce((s, r) => s + r.cents, 0) / total) * 100),
+    topName: rows[0].name
+  };
+}
+
 export default async function Reports() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
 
-  const [c, m, cal] = await Promise.all([counts(), moneySummary(), calibration()]);
+  const [c, m, cal, exp] = await Promise.all([counts(), moneySummary(), calibration(), exposure()]);
 
   const started = c.placementsLive + c.placementsEnded;
   const retention = started ? Math.round((c.placementsLive / started) * 100) : null;
@@ -144,6 +184,34 @@ export default async function Reports() {
         <div className={`money-stat ${c.endedNotWorking ? 'alert' : ''}`}>
           <div className="n">{c.endedNotWorking}</div><div className="k">Ended not working</div></div>
         <div className="money-stat"><div className="n">{cal.length}</div><div className="k">Reviewed at six months</div></div>
+      </div>
+
+      {/* Concentration: how exposed the run rate is to a single relationship.
+          A third or more resting on one client is the line where one notice
+          stops being a dip and starts being a crisis. */}
+      <h3 className="section-h">Exposure</h3>
+      <div className="money-strip">
+        <div className="money-stat"><div className="n">{exp.clientsPaying}</div>
+          <div className="k">Clients paying</div></div>
+        <div className={`money-stat ${exp.topShare != null && exp.topShare >= 33 ? 'alert' : ''}`}>
+          <div className="n">{exp.topShare != null ? `${exp.topShare}%` : '—'}</div>
+          <div className="k">Biggest client&rsquo;s share</div></div>
+        <div className={`money-stat ${exp.top3Share != null && exp.clientsPaying > 3 && exp.top3Share >= 75 ? 'alert' : ''}`}>
+          <div className="n">{exp.top3Share != null ? `${exp.top3Share}%` : '—'}</div>
+          <div className="k">Top three&rsquo;s share</div></div>
+        <div className="money-stat"><div className="n">{retention ?? '—'}{retention != null && '%'}</div>
+          <div className="k">Placements retained</div></div>
+      </div>
+      <div className="card tight" style={{ marginTop: -8 }}>
+        <p className="small muted" style={{ margin: 0, maxWidth: 680 }}>
+          {exp.clientsPaying === 0
+            ? 'No paying clients yet — concentration starts mattering the moment the second one signs.'
+            : exp.clientsPaying === 1
+              ? <>Everything currently rests on one client{exp.topName ? <> — <b>{exp.topName}</b></> : ''}. Normal this early, and the number to watch: the second and third placements are what turn a single thread into a business.</>
+              : exp.topShare != null && exp.topShare >= 33
+                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. That is past the line where one notice is a real hole — worth having a second search in flight before you would feel it.</>
+                : <>No single client is more than a third of the run rate — the base is spread enough that one departure is a dip, not a crisis. Keep it here as you grow.</>}
+        </p>
       </div>
 
       <div className="card">

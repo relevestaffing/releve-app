@@ -4,7 +4,7 @@ import { currentProfile } from '@/lib/supabase/server';
 import { getMySignature, archetype, dispositionLine } from '@/lib/data';
 import { execSelfLines, talentSelfLines, facetDetail } from '@/lib/plain';
 import { matchConfidence } from '@/lib/signature/score';
-import { L1, L2 } from '@/lib/signature/model';
+import { L1, L2_SHOWN } from '@/lib/signature/model';
 import { AxisBars, FacetBars } from '@/components/Viz';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
@@ -84,7 +84,7 @@ export default async function SignaturePage({ searchParams }: {
             </Explain>
           </div>
           <div className="grid-2">
-            {L2.map(trait => (
+            {L2_SHOWN.map(trait => (
               <div key={trait.key} style={{ marginBottom: 8 }}>
                 <div className="eyebrow" style={{ marginBottom: 4 }}>{trait.name}</div>
                 {trait.def_ && <p className="small muted" style={{ marginBottom: 12 }}>{trait.def_}</p>}

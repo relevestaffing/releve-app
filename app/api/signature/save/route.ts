@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { saveAttempt } from '@/lib/attempts';
+import { safeMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   const { side, answers, pairs, timings, conditions } = await req.json();
@@ -12,6 +13,6 @@ export async function POST(req: Request) {
   } catch (e: any) {
     /* A session that has expired mid-questionnaire fails right here — the
        screen needs a real 400 to react to, not a false "ok" it will believe. */
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

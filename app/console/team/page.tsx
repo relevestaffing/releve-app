@@ -5,6 +5,7 @@ import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import EmailCheck from '@/components/EmailCheck';
 import { RolePicker } from '@/components/CareControls';
+import AddAdmin from '@/components/AddAdmin';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,6 +143,7 @@ export default async function ConsoleTeam() {
             </tbody>
           </table>
         )}
+        {owner && <div style={{ marginTop: 14 }}><AddAdmin /></div>}
         <div style={{ marginTop: 18 }}>
           {TEAM_ROLES.map(r => (
             <p key={r.key} className="xs muted" style={{ marginBottom: 4 }}>
@@ -150,7 +152,7 @@ export default async function ConsoleTeam() {
           ))}
         </div>
         <p className="xs muted" style={{ marginTop: 16 }}>
-          To add a manager: they sign in once so their account exists, then set their role to admin in Supabase. Building that into this page is on the list. They appear here once it is granted.
+          To add a manager: they sign in once, then we grant admin access from our side — usually within the hour. Ask in Messages and we'll take care of it. A one-click version of this is on the list; they appear here once it's granted.
         </p>
       </div>
 

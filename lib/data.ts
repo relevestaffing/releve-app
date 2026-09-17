@@ -1,5 +1,5 @@
 /* Reads that power the dashboards. Supabase when configured, demo bench otherwise. */
-import { configured, supabaseServer, type Profile } from './supabase/server';
+import { configured, supabaseServer, currentProfile, type Profile } from './supabase/server';
 import { DEMO_BENCH, DEMO_EXEC, type Person } from './demo';
 import { matchScore, conditionCheck, archetype, dispositionLine, percentile, type Match, type CondSet } from './signature/score';
 import type { Scores, Validity, Conf } from './signature/model';
@@ -31,7 +31,13 @@ export async function getMySignature(profile: Profile | null, side: 'client'|'ta
 export async function getBench(): Promise<Person[]> {
   if (!configured()) return DEMO_BENCH;
   const sb = await supabaseServer();
-  const { data } = await sb.from('talent_directory').select('*');
+  /* Admins get the full roster (validity, facets) from talent_directory; a
+     client gets only the safe columns for their released candidates, from the
+     definer view candidate_directory — the validity internals and the facets
+     are never in a client's reach, not on screen and not through the API. */
+  const me = await currentProfile();
+  const view = me?.role === 'admin' ? 'talent_directory' : 'candidate_directory';
+  const { data } = await sb.from(view).select('*');
   return (data ?? []) as unknown as Person[];
 }
 

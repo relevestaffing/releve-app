@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { getMySignature, archetype } from '@/lib/data';
 import { getSelfProfile } from '@/lib/store';
-import { L1, L2, facetsOf } from '@/lib/signature/model';
+import { L1, L2_SHOWN, facetsOf } from '@/lib/signature/model';
 import { talentSelfLines, talentSummary } from '@/lib/plain';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
@@ -143,13 +143,13 @@ export default async function TalentProfile() {
               <div><div className="eyebrow" style={{ marginBottom: 12 }}>Working style</div>
                 <AxisBars values={sig.scores} axes={L1} /></div>
               <div><div className="eyebrow" style={{ marginBottom: 12 }}>Disposition</div>
-                <AxisBars values={sig.scores} axes={L2} /></div>
+                <AxisBars values={sig.scores} axes={L2_SHOWN} /></div>
             </div>
             {hasFacets && (
               <>
                 <div className="eyebrow" style={{ marginBottom: 12 }}>In detail</div>
                 <div className="grid-2">
-                  {L2.map(t => (
+                  {L2_SHOWN.map(t => (
                     <div key={t.key} style={{ marginBottom: 18 }}>
                       <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
                       {facetsOf(t.key).map(f => (

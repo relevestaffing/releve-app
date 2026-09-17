@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export default async function PostingFile({ params }: { params: Promise<{ id: string }> }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
   const { id } = await params;
 
   const post = await getPosting(id);
@@ -85,7 +85,7 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
       {apps.length === 0 ? (
         <div className="card empty-card">
           <div className="empty-mark" aria-hidden="true" />
-          <h3>No one has applied yet</h3>
+          <h3>The queue is empty for now</h3>
           <p className="small">
             Once someone applies to this role, they land here — grouped by where they
             stand, the same way your Applications page groups the whole queue.

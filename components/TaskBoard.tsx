@@ -57,6 +57,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
   const [busy, setBusy] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [toggling, setToggling] = useState<string | null>(null);
 
   async function load() {
     setFailed(false);
@@ -99,13 +100,25 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
   }
 
   async function toggle(t: Task) {
+    if (toggling) return;                                                            // ignore taps while one is in flight
+    setToggling(t.id);
     setTasks(list => list!.map(x => x.id === t.id ? { ...x, done: !x.done } : x));   // optimistic
-    const res = await fetch('/api/tasks', {
-      method: 'PATCH', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id: t.id, done: !t.done })
-    });
-    if (!res.ok) { toast.bad('Could not update that task.'); load(); }
-    else if (!t.done) toast.saved('Done');
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: t.id, done: !t.done })
+      });
+      if (!res.ok) { toast.bad('Could not update that task.'); load(); }        // server refused — resync to the truth
+      else if (!t.done) toast.saved('Done');
+    } catch {
+      /* the connection dropped mid-request (common on a phone in Manila or
+         Bogotá). fetch rejects rather than returning !ok, so without this the
+         optimistic flip would stay on screen while the server never heard. */
+      toast.bad('Could not reach the server — check your connection.');
+      load();
+    } finally {
+      setToggling(null);
+    }
   }
 
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -173,7 +186,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
                   const origin = ORIGINS.find(o => o.key === t.origin);
                   return (
                     <li key={t.id} className="task">
-                      <button disabled={!!busy} className="task-check" onClick={() => toggle(t)} aria-label={`Mark ${t.title} done`} />
+                      <button disabled={toggling === t.id} className="task-check" onClick={() => toggle(t)} aria-label={`Mark ${t.title} done`} />
                       <div className="task-body">
                         <div className="task-top">
                           <span className={`pri ${t.priority}`}>{PRIORITIES.find(p => p.key === t.priority)?.label}</span>
@@ -269,7 +282,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
             <ul className="task-list done">
               {done.map(t => (
                 <li key={t.id} className="task">
-                  <button disabled={!!busy} className="task-check on" onClick={() => toggle(t)} aria-label={`Reopen ${t.title}`}>✓</button>
+                  <button disabled={toggling === t.id} className="task-check on" onClick={() => toggle(t)} aria-label={`Reopen ${t.title}`}>✓</button>
                   <div className="task-body">
                     <span className="task-title">{t.title}</span>
                     {/* Who finished it, and when — recorded all along, shown nowhere. */}

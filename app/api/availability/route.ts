@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { getAvailability, setAvailability } from '@/lib/store';
+import { safeMessage } from '@/lib/errors';
 
 /* Every weekday window in minutes-from-midnight, 0–6 and 0–1440 — the same
    shape scheduling.ts's own Window type promises everywhere else it is read.
@@ -31,6 +32,6 @@ export async function POST(req: Request) {
     await setAvailability(p.id, b.timezone, b.windows);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

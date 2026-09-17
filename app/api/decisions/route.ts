@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { setDecision, teamEmails, personEmail } from '@/lib/work';
 import { send, templates } from '@/lib/email';
+import { safeMessage } from '@/lib/errors';
 
 /* An executive's yes or no on the candidate in front of them.
    -----------------------------------------------------------
@@ -44,6 +45,6 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

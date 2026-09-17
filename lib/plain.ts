@@ -4,7 +4,7 @@
    should not have to. This turns a scored profile into sentences
    a person reads once and understands.
    ============================================================ */
-import { AXES, FACETS, L1, L2 } from './signature/model';
+import { AXES, FACETS, L1, L2, L2_SHOWN } from './signature/model';
 import type { Scores } from './signature/model';
 import type { Match } from './signature/score';
 
@@ -235,9 +235,9 @@ export function fitSentence(m: Match, firstName: string): string {
 
 /* Talent: what this profile is good for, in one sentence. */
 export function talentSummary(scores: Scores, archetypeName: string): string {
-  const strongest = L2.map(a => ({ a, v: scores[a.key] ?? 50 }))
+  const strongest = L2_SHOWN.map(a => ({ a, v: scores[a.key] ?? 50 }))
     .sort((x, y) => Math.abs(y.v - 50) - Math.abs(x.v - 50))[0];
   const word = (strongest.v >= 50 ? strongest.a.hi : strongest.a.lo).toLowerCase();
   return `Your profile came out as ${archetypeName}, and the thing that stands out most is how ${word} you are.`;
 }
-export { L1, L2 };
+export { L1, L2, L2_SHOWN };

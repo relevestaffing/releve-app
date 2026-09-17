@@ -11,7 +11,7 @@ import { listVetting } from '@/lib/work';
 import { getPayout } from '@/lib/payout';
 import { payoutReady } from '@/lib/payout-public';
 import { getRoleBreakdown, getSkills, roleComplete, skillsComplete } from '@/lib/roles';
-import { L1, L2 } from '@/lib/signature/model';
+import { L1, L2_SHOWN } from '@/lib/signature/model';
 import { execSelfLines, talentSelfLines, fitSentence } from '@/lib/plain';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
@@ -24,7 +24,7 @@ import { stepsFor } from '@/lib/care';
 import PlacedSummary from '@/components/PlacedSummary';
 import PlacementProgress from '@/components/PlacementProgress';
 import TaskBoard from '@/components/TaskBoard';
-import DepositGate from '@/components/DepositGate';
+import ExecOnboarding from '@/components/ExecOnboarding';
 import GuaranteeBadge from '@/components/GuaranteeBadge';
 import { depositGateFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
@@ -103,7 +103,6 @@ export default async function AppHome() {
     side === 'client' && stage.hiring && !stage.placed
       ? getSearch(profile.id) : Promise.resolve(null)
   ]);
-  const depositDue = deposit?.status === 'due';
   /* Steps per placement, for the read-only onboarding progress card below —
      most executives have exactly one placement, so this is rarely more than
      a single extra read. */
@@ -140,15 +139,36 @@ export default async function AppHome() {
       });
   const setup = progress(steps);
 
+  /* ---------- executive onboarding: vision, then deposit, then Signature ----------
+     The search opens on the deposit, not before (the Book's rule), so before
+     the deposit is in the account's job is the case and the $500 — never the
+     Signature. Any non-placed client whose deposit is not yet paid or waived
+     lands in the guided vision-and-deposit onboarding, whether or not a
+     Signature exists yet. This deliberately runs ahead of the Signature gate
+     below, which from here on only ever catches talent, and clients who have
+     already paid and still owe their Signature. A placed executive never
+     enters here. */
+  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived';
+  if (side === 'client' && !stage.placed && !depositSettled) {
+    return (
+      <Shell profile={profile} active="/app"
+        title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
+        crumb={profile.org_name ?? 'Executive'}>
+        <ExecOnboarding deposit={deposit} stripeOn={stripeReady()} />
+      </Shell>
+    );
+  }
+
   if (!sig) return (
     <Shell profile={profile} active="/app"
       title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
       crumb="Getting set up">
-      <Checklist steps={steps} heading="Before we can begin your search" />
+      <Checklist steps={steps}
+        heading={side === 'client' ? 'Now let’s build your Signature' : 'Before we can begin your search'} />
       <div className="card tight">
         <p className="small muted">
           {side === 'client'
-            ? 'Nothing is shown to you until your Signature exists — every candidate is scored against it first. Your Client Success Manager will be in touch either way.'
+            ? 'Your search is open and your deposit is in. The Signature is the last thing we need from you — every candidate is scored against it before their name reaches you. Your Client Success Manager is already sourcing.'
             : 'Nothing is matched until your Signature exists. Once these are done, we do the work — your Talent Success Manager will come to you when a role fits.'}
         </p>
       </div>
@@ -265,7 +285,11 @@ export default async function AppHome() {
               <PlacedSummary placements={placements} hiring={stage.hiring} />
             </div>
           </div>
-        ) : depositDue ? <DepositGate cents={deposit!.cents} stripeOn={stripeReady()} /> : (
+        ) : (
+          /* The deposit is settled by the time an executive reaches here — the
+             onboarding branch above intercepts every unpaid, unplaced client —
+             so this is the between-deposit-and-placement view: the guarantee
+             countdown and whatever needs them. */
           <>
             {brief?.opened_at && <GuaranteeBadge openedAt={brief.opened_at} firstCandidateOn={brief.first_candidate_on ?? null} />}
             {needsAttention}
@@ -309,7 +333,7 @@ export default async function AppHome() {
               <div><div className="eyebrow" style={{ marginBottom: 12 }}>Working style</div>
                 <AxisBars values={sig.scores} axes={L1} /></div>
               <div><div className="eyebrow" style={{ marginBottom: 12 }}>Disposition</div>
-                <AxisBars values={sig.scores} axes={L2} /></div>
+                <AxisBars values={sig.scores} axes={L2_SHOWN} /></div>
             </div>
             <div className="row" style={{ marginTop: 20 }}>
               <Link className="btn sm ghost" href="/app/signature">Retake the assessment</Link>

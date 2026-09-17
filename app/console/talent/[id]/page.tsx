@@ -27,7 +27,7 @@ export const dynamic = 'force-dynamic';
 export default async function TalentFile({ params }: { params: Promise<{ id: string }> }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
   const { id } = await params;
 
   const self = await getSelfProfile(id);

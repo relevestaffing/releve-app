@@ -5,6 +5,7 @@ import {
   markThreadRead, personEmail, sendMessage, teamEmails
 } from '@/lib/work';
 import { send, templates } from '@/lib/email';
+import { safeMessage } from '@/lib/errors';
 
 export async function GET(req: Request) {
   const me = await currentProfile();
@@ -37,7 +38,9 @@ export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   const b = await req.json();
-  const body = String(b.body ?? '').trim();
+  /* Every other write route caps its text; this one did not, so a signed-in
+     account could post an arbitrarily large body, repeatedly. */
+  const body = String(b.body ?? '').trim().slice(0, 8000);
   if (!body) return NextResponse.json({ error: 'nothing to send' }, { status: 400 });
   const team = me.role === 'admin';
   const placementId = typeof b.placement_id === 'string' && b.placement_id ? b.placement_id : null;
@@ -86,6 +89,6 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

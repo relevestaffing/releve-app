@@ -2,6 +2,7 @@
    Supabase when configured; an in-memory store in demo mode so the
    console is fully clickable before any account exists. */
 import { configured, supabaseServer } from './supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { DEMO_BENCH, DEMO_EXEC } from './demo';
 import { DEFAULT_WINDOWS, type Availability, type Window } from './scheduling';
 
@@ -104,7 +105,7 @@ function seed() {
     scope: 'Inbox and calendar, board prep, and running the weekly leadership meeting end to end.',
     hours: '40 a week, with four hours overlapping 8am–12pm Pacific',
     tools: 'Notion, Superhuman, Ramp, HubSpot',
-    target_at: 'Within six weeks', stage: 'Interviewing'
+    target_at: new Date(Date.now() + 42 * 86_400_000).toISOString().slice(0, 10), stage: 'Interviewing'
   });
   mem.matches = DEMO_BENCH.filter(p => p.stage === 'Vetted').slice(0, 4).map((p, i) => ({
     id: 'm' + i, client_id: 'demo-client', talent_id: p.id,
@@ -160,6 +161,35 @@ export async function setAvailability(userId: string, timezone: string, windows:
   const { error } = await sb.from('availability')
     .upsert({ user_id: userId, timezone, windows }, { onConflict: 'user_id' });
   if (error) throw new Error(error.message);
+}
+
+export type AttendeeInfo = { name: string | null; timezone: string; role: string | null };
+/* Match calendar attendees (raw emails off Google's invite) back to known
+   Relève accounts, so the Console Calendar can show a booked call's time in
+   the other person's own zone -- talent joining from Manila, a client on
+   Eastern -- next to the Pacific time the team itself reads it in.
+   availability.timezone wins when set (it's what the person actually
+   confirmed for booking); profiles.timezone is the fallback. Anyone who
+   hasn't signed in yet, or whose email doesn't match an account, is simply
+   left out -- most attendees on any given event are hello@ itself anyway. */
+export async function attendeeTimezones(emails: string[]): Promise<Map<string, AttendeeInfo>> {
+  const out = new Map<string, AttendeeInfo>();
+  const clean = [...new Set(emails.map(e => e.toLowerCase().trim()).filter(Boolean))];
+  if (!clean.length || !configured()) return out;
+  const sb = await supabaseServer();
+  const { data: profiles } = await sb.from('profiles')
+    .select('id, email, full_name, timezone, role').in('email', clean);
+  const rows = (profiles ?? []) as any[];
+  if (!rows.length) return out;
+  const { data: avail } = await sb.from('availability')
+    .select('user_id, timezone').in('user_id', rows.map(p => p.id));
+  const availTz = new Map(((avail ?? []) as any[]).map(a => [a.user_id, a.timezone]));
+  for (const p of rows) {
+    const tz = (availTz.get(p.id) || p.timezone || '').trim();
+    if (!tz || !p.email) continue;
+    out.set((p.email as string).toLowerCase(), { name: p.full_name ?? null, timezone: tz, role: p.role ?? null });
+  }
+  return out;
 }
 
 /* ---------- the role brief ---------- */
@@ -362,6 +392,57 @@ export async function listPending() {
   const sb = await supabaseServer();
   const { data } = await sb.from('pending_people').select('*').order('created_at', { ascending: false });
   return data ?? [];
+}
+
+/** Remove a record the console added that nobody has claimed yet — a row in
+    pending_people only. No account exists for it, so this simply forgets it. */
+export async function deletePendingPerson(id: string) {
+  if (!configured()) { seed(); mem.people = mem.people.filter((p: any) => p.id !== id); return; }
+  const sb = await supabaseServer();
+  const { error } = await sb.from('pending_people').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Remove someone's account entirely. profiles.id references auth.users on
+    delete cascade, and nearly every other table references profiles the same
+    way — so deleting the auth user is the one call that takes their Signature,
+    interviews, matches, availability, feedback and placement history with it.
+    A few audit-trail columns (who released a match, who confirmed an
+    interview) are "on delete set null" instead, so the record they are on
+    survives with that name simply gone from it. This cannot be undone, which
+    is why the console makes admins type the person's name before calling it. */
+export async function deleteAccount(id: string) {
+  if (!configured()) {
+    seed();
+    mem.selves.delete(id);
+    mem.people = mem.people.filter((p: any) => p.id !== id);
+    return;
+  }
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+           ?? process.env.SUPABASE_SECRET_KEY
+           ?? process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) throw new Error('Server is missing its Supabase service key.');
+  const admin = createClient(url, key, { auth: { persistSession: false } });
+
+  /* Deleting the auth user cascades every database row that references it.
+     But identity documents, the photo and the intro video live in storage
+     BUCKETS keyed by the person's id — not database rows — so the cascade
+     never touches them. Clear those first, or a deletion request leaves the
+     person's passport sitting in the vetting bucket. Storage errors are
+     logged but do not block the account deletion itself. */
+  for (const bucket of ['vetting', 'avatars', 'intros']) {
+    try {
+      const { data: objs } = await admin.storage.from(bucket).list(id);
+      if (objs && objs.length)
+        await admin.storage.from(bucket).remove(objs.map(o => `${id}/${o.name}`));
+    } catch (e) {
+      console.error('[erase] could not clear', bucket, 'for', id, e);
+    }
+  }
+
+  const { error } = await admin.auth.admin.deleteUser(id);
+  if (error) throw new Error(error.message);
 }
 export { DEMO_EXEC };
 

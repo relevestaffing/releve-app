@@ -171,6 +171,12 @@ const p = (s: string) => `<p style="margin:0 0 15px;">${s}</p>`;
    from someone already signed in, doing something narrower than "write
    anything" (a decline reason, a time-off note), so this stays scoped to the
    one template that needs it rather than touched everywhere on principle. */
+/* Everything a person typed gets escaped before it goes into an email, not
+   only what a stranger typed. A signed-in talent or executive is still
+   somebody else's input: an anchor tag pasted into a placement message would
+   otherwise arrive as a live link inside a genuine, correctly-signed Relève
+   email, which is a better phishing vector than anything an outsider can
+   build. */
 const esc = (s: unknown) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -183,10 +189,10 @@ const rawTemplates = {
       ...(o?.docsUrl ? [{ label: 'Sign your paperwork', href: o.docsUrl }] : [])];
     return {
       subject: 'Your Relève account is ready',
-      text: `${name ? name + ',' : 'Hello,'}\n\nYou have been invited to Relève because someone here thinks you are worth placing well.\n\nSign in at ${SITE} using this email address — there is no password, we send you a link.\n\nThere are a few things to do before you can be matched: a twenty-minute assessment, your availability, and verifying who you are. Your dashboard walks you through them.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\n— Relève`,
+      text: `${name ? name + ',' : 'Hello,'}\n\nYou have been invited to join the Relève roster — the assessed, verified group we put in front of executives.\n\nSign in at ${SITE} using this email address — there is no password, we send you a link.\n\nThere are a few things to do before you can be matched: a twenty-minute assessment, your availability, and verifying who you are. Your dashboard walks you through them.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\n— Relève`,
       html: shell('Your account is ready',
         p(`${name ? name + ',' : 'Hello,'}`) +
-        p('You have been invited to Relève because someone here thinks you are worth placing well.') +
+        p('You have been invited to join the Relève roster — the assessed, verified group we put in front of executives.') +
         p('There is no password. Sign in with this email address and we send you a link.') +
         p('Before you can be matched there are a few things to do — a twenty-minute assessment, your availability, and verifying who you are. Your dashboard walks you through them in order.'),
         { label: 'Open your account', href: SITE }, links)
@@ -246,13 +252,11 @@ const rawTemplates = {
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThank you for your time today — it was genuinely exciting hearing what you're building, and I appreciate your honesty about where you need support.\n\nRunning a growing business without the right person beside you means everything eventually lands on your desk — the calendar, the inbox, the fires only you have time for. This is where we step in. Relève is not filling a task list; we are placing your right hand — someone who allows you to finally prioritize what will actually grow your business and is deserving of your attention. Don't worry, the solution is finally here.\n\nConsider it handled.\n\nHere's what's next: review the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Relève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nGood talking today. Running a growing business without the right person beside you means everything eventually lands on your desk — the calendar, the inbox, the fires only you have time for. Relève is not filling a task list; we are placing your right hand.\n\nYour deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you — talk soon.\n\n— Relève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
-        p(`Thank you for your time today — it was genuinely exciting hearing what you're building, and I appreciate your honesty about where you need support.`) +
-        p(`Running a growing business without the right person beside you means everything eventually lands on your desk — the calendar, the inbox, the fires only you have time for. This is where we step in. Relève is not filling a task list; we are placing your right hand — someone who allows you to finally prioritize what will actually grow your business and is deserving of your attention. Don't worry, the solution is finally here.`) +
-        `<p style="margin:22px 0 22px;font-family:Georgia,'Times New Roman',serif;font-size:19px;color:#35443A;">Consider it handled.</p>` +
-        p(`Here's what's next: review the agreement, pay your ${amount} deposit — which is what opens your search — and set up your Relève account.`) +
+        p(`Good talking today. Running a growing business without the right person beside you means everything eventually lands on your desk — the calendar, the inbox, the fires only you have time for. Relève is not filling a task list; we are placing your right hand.`) +
+        p(`Your deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account.`) +
         steps.map(stepRow).join('') +
         `<p style="margin:18px 0 0;font-size:13px;color:#7C897F;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you — talk soon.</p>` +
@@ -323,12 +327,12 @@ const rawTemplates = {
   }),
 
   vettingRejected: (name: string, item: string, reason: string) => ({
-    subject: `${item} — one more go`,
+    subject: `${item} — needs a retake`,
     text: `${name},\n\nWe could not accept the ${item.toLowerCase()} you sent. ${reason}\n\nUpload another at ${SITE}/app/vetting — it takes a minute.\n\n— Relève`,
-    html: shell('One more go',
-      p(`${name},`) +
-      p(`We could not accept the ${item.toLowerCase()} you sent.`) +
-      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;">${reason}</p>` +
+    html: shell('Almost there — one document needs a retake',
+      p(`${esc(name)},`) +
+      p(`We could not accept the ${esc(item.toLowerCase())} you sent.`) +
+      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;">${esc(reason)}</p>` +
       p('Nothing else is affected — send another when you have a moment.'),
       { label: 'Upload another', href: `${SITE}/app/vetting` })
   }),
@@ -348,9 +352,9 @@ const rawTemplates = {
   newMessage: (o: { name: string; from: string; preview: string; toTeam: boolean }) => ({
     subject: o.toTeam ? `${o.from} wrote to you` : 'A reply from Relève',
     text: `${o.name},\n\n${o.toTeam ? `${o.from} has written to you.` : 'Your account manager has replied.'}\n\n"${o.preview}"\n\n${SITE}/app/messages\n\n— Relève`,
-    html: shell(o.toTeam ? `${o.from} wrote to you` : 'A reply from Relève',
-      p(`${o.name},`) +
-      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;font-style:italic;">${o.preview}</p>`,
+    html: shell(o.toTeam ? `${esc(o.from)} wrote to you` : 'A reply from Relève',
+      p(`${esc(o.name)},`) +
+      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;font-style:italic;">${esc(o.preview)}</p>`,
       { label: 'Read and reply', href: o.toTeam ? `${SITE}/console/messages` : `${SITE}/app/messages` })
   }),
 
@@ -711,8 +715,8 @@ const rawTemplates = {
     subject: `Check-in needs a look — ${o.talent}`,
     text: `${o.talent}'s weekly check-in needs a closer look.\n\n${o.why}\n\n${SITE}/console/checkins\n\n— Relève`,
     html: shell('A check-in needs a look',
-      p(`<b>${o.talent}</b>'s weekly check-in needs a closer look.`) +
-      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #7A2E26;">${o.why}</p>`,
+      p(`<b>${esc(o.talent)}</b>'s weekly check-in needs a closer look.`) +
+      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #7A2E26;">${esc(o.why)}</p>`,
       { label: 'Open check-ins', href: `${SITE}/console/checkins` })
   })
 };

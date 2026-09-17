@@ -7,10 +7,14 @@ export default function GuaranteeBadge({ openedAt, firstCandidateOn }: {
   openedAt: string; firstCandidateOn: string | null;
 }) {
   const today = new Date().toISOString().slice(0, 10);
+  /* Count ELAPSED days, the same convention the console's guarantee_watch
+     uses (current_date - opened_at). The old +1 made the badge read "Day 15 /
+     overdue" while the console still showed 14 days open — the two disagreed
+     by a day on the client's own screen. */
   const dayNumber = Math.max(1, Math.round(
     (new Date((firstCandidateOn ?? today) + 'T00:00:00Z').getTime() -
      new Date(openedAt + 'T00:00:00Z').getTime()) / 86_400_000
-  ) + 1);
+  ));
   const met = !!firstCandidateOn;
   const withinPromise = met && dayNumber <= 14;
   const overdue = !met && dayNumber > 14;

@@ -14,6 +14,7 @@ import { PAYOUT_METHODS, periodLabel, taxClear, taxNote,
 export function RunPayroll({ month }: { month: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
 
   async function run() {
     setBusy(true);
@@ -28,12 +29,20 @@ export function RunPayroll({ month }: { month: string }) {
       router.refresh();
     } catch { toast.bad('No connection.'); }
     setBusy(false);
+    setArmed(false);
   }
 
+  /* One deliberate step before the payroll run, same as the billing run. */
+  if (!armed) return (
+    <button className="btn sm solid" onClick={() => setArmed(true)}>Run payroll</button>
+  );
   return (
-    <button className="btn sm solid" disabled={busy} onClick={run}>
-      {busy ? 'Working…' : 'Run payroll'}
-    </button>
+    <span className="rate-set">
+      <button className="btn sm solid" disabled={busy} onClick={run}>
+        {busy ? 'Working…' : 'Yes, list this month’s pay'}
+      </button>
+      <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button>
+    </span>
   );
 }
 

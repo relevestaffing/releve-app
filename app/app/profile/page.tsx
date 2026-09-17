@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { getSelfProfile, getSearch } from '@/lib/store';
 import { getMySignature, archetype } from '@/lib/data';
-import { execSelfLines, talentSummary, facetDetail, L1, L2 } from '@/lib/plain';
+import { execSelfLines, talentSummary, facetDetail, L1, L2_SHOWN } from '@/lib/plain';
+import { fmtDate } from '@/lib/words';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import NextStep from '@/components/NextStep';
@@ -124,13 +125,13 @@ export default async function ExecProfile() {
                   <div><div className="eyebrow" style={{ marginBottom: 12 }}>Working style</div>
                     <AxisBars values={sig.scores} axes={L1} /></div>
                   <div><div className="eyebrow" style={{ marginBottom: 12 }}>Disposition</div>
-                    <AxisBars values={sig.scores} axes={L2} /></div>
+                    <AxisBars values={sig.scores} axes={L2_SHOWN} /></div>
                 </div>
                 {hasFacets && (
                   <>
                     <div className="eyebrow" style={{ marginBottom: 12 }}>In detail</div>
                     <div className="grid-2">
-                      {L2.map(t => (
+                      {L2_SHOWN.map(t => (
                         <div key={t.key} style={{ marginBottom: 18 }}>
                           <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
                           {facetDetail('client', sig.facets).filter(f => f.trait === t.key).map(f => (
@@ -170,7 +171,7 @@ export default async function ExecProfile() {
             {brief.scope && <><dt>Owns</dt><dd>{brief.scope}</dd></>}
             {brief.hours && <><dt>Hours</dt><dd>{brief.hours}</dd></>}
             {brief.tools && <><dt>Tools</dt><dd>{brief.tools}</dd></>}
-            {brief.target_at && <><dt>Start</dt><dd>{brief.target_at}</dd></>}
+            {brief.target_at && <><dt>Start</dt><dd>{fmtDate(brief.target_at)}</dd></>}
           </dl>
         </div>
       )}

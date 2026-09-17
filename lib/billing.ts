@@ -368,12 +368,16 @@ export async function chargeInvoice(invoiceId: string): Promise<{ status: string
          request or a second tab all resolve to the same single payment. */
       idempotencyKey: `invoice:${invoiceId}`
     });
-  } catch (e) {
-    /* The claim above stands whether or not the charge itself went through —
-       release it back to 'sent' on failure so a retry, or the client's own
-       "pay now" button, can try again instead of the invoice sitting stuck
-       at 'processing' with no charge behind it. */
-    await sb.from('invoices').update({ status: 'sent' }).eq('id', invoiceId).eq('status', 'processing');
+  } catch (e: any) {
+    /* Record the failed attempt as 'failed' with the reason, rather than
+       reverting to 'sent' where it would look like an invoice nobody had tried
+       to charge (M2). A retry still works — the claim above accepts 'sent' or
+       'failed' — and the client's own "pay now" link still works, because
+       checkoutForInvoice also accepts 'failed'. The money view now shows a
+       failed autopay as Failed, with the reason, instead of hiding it. */
+    await sb.from('invoices')
+      .update({ status: 'failed', failure_reason: String(e?.message ?? 'The charge did not go through.').slice(0, 300) })
+      .eq('id', invoiceId).eq('status', 'processing');
     throw e;
   }
 

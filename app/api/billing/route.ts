@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { startPaymentSetup, startDepositPayment, startInvoicePayment, chargeInvoice } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     try {
       const url = await startPaymentSetup(me.id, me.email, me.full_name);
       return NextResponse.json({ ok: true, url });
-    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+    } catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }
 
   /* An executive paying their own $500 search deposit — on-session, their
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     try {
       const url = await startDepositPayment(me.id, me.email, me.full_name);
       return NextResponse.json({ ok: true, url });
-    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+    } catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }
 
   /* An executive paying one of their own invoices — on-session, their own
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     try {
       const url = await startInvoicePayment(me.id, me.email, me.full_name, String(b.invoice_id));
       return NextResponse.json({ ok: true, url });
-    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+    } catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }
 
   /* Taking money is Relève's, never the client's — an executive charging

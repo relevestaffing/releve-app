@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { saveSearch, setSearchOpen } from '@/lib/store';
+import { safeMessage } from '@/lib/errors';
 
 /* The Relève team records what a client is hiring for. Clients never post here —
    the brief comes off the intro call, not out of a form they fill in themselves. */
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  if (configured() && me.role !== 'admin') return NextResponse.json({ error: 'not allowed' }, { status: 403 });
+  if (me.role !== 'admin') return NextResponse.json({ error: 'not allowed' }, { status: 403 });
 
   const { client_key, pending, action, reason, ...patch } = await req.json();
   if (!client_key) return NextResponse.json({ error: 'no client' }, { status: 400 });
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
   try {
     await saveSearch(client_key, clean, !!pending);
   } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? 'That did not save.' }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
   return NextResponse.json({ ok: true });
 }

@@ -287,6 +287,75 @@ it is hiding.
 
 ---
 
+## Stage 7 — The Console Calendar (hello@ bookings), 15 minutes
+
+This is different from Stage 6. Stage 6 lets each person hide their own busy
+times. This stage makes discovery calls, interviews and everything else booked
+on **hello@relevestaffing.com** show up automatically on the Console's
+**Calendar** page, for every admin to see. Skip it and that page just says
+it isn't connected yet, which is harmless.
+
+**7.1** Go to console.cloud.google.com, make sure the **Releve** project from
+Stage 3 is selected top left, then go to **IAM & Admin → Service Accounts →
+Create service account**.
+
+- Name: `releve-calendar-reader`
+- Click **Create and continue**, then **Continue**, then **Done** — skip
+  granting it any roles, it doesn't need any.
+
+**7.2** Click into the service account you just made. Look for **Show domain-
+wide delegation** (sometimes shown as a checkbox during creation, sometimes as
+a link on the details page afterward). Turn it on. It will ask for a product
+name for the consent screen — type `Relève` — and save.
+
+You should now see a **Client ID** on that page: a long number, distinct from
+the service account's email address. Copy it.
+
+**7.3** Go to admin.google.com (you need to be a super admin for
+relevestaffing.com, which you are). Go to **Security → Access and data
+control → API controls → Domain-wide delegation → Add new**.
+
+- Client ID: paste the number from 7.2
+- OAuth scopes: `https://www.googleapis.com/auth/calendar.readonly`
+
+Click **Authorize**. This is the one real permission grant in this whole
+stage: it lets that one service account read free/busy and event details on
+your Workspace calendars, nothing else, and you can revoke it here at any
+time.
+
+**7.4** Back in Google Cloud, on the service account's **Keys** tab: **Add
+key → Create new key → JSON → Create**. A file downloads — something like
+`releve-12345.json`. Open it in TextEdit.
+
+If key creation is blocked with "Service account key creation is disabled":
+your org now defaults new projects to block key downloads. Go to **IAM &
+Admin → Organization Policies**, search `service account key creation`, open
+**Disable service account key creation**, **Manage Policy → Add a rule**,
+set **Enforcement** to **Off**, save, then try the key again.
+
+**7.5** In that file you need two values: `client_email` and `private_key`
+(the private_key is long and starts `-----BEGIN PRIVATE KEY-----`).
+
+Go to your Netlify site → **Site configuration → Environment variables → Add
+a variable**, and add:
+
+```
+GOOGLE_CALENDAR_CLIENT_EMAIL=<the client_email value, no quotes>
+GOOGLE_CALENDAR_PRIVATE_KEY=<the whole private_key value, no quotes>
+```
+
+Paste the private key exactly as it appears in the file, `\n` characters and
+all — don't try to reformat it.
+
+> Delete the downloaded JSON file once it's pasted in. Never send it by email
+> or put it in the repo — whoever holds it can read hello@'s calendar.
+
+**7.6** Netlify → **Deploys → Trigger deploy → Deploy site**. When it
+finishes, reload the Console **Calendar** page — the "not connected" message
+is gone and hello@'s next 30 days shows up.
+
+---
+
 ## How people get accounts
 
 You add people from the console — **Clients** and **Talent Bench** both have an

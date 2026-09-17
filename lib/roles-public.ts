@@ -49,6 +49,15 @@ export type SkillsProfile = {
 
 export const key = (discipline: string, item: string) => `${discipline}.${item}`;
 
+/* One shared source for the "you picked nothing" validation copy on both
+   sides of this form, so the executive's and the talent's wording can't
+   quietly drift apart from being hand-typed in two components. The words
+   still differ — "this role" versus "you" — because the audiences do. */
+export const PICK_ONE_DISCIPLINE = {
+  role: 'Pick at least one kind of work first.',
+  skills: 'Pick at least one kind of work you are good at.'
+} as const;
+
 /* ---------- how complete is each side ---------- */
 export function roleComplete(r: RoleBreakdown | null): boolean {
   if (!r?.disciplines?.length) return false;

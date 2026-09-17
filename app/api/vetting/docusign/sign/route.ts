@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { docusignReady, sendTalentAgreement, embeddedSigningUrl } from '@/lib/docusign';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +49,6 @@ export async function POST() {
     });
     return NextResponse.json({ ok: true, url });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

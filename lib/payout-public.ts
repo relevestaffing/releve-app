@@ -65,6 +65,14 @@ export const PAYOUT_METHODS: { key: PayoutMethod; label: string; asks: string; h
     hint: 'If none of the above suits you, describe what does.' }
 ];
 
+/* One shared source for the tax-residency prompt, reused everywhere it is
+   asked — the payout API's two validation states and the setup checklist —
+   so the wording can't quietly drift apart from being hand-typed in three
+   places. TAX_COUNTRY_PROMPT stays a separate string because it asks a
+   different, later question (which country, not whether one's been given). */
+export const TAX_RESIDENCE_PROMPT = 'Tell us where you are tax resident';
+export const TAX_COUNTRY_PROMPT = 'Which country are you tax resident in?';
+
 export const PAYMENT_STATE: { key: PaymentState; label: string; tone: string }[] = [
   { key: 'due',    label: 'Due',    tone: 'warn' },
   { key: 'sent',   label: 'Sent',   tone: 'good' },
@@ -106,7 +114,7 @@ export function payoutMissing(p: Partial<Payout> | null): string[] {
   const out: string[] = [];
   if (!(p.beneficiary ?? '').trim()) out.push('We need the name on the account, exactly as it appears there.');
   if (!(p.detail ?? '').trim()) out.push('We need the account details themselves.');
-  if (!taxAnswered(p)) out.push('Tell us where you are tax resident — one question, below.');
+  if (!taxAnswered(p)) out.push(`${TAX_RESIDENCE_PROMPT} — one question, below.`);
   return out;
 }
 

@@ -4,6 +4,23 @@ import { cookies } from 'next/headers';
 export const configured = () =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+/* Demo mode is something you turn ON, never something that happens to you.
+   ----------------------------------------------------------------------
+   It used to be inferred from `!configured()` alone, which made a missing
+   environment variable indistinguishable from a deliberate preview build —
+   and the demo path hands out an admin profile on the strength of an
+   unsigned cookie anyone can set. Next inlines NEXT_PUBLIC_* at BUILD time,
+   so a production build that ran without those variables present would have
+   shipped a site serving full admin to `releve_demo_role=admin`, while the
+   Netlify dashboard still listed the variables as set.
+
+   Requiring an explicit opt-in reverses the failure direction: a
+   misconfigured build now signs nobody in, instead of signing everybody in
+   as Relève. Set NEXT_PUBLIC_DEMO_MODE=1 on a preview deploy that is meant
+   to be a walkthrough; never on app.relevestaffing.com. */
+export const demoMode = () =>
+  process.env.NEXT_PUBLIC_DEMO_MODE === '1' && !configured();
+
 /** Server-side Supabase client bound to the request's cookies. */
 export async function supabaseServer() {
   const store = await cookies();
@@ -32,6 +49,9 @@ export type Profile = {
     account you are previewing — see the switcher in the sidebar. */
 export async function currentProfile(): Promise<Profile | null> {
   if (!configured()) {
+    /* No database. Without the explicit opt-in above this is a broken deploy,
+       not a demo, and a broken deploy gets nobody — not an admin. */
+    if (!demoMode()) return null;
     const store = await cookies();
     const as = store.get('releve_demo_role')?.value;
     if (as === 'new') {

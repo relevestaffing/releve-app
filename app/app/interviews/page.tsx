@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { currentProfile } from '@/lib/supabase/server';
 import { getMySignature, rankBench, getBench } from '@/lib/data';
 import { getAvailability, listInterviews, listMatches, bookedSlots, getCalendar, noteCalendarError, getSelfProfile, getSearch } from '@/lib/store';
+import { fmtDate } from '@/lib/words';
 import { busyIntervals } from '@/lib/google-calendar';
 import { overlappingSlots, formatSlot, formatTime } from '@/lib/scheduling';
 import Shell from '@/components/Shell';
@@ -13,7 +14,7 @@ import InterviewStatus from '@/components/InterviewStatus';
 import InterviewFeedback from '@/components/InterviewFeedback';
 import { listFeedback, listDecisions } from '@/lib/work';
 import Empty from '@/components/Empty';
-import { EMPTY } from '@/lib/words';
+import { EMPTY, firstName } from '@/lib/words';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -112,7 +113,7 @@ export default async function Interviews() {
       {next && (
         <div className="card" style={{ borderLeft: '3px solid var(--fern)' }}>
           <div className="eyebrow" style={{ marginBottom: 8 }}>Next interview</div>
-          <h3 style={{ margin: '0 0 4px' }}>{isClient ? next.talent_name : next.client_name}</h3>
+          <h3 style={{ margin: '0 0 4px' }}>{(isClient ? next.talent_name : next.client_name) ?? 'Your candidate'}</h3>
           <p className="small" style={{ margin: '0 0 16px' }}>
             {formatSlot(next.starts_at, tz)}{tzLabel && ` · ${tzLabel}`}
           </p>
@@ -142,7 +143,7 @@ export default async function Interviews() {
                     <td><InterviewStatus id={iv.id} status={iv.status} mode={isClient ? 'client' : 'talent'} /></td>
                     <td>{past(iv.starts_at) || iv.status === 'Completed'
                       ? <InterviewFeedback interviewId={iv.id}
-                          who={(isClient ? iv.talent_name : iv.client_name).split(' ')[0]}
+                          who={firstName(isClient ? iv.talent_name : iv.client_name)}
                           side={isClient ? 'client' : 'talent'}
                           existing={fbByInterview[iv.id] ?? null} />
                       : iv.meeting_url
@@ -198,7 +199,7 @@ export default async function Interviews() {
                     {m.brief.scope && <><dt>Owns</dt><dd>{m.brief.scope}</dd></>}
                     {m.brief.hours && <><dt>Hours</dt><dd>{m.brief.hours}</dd></>}
                     {m.brief.tools && <><dt>Tools</dt><dd>{m.brief.tools}</dd></>}
-                    {m.brief.target_at && <><dt>Start</dt><dd>{m.brief.target_at}</dd></>}
+                    {m.brief.target_at && <><dt>Start</dt><dd>{fmtDate(m.brief.target_at)}</dd></>}
                   </dl>
                 </>
               )}

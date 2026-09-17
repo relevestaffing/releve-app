@@ -22,5 +22,10 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|logo-.*\\.png|icon.png).*)']
+  /* Real static files in /public, so the session refresh above doesn't run
+     (and burn a Supabase auth.getUser() call) on every icon, manifest and
+     service-worker request. Keep this list in sync with /public. */
+  matcher: [
+    '/((?!_next/static|_next/image|favicon\\.png|apple-touch-icon\\.png|icon-512\\.png|icon-1024\\.png|logo-.*\\.png|manifest\\.webmanifest|sw\\.js).*)'
+  ]
 };

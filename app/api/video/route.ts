@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
 import { saveSelfProfile, getSelfProfile } from '@/lib/store';
+import { looksLike } from '@/lib/filetype';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,9 +20,14 @@ export async function POST(req: Request) {
   const file = form.get('video');
   if (!(file instanceof Blob)) return NextResponse.json({ error: 'no video received' }, { status: 400 });
   if (file.size > MAX_BYTES) return NextResponse.json({ error: `That video is over ${MAX_BYTES / (1024 * 1024)}MB. Trim it down and try again.` }, { status: 413 });
-  if (!file.type.startsWith('video/')) return NextResponse.json({ error: 'that file is not a video' }, { status: 415 });
+  if (!file.type.startsWith('video/')) return NextResponse.json({ error: 'That file isn’t a video.' }, { status: 415 });
 
   const bytes = Buffer.from(await file.arrayBuffer());
+  /* Checked for real, like the photo and the vetting upload. This one is
+     shown to an executive, so a file that is not a video is a file nobody
+     asked for sitting in front of a paying client. */
+  if (!looksLike('video', bytes))
+    return NextResponse.json({ error: 'That file isn’t a video.' }, { status: 415 });
 
   /* Demo mode has no storage behind it — same fallback pattern as the photo
      route, so the walkthrough still works with no database. */

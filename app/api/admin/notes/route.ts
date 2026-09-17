@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { addNote } from '@/lib/work';
+import { safeMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   const me = await currentProfile();
@@ -12,6 +13,6 @@ export async function POST(req: Request) {
     await addNote({ placement_id: b.placement_id, author_id: me.id, body, kind: b.kind });
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

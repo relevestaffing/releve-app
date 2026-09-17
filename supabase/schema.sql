@@ -3871,3 +3871,478 @@ end $$;
 drop trigger if exists sync_deposit_invoice_t on searches;
 create trigger sync_deposit_invoice_t after update of deposit_status on searches
 for each row execute function sync_deposit_invoice();
+
+-- ============================================================
+-- PART 28 — the 15 September security audit
+-- (safe to run on top of everything above, and safe to re-run)
+-- ============================================================
+
+-- ---------- 1. a view that was reading past row-level security ----------
+-- Without security_invoker a view executes as its OWNER, not as the person
+-- querying it, so row-level security on the tables underneath simply does not
+-- apply — and Supabase's default grants make it readable through PostgREST by
+-- anyone holding the publishable anon key, which ships in every browser.
+--
+-- This is the third time this exact bug has appeared in this file (see the
+-- Decisions log entries for 10 September). It returns zero rows today only
+-- because no talent has a scored Taking The Watch attempt yet; the first one
+-- who does would have their user id and their pass/fail result readable by
+-- anyone on the internet, with no account.
+create or replace view talent_verification_badges with (security_invoker = true) as
+select
+  a.talent_id,
+  bool_or(s.overall_result = 'cleared') as verified_through_taking_the_watch
+from taking_the_watch_attempts a
+join taking_the_watch_scores s on s.attempt_id = a.id
+group by a.talent_id;
+
+-- ---------- 2. the resume bucket accepted writes to any path ----------
+-- The old policy was `with check (bucket_id = 'applications')` and nothing
+-- else: no path restriction, no owner, no shape. Since the anon key is public
+-- by design, a script could post straight at the Storage API and write files
+-- anywhere in the bucket for ever, never touching /api/apply and never meeting
+-- the rate limiter.
+--
+-- Nothing can be read back (there is no anon SELECT policy), so this was never
+-- a disclosure — it was an uncapped storage bill and a bucket full of rubbish.
+-- /api/apply only ever writes one folder deep, named either 'general' or the
+-- posting's own uuid, so that is all this now permits. Junk written outside
+-- that shape is refused; junk inside it is at least identifiable.
+drop policy if exists "anyone may attach a resume" on storage.objects;
+create policy "anyone may attach a resume" on storage.objects for insert
+  with check (
+    bucket_id = 'applications'
+    and array_length(storage.foldername(name), 1) = 1
+    and (
+      (storage.foldername(name))[1] = 'general'
+      or (storage.foldername(name))[1] ~
+         '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    )
+  );
+
+-- ---------- 3. confirm the directory view is still the safe one ----------
+-- Not a change: a check that prints a warning if the view ever loses
+-- security_invoker again. Without it, talent_directory runs as its owner and
+-- would expose every talent's name, photo, location, psychometric scores,
+-- validity flags and Drive facets to anyone with the anon key. This file is the
+-- single source of truth for the schema; always run the whole of it.
+do $$
+declare opts text[];
+begin
+  select reloptions into opts from pg_class where relname = 'talent_directory';
+  if opts is null or not ('security_invoker=true' = any(opts)) then
+    raise warning 'talent_directory is NOT security_invoker — it is reading past row-level security. Re-run PART 27 of this file.';
+  else
+    raise notice 'talent_directory: security_invoker confirmed.';
+  end if;
+end $$;
+
+-- ============================================================
+-- PART 29 — billing correctness (approved 16 Sep 2026)
+-- Safe to run on top of everything above, and safe to re-run.
+-- Fixes, in order of stakes:
+--   C1  the $500 deposit was charged twice: a full retainer plus a separate
+--       negative "credit" invoice that charging never touches. Now the deposit
+--       is netted INTO the first retainer, and no separate credit is made.
+--   C3  a mid-month start was billed a full month. Now the first retainer is
+--       prorated to the days actually worked that month.
+--   C2  giving notice never stopped billing. Now notice sets an end date the
+--       billing run respects, and the run auto-ends placements past it.
+--   C4  notice now ends on the FIRST MONDAY of the following month, matching
+--       the written terms (was: end of the following calendar month).
+-- ============================================================
+
+-- the end date notice implies, stored so billing and payroll can respect it
+alter table placement_terms add column if not exists notice_ends_on date;
+
+-- give_notice: record the notice date AND the first-Monday end date it implies
+create or replace function give_notice(p_placement uuid) returns date
+language plpgsql security definer as $$
+declare d date; ends date;
+        today date := (now() at time zone 'America/Los_Angeles')::date;  -- C6: the business runs on Pacific
+begin
+  if not exists (select 1 from placements p
+                  where p.id = p_placement and p.client_id = auth.uid() and p.ended_on is null) then
+    raise exception 'not your placement';
+  end if;
+  update placement_terms
+     set notice_given_on = coalesce(notice_given_on, today), updated_at = now()
+   where placement_id = p_placement
+   returning notice_given_on into d;
+  if d is null then
+    insert into placement_terms (placement_id, notice_given_on) values (p_placement, today)
+    on conflict (placement_id) do update set notice_given_on = coalesce(placement_terms.notice_given_on, today)
+    returning notice_given_on into d;
+  end if;
+  -- first Monday of the month AFTER the notice month
+  ends := first_monday((date_trunc('month', d) + interval '1 month')::date);
+  update placement_terms set notice_ends_on = ends where placement_id = p_placement;
+  return d;
+end $$;
+revoke all on function give_notice(uuid) from public;
+grant execute on function give_notice(uuid) to authenticated;
+
+-- the retainer run, rewritten: prorate the first month, net the deposit into
+-- it, and stop once notice has taken effect
+create or replace function issue_monthly_retainers(for_month date default current_date)
+returns int language plpgsql security definer as $$
+declare
+  p_start date := date_trunc('month', for_month)::date;
+  p_end   date := (date_trunc('month', for_month) + interval '1 month - 1 day')::date;
+  billing date := first_monday(for_month);
+  made    int  := 0;
+  r       record;
+  dep     record;
+  issued  date;
+  base    int;
+  is_first boolean;
+  note    text;
+begin
+  if not is_team_or_service() then
+    raise exception 'only Releve may issue invoices';
+  end if;
+
+  -- a placement whose notice has taken effect is ended on its notice date, so
+  -- it drops off the active lists and stops billing from the following period
+  update placements pl
+     set ended_on = t.notice_ends_on
+    from placement_terms t
+   where t.placement_id = pl.id
+     and t.notice_ends_on is not null
+     and pl.ended_on is null
+     and t.notice_ends_on <= p_end;
+
+  for r in
+    select pl.id, pl.client_id, pl.started_on, t.rate_month_cents, t.notice_ends_on
+    from placements pl
+    join placement_terms t on t.placement_id = pl.id
+    where t.rate_month_cents is not null
+      and pl.started_on <= p_end
+      and (pl.ended_on is null
+           or pl.ended_on >= p_start
+           or minimum_term_ends(t, pl.started_on) >= p_start)
+      -- once notice has taken effect, the following period is not billed
+      and (t.notice_ends_on is null
+           or date_trunc('month', t.notice_ends_on)::date > p_start)
+      and not exists (
+        select 1 from invoices i
+        where i.placement_id = pl.id and i.kind = 'retainer' and i.period_start = p_start)
+  loop
+    is_first := not exists (
+      select 1 from invoices i where i.placement_id = r.id and i.kind = 'retainer');
+    issued := greatest(billing, r.started_on);
+    base   := r.rate_month_cents;
+    note   := 'Monthly retainer';
+
+    -- C3: prorate the first month if the placement started mid-period
+    if is_first and r.started_on > p_start and r.started_on <= p_end then
+      base := round(r.rate_month_cents::numeric
+                    * (p_end - r.started_on + 1)         -- days actually worked
+                    / (p_end - p_start + 1))::int;        -- days in the month
+      note := 'First month, prorated from ' || to_char(r.started_on, 'Mon DD');
+    end if;
+
+    -- C1: net a paid, uncredited deposit into this first invoice (no separate
+    -- credit invoice — the old one was never charged, so the client overpaid)
+    if is_first then
+      select i.id, i.amount_cents into dep
+      from invoices i
+      where i.client_id = r.client_id
+        and i.kind = 'deposit'
+        and i.status = 'paid'
+        and i.credited_on is null
+      order by i.issued_on
+      limit 1;
+      if found then
+        base := greatest(0, base - dep.amount_cents);
+        note := note || '; $' || (dep.amount_cents / 100) || ' search deposit credited';
+        update invoices set credited_on = issued where id = dep.id;
+      end if;
+    end if;
+
+    insert into invoices (client_id, placement_id, kind, period_start, period_end,
+                          amount_cents, issued_on, due_on, status, note)
+    values (r.client_id, r.id, 'retainer', p_start, p_end,
+            base, issued, issued, 'draft', note);
+    made := made + 1;
+  end loop;
+
+  return made;
+end $$;
+
+-- payroll: stop paying once notice has taken effect, same boundary as billing
+create or replace function pay_the_month(for_month date default current_date)
+returns int language plpgsql security definer as $$
+declare
+  p_start date := date_trunc('month', for_month)::date;
+  p_end   date := (date_trunc('month', for_month) + interval '1 month - 1 day')::date;
+  made    int  := 0;
+begin
+  if not is_admin() then raise exception 'Relève team only'; end if;
+
+  insert into talent_payments (talent_id, placement_id, period_start, period_end, amount_cents, currency)
+  select pl.talent_id, pl.id, p_start, p_end, tp.rate_month_cents, coalesce(tp.currency, 'USD')
+  from placements pl
+  join talent_pay tp on tp.talent_id = pl.talent_id
+  left join placement_terms t on t.placement_id = pl.id
+  where tp.rate_month_cents is not null
+    and pl.started_on <= p_end
+    and (pl.ended_on is null or pl.ended_on >= p_start)
+    and (t.notice_ends_on is null
+         or date_trunc('month', t.notice_ends_on)::date > p_start)
+  on conflict (talent_id, period_start) do nothing;
+
+  get diagnostics made = row_count;
+  return made;
+end $$;
+
+do $$ begin
+  raise notice 'PART 29 applied: retainer proration + deposit netting + notice-stops-billing are live.';
+end $$;
+
+-- ============================================================
+-- PART 30 — a second admin can be added from the console (B0)
+-- Safe to run on top of everything above, and safe to re-run.
+-- The founder could not grant console access to anyone without editing the
+-- database by hand — the worst thing to discover in an emergency. This uses
+-- the existing pending-person path: an owner adds a pending row with
+-- role='admin', and claim_pending() (which already sets a new profile's role
+-- on first sign-in) now also gives them a team_roles row.
+-- ============================================================
+
+alter table pending_people add column if not exists team_role text;
+
+create or replace function claim_pending() returns trigger language plpgsql security definer as $$
+declare p pending_people%rowtype;
+begin
+  select * into p from pending_people where lower(email) = lower(new.email) and claimed_by is null limit 1;
+  if found then
+    update profiles set
+      role = p.role, full_name = coalesce(new.full_name, p.full_name), org_name = p.org_name,
+      headline = p.headline, location = p.location, timezone = p.timezone,
+      years_exp = p.years_exp, english = p.english,
+      stage = coalesce(p.stage, profiles.stage)
+    where id = new.id;
+    if p.rate_month is not null then
+      insert into talent_pay (talent_id, rate_month) values (new.id, p.rate_month)
+      on conflict (talent_id) do update set rate_month = excluded.rate_month;
+    end if;
+    -- a pending admin also gets a team_roles row, so they show on the Team page
+    -- and is_owner() treats them as a manager (never an owner) unless set so
+    if p.role = 'admin' then
+      insert into team_roles (user_id, team_role)
+      values (new.id, coalesce(p.team_role, 'manager'))
+      on conflict (user_id) do update set team_role = excluded.team_role;
+    end if;
+    update pending_people set claimed_by = new.id where id = p.id;
+  end if;
+  return new;
+end $$;
+
+do $$ begin raise notice 'PART 30 applied: an owner can add a second admin from the console.'; end $$;
+
+
+-- ============================================================
+-- PART 31 — one talent can serve two executives, paid for each (C5, approved 16 Sep 2026)
+--
+-- Decision (Nona, 16 Sep 2026): a talent may work for two executives at once
+-- if they have the capacity, and must be paid for both. Two faults stopped
+-- that: talent pay was a single rate per talent (a second placement overwrote
+-- the first), and payroll was keyed one payment per talent per month (a second
+-- placement's pay was silently dropped). Both fixed here. Talent pay is now
+-- per placement, taken from each offer; the per-talent talent_pay row stays as
+-- the roster default and the fallback for placements made before this.
+-- Idempotent and safe to re-run.
+-- ============================================================
+
+-- 1. per-placement talent pay
+alter table placement_terms add column if not exists talent_pay_cents int;
+comment on column placement_terms.talent_pay_cents is
+  'What the talent is paid for THIS placement. A talent on two placements has two, one per executive. Falls back to talent_pay.rate_month_cents when unset.';
+
+-- backfill existing placements from the talent's single roster rate, so nobody
+-- already placed loses their pay the moment payroll starts reading per placement
+update placement_terms t
+   set talent_pay_cents = tp.rate_month_cents
+  from placements pl
+  join talent_pay tp on tp.talent_id = pl.talent_id
+ where pl.id = t.placement_id
+   and t.talent_pay_cents is null
+   and tp.rate_month_cents is not null;
+
+-- 2. a payment is unique per placement per month, not per talent per month —
+--    the old key is exactly what dropped a second placement's pay. Drop it by
+--    shape rather than by a guessed name: any unique constraint over exactly
+--    (talent_id, period_start), whatever it is called. If it survived, a second
+--    placement's INSERT would raise on it and fail the whole payroll run.
+do $$
+declare c text;
+begin
+  for c in
+    select conname from pg_constraint
+     where conrelid = 'talent_payments'::regclass and contype = 'u'
+       and (select array_agg(attname order by attname) from pg_attribute
+             where attrelid = 'talent_payments'::regclass and attnum = any(conkey))
+           = array['period_start','talent_id']
+  loop
+    execute format('alter table talent_payments drop constraint %I', c);
+  end loop;
+end $$;
+create unique index if not exists talent_payments_placement_period
+  on talent_payments (placement_id, period_start);
+
+-- 3. place_from_offer records the per-placement talent pay, and seeds the roster
+--    default only if the talent has none yet (never overwriting from a later
+--    placement, since per-placement pay is what payroll uses now)
+create or replace function place_from_offer(offer uuid)
+returns uuid language plpgsql security definer as $$
+declare o offers%rowtype; pid uuid; fit int;
+begin
+  if not is_admin() then raise exception 'only Releve may place someone'; end if;
+  select * into o from offers where id = offer;
+  if not found then raise exception 'no such offer'; end if;
+  if o.placement_id is not null then return o.placement_id; end if;
+  if o.state <> 'accepted' then raise exception 'both sides have not accepted yet'; end if;
+
+  select overall into fit from matches
+   where client_id = o.client_id and talent_id = o.talent_id
+   order by created_at desc limit 1;
+
+  insert into placements (client_id, talent_id, started_on, predicted_fit, talent_reveal_seen, client_reveal_seen)
+  values (o.client_id, o.talent_id, o.starts_on, fit, false, false)
+  returning id into pid;
+
+  insert into placement_terms (placement_id, rate_month_cents, talent_pay_cents, minimum_months)
+  values (pid, o.rate_month_cents, o.talent_pay_cents, o.minimum_months)
+  on conflict (placement_id) do update
+    set rate_month_cents = excluded.rate_month_cents,
+        talent_pay_cents = excluded.talent_pay_cents,
+        minimum_months   = excluded.minimum_months;
+
+  if o.talent_pay_cents is not null then
+    insert into talent_pay (talent_id, rate_month, rate_month_cents)
+    values (o.talent_id, round(o.talent_pay_cents / 100.0), o.talent_pay_cents)
+    on conflict (talent_id) do nothing;
+  end if;
+
+  update offers set placement_id = pid where id = offer;
+  update profiles set stage = 'Placed' where id = o.talent_id;
+  perform note_action('placed_from_offer', 'offers', offer,
+    jsonb_build_object('placement_id', pid, 'client_id', o.client_id, 'talent_id', o.talent_id));
+  return pid;
+end $$;
+
+-- 4. payroll pays per placement, at the placement's rate (falling back to the
+--    roster rate), keyed per placement so a second placement is never dropped.
+--    Keeps PART 29's notice-stops-billing behaviour.
+create or replace function pay_the_month(for_month date default current_date)
+returns int language plpgsql security definer as $$
+declare
+  p_start date := date_trunc('month', for_month)::date;
+  p_end   date := (date_trunc('month', for_month) + interval '1 month - 1 day')::date;
+  made    int  := 0;
+begin
+  if not is_admin() then raise exception 'Relève team only'; end if;
+
+  insert into talent_payments (talent_id, placement_id, period_start, period_end, amount_cents, currency)
+  select pl.talent_id, pl.id, p_start, p_end,
+         coalesce(t.talent_pay_cents, tp.rate_month_cents),
+         coalesce(tp.currency, 'USD')
+  from placements pl
+  left join placement_terms t on t.placement_id = pl.id
+  left join talent_pay tp on tp.talent_id = pl.talent_id
+  where coalesce(t.talent_pay_cents, tp.rate_month_cents) is not null
+    and pl.started_on <= p_end
+    and (pl.ended_on is null or pl.ended_on >= p_start)
+    and (t.notice_ends_on is null
+         or date_trunc('month', t.notice_ends_on)::date > p_start)
+  on conflict (placement_id, period_start) do nothing;
+
+  get diagnostics made = row_count;
+  return made;
+end $$;
+
+-- 5. margin reflects the per-placement talent pay
+drop view if exists placement_margin;
+create view placement_margin with (security_invoker = true) as
+select
+  pl.id            as placement_id,
+  pl.client_id,
+  pl.talent_id,
+  pl.started_on,
+  pl.ended_on,
+  t.rate_month_cents                                                     as client_pays_cents,
+  coalesce(t.talent_pay_cents, tp.rate_month_cents)                      as talent_paid_cents,
+  t.rate_month_cents - coalesce(t.talent_pay_cents, tp.rate_month_cents) as margin_cents
+from placements pl
+left join placement_terms t on t.placement_id = pl.id
+left join talent_pay tp     on tp.talent_id   = pl.talent_id;
+comment on view placement_margin is
+  'Team only by inheritance: placement_terms and talent_pay are both admin-only, and this view runs as its caller. Talent pay is per placement, falling back to the roster rate. Never exposed to either side.';
+
+do $$ begin raise notice 'PART 31 applied: one talent can serve two executives, paid per placement.'; end $$;
+
+
+-- ============================================================
+-- PART 32 — a client can no longer read a candidate's validity or facets (RLS, approved 16 Sep 2026)
+--
+-- Row-level security filters ROWS, never COLUMNS. The signatures read policy
+-- granted a client the whole signature row for any candidate released to them,
+-- so validity (the honesty-check internals) and the eighteen facets (including
+-- Drive) were readable from the browser dev-tools even though the screen hid
+-- them. The Book's own rule is: validity is console-only; clients see a verified
+-- badge and confidence bands.
+--
+-- Fix: clients lose direct read on the signatures table entirely. Their
+-- candidate data now comes through candidate_directory, a definer view that
+-- exposes only the safe columns — scores, confidence, conditions, archetype and
+-- the validity VERDICT (the label, not the measures) — with facets blanked.
+-- Matching needs nothing more than these. Admins keep the full picture through
+-- talent_directory and the direct signatures read, both of which stay
+-- admin-only. Idempotent and safe to re-run.
+-- ============================================================
+
+-- 1. clients lose direct read of candidate signatures; own + admin only
+drop policy if exists "read own signature" on signatures;
+create policy "read own signature" on signatures for select using (
+  user_id = auth.uid() or is_admin()
+);
+
+-- 2. the client-safe candidate view. A DEFINER view (no security_invoker), so it
+--    can read signatures as its owner, but it returns only safe columns and it
+--    checks, per row, that the caller is an admin or has this candidate released
+--    to them. auth.uid() still resolves to the calling client inside a definer
+--    view, so the scoping is per-client.
+drop view if exists candidate_directory;
+create view candidate_directory as
+select
+  p.id, p.full_name as name, p.headline as role, p.location as loc, p.timezone as tz,
+  p.years_exp as yrs, p.english as eng, p.stage, p.photo_url, p.intro_video_url,
+  s.scores,
+  '{}'::jsonb                                              as facets,     -- never a client's to see
+  jsonb_build_object('verdict', s.validity->>'verdict')   as validity,   -- the label only
+  s.confidence,
+  s.conditions as cond,
+  coalesce((select jsonb_array_length(sp.disciplines) from skills_profile sp
+             where sp.talent_id = p.id), 0) > 0                          as has_disciplines,
+  exists (select 1 from talent_verification_badges b
+           where b.talent_id = p.id and b.verified_through_taking_the_watch) as watch_cleared
+from profiles p
+join signatures s on s.user_id = p.id and s.side = 'talent'
+where p.role = 'talent'
+  and (
+    is_admin()
+    or exists (
+      select 1 from matches m
+      where m.talent_id = p.id
+        and m.released
+        and (m.client_id = auth.uid()
+             or exists (select 1 from searches se
+                        where se.id = m.search_id and se.client_id = auth.uid()))
+    )
+  );
+comment on view candidate_directory is
+  'Client-safe candidate rows: scores, confidence, conditions, archetype and the validity verdict only — no validity internals, no facets. Definer view scoped per caller by auth.uid(). The app routes clients here; admins use talent_directory for the full picture.';
+grant select on candidate_directory to authenticated;
+
+do $$ begin raise notice 'PART 32 applied: clients can no longer read candidate validity or facets.'; end $$;

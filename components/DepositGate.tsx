@@ -17,11 +17,11 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
      from the console. Without this the ask disappeared entirely. */
   if (!stripeOn) return (
     <div className="card">
-      <div className="card-head"><h3>Start your search</h3></div>
+      <div className="card-head"><h3>Open your search</h3></div>
       <p className="small" style={{ marginBottom: 14, maxWidth: 560 }}>
-        Your Signature is done and Relève has opened your search. The last
-        step is the <b>{money(cents)}</b> search deposit — once it is in, your
-        Client Success Manager begins sourcing.
+        The <b>{money(cents)}</b> search deposit is what opens your search — once it is in, your
+        Client Success Manager begins sourcing, and you build your Signature next so we can
+        match you.
       </p>
       <p className="xs muted" style={{ marginBottom: 20, maxWidth: 560 }}>
         Non-refundable, and credited in full against your first month once you are placed.
@@ -52,9 +52,9 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
     <div className="card">
       <div className="card-head"><h3>Start your search</h3></div>
       <p className="small" style={{ marginBottom: 14, maxWidth: 560 }}>
-        Your Signature is done and Relève has opened your search. The last
-        step is the <b>{money(cents)}</b> search deposit — put that down and
-        your Client Success Manager begins sourcing.
+        The <b>{money(cents)}</b> search deposit is what opens your search — put it down and
+        your Client Success Manager begins sourcing. You build your Signature next, so we can
+        match you.
       </p>
       <p className="xs muted" style={{ marginBottom: 20, maxWidth: 560 }}>
         Non-refundable, and credited in full against your first month once

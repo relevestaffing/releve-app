@@ -4,6 +4,7 @@ import { scoreWatchAttempt, getAttemptForReview } from '@/lib/watch';
 import { personEmail } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { DISCIPLINE } from '@/lib/disciplines';
+import { safeMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   const me = await currentProfile();
@@ -37,6 +38,6 @@ export async function POST(req: Request) {
     } catch { /* the score stands */ }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { verifyWebhook, webhookReady } from '@/lib/stripe';
 import { send, templates } from '@/lib/email';
 import { money } from '@/lib/money-public';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   } catch (e: any) {
     /* 400, not 500: this is a rejected request rather than a broken server,
        and Stripe should not retry it. */
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -186,7 +187,7 @@ export async function POST(req: Request) {
        retries — and the event row is removed so the retry is not dismissed as
        a duplicate. */
     await sb.from('stripe_events').delete().eq('id', event.id);
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 500 });
   }
 
   await sb.from('stripe_events').update({ summary: 'handled' }).eq('id', event.id);

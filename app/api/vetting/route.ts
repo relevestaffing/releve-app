@@ -3,6 +3,7 @@ import { configured, currentProfile, supabaseServer } from '@/lib/supabase/serve
 import { decideVetting, personEmail, recordVetting, teamEmails, vettingFileLink } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { VETTING_ITEMS } from '@/lib/work-public';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,6 +31,10 @@ export async function GET(req: Request) {
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   const path = new URL(req.url).searchParams.get('path');
   if (!path) return NextResponse.json({ error: 'which document?' }, { status: 400 });
+  /* startsWith alone is a string test, not a path test: "<my-id>/../<their-id>/x"
+     passes it. Nothing legitimate ever contains a traversal segment. */
+  if (path.includes('..'))
+    return NextResponse.json({ error: 'that is not a document path' }, { status: 400 });
   if (me.role !== 'admin' && !path.startsWith(`${me.id}/`))
     return NextResponse.json({ error: 'not yours' }, { status: 403 });
   const url = await vettingFileLink(path);
@@ -91,7 +96,7 @@ export async function POST(req: Request) {
     } as any);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }
 
@@ -118,6 +123,6 @@ export async function PATCH(req: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

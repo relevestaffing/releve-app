@@ -8,7 +8,7 @@ import { send, templates } from '@/lib/email';
 async function guard() {
   const p = await currentProfile();
   if (!p) return { error: NextResponse.json({ error: 'not signed in' }, { status: 401 }) };
-  if (configured() && p.role !== 'admin') return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
+  if (p.role !== 'admin') return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
   return { p };
 }
 export async function GET(req: Request) {

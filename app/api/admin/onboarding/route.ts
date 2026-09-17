@@ -3,13 +3,14 @@ import { currentProfile, configured, supabaseServer } from '@/lib/supabase/serve
 import { send, templates } from '@/lib/email';
 import { SITE } from '@/lib/stripe';
 import { depositLinkReady, signDepositLink } from '@/lib/deposit-link';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 async function guard() {
   const p = await currentProfile();
   if (!p) return { error: NextResponse.json({ error: 'not signed in' }, { status: 401 }) };
-  if (configured() && p.role !== 'admin')
+  if (p.role !== 'admin')
     return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
   return { p };
 }
@@ -109,6 +110,6 @@ export async function POST(req: Request) {
         : 'Sent without a pay-by-link (DEPOSIT_LINK_SECRET is not set in Netlify) — the button in their email opens their billing page instead.'
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

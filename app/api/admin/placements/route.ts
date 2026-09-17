@@ -6,6 +6,7 @@ import { personEmail, getPlacement } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { fmtDate } from '@/lib/words';
 import { toCents, rateInRange } from '@/lib/money-public';
+import { safeMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
   const me = await currentProfile();
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, rateSet: cents != null });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }
 
@@ -71,6 +72,6 @@ export async function PATCH(req: Request) {
     } catch { /* it has ended either way */ }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { currentProfile, configured } from '@/lib/supabase/server';
-import { createPerson, listPending } from '@/lib/store';
+import { createPerson, listPending, deleteAccount, deletePendingPerson } from '@/lib/store';
 import { send, templates } from '@/lib/email';
+import { safeMessage } from '@/lib/errors';
 
 async function guard() {
   const p = await currentProfile();
   if (!p) return { error: NextResponse.json({ error: 'not signed in' }, { status: 401 }) };
-  if (configured() && p.role !== 'admin') return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
+  if (p.role !== 'admin') return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
   return { p };
 }
 export async function GET() {
@@ -34,6 +35,19 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, ...made, emailed: sent });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
+  }
+}
+export async function DELETE(req: Request) {
+  const g = await guard(); if (g.error) return g.error;
+  const body = await req.json().catch(() => ({}));
+  const id = String(body.id ?? '').trim();
+  if (!id) return NextResponse.json({ error: 'Missing id.' }, { status: 400 });
+  try {
+    if (body.pending) await deletePendingPerson(id);
+    else await deleteAccount(id);
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

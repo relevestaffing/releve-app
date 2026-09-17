@@ -7,7 +7,7 @@
    incident. */
 import { configured, supabaseServer } from './supabase/server';
 import type { DepositStatus, Invoice, InvoiceStatus } from './money-public';
-import { DEPOSIT_CENTS } from './money-public';
+import { DEPOSIT_CENTS, todayInPacific } from './money-public';
 
 export * from './money-public';
 
@@ -125,7 +125,7 @@ export async function giveNotice(placementId: string, on?: string) {
   const { error } = await sb.from('placement_terms')
     .upsert({
       placement_id: placementId,
-      notice_given_on: on ?? new Date().toISOString().slice(0, 10),
+      notice_given_on: on ?? todayInPacific(),
       updated_at: new Date().toISOString()
     }, { onConflict: 'placement_id' });
   if (error) throw new Error(error.message);

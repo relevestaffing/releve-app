@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
-  DISCIPLINES, DISCIPLINE, PROFS, key, skillsComplete, skillsShape,
+  DISCIPLINES, DISCIPLINE, PROFS, key, skillsComplete, skillsShape, PICK_ONE_DISCIPLINE,
   type Prof, type SkillsProfile
 } from '@/lib/roles-public';
 
@@ -55,7 +55,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
   }, [picked, levels, details, years, primary, best, growing, tools]);
 
   async function save() {
-    if (!picked.length) { toast.bad('Pick at least one kind of work you are good at.'); return; }
+    if (!picked.length) { toast.bad(PICK_ONE_DISCIPLINE.skills); return; }
     setBusy(true);
     const ok = await saving(() => fetch('/api/roles', {
       method: 'POST', headers: { 'content-type': 'application/json' },

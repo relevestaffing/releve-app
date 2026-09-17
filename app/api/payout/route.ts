@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { savePayout, confirmPayout, setPaymentState, payTheMonth, setTaxForm, setTalentPay } from '@/lib/payout';
-import { PAYOUT_METHODS } from '@/lib/payout-public';
+import { PAYOUT_METHODS, TAX_RESIDENCE_PROMPT, TAX_COUNTRY_PROMPT } from '@/lib/payout-public';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,12 +30,12 @@ export async function POST(req: Request) {
        from here: a person could otherwise mark their own paperwork complete. */
     const usPerson = typeof b.us_person === 'boolean' ? b.us_person : null;
     if (usPerson === null)
-      return NextResponse.json({ error: 'Tell us where you are tax resident.' }, { status: 400 });
+      return NextResponse.json({ error: `${TAX_RESIDENCE_PROMPT}.` }, { status: 400 });
     const taxResidence = usPerson
       ? 'United States'
       : String(b.tax_residence ?? '').trim().slice(0, 80);
     if (!usPerson && taxResidence.length < 2)
-      return NextResponse.json({ error: 'Which country are you tax resident in?' }, { status: 400 });
+      return NextResponse.json({ error: TAX_COUNTRY_PROMPT }, { status: 400 });
     try {
       await savePayout(target, {
         method: b.method, beneficiary, detail,
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
         confirmed_at: null, confirmed_by: null
       } as any);
       return NextResponse.json({ ok: true });
-    } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+    } catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }
 
   /* ---- everything below is Relève's ---- */
@@ -87,6 +88,6 @@ export async function POST(req: Request) {
       const made = await payTheMonth(b.month);
       return NextResponse.json({ ok: true, made });
     }
-  } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+  } catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   return NextResponse.json({ error: 'unknown action' }, { status: 400 });
 }

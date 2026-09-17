@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyDocuSignWebhook, docusignWebhookReady, downloadCompletedEnvelope } from '@/lib/docusign';
 import { send, templates } from '@/lib/email';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
   } catch (e: any) {
     /* 400, not 500: a rejected request, not a broken server — DocuSign
        should not retry it. */
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 
   let event: any;
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
     /* Something went wrong handling a genuine, signed event — remove the
        dedup row so DocuSign's retry is not dismissed as a duplicate. */
     await sb.from('docusign_events').delete().eq('envelope_id', envelopeId).eq('status', status);
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

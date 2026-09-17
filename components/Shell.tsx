@@ -9,7 +9,7 @@ import InvoiceGate from './InvoiceGate';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 import { unpaidInvoiceFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
-import { executiveStage } from '@/lib/stage';
+import { executiveStage, execInTour } from '@/lib/stage';
 import { listPlacementsFor } from '@/lib/work';
 import { firstName } from '@/lib/words';
 
@@ -124,13 +124,37 @@ const PROFILE: Record<string, string> = { client: '/app/profile', talent: '/app/
    aim at than a heading. */
 async function clientNav(profile: Profile): Promise<NavGroup[]> {
   const stage = await executiveStage(profile.id);
+
+  /* Before the deposit, the menu is the onboarding tour, not the working app.
+     The three vision screens are the whole of it, ending at the deposit on the
+     dashboard; the Signature, the role brief and everything else only appear
+     once the search is actually open. Keeping the menu this short is the point
+     — nothing here to wander into before the one thing that matters. */
+  if (await execInTour(profile.id)) {
+    return [
+      { items: [{ href: '/app', label: 'Dashboard' }] },
+      { group: 'Getting started', items: [
+        { href: '/app/how', label: 'How Relève works' },
+        { href: '/app/delegate', label: 'What to delegate' },
+        { href: '/app/value', label: 'The value' }
+      ]},
+      { items: [{ href: '/app/messages', label: 'Messages' }] }
+    ];
+  }
+
   const nav: NavGroup[] = [{ items: [{ href: '/app', label: 'Dashboard' }] }];
 
-  const brief: NavItem[] = [{ href: '/app/signature', label: 'Executive Signature' }];
+  const brief: NavItem[] = [
+    { href: '/app/signature', label: 'Executive Signature' }
+  ];
   /* The role brief describes a search. With none open it is a document about
      something finished, so it goes with the hiring screens rather than
-     sitting in the menu inviting edits nobody will read. */
-  if (stage.hiring) brief.push({ href: '/app/role', label: 'The Role' });
+     sitting in the menu inviting edits nobody will read. What-to-delegate
+     rides alongside it while hiring, where picturing the role is the job. */
+  if (stage.hiring) {
+    brief.push({ href: '/app/delegate', label: 'What to delegate' });
+    brief.push({ href: '/app/role', label: 'The Role' });
+  }
   brief.push({ href: '/app/profile', label: 'Your Profile' });
   nav.push({ group: 'Your brief', items: brief });
 
@@ -161,6 +185,9 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
   }
 
   nav.push({ items: [{ href: '/app/messages', label: 'Messages' }] });
+  /* The vision screens recede here once the deposit is in — out of the daily
+     menu, but one link away for a client who wants to revisit them. */
+  nav.push({ items: [{ href: '/app/how', label: 'About Relève' }] });
   return nav;
 }
 

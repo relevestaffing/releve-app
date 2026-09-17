@@ -7,7 +7,7 @@ type Panel = { h: string; lede: string; points?: string[]; note?: string };
 
 const TALENT: Panel[] = [
   { h: 'Welcome to Relève',
-    lede: 'You have been invited because someone here thinks you are worth placing well. This account is where that happens.',
+    lede: 'You have been invited to join the roster — the assessed, verified group Relève puts in front of executives. This account is where that happens.',
     points: [
       'We place virtual staff with executives who need a right hand, not a task-taker.',
       'You are never sent to a role on volume. You are matched to one person, deliberately.',
@@ -45,26 +45,22 @@ const CLIENT: Panel[] = [
       'A qualified candidate within fourteen days, and a replacement if a hire does not work out.',
       'Every placement comes with a Client Success Manager and a Talent Success Manager.'
     ] },
-  { h: 'Why we ask you to do anything at all',
-    lede: 'Because the match is built on how you work, and only you can tell us that.',
+  { h: 'How this begins',
+    lede: 'Three short screens, then the one step that starts everything.',
     points: [
-      'The Executive Signature takes fifteen to twenty minutes, and saves as you go.',
-      'It measures how you delegate, how you communicate, and what your world demands of the person beside you.',
-      'Every candidate you see has been scored against it before their name reaches you.'
+      'See how Relève works, what a placement can take off your plate, and what it is worth against a full-time hire.',
+      'Open your search with your $500 deposit — credited in full to your first month, and the moment sourcing begins.',
+      'Read as much or as little as you like. A decided executive can pay straight away.'
     ],
-    note: 'It is the difference between sending you someone who can do the job and sending you someone who can work with you.' },
-  { h: 'What happens next',
-    lede: 'Three things from you, about twenty-five minutes in total. The rest is ours.',
+    note: 'If you already arranged the deposit on your call, that step is done and you move straight on.' },
+  { h: 'Once your search is open',
+    lede: 'Then the part only you can give us: how you actually work.',
     points: [
-      'Take the Executive Signature — fifteen to twenty minutes, in as many sittings as you like.',
-      'Break down the role — ten minutes. What the person will own, and what they must be good at.',
+      'Build your Executive Signature — fifteen to twenty minutes, saved as you go. Every candidate is scored against it before their name reaches you.',
+      'Break down the role — what the person will own, and what they must be good at.',
       'Set the hours you are open to meeting candidates — we never offer anyone a slot outside them.'
     ],
-    /* The fourth line used to sit with the three above it, under a lede that
-       says "three things from you" — and it is not a thing they do, it is what
-       happens once they have. Moving it here makes the count true and gives
-       the panel an ending rather than a list that stops. */
-    note: 'Then we put forward one vetted professional. You approve them and we book the introduction, or decline and we bring the next. Your Client Success Manager will be in touch either way.' }
+    note: 'Then we put forward one vetted professional. You approve them and we book the introduction, or decline and we bring the next. Your Client Success Manager is with you throughout.' }
 ];
 
 export default function Welcome({ role }: { role: 'client' | 'talent' }) {

@@ -13,6 +13,7 @@
    Both come from one view, so the navigation, the dashboard and the console
    can never disagree about what stage somebody is in. */
 import { configured, supabaseServer } from './supabase/server';
+import { depositGateFor } from './billing';
 
 export type ExecutiveStage = {
   hiring: boolean;          // a search is open — show candidate and interview screens
@@ -42,4 +43,20 @@ export async function executiveStage(clientId: string): Promise<ExecutiveStage> 
     placements,
     placed: placements > 0
   };
+}
+
+/* Is this executive still in the pre-deposit welcome tour?
+   -------------------------------------------------------
+   The account's whole job before the deposit is to make the case and take the
+   $500 — the three vision screens are the guided lead-in, the Signature comes
+   after. So "in the tour" is: a client, not yet placed, whose search deposit
+   has not been paid or waived (a missing search counts as not-yet-paid, since
+   there is nothing to pay against but also nothing placed). The dashboard, the
+   vision-page CTAs and the nav all read this one function so they can never
+   disagree about whether someone is still being onboarded. */
+export async function execInTour(clientId: string): Promise<boolean> {
+  const stage = await executiveStage(clientId);
+  if (stage.placed) return false;
+  const dep = await depositGateFor(clientId);
+  return !dep || (dep.status !== 'paid' && dep.status !== 'waived');
 }

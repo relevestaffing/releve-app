@@ -3,6 +3,7 @@ import { currentProfile, supabaseServer, configured } from '@/lib/supabase/serve
 import { send, templates } from '@/lib/email';
 import { personEmail, teamEmails, getPlacement } from '@/lib/work';
 import { dayLabel } from '@/lib/money-public';
+import { safeMessage } from '@/lib/errors';
 import {
   assignManagers, decideTimeOff, endPlacementWithReason, markFeedbackSeen,
   markFirstCandidate, recordOutcome, requestTimeOff, savePulse, saveFeedback,
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'the executive fills this in' }, { status: 403 });
         const going = Number(b.going);
         if (!Number.isInteger(going) || going < 1 || going > 5)
-          return NextResponse.json({ error: 'pick how it is going' }, { status: 400 });
+          return NextResponse.json({ error: 'Pick how it’s going.' }, { status: 400 });
         await savePulse({
           placement_id: String(b.placement_id), going, workload: b.workload,
           standout: b.standout, friction: b.friction, keep_going: !!b.keep_going
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
       case 'feedback_save':
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
         if (!String(b.strengths ?? '').trim())
-          return NextResponse.json({ error: 'say what they are doing well first' }, { status: 400 });
+          return NextResponse.json({ error: 'Say what they’re doing well first.' }, { status: 400 });
         await saveFeedback(b);
         return NextResponse.json({ ok: true });
 
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
         const score = Number(b.outcome_score);
         if (!Number.isInteger(score) || score < 0 || score > 100)
-          return NextResponse.json({ error: 'score it out of 100' }, { status: 400 });
+          return NextResponse.json({ error: 'Score it out of 100.' }, { status: 400 });
         await recordOutcome(String(b.placement_id), {
           outcome_score: score, retained: !!b.retained, note: b.note
         });
@@ -147,11 +148,12 @@ export async function POST(req: Request) {
         const sb = await supabaseServer();
         const { data: on, error } = await sb.rpc('give_notice', { p_placement: String(b.placement_id) });
         if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-        /* Effective at the end of the month after the notice month — the
-           same boundary billing runs on, as the terms say. */
-        const given = new Date(String(on) + 'T00:00:00Z');
-        const ends = new Date(Date.UTC(given.getUTCFullYear(), given.getUTCMonth() + 2, 0));
-        const endsOn = dayLabel(ends.toISOString().slice(0, 10));
+        /* give_notice now stores the true end date — the first Monday of the
+           following month, matching the written terms and the boundary billing
+           runs on. Read it back rather than recomputing a different rule here. */
+        const { data: term } = await sb.from('placement_terms')
+          .select('notice_ends_on').eq('placement_id', String(b.placement_id)).maybeSingle();
+        const endsOn = dayLabel((term as any)?.notice_ends_on ?? String(on));
         try {
           const pl = await getPlacement(String(b.placement_id));
           const who = me.full_name ?? me.email;
@@ -177,6 +179,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'unknown action' }, { status: 400 });
     }
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

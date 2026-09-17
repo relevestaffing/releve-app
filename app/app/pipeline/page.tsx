@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { getMySignature, rankBench, archetype } from '@/lib/data';
-import { L1, L2 } from '@/lib/signature/model';
+import { L1, L2_SHOWN } from '@/lib/signature/model';
 import { fitSentence, matchReasons, conditionNote } from '@/lib/plain';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
@@ -163,7 +163,7 @@ export default async function Pipeline() {
                   </div>
                   <div>
                     <div className="eyebrow" style={{ marginBottom: 12 }}>Disposition — {match.l2}/100</div>
-                    <AxisBars values={person.scores} axes={L2} />
+                    <AxisBars values={person.scores} axes={L2_SHOWN} />
                   </div>
                 </div>
                 <div className="eyebrow" style={{ marginBottom: 12 }}>Axis by axis</div>

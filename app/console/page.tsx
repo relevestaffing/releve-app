@@ -41,7 +41,7 @@ const HEALTH: Record<string, { label: string; tone: string }> = {
 export default async function Console() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
 
   const { attention, vitals, placements } = await consoleSnapshot();
   const first = (profile.full_name ?? '').trim().split(' ')[0];
@@ -100,8 +100,15 @@ export default async function Console() {
          on a question mark, so the one thing that would tell her whether to
          actually care was the one thing not on the screen. It reads as one
          sentence now — what's true, then what happens if it sits — nothing
-         to open, worst first. */}
-      <div className="card">
+         to open, worst first.
+
+         On a phone the six launcher tiles above run to nearly a full
+         screen before this card ever appears, which buries the one thing
+         that's actually time-sensitive under static navigation. `today-card`
+         gives just this card an order:-1 at the phone breakpoint so it
+         leads on mobile while keeping the desktop order (launchers first)
+         untouched — see globals.css. */}
+      <div className="card today-card">
         <div className="card-head">
           <h3>Today</h3>
           {/* Counts the things that are actually urgent, not the sum of every
@@ -178,9 +185,13 @@ export default async function Console() {
 
           <div>
             <h3 className="section-h">The pipeline</h3>
-            <div className="money-strip">
+            <div className="money-strip pipe">
               <Link className="money-stat" href="/console/people"><div className="n">{vitals.clients}</div><div className="k">Executives</div></Link>
               <Link className="money-stat" href="/console/people"><div className="n">{vitals.searchesOpen}</div><div className="k">Open searches</div></Link>
+              {/* coverage at a glance: if fewer vetted people are ready than there are
+                  open searches, the 14-day promise is at risk before day 11 ever warns */}
+              <Link className={`money-stat ${vitals.searchesOpen > 0 && vitals.benchReady < vitals.searchesOpen ? 'alert' : ''}`} href="/console/bench">
+                <div className="n">{vitals.benchReady}</div><div className="k">Bench ready</div></Link>
               <Link className="money-stat" href="/console/matching"><div className="n">{vitals.candidatesOut}</div><div className="k">Candidates out</div></Link>
               <Link className="money-stat" href="/console/interviews"><div className="n">{vitals.interviewsUpcoming}</div><div className="k">Interviews, 14 days</div></Link>
             </div>

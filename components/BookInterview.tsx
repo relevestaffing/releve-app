@@ -21,6 +21,9 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
   }, {});
 
   async function book(s: Slot) {
+    /* One booking at a time. Without this, a second slot could be tapped while
+       the first request was still in flight — two interviews for one person. */
+    if (busy) return;
     setBusy(s.startISO);
     let r: Response, d: any = {};
     try {
@@ -83,7 +86,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
           <h4>{day}</h4>
           <div className="slot-row">
             {list.map(s => (
-              <button key={s.startISO} className="slot-btn" disabled={busy === s.startISO} onClick={() => book(s)}>
+              <button key={s.startISO} className="slot-btn" disabled={busy !== null} onClick={() => book(s)}>
                 {busy === s.startISO ? 'Booking…' : s.label}
               </button>
             ))}

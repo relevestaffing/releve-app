@@ -62,6 +62,7 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
 export function RunTheMonth({ month }: { month: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
 
   async function run() {
     setBusy(true);
@@ -80,11 +81,21 @@ export function RunTheMonth({ month }: { month: string }) {
       toast.bad('No connection — nothing was issued.');
     }
     setBusy(false);
+    setArmed(false);
   }
 
+  /* One deliberate step before a money run, matching the invoice picker's
+     paid/void guard. It is idempotent server-side, but this is the founder's
+     whole month of billing, so it should not fire on a stray tap. */
+  if (!armed) return (
+    <button className="btn sm solid" onClick={() => setArmed(true)}>Run the month</button>
+  );
   return (
-    <button className="btn sm solid" disabled={busy} onClick={run}>
-      {busy ? 'Working…' : 'Run the month'}
-    </button>
+    <span className="rate-set">
+      <button className="btn sm solid" disabled={busy} onClick={run}>
+        {busy ? 'Working…' : 'Yes, draft this month’s invoices'}
+      </button>
+      <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button>
+    </span>
   );
 }

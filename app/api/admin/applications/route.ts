@@ -6,13 +6,14 @@ import { createPerson } from '@/lib/store';
 import { markInvited } from '@/lib/jobs';
 import { send, templates } from '@/lib/email';
 import { supabaseServer } from '@/lib/supabase/server';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 async function guard() {
   const p = await currentProfile();
   if (!p) return { error: NextResponse.json({ error: 'not signed in' }, { status: 401 }) };
-  if (configured() && p.role !== 'admin')
+  if (p.role !== 'admin')
     return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
   return { p };
 }
@@ -151,6 +152,6 @@ export async function POST(req: Request) {
     await setApplicationState(b.id, b.state, b.team_note);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

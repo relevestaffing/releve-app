@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
-  DISCIPLINES, DISCIPLINE, NEEDS, key, roleComplete, roleShape,
+  DISCIPLINES, DISCIPLINE, NEEDS, key, roleComplete, roleShape, PICK_ONE_DISCIPLINE,
   type Need, type RoleBreakdown
 } from '@/lib/roles-public';
 
@@ -29,7 +29,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
   const done = roleComplete(draft);
 
   async function save() {
-    if (!picked.length) { toast.bad('Pick at least one kind of work first.'); return; }
+    if (!picked.length) { toast.bad(PICK_ONE_DISCIPLINE.role); return; }
     setBusy(true);
     const ok = await saving(() => fetch('/api/roles', {
       method: 'POST', headers: { 'content-type': 'application/json' },

@@ -151,17 +151,17 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
                     upload(item.kind, f, exp);
                     e.target.value = '';
                   }} />
-                {item.expires && (
-                  <label className="vet-exp">
-                    <span className="xs muted">Expiry date</span>
-                    <input id={`exp-${item.kind}`} type="date" />
-                  </label>
-                )}
                 <button className="btn sm solid" disabled={busy === item.kind}
                   onClick={() => inputs.current[item.kind]?.click()}>
                   {busy === item.kind ? 'Uploading…'
-                    : state === 'submitted' ? 'Replace document' : 'Upload'}
+                    : state === 'submitted' ? 'Replace document' : 'Choose a file'}
                 </button>
+                {item.expires && (
+                  <label className="vet-exp">
+                    <span className="xs muted">Expiry date (on the document you're uploading)</span>
+                    <input id={`exp-${item.kind}`} type="date" />
+                  </label>
+                )}
                 {state === 'submitted' && <span className="xs muted">We will look at this within a day.</span>}
               </div>
             )}

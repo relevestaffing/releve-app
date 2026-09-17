@@ -6,6 +6,7 @@ import type {
   EndedReason, Feedback, Pulse, Step, TeamRole, TimeOff, TimeOffState, Workload
 } from './care-public';
 import { monthOf } from './care-public';
+import { todayInPacific } from './money-public';
 
 export * from './care-public';
 
@@ -254,7 +255,7 @@ export async function endPlacementWithReason(id: string, reason: EndedReason, on
   if (!configured()) return;
   const sb = await supabaseServer();
   const { error } = await sb.from('placements').update({
-    ended_on: on ?? new Date().toISOString().slice(0, 10), ended_reason: reason
+    ended_on: on ?? todayInPacific(), ended_reason: reason
   }).eq('id', id);
   if (error) throw new Error(error.message);
 }

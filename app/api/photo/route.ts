@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
 import { saveSelfProfile, getSelfProfile } from '@/lib/store';
+import { looksLike } from '@/lib/filetype';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,11 @@ export async function POST(req: Request) {
   if (!file.type.startsWith('image/')) return NextResponse.json({ error: 'that file is not an image' }, { status: 415 });
 
   const bytes = Buffer.from(await file.arrayBuffer());
+  /* The bytes, not the browser's word for them — this route then writes
+     everything as image/jpeg regardless, so an unchecked file would be stored
+     and served under a type it never was. */
+  if (!looksLike('image', bytes))
+    return NextResponse.json({ error: 'that file is not an image' }, { status: 415 });
 
   /* Demo mode has no storage behind it — keep the photo inline so the
      walkthrough still works end to end on a laptop with no database. */

@@ -11,6 +11,7 @@ import { send, templates } from '@/lib/email';
 import { billingAccount, chargeInvoice } from '@/lib/billing';
 import { invoiceLinkReady, signInvoiceLink } from '@/lib/invoice-link';
 import { SITE } from '@/lib/stripe';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -163,6 +164,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'unknown action' }, { status: 400 });
     }
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

@@ -6,6 +6,8 @@ import Explain from '@/components/Explain';
 import OnboardingSender from '@/components/OnboardingSender';
 import RoleBriefEditor from '@/components/RoleBriefEditor';
 import TableSearch from '@/components/TableSearch';
+import DeletePerson from '@/components/DeletePerson';
+import WaiveDeposit from '@/components/WaiveDeposit';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -13,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export default async function People() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
 
   const clients = await listClients();
   const briefs = await Promise.all(clients.map(c => getSearch(c.key)));
@@ -72,9 +74,20 @@ export default async function People() {
                   {[client.org_name, client.email, client.timezone].filter(Boolean).join(' · ')}
                 </div>
               </div>
-              <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
-                <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}
-              </span>
+              <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* The search opens on the deposit; waiving it here opens the
+                    search without the $500, straight from the executive's row.
+                    Shown only while a search is actually open. */}
+                {brief && !brief.closed_at && (brief as any).id && (
+                  <WaiveDeposit searchId={(brief as any).id}
+                    cents={(brief as any).deposit_cents ?? 50000}
+                    status={((brief as any).deposit_status ?? 'due') as 'due' | 'paid' | 'waived'} />
+                )}
+                <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
+                  <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}
+                </span>
+                <DeletePerson id={client.key} name={client.full_name} pending={!client.signed_in} />
+              </div>
             </div>
             <RoleBriefEditor clientKey={client.key} pending={!client.signed_in}
               initial={brief ?? {}} name={client.full_name} />

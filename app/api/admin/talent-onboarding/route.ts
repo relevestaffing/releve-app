@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { send, templates } from '@/lib/email';
 import { createPerson } from '@/lib/store';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 async function guard() {
   const p = await currentProfile();
   if (!p) return { error: NextResponse.json({ error: 'not signed in' }, { status: 401 }) };
-  if (configured() && p.role !== 'admin')
+  if (p.role !== 'admin')
     return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
   return { p };
 }
@@ -64,6 +65,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, emailed: sent });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

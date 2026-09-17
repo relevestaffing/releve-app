@@ -13,6 +13,15 @@ export const RATE_MAX_CENTS = 450_000;        // $4,500
 export const MINIMUM_MONTHS = 3;
 export const NOTICE_DAYS = 30;
 
+/* The business runs on Pacific (hello@ is a Pacific mailbox). A bare
+   new Date().toISOString().slice(0,10) is a UTC date, so anything recorded
+   after ~4pm Pacific lands on tomorrow — which, on a money or notice action
+   near a month boundary, bills an extra month. Use this for any date that
+   gates money. en-CA formats as YYYY-MM-DD. */
+export function todayInPacific(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+}
+
 export type InvoiceKind = 'deposit' | 'retainer';
 /* processing and failed exist because bank debit is not a card: it is
    accepted, clears days later, and can still fail after being accepted.

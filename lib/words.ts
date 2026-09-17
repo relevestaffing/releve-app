@@ -45,10 +45,15 @@ export const WORDS = {
 
 const asUTC = (iso: string) => new Date(iso.slice(0, 10) + 'T00:00:00Z');
 
-/** 4 Sep 2026 — the default for anything dated. */
+/** 4 Sep 2026 — the default for anything dated. Guards against a value that
+    isn't a real date (target_at, for instance, has carried free text like
+    "Within six weeks" before now) so a bad value reads as unset rather than
+    as the literal string "Invalid Date". */
 export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return asUTC(iso).toLocaleDateString('en-GB',
+  const d = asUTC(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-GB',
     { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 

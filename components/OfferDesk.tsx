@@ -28,6 +28,10 @@ export default function OfferDesk({ offers, clients, talent }: {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  /* Making a placement starts the billing relationship, and a withdrawal
+     retracts an offer someone may already have said yes to — neither should
+     fire on a single stray click, so both arm a confirm first. */
+  const [armed, setArmed] = useState<{ id: string; action: string } | null>(null);
   const [f, setF] = useState({
     client_id: '', talent_id: '', role_title: '', starts_on: '',
     hours: '', scope: '', rate: '', pay: ''
@@ -138,7 +142,7 @@ export default function OfferDesk({ offers, clients, talent }: {
                 {busy ? 'Working…' : 'Send to both sides'}
               </button>
               <button className="btn sm ghost" disabled={busy} onClick={() => create(false)}>Save as draft</button>
-              <button className="btn sm ghost" onClick={() => setOpen(false)}>Cancel</button>
+              <button className="btn sm ghost" onClick={() => setOpen(false)}>Discard</button>
             </div>
           </>
         )}
@@ -183,18 +187,42 @@ export default function OfferDesk({ offers, clients, talent }: {
                         {o.state === 'draft' &&
                           <button className="btn sm solid" disabled={busy}
                             onClick={() => act(o.id, 'send', 'Sent to both sides')}>Send</button>}
-                        {o.state === 'accepted' && !o.placement_id &&
-                          <button className="btn sm solid" disabled={busy}
-                            onClick={() => act(o.id, 'place', 'Placed — the terms carried across')}>
-                            Make the placement
-                          </button>}
+                        {o.state === 'accepted' && !o.placement_id && (
+                          armed?.id === o.id && armed.action === 'place' ? (
+                            <>
+                              <span className="xs muted">Place this pair?</span>
+                              <button className="btn sm solid" disabled={busy}
+                                onClick={() => { setArmed(null); act(o.id, 'place', 'Placed — the terms carried across'); }}>
+                                Confirm
+                              </button>
+                              <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Cancel</button>
+                            </>
+                          ) : (
+                            <button className="btn sm solid" disabled={busy}
+                              onClick={() => setArmed({ id: o.id, action: 'place' })}>
+                              Make the placement
+                            </button>
+                          )
+                        )}
                         {o.placement_id &&
                           <Link className="btn sm ghost" href={`/console/placements/${o.placement_id}`}>
                             Open file
                           </Link>}
-                        {['sent', 'client_yes', 'talent_yes'].includes(o.state) &&
-                          <button className="btn sm ghost" disabled={busy}
-                            onClick={() => act(o.id, 'withdraw', 'Withdrawn')}>Withdraw</button>}
+                        {['sent', 'client_yes', 'talent_yes'].includes(o.state) && (
+                          armed?.id === o.id && armed.action === 'withdraw' ? (
+                            <>
+                              <span className="xs muted">Withdraw this offer?</span>
+                              <button className="btn sm solid" disabled={busy}
+                                onClick={() => { setArmed(null); act(o.id, 'withdraw', 'Withdrawn'); }}>
+                                Yes, withdraw
+                              </button>
+                              <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Cancel</button>
+                            </>
+                          ) : (
+                            <button className="btn sm ghost" disabled={busy}
+                              onClick={() => setArmed({ id: o.id, action: 'withdraw' })}>Withdraw</button>
+                          )
+                        )}
                       </div>
                     </td>
                   </tr>

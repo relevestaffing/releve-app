@@ -13,6 +13,7 @@ import { benchPay } from '@/lib/work';
 import { money } from '@/lib/money-public';
 import TableSearch from '@/components/TableSearch';
 import PaySetter from '@/components/PaySetter';
+import DeletePerson from '@/components/DeletePerson';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -20,9 +21,9 @@ export const dynamic = 'force-dynamic';
 export default async function Bench() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
   const bench = await getBench();
-  const pending = await listPending();
+  const pending = (await listPending()).filter((p: any) => p.role === 'talent');
   /* Someone with no availability looks ready and cannot be booked — surface it.
      One query for everybody, not one per person: the old version made a round
      trip per talent before the page could paint. */
@@ -49,7 +50,7 @@ export default async function Bench() {
           <div className="row" style={{ gap: 10 }}>
             {bench.length > 5 && <TableSearch scope="bench-table" placeholder="Search the roster…" />}
             <span className="pill">{bench.length} on file</span>
-            <AddPerson role="talent" /></div></div>
+            <AddPerson /></div></div>
         {!bench.length ? (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
@@ -62,7 +63,7 @@ export default async function Bench() {
           </div>
         ) : (
         <table className="data" id="bench-table">
-          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>We pay</th><th>Stage</th></tr></thead>
+          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>We pay</th><th>Stage</th><th></th></tr></thead>
           <tbody>
             {bench.map(t => (
               <tr key={t.id}>
@@ -76,6 +77,7 @@ export default async function Bench() {
                 <td className="amount"><PaySetter talentId={t.id} cents={pay[t.id] != null ? pay[t.id]! * 100 : null} compact /></td>
                 <td><span className={`pill ${t.stage === 'Placed' ? 'good' : t.stage === 'Vetted' ? '' : 'warn'}`}>
                   <span className="dot" />{t.stage}</span></td>
+                <td><DeletePerson id={t.id} name={t.name} pending={false} /></td>
               </tr>
             ))}
           </tbody>
@@ -135,11 +137,12 @@ export default async function Bench() {
             </Explain>
           </div>
           <table className="data">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th></tr></thead>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th><th></th></tr></thead>
             <tbody>{pending.map((p: any) => (
               <tr key={p.id}><td><b>{p.full_name}</b></td><td className="small">{p.email}</td>
                 <td className="small">{p.headline ?? p.org_name ?? '—'}</td>
-                <td><span className="pill">{p.role}</span></td></tr>
+                <td><span className="pill">{p.role}</span></td>
+                <td><DeletePerson id={p.id} name={p.full_name} pending /></td></tr>
             ))}</tbody>
           </table>
         </div>

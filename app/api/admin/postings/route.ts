@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { savePosting, deletePosting, freeSlug, getPosting } from '@/lib/jobs';
 import { slugify, postReady } from '@/lib/jobs-public';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
 async function guard() {
   const p = await currentProfile();
   if (!p) return { error: NextResponse.json({ error: 'not signed in' }, { status: 401 }) };
-  if (configured() && p.role !== 'admin')
+  if (p.role !== 'admin')
     return { error: NextResponse.json({ error: 'not permitted' }, { status: 403 }) };
   return { p };
 }
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
         error: 'A posting that has been live can only be closed, not deleted — its link may already be shared, and its applications point back to it.'
       }, { status: 400 });
     try { await deletePosting(b.id); return NextResponse.json({ ok: true }); }
-    catch (e: any) { return NextResponse.json({ error: e.message }, { status: 400 }); }
+    catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }
 
   const title = String(b.title ?? '').trim();
@@ -75,6 +76,6 @@ export async function POST(req: Request) {
     const id = await savePosting(row as any);
     return NextResponse.json({ ok: true, id: id ?? b.id, slug: row.slug });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }

@@ -23,6 +23,7 @@ export type Attention = {
 
 export type Vitals = {
   clients: number; talent: number; verified: number; available: number;
+  benchReady: number;                    // verified and not yet placed — who a search can actually draw on
   searchesOpen: number; candidatesOut: number; awaitingDecision: number;
   placementsLive: number; interviewsUpcoming: number;
   runRateCents: number; outstandingCents: number; overdueCents: number;
@@ -46,7 +47,7 @@ export async function consoleSnapshot(): Promise<{
   attention: Attention[]; vitals: Vitals; placements: LivePlacement[];
 }> {
   const vitals: Vitals = {
-    clients: 0, talent: 0, verified: 0, available: 0,
+    clients: 0, talent: 0, verified: 0, available: 0, benchReady: 0,
     searchesOpen: 0, candidatesOut: 0, awaitingDecision: 0,
     placementsLive: 0, interviewsUpcoming: 0,
     runRateCents: 0, outstandingCents: 0, overdueCents: 0
@@ -92,11 +93,13 @@ export async function consoleSnapshot(): Promise<{
   const mail = (mailHealth as any)?.data ?? null;
 
   /* ---- people ---- */
+  const placedTalent = new Set<string>();
   for (const p of (people.data ?? []) as any[]) {
     if (p.role === 'client') vitals.clients++;
     if (p.role === 'talent') {
       vitals.talent++;
       if (p.stage !== 'Placed') vitals.available++;
+      else placedTalent.add(p.id);
     }
   }
 
@@ -110,8 +113,12 @@ export async function consoleSnapshot(): Promise<{
     }
     if (v.state === 'submitted') vettingPending.push(v.talent_id);
   }
-  for (const k of verifiedKinds.values())
-    if (k.has('identity') && k.has('agreement')) vitals.verified++;
+  for (const [tid, k] of verifiedKinds) {
+    if (k.has('identity') && k.has('agreement')) {
+      vitals.verified++;
+      if (!placedTalent.has(tid)) vitals.benchReady++;   // ready to be put in front of a search
+    }
+  }
 
   /* ---- searches and the 14-day promise ---- */
   const guaranteeAtRisk: string[] = [];

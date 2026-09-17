@@ -55,13 +55,18 @@ export async function setTalentPay(talentId: string, cents: number) {
 export async function unpaidPlacements(): Promise<{ placement_id: string; talent_id: string; talent_name: string }[]> {
   if (!configured()) return [];
   const sb = await supabaseServer();
-  const [{ data: live }, { data: pay }] = await Promise.all([
+  /* Pay is per placement now (a talent can hold two, one per executive), with
+     the talent's roster rate as the fallback. A live placement is "unpaid" only
+     when it has neither. */
+  const [{ data: live }, { data: pay }, { data: terms }] = await Promise.all([
     sb.from('placements').select('id, talent_id, talent:talent_id(full_name)').is('ended_on', null),
-    sb.from('talent_pay').select('talent_id, rate_month_cents')
+    sb.from('talent_pay').select('talent_id, rate_month_cents'),
+    sb.from('placement_terms').select('placement_id, talent_pay_cents')
   ]);
-  const has = new Set(((pay ?? []) as any[]).filter(p => p.rate_month_cents != null).map(p => p.talent_id));
+  const rosterHas = new Set(((pay ?? []) as any[]).filter(p => p.rate_month_cents != null).map(p => p.talent_id));
+  const perPlacement = new Map(((terms ?? []) as any[]).map(t => [t.placement_id, t.talent_pay_cents]));
   return ((live ?? []) as any[])
-    .filter(p => !has.has(p.talent_id))
+    .filter(p => perPlacement.get(p.id) == null && !rosterHas.has(p.talent_id))
     .map(p => ({ placement_id: p.id, talent_id: p.talent_id, talent_name: p.talent?.full_name ?? 'Talent' }));
 }
 

@@ -30,7 +30,7 @@ export default async function Matching({ searchParams }: {
 }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
 
   const { client } = await searchParams;
   const people = await listPeople();

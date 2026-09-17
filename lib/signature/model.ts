@@ -416,6 +416,13 @@ export const COND = [
 export const AXIS: Record<string, Axis> = Object.fromEntries(AXES.map(a => [a.key, a]));
 export const L1 = AXES.filter(a => a.layer === 1);
 export const L2 = AXES.filter(a => a.layer === 2);
+/* Everything in L2 except the flag axes. Drive is measured, scored into
+   nothing (w:0) and used only as an internal retention signal — the console
+   may see it, an executive reviewing a candidate may not, and neither may the
+   person themselves. L2 iterates every layer-2 axis, so any surface that maps
+   L2 to bars or facets prints Drive by accident. Outside app/console/, use
+   this. */
+export const L2_SHOWN = L2.filter(a => a.type !== 'flag');
 export const FACET: Record<string, Facet> = Object.fromEntries(FACETS.map(f => [f.key, f]));
 export const facetsOf = (trait: string) => FACETS.filter(f => f.trait === trait);
 export const SCALE = ['Not like me', 'Rarely', 'Sometimes', 'Often', 'Exactly like me'];

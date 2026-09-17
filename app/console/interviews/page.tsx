@@ -27,7 +27,7 @@ export default async function ConsoleInterviews({ searchParams }: {
 }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
 
   const all = await listInterviews();
   /* The operator's own timezone, not a hardcoded Pacific. A London-based

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function Postings() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
-  if (profile.role !== 'admin' && configured()) redirect('/app');
+  if (profile.role !== 'admin') redirect('/app');
 
   const posts = await listPostings();
   const apps = await listApplications();

@@ -4,6 +4,7 @@ import { corsHeaders, preflight } from '@/lib/cors';
 import { teamEmails } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { APPLY_QUESTIONS, ENGLISH_LEVELS } from '@/lib/jobs-public';
+import { looksLike } from '@/lib/filetype';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,17 +83,24 @@ export async function POST(req: Request) {
   /* The map above lives in one lambda's memory — gone on a cold start, not
      shared across instances, keyed on an email the caller chose. The real
      limit is counted in the database, by address and by email. If the
-     function is missing (a database one migration behind) the door stays
-     open rather than shut: a real applicant must never be refused by an
-     outage in the thing meant to stop robots. */
+     function is missing or the call fails, this now refuses rather than
+     waving everyone through: an unavailable limiter used to remove all rate
+     limiting silently, which is the failure an attacker would arrange for.
+     A real applicant sees a 503 asking them to retry in a few minutes, which
+     costs them a moment; failing open costs an uncapped flood through the
+     Workspace send quota, and once that is spent every invoice and sign-in
+     link in the platform stops too. */
   try {
     const ip = (req.headers.get('x-nf-client-connection-ip')
       ?? req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
     const sbLimit = await supabaseServer();
     const { data: allowed, error } = await sbLimit.rpc('apply_allowed', { p_ip: ip, p_email: email });
-    if (!error && allowed === false)
+    if (error) throw error;
+    if (allowed === false)
       return fail('Too many applications from this address today. Please try again tomorrow.', 429);
-  } catch { /* stay open */ }
+  } catch {
+    return fail('We could not accept that just now. Please try again in a few minutes.', 503);
+  }
 
   const answers: Record<string, string> = {};
   for (const q of APPLY_QUESTIONS) {
@@ -123,6 +131,11 @@ export async function POST(req: Request) {
             : file.type === 'application/msword' ? 'doc' : 'docx';
   const path = `${isGeneral ? 'general' : post_id}/${crypto.randomUUID()}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
+  /* file.type is the caller's claim, not a fact about the file. Without this
+     an executable or an HTML page arrives labelled application/pdf, is stored
+     as .pdf, and is opened from the console under that name. */
+  if (!looksLike('document', bytes))
+    return fail('That file is not a PDF or a Word document, whatever it is named.', 415);
   const { error: uploadError } = await sb.storage.from('applications')
     .upload(path, bytes, { contentType: file.type, upsert: false });
   if (uploadError) return fail('We could not save that resume — please try again.', 500);

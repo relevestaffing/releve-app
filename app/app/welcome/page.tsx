@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { getSelfProfile } from '@/lib/store';
 import Welcome from '@/components/Welcome';
+import ExecFirstRun from '@/components/ExecFirstRun';
 import ChooseRole from '@/components/ChooseRole';
 import TermsGate from '@/components/TermsGate';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
@@ -27,5 +28,8 @@ export default async function WelcomePage() {
   if (!self?.role_chosen_at && !self?.assigned_by_releve)
     return <ChooseRole name={profile.full_name} />;
 
-  return <Welcome role={profile.role === 'client' ? 'client' : 'talent'} />;
+  /* Executives walk the three screens on first sign-in; talent keep their own
+     short intro. */
+  if (profile.role === 'client') return <ExecFirstRun />;
+  return <Welcome role="talent" />;
 }

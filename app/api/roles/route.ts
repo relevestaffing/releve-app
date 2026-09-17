@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { saveRoleBreakdown, saveSkills } from '@/lib/roles';
+import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +27,6 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ error: 'unknown action' }, { status: 400 });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
 }
