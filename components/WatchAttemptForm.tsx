@@ -34,8 +34,16 @@ export default function WatchAttemptForm({
   const abs = Math.abs(remaining);
   const clock = [Math.floor(abs / 3600000), Math.floor((abs % 3600000) / 60000), Math.floor((abs % 60000) / 1000)]
     .map((n, i) => (i === 0 ? String(n) : String(n).padStart(2, '0'))).join(':');
+  /* A hard cutoff, not just a red clock: once time is up, the database
+     itself refuses further writes to a task (see the time-boxed RLS policy
+     on taking_the_watch_tasks in schema.sql) — this just stops the client
+     from even trying, and locks the textareas so it's visible why typing
+     stopped doing anything. Whatever was saved before the cutoff is still
+     there to submit. */
+  const locked = readOnly || over;
 
   function onChange(taskId: string, value: string) {
+    if (over) return;
     clearTimeout(timers.current[taskId]);
     timers.current[taskId] = setTimeout(() => save(taskId, value), 1000);
   }
@@ -84,7 +92,7 @@ export default function WatchAttemptForm({
               <h2 style={{ color: 'var(--cream)', fontSize: 22, marginTop: 4 }}>Taking The Watch</h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Over your time' : 'Time remaining'}</div>
+              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up — submit what you have' : 'Time remaining'}</div>
               <div className="mono-num" style={{ color: over ? '#D99C8C' : 'var(--cream)' }}>{over ? '+' : ''}{clock}</div>
             </div>
           </div>
@@ -100,7 +108,7 @@ export default function WatchAttemptForm({
               rows={7}
               defaultValue={t.response ?? ''}
               placeholder={t.placeholder}
-              disabled={readOnly}
+              disabled={locked}
               onChange={e => onChange(t.id, e.target.value)}
             />
           </div>

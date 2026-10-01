@@ -3378,17 +3378,26 @@ create policy "own watch tasks read" on taking_the_watch_tasks for select
        where a.id = taking_the_watch_tasks.attempt_id and a.talent_id = auth.uid()
     )
   );
+-- PART 38 (1 Oct 2026): a hard cutoff, not just a red clock. Writing to a
+-- task used to stay open for as long as the attempt's status stayed
+-- 'in_progress' — nothing ever flipped that on its own, so autosave kept
+-- accepting new answers well past the time limit, same as a raw update
+-- would have. Now the window itself is time-boxed: once now() passes
+-- started_at + time_limit_minutes, this policy refuses the write exactly
+-- the way it already refuses one on a submitted attempt.
 create policy "own watch tasks write while open" on taking_the_watch_tasks for all
   using (
     is_admin() or exists (
       select 1 from taking_the_watch_attempts a
        where a.id = taking_the_watch_tasks.attempt_id and a.talent_id = auth.uid() and a.status = 'in_progress'
+         and now() <= a.started_at + (a.time_limit_minutes || ' minutes')::interval
     )
   )
   with check (
     is_admin() or exists (
       select 1 from taking_the_watch_attempts a
        where a.id = taking_the_watch_tasks.attempt_id and a.talent_id = auth.uid() and a.status = 'in_progress'
+         and now() <= a.started_at + (a.time_limit_minutes || ' minutes')::interval
     )
   );
 
@@ -4649,3 +4658,40 @@ create policy "admin replaces agreement files" on storage.objects for update
   using (bucket_id = 'agreements' and is_admin());
 
 do $$ begin raise notice 'PART 37 applied: client_agreements + agreements bucket created; both DocuSign flows are now two-signer envelopes.'; end $$;
+
+-- ============================================================
+-- PART 38 (continued) — an executive can no longer record a decision on
+-- someone never released to them (1 Oct 2026)
+--
+-- talent_decisions was keyed on the pair, not on a matches row, and its
+-- policy only checked client_id = auth.uid() — nothing required a release
+-- to exist first, unlike matches, signatures, role breakdowns and skills,
+-- which all already carry this guard. It never exposed a candidate's
+-- private data (the executive still can't read anything about a talent
+-- who isn't released), but it let an executive act on an identity Relève
+-- never showed them. Sage's call: a decision now requires a released match
+-- between that client and that talent, same shape as the existing "read
+-- released matches" policy on matches itself.
+-- ============================================================
+drop policy if exists "own decisions" on talent_decisions;
+create policy "own decisions" on talent_decisions for all
+  using (
+    is_admin()
+    or (client_id = auth.uid() and exists (
+          select 1 from matches m
+           where m.client_id = talent_decisions.client_id
+             and m.talent_id = talent_decisions.talent_id
+             and m.released
+        ))
+  )
+  with check (
+    is_admin()
+    or (client_id = auth.uid() and exists (
+          select 1 from matches m
+           where m.client_id = talent_decisions.client_id
+             and m.talent_id = talent_decisions.talent_id
+             and m.released
+        ))
+  );
+
+do $$ begin raise notice 'PART 38 applied: Taking The Watch autosave now has a real time cutoff; talent_decisions requires a released match.'; end $$;

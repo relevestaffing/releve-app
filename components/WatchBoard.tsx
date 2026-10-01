@@ -69,7 +69,7 @@ export default function WatchBoard({ items }: { items: Item[] }) {
                 <>
                   <span className="small muted">
                     {it.timeLimitMinutes
-                      ? `Once you start, the clock runs for ${Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours straight through.`
+                      ? `Once you start, the clock runs for ${Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours straight through, paid at $6/hour.`
                       : 'Once you start, the clock is running.'}
                   </span>
                   <button className="btn sm solid" disabled={busy === it.discipline} onClick={() => start(it.discipline)}>

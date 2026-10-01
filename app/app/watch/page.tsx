@@ -35,8 +35,9 @@ export default async function WatchPage() {
           <div className="card tight">
             <Explain>
               A live, timed simulation of a real day in each discipline you claim — one attempt,
-              completed on your own time once you start it. It is the one part of intake that is
-              observed rather than reported, and it has to be cleared before you enter the Talent Roster.
+              three hours, completed on your own time once you start it, and paid at $6/hour. It is
+              the one part of intake that is observed rather than reported, and it has to be cleared
+              before you enter the Talent Roster.
             </Explain>
           </div>
           <WatchBoard items={items} />

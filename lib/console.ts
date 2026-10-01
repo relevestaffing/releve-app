@@ -296,6 +296,18 @@ export async function consoleSnapshot(): Promise<{
     why: 'worth reaching out before more time passes — Money has the full history to work from',
     href: '/console/money', cta: 'Open the money' });
 
+  /* A failed autopay charge used to read exactly like one nobody had tried
+     to charge yet — the webhook already marks the invoice 'failed' and
+     emails the team the moment it happens, but nothing surfaced it here, so
+     it could sit unnoticed until the 14-day suspendable flag above caught
+     it. This is the same invoices Money already marks 'failed', just called
+     out before that two-week clock runs out, not after. */
+  const autopayFailed = ((invoices.data ?? []) as any[]).filter(i => i.status === 'failed').length;
+  add({ key: 'autopay_failed', rank: 2.2, level: 'high', count: autopayFailed,
+    what: `${agree(autopayFailed, 'autopay charge', 'autopay charges')} failed`,
+    why: 'the bank refused it — a note went to your email the moment it happened; reach out or retry before it reaches two weeks unpaid',
+    href: '/console/money', cta: 'See what failed' });
+
   /* Split, because these live on two different pages and the old single row
      sent her to Check-ins half the time when the flag was an executive's
      monthly pulse — which is only rendered on Care, and is the expensive kind. */

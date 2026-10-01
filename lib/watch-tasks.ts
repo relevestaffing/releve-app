@@ -63,7 +63,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   social: {
     disciplineKey: 'social',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You are the new Social Media Manager for Fieldwork, a direct-to-consumer boot brand. Their voice is ' +
       'plainspoken and a little dry, never exclamation-point-cheerful. Audience: outdoorsy professionals, 28–45.',
@@ -142,7 +142,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   support: {
     disciplineKey: 'support',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You are on the support queue for Loom & Co, a mid-size online mattress retailer, working tickets in Zendesk.',
     tasks: [
@@ -179,7 +179,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   sales: {
     disciplineKey: 'sales',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You support the sales pipeline for Ardent, a B2B scheduling software company selling $8k–$40k annual deals, in HubSpot.',
     tasks: [
@@ -249,7 +249,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   marketing: {
     disciplineKey: 'marketing',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You support marketing for Halcyon, a wellness app launching a new sleep-tracking feature, in Klaviyo and Webflow.',
     tasks: [
@@ -283,7 +283,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   people: {
     disciplineKey: 'people',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You support People Ops for a 30-person remote startup, currently hiring for a Senior Backend Engineer, using Gusto and a simple ATS.',
     tasks: [
@@ -357,7 +357,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   design: {
     disciplineKey: 'design',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You support design for Norling & Vale, a boutique law firm rebranding away from a dated, generic corporate look, working in Figma.',
     tasks: [
@@ -393,7 +393,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   personal: {
     disciplineKey: 'personal',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You support the personal side of a busy executive’s life alongside their EA — two kids, frequent travel, a household to run.',
     tasks: [
@@ -428,7 +428,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
 
   tech: {
     disciplineKey: 'tech',
-    timeLimitMinutes: 150,
+    timeLimitMinutes: 180,
     scenario:
       'You support systems for a 20-person consultancy running Google Workspace, Slack, and a half-dozen SaaS tools nobody fully owns.',
     tasks: [
