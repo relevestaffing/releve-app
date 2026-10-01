@@ -16,6 +16,10 @@ const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com'
 export async function POST() {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
+  // 1 Oct 2026: this starts/opens a DocuSign envelope addressed to the caller — only
+  // talent have an agreement to sign here, so a signed-in executive hitting it directly
+  // no longer triggers an unwanted send. (Still scoped to the caller's own account either way.)
+  if (me.role !== 'talent') return NextResponse.json({ error: 'not available for this account' }, { status: 403 });
   if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
   if (!docusignReady())
     return NextResponse.json({ error: 'DocuSign is not switched on yet.' }, { status: 503 });
