@@ -15,6 +15,12 @@
 #   crontab -e
 # then add this line and save:
 #   0 9 * * * cd ~/Releve/releve-app && ./scripts/backup.sh >> ~/Releve/backup.log 2>&1
+#
+# Off-machine copy: each run also mirrors the local backups/ folder to the
+# "backups" branch of the private releve-app GitHub repo, using the deploy
+# key at ~/Releve/.deploy-keys/releve_deploy_key (read-only key won't work;
+# it needs write access). A failed push never fails the backup itself — the
+# local gzip is already safe on disk either way.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -86,3 +92,50 @@ ls -1t "$OUT"/releve_*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read 
   echo "Removing old backup $(basename "$old")"
   rm -f "$old"
 done
+
+# --- off-machine copy: mirror $OUT to the "backups" branch on GitHub ---
+# Runs in a separate git worktree so it never touches your working tree or
+# in-progress changes in the main releve-app checkout. Any failure here is
+# logged and swallowed; the local backup above already succeeded.
+push_offsite() {
+  local DEPLOY_KEY="$HOME/Releve/.deploy-keys/releve_deploy_key"
+  local WORKTREE="$HOME/Releve/.backup-worktree"
+  local REPO_ROOT
+  REPO_ROOT="$(pwd)"
+
+  if [ ! -f "$DEPLOY_KEY" ]; then
+    echo "Off-machine backup push skipped: no deploy key at $DEPLOY_KEY"
+    return 0
+  fi
+
+  export GIT_SSH_COMMAND="ssh -i $DEPLOY_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+
+  if [ ! -d "$WORKTREE" ]; then
+    if git ls-remote --exit-code --heads origin backups >/dev/null 2>&1; then
+      git worktree add -B backups "$WORKTREE" origin/backups >/dev/null 2>&1 || return 0
+    else
+      git worktree add --detach "$WORKTREE" >/dev/null 2>&1 || return 0
+      (cd "$WORKTREE" && git checkout --orphan backups && git rm -rf . >/dev/null 2>&1) || return 0
+    fi
+  fi
+
+  rsync -a --delete "$OUT"/ "$WORKTREE"/backups/ 2>/dev/null || { mkdir -p "$WORKTREE/backups" && cp -a "$OUT"/. "$WORKTREE/backups/"; }
+
+  (
+    cd "$WORKTREE"
+    git add -A
+    if ! git diff --cached --quiet; then
+      git commit -q -m "Backup sync $STAMP" 2>&1
+      if git push -q origin backups 2>&1; then
+        echo "Off-machine backup pushed to GitHub (backups branch)."
+      else
+        echo "Off-machine backup push failed — local backup is still safe at $FILE."
+      fi
+    else
+      echo "Off-machine backup already up to date."
+    fi
+  )
+  cd "$REPO_ROOT"
+}
+
+push_offsite || echo "Off-machine backup step errored — local backup is still safe at $FILE."
