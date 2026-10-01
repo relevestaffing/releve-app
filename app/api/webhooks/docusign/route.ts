@@ -15,6 +15,13 @@ export const dynamic = 'force-dynamic';
    from an actually signed-in non-admin, and a service-role call carries no
    signed-in user at all.
 
+   Both agreement flows are two-signer envelopes now (talent or client,
+   then Sage's Company role) — 'envelope-completed' only fires once every
+   recipient has signed, so a row only reaches 'verified' once Sage has
+   countersigned too. This checks vetting (talent's agreement) first and
+   client_agreements (the Client Services Agreement) second, since one
+   envelope id can only ever belong to one of the two.
+
    NOTE: the exact shape of DocuSign Connect's JSON delivery — event name,
    where the envelope id sits — is read defensively below rather than
    assumed, but has not been exercised against a real Connect subscription
@@ -58,12 +65,12 @@ export async function POST(req: Request) {
 
   try {
     if (status === 'envelope-completed' || status === 'completed') {
-      const { data: row } = await sb.from('vetting')
+      const { data: talentRow } = await sb.from('vetting')
         .select('id, talent_id').eq('envelope_id', envelopeId).eq('kind', 'agreement').maybeSingle();
 
-      if (row) {
+      if (talentRow) {
         const bytes = await downloadCompletedEnvelope(envelopeId);
-        const path = `${(row as any).talent_id}/agreement.pdf`;
+        const path = `${(talentRow as any).talent_id}/agreement.pdf`;
         const { error: upErr } = await sb.storage.from('vetting')
           .upload(path, bytes, { contentType: 'application/pdf', upsert: true });
         if (upErr) throw new Error(upErr.message);
@@ -72,22 +79,49 @@ export async function POST(req: Request) {
           state: 'verified', file_path: path, file_name: 'agreement.pdf',
           verified_at: new Date().toISOString(),
           signed_on: new Date().toISOString().slice(0, 10)
-        }).eq('id', (row as any).id);
+        }).eq('id', (talentRow as any).id);
 
         const { data: person } = await sb.from('profiles')
-          .select('full_name, email').eq('id', (row as any).talent_id).maybeSingle();
+          .select('full_name, email').eq('id', (talentRow as any).talent_id).maybeSingle();
         if ((person as any)?.email) {
           await send((person as any).email, templates.vettingVerified(
             String((person as any).full_name ?? '').split(' ')[0] || 'there'
           ));
         }
+      } else {
+        /* Not talent's envelope — try the Client Services Agreement. */
+        const { data: clientRow } = await sb.from('client_agreements')
+          .select('id, client_id').eq('envelope_id', envelopeId).maybeSingle();
+
+        if (clientRow) {
+          const bytes = await downloadCompletedEnvelope(envelopeId);
+          const path = `${(clientRow as any).client_id}/services-agreement.pdf`;
+          const { error: upErr } = await sb.storage.from('agreements')
+            .upload(path, bytes, { contentType: 'application/pdf', upsert: true });
+          if (upErr) throw new Error(upErr.message);
+
+          await sb.from('client_agreements').update({
+            state: 'verified', file_path: path, file_name: 'services-agreement.pdf',
+            verified_at: new Date().toISOString(),
+            signed_on: new Date().toISOString().slice(0, 10)
+          }).eq('id', (clientRow as any).id);
+
+          const { data: person } = await sb.from('profiles')
+            .select('full_name, email').eq('id', (clientRow as any).client_id).maybeSingle();
+          if ((person as any)?.email) {
+            await send((person as any).email, templates.clientAgreementVerified(
+              String((person as any).full_name ?? '').split(' ')[0] || 'there'
+            ));
+          }
+        }
       }
     } else if (status === 'envelope-declined' || status === 'envelope-voided'
             || status === 'declined' || status === 'voided') {
-      await sb.from('vetting').update({
-        state: 'rejected',
-        reject_reason: status.includes('declined') ? 'Declined in DocuSign.' : 'Voided in DocuSign.'
-      }).eq('envelope_id', envelopeId).eq('kind', 'agreement');
+      const reason = status.includes('declined') ? 'Declined in DocuSign.' : 'Voided in DocuSign.';
+      await sb.from('vetting').update({ state: 'rejected', reject_reason: reason })
+        .eq('envelope_id', envelopeId).eq('kind', 'agreement');
+      await sb.from('client_agreements').update({ state: 'rejected', reject_reason: reason })
+        .eq('envelope_id', envelopeId);
     }
   } catch (e: any) {
     /* Something went wrong handling a genuine, signed event — remove the

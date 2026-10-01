@@ -15,3 +15,4 @@ out
 # os
 .DS_Store
 *.log
+.deploy-key/

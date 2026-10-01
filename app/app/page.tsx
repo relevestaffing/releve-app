@@ -29,6 +29,9 @@ import GuaranteeBadge from '@/components/GuaranteeBadge';
 import { depositGateFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { firstName } from '@/lib/words';
+import { docusignClientReady } from '@/lib/docusign';
+import { getClientAgreement } from '@/lib/agreement';
+import ClientAgreementCard from '@/components/ClientAgreementCard';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -94,14 +97,18 @@ export default async function AppHome() {
      Guarantee, made visible rather than left to a line of copy — same gate
      as the deposit. All three only need stage, not each other, so they run
      together rather than one after the next. */
-  const [placements, deposit, brief] = await Promise.all([
+  const [placements, deposit, brief, clientAgreement] = await Promise.all([
     side === 'client'
       ? (stage.placed ? listPlacementsFor(profile.id) : Promise.resolve([]))
       : listPlacementsFor(profile.id),
     side === 'client' && stage.hiring && !stage.placed
       ? depositGateFor(profile.id) : Promise.resolve(null),
     side === 'client' && stage.hiring && !stage.placed
-      ? getSearch(profile.id) : Promise.resolve(null)
+      ? getSearch(profile.id) : Promise.resolve(null),
+    /* Independent of stage — the agreement can be signed whenever DocuSign
+       is switched on for it, not gated on hiring/placed the way the
+       deposit and the 14-day guarantee brief are. */
+    side === 'client' ? getClientAgreement(profile.id) : Promise.resolve(null)
   ]);
   /* Steps per placement, for the read-only onboarding progress card below —
      most executives have exactly one placement, so this is rarely more than
@@ -257,6 +264,9 @@ export default async function AppHome() {
 
         {offer && <OfferCard offer={offer} side="client" />}
         {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
+        {docusignClientReady() && clientAgreement && clientAgreement.state !== 'verified' && (
+          <ClientAgreementCard state={clientAgreement.state} rejectReason={clientAgreement.reject_reason} />
+        )}
 
         {/* Side by side once there is a placement to work from — tasks as
            the main pane, attention and the team as a rail beside it, the

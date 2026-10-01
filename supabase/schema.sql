@@ -4571,3 +4571,81 @@ create trigger audit_talent_payout_t after insert or update on talent_payout
 for each row execute function audit_talent_payout();
 
 do $$ begin raise notice 'PART 36 applied: rate, talent pay and payout-detail changes now write to audit_log.'; end $$;
+
+-- ============================================================
+-- PART 37 — Client Services Agreement through DocuSign, and
+-- Sage's own countersignature on both agreement flows
+-- (approved 27 Sep 2026)
+--
+-- Talent's contractor agreement + NDA already went through DocuSign as a
+-- single embedded signer. Two changes land together here: the Client
+-- Services Agreement gets the same DocuSign flow (client_agreements below,
+-- mirroring the vetting table's 'agreement' row), and BOTH flows become
+-- two-signer envelopes — the talent or client signs first, Sage
+-- countersigns for Relève second. Nothing is 'verified' until both sides
+-- have signed; see lib/docusign.ts and the webhook route for how.
+-- ============================================================
+
+create table if not exists client_agreements (
+  id            uuid primary key default gen_random_uuid(),
+  client_id     uuid not null references profiles(id) on delete cascade,
+  state         text not null default 'not_started'
+                  check (state in ('not_started','submitted','verified','rejected')),
+  envelope_id   text,
+  file_path     text,                      -- inside the private 'agreements' bucket
+  file_name     text,
+  submitted_at  timestamptz,
+  verified_at   timestamptz,
+  signed_on     date,
+  reject_reason text,
+  updated_at    timestamptz not null default now(),
+  unique (client_id)
+);
+comment on table client_agreements is
+  'One row per client. Mirrors vetting''s agreement kind, for the Client Services Agreement.';
+
+create index if not exists client_agreements_state_idx on client_agreements (state);
+
+alter table client_agreements enable row level security;
+
+drop policy if exists "see own client agreement" on client_agreements;
+create policy "see own client agreement" on client_agreements for select
+  using (client_id = auth.uid() or is_admin());
+
+-- The client's own "Sign now" click starts the envelope itself, same as
+-- talent's self-serve start in vetting; admin can also send it first from
+-- the console (Executives page).
+drop policy if exists "client starts own agreement" on client_agreements;
+create policy "client starts own agreement" on client_agreements for insert
+  with check (client_id = auth.uid() or is_admin());
+
+drop policy if exists "client agreement updates" on client_agreements;
+create policy "client agreement updates" on client_agreements for update
+  using (client_id = auth.uid() or is_admin());
+
+-- ---------- the private document store for signed agreements ----------
+-- Separate from 'vetting' on purpose: that bucket's RLS is scoped to
+-- talent-authored folders, and a client's signed agreement is not a
+-- vetting document. NOT public, same shape as 'vetting'.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('agreements', 'agreements', false, 10485760, array['application/pdf'])
+on conflict (id) do update
+  set public = false, file_size_limit = 10485760,
+      allowed_mime_types = array['application/pdf'];
+
+drop policy if exists "own agreement files readable" on storage.objects;
+create policy "own agreement files readable" on storage.objects for select
+  using (bucket_id = 'agreements'
+         and ((storage.foldername(name))[1] = auth.uid()::text or is_admin()));
+
+-- Written only by the webhook (service role, bypasses RLS) or an admin —
+-- never by the client or talent themselves, since the file is DocuSign's
+-- own completed copy, not something either side uploads.
+drop policy if exists "admin writes agreement files" on storage.objects;
+create policy "admin writes agreement files" on storage.objects for insert
+  with check (bucket_id = 'agreements' and is_admin());
+drop policy if exists "admin replaces agreement files" on storage.objects;
+create policy "admin replaces agreement files" on storage.objects for update
+  using (bucket_id = 'agreements' and is_admin());
+
+do $$ begin raise notice 'PART 37 applied: client_agreements + agreements bucket created; both DocuSign flows are now two-signer envelopes.'; end $$;

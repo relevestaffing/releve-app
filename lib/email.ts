@@ -349,6 +349,31 @@ const rawTemplates = {
       { label: 'Sign your agreement', href: `${SITE}/app/vetting` })
   }),
 
+  /* The Client Services Agreement's equivalent of agreementReady above —
+     sent the moment Relève (or the client themselves) starts the DocuSign
+     envelope, since an embedded envelope is never emailed by DocuSign
+     itself. */
+  clientAgreementReady: (name: string) => ({
+    subject: 'Your Client Services Agreement is ready to sign',
+    text: `${name},\n\nYour Relève Client Services Agreement is ready. Sign it in your account — it takes about two minutes.\n\n${SITE}/app\n\n— Relève`,
+    html: shell('Ready to sign',
+      p(`${name},`) +
+      p('Your Client Services Agreement is ready. Sign it in your account — it takes about two minutes.'),
+      { label: 'Sign your agreement', href: `${SITE}/app` })
+  }),
+
+  /* Sent once BOTH signatures are on file — the client's and Sage's
+     countersignature — mirroring vettingVerified's role on the talent
+     side. */
+  clientAgreementVerified: (name: string) => ({
+    subject: 'Your Client Services Agreement is fully signed',
+    text: `${name},\n\nYour Client Services Agreement is fully signed and on file with both signatures.\n\n${SITE}/app\n\n— Relève`,
+    html: shell('Fully signed',
+      p(`${name},`) +
+      p('Your Client Services Agreement is fully signed and on file with both signatures — yours and Relève’s.'),
+      { label: 'Open your account', href: `${SITE}/app` })
+  }),
+
   newMessage: (o: { name: string; from: string; preview: string; toTeam: boolean }) => ({
     subject: o.toTeam ? `${o.from} wrote to you` : 'A reply from Relève',
     text: `${o.name},\n\n${o.toTeam ? `${o.from} has written to you.` : 'Your account manager has replied.'}\n\n"${o.preview}"\n\n${SITE}/app/messages\n\n— Relève`,

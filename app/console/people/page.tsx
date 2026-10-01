@@ -8,6 +8,9 @@ import RoleBriefEditor from '@/components/RoleBriefEditor';
 import TableSearch from '@/components/TableSearch';
 import DeletePerson from '@/components/DeletePerson';
 import WaiveDeposit from '@/components/WaiveDeposit';
+import ClientAgreementAdmin from '@/components/ClientAgreementAdmin';
+import { docusignClientReady } from '@/lib/docusign';
+import { getClientAgreements } from '@/lib/agreement';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -19,8 +22,10 @@ export default async function People() {
 
   const clients = await listClients();
   const briefs = await Promise.all(clients.map(c => getSearch(c.key)));
+  const agreements = await getClientAgreements(clients.map(c => c.key));
   const rows = clients.map((c, i) => ({ client: c, brief: briefs[i] }));
   const missing = rows.filter(r => !r.brief?.role_title).length;
+  const docusignOn = docusignClientReady();
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/people" title="Executives" crumb="Accounts and open roles">
@@ -83,6 +88,9 @@ export default async function People() {
                     cents={(brief as any).deposit_cents ?? 50000}
                     status={((brief as any).deposit_status ?? 'due') as 'due' | 'paid' | 'waived'} />
                 )}
+                <ClientAgreementAdmin clientId={client.key} docusignOn={docusignOn}
+                  state={(agreements[client.key]?.state ?? 'not_started')}
+                  rejectReason={agreements[client.key]?.reject_reason ?? null} />
                 <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
                   <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}
                 </span>

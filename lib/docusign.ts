@@ -7,11 +7,17 @@ import { createHmac, createSign, timingSafeEqual } from 'crypto';
    Stripe's webhook check already is — rather than a JWT library pulled in
    for one call.
 
-   Sends the talent contractor agreement + NDA from a DocuSign Template
-   Sage builds once, by hand, in her own account: the signature and date
-   fields live on the template, not something this code places on a raw
-   PDF. Fully built and gracefully does nothing until every credential
-   below exists — the same pattern Zoom and Google Calendar already use. */
+   Two agreements share this file: the talent contractor agreement + NDA,
+   and the client services agreement — each sent from its own DocuSign
+   Template Sage builds once, by hand, in her own account. Both are
+   two-signer envelopes: the talent or client signs first (routing order
+   1, embedded, so they sign in the app itself), then Sage countersigns
+   for Relève (routing order 2, embedded too — from the console). Nothing
+   is fully verified, and nothing is filed, until BOTH signatures land —
+   the completed-envelope webhook below only fires once every recipient is
+   done. Fully built and gracefully does nothing until every credential a
+   given side needs exists — the same pattern Zoom and Google Calendar
+   already use. */
 
 const INTEGRATION_KEY = process.env.DOCUSIGN_INTEGRATION_KEY;
 const USER_ID = process.env.DOCUSIGN_USER_ID;
@@ -20,18 +26,40 @@ const USER_ID = process.env.DOCUSIGN_USER_ID;
    is stored with literal \n escapes and unescaped below — same trick as
    any multi-line secret in a single-line env var. */
 const PRIVATE_KEY = process.env.DOCUSIGN_PRIVATE_KEY;
-const TEMPLATE_ID = process.env.DOCUSIGN_TALENT_AGREEMENT_TEMPLATE_ID;
+const TALENT_TEMPLATE_ID = process.env.DOCUSIGN_TALENT_AGREEMENT_TEMPLATE_ID;
+const CLIENT_TEMPLATE_ID = process.env.DOCUSIGN_CLIENT_AGREEMENT_TEMPLATE_ID;
+/* Sage's own signer identity — the "Company" role on both templates.
+   Not a secret; just who DocuSign's second, countersigning recipient is.
+   The name is cosmetic (shows on the envelope and the signed PDF); the
+   email is what actually routes the countersign step to her. clientUserId
+   only has to stay the same across calls for the same person, so a fixed
+   string is fine — there is exactly one Company signer. */
+const COMPANY_NAME = process.env.DOCUSIGN_COMPANY_SIGNER_NAME || 'Sage Jackson';
+const COMPANY_EMAIL = process.env.DOCUSIGN_COMPANY_SIGNER_EMAIL;
+const COMPANY_USER_ID = 'releve-company-signer';
 /* The HMAC key configured on the Connect subscription that delivers the
-   webhook below — separate from the four above, and needed only once
-   sending is live and something has to trust what comes back. */
+   webhook below — separate from the credentials above, and needed only
+   once sending is live and something has to trust what comes back. */
 const CONNECT_KEY = process.env.DOCUSIGN_CONNECT_KEY;
 const PROD = process.env.DOCUSIGN_ENV === 'production';
 const AUTH_SERVER = PROD ? 'account.docusign.com' : 'account-d.docusign.com';
 
 export function docusignReady() {
-  return Boolean(INTEGRATION_KEY && USER_ID && PRIVATE_KEY && TEMPLATE_ID);
+  return Boolean(INTEGRATION_KEY && USER_ID && PRIVATE_KEY && TALENT_TEMPLATE_ID && COMPANY_EMAIL);
+}
+export function docusignClientReady() {
+  return Boolean(INTEGRATION_KEY && USER_ID && PRIVATE_KEY && CLIENT_TEMPLATE_ID && COMPANY_EMAIL);
 }
 export function docusignWebhookReady() { return Boolean(CONNECT_KEY); }
+
+/* Sage's recipient details for the Company role, thrown as a clear error
+   rather than silently sent with a blank email if she forgets the env
+   var — DocuSign's own error for a missing recipient email is much less
+   legible than this. */
+export function companySigner(): { name: string; email: string; clientUserId: string } {
+  if (!COMPANY_EMAIL) throw new DocuSignError('DOCUSIGN_COMPANY_SIGNER_EMAIL is not set — Sage has no countersigning identity yet.');
+  return { name: COMPANY_NAME, email: COMPANY_EMAIL, clientUserId: COMPANY_USER_ID };
+}
 
 export class DocuSignError extends Error {}
 
@@ -62,7 +90,8 @@ let cached: { token: string; accountId: string; baseUri: string; exp: number } |
    consent_required — nothing broken, just the one thing only a human can
    do: docusignConsentUrl() below builds the approval link. */
 async function authenticate() {
-  if (!docusignReady()) throw new DocuSignError('DocuSign is not configured yet.');
+  if (!INTEGRATION_KEY || !USER_ID || !PRIVATE_KEY)
+    throw new DocuSignError('DocuSign is not configured yet.');
   if (cached && cached.exp > Date.now() + 60_000) return cached;
 
   const tokRes = await fetch(`https://${AUTH_SERVER}/oauth/token`, {
@@ -105,6 +134,36 @@ export function docusignConsentUrl(): string {
     + `&client_id=${INTEGRATION_KEY}&redirect_uri=${encodeURIComponent(redirect)}`;
 }
 
+/* Shared by both sendTalentAgreement and sendClientAgreement below: a
+   two-signer envelope from a template, the counterparty at routing order
+   1 (embedded — signs in the app), Sage's Company role at routing order
+   2 (embedded too — she signs from the console once it's her turn).
+   DocuSign will not open the Company view before the first signer is
+   done; embeddedSigningUrl surfaces that as an ordinary DocuSignError
+   rather than something this function needs to guard against itself. */
+async function sendTwoSignerEnvelope(o: {
+  templateId: string | undefined; name: string; email: string; clientUserId: string;
+}): Promise<string> {
+  if (!o.templateId) throw new DocuSignError('No DocuSign Template is configured for this agreement yet.');
+  const company = companySigner();
+  const { token, accountId, baseUri } = await authenticate();
+  const res = await fetch(`${baseUri}/v2.1/accounts/${accountId}/envelopes`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      templateId: o.templateId,
+      templateRoles: [
+        { name: o.name, email: o.email, roleName: 'Signer', clientUserId: o.clientUserId, routingOrder: '1' },
+        { name: company.name, email: company.email, roleName: 'Company', clientUserId: company.clientUserId, routingOrder: '2' }
+      ],
+      status: 'sent'
+    })
+  });
+  const out: any = await res.json().catch(() => ({}));
+  if (!res.ok) throw new DocuSignError(out.message ?? 'DocuSign would not send that.');
+  return out.envelopeId as string;
+}
+
 /* Sends the talent contractor agreement + NDA from the template Sage owns.
    The template supplies the document and the fields; this only says who
    it goes to. Returns the envelope id the webhook will report back
@@ -120,27 +179,24 @@ export function docusignConsentUrl(): string {
 export async function sendTalentAgreement(
   o: { name: string; email: string; clientUserId: string }
 ): Promise<string> {
-  const { token, accountId, baseUri } = await authenticate();
-  const res = await fetch(`${baseUri}/v2.1/accounts/${accountId}/envelopes`, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      templateId: TEMPLATE_ID,
-      templateRoles: [{
-        name: o.name, email: o.email, roleName: 'Signer', clientUserId: o.clientUserId
-      }],
-      status: 'sent'
-    })
-  });
-  const out: any = await res.json().catch(() => ({}));
-  if (!res.ok) throw new DocuSignError(out.message ?? 'DocuSign would not send that.');
-  return out.envelopeId as string;
+  return sendTwoSignerEnvelope({ templateId: TALENT_TEMPLATE_ID, ...o });
+}
+
+/* Sends the client services agreement from the template Sage owns. Same
+   shape as sendTalentAgreement — see its comment above — for the other
+   side of the business: the executive signs first, Sage countersigns. */
+export async function sendClientAgreement(
+  o: { name: string; email: string; clientUserId: string }
+): Promise<string> {
+  return sendTwoSignerEnvelope({ templateId: CLIENT_TEMPLATE_ID, ...o });
 }
 
 /* The embedded signing ceremony itself: a one-time-use URL good for a few
    minutes, which is why this is called fresh on every "Sign now" click
    rather than stored. clientUserId here has to be byte-identical to the
-   one the envelope was created with above, or DocuSign refuses the view. */
+   one the envelope was created with above, or DocuSign refuses the view.
+   Used for all three embedded signers this file knows about: talent,
+   client, and Sage's own Company countersignature. */
 export async function embeddedSigningUrl(o: {
   envelopeId: string; name: string; email: string; clientUserId: string; returnUrl: string;
 }): Promise<string> {

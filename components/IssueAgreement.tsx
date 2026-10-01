@@ -2,10 +2,14 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
+import CountersignButton from './CountersignButton';
 
 type Person = { id: string; full_name: string | null; email: string; role: string };
+type Pending = { id: string; name: string; envelopeId: string };
 
-export default function IssueAgreement({ talent, docusignOn }: { talent: Person[]; docusignOn?: boolean }) {
+export default function IssueAgreement({ talent, docusignOn, pendingCountersign }: {
+  talent: Person[]; docusignOn?: boolean; pendingCountersign?: Pending[];
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [who, setWho] = useState('');
@@ -26,7 +30,7 @@ export default function IssueAgreement({ talent, docusignOn }: { talent: Person[
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out.error ?? 'DocuSign would not send that.');
-      toast.saved('Sent — filed automatically the moment it comes back signed');
+      toast.saved('Sent — filed automatically once it comes back signed by both sides');
       setWho('');
       router.refresh();
     } catch (e: any) { toast.bad(e.message); }
@@ -57,8 +61,9 @@ export default function IssueAgreement({ talent, docusignOn }: { talent: Person[
       <div className="card-head"><h3>File a signed agreement</h3></div>
       <p className="small muted" style={{ marginBottom: 18 }}>
         {docusignOn
-          ? <>Send it through DocuSign and it files itself here the moment it comes back signed — or upload a
-              signed copy you already have some other way.</>
+          ? <>Send it through DocuSign and it files itself here the moment BOTH signatures are on it — theirs,
+              then yours. You are sent here to countersign once they have signed their half — see below. Or
+              upload a signed copy you already have some other way.</>
           : <>You send the contractor agreement and NDA yourself, they sign it, and you file the signed copy here.
               It appears in their account to read — they cannot upload or change it.</>}
       </p>
@@ -90,6 +95,21 @@ export default function IssueAgreement({ talent, docusignOn }: { talent: Person[
           </button>
         </div>
       </div>
+
+      {/* Whoever has signed their half and is waiting on Sage's Company
+          signature — the envelope will not complete, and the row will not
+          reach 'verified', until she countersigns each of these. */}
+      {docusignOn && pendingCountersign && pendingCountersign.length > 0 && (
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--rule, #e5e5e5)' }}>
+          <h4 style={{ margin: '0 0 10px' }}>Waiting on your signature</h4>
+          {pendingCountersign.map(p => (
+            <div key={p.id} className="row between" style={{ alignItems: 'center', padding: '8px 0', flexWrap: 'wrap', gap: 10 }}>
+              <span className="small">{p.name}</span>
+              <CountersignButton kind="talent" id={p.id} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
