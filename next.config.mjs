@@ -44,7 +44,7 @@ const csp = [
   "manifest-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  "form-action 'self' https://checkout.stripe.com",
   "frame-ancestors 'none'",
   ...(DEV ? [] : ['upgrade-insecure-requests'])
 ].join('; ');
