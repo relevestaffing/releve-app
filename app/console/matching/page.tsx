@@ -64,8 +64,8 @@ export default async function Matching({ searchParams }: {
       <div className="card tight">
         <p className="small">
           <b>{chosen?.full_name ?? 'This executive'} has not completed their
-          Executive Signature yet.</b> Nothing can be ranked against them until
-          they do — the whole match is built on it.
+          Executive Signature yet.</b> Nothing can be ranked against them until they do.
+          The whole match is built on it.
         </p>
         <p className="small muted" style={{ marginTop: 10 }}>
           They complete it from their own account. Nudge them from Messages if
@@ -118,14 +118,14 @@ export default async function Matching({ searchParams }: {
       <div className="card tight">
         <p className="small" style={{ margin: 0 }}>
           Ranking the roster against <b>{chosen?.full_name}</b>{chosen?.org_name ? ` at ${chosen.org_name}` : ''},
-          whose Signature reads as <b>{type.n}</b>. Release <b>one person at a time</b> —
-          their account shows a single candidate to approve or decline, and anyone
+          whose Signature reads as <b>{type.n}</b>. Release <b>one person at a time</b>.
+          Their account shows a single candidate to approve or decline, and anyone
           released behind that person stays invisible until it is their turn.
           {role
             ? <> The role is <b>{roleShape(role)}</b>, and the Role column scores each
                  candidate against exactly what they asked for.</>
-            : <> <b>They have not broken the role down yet</b>, so the Role column
-                 is empty — fit here is personality only, not capability.</>}
+            : <> <b>They have not broken the role down yet</b>, so the Role column is empty.
+                 Fit here is personality only, not capability.</>}
         </p>
       </div>
 
@@ -144,8 +144,8 @@ export default async function Matching({ searchParams }: {
       {inFront && decided[inFront.person.id]?.state === 'shortlisted' && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--fern)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>{inFront.person.name} was approved.</b> Book the introduction from
-            Interviews — no further releases are needed for this search.
+            <b>{inFront.person.name} was approved.</b> Book the introduction from Interviews.
+            No further releases are needed for this search.
           </p>
         </div>
       )}
@@ -154,7 +154,7 @@ export default async function Matching({ searchParams }: {
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
             <b>Everyone released has been declined.</b> {chosen?.full_name ?? 'This executive'} has
-            nothing in front of them right now — release the next candidate.
+            nothing in front of them right now. Release the next candidate.
           </p>
         </div>
       )}
@@ -199,7 +199,7 @@ export default async function Matching({ searchParams }: {
                     <td><div className="row" style={{ gap: 10 }}><span className="num">{match.overall}%</span>
                       <div className="bar-mini" style={{ width: 60 }}><span style={{ width: `${match.overall}%` }} /></div></div></td>
                     <td>{cover[person.id] == null
-                      ? <span className="xs muted">—</span>
+                      ? <span className="xs muted">·</span>
                       : <span className={`pill ${cover[person.id]! >= 80 ? 'good' : cover[person.id]! >= 60 ? 'warn' : 'crit'}`}>
                           {cover[person.id]}%
                         </span>}</td>
@@ -221,18 +221,18 @@ export default async function Matching({ searchParams }: {
                             <RecordAnswer clientId={clientId} clientName={chosen?.full_name ?? 'the executive'}
                               talentId={person.id} talentName={person.name} />
                           </>
-                        : <span className="pill warn"><span className="dot" />Approved — queued</span>; })()}
+                        : <span className="pill warn"><span className="dot" />Approved and queued</span>; })()}
                       {(() => { const d = decided[person.id];
                         if (!d || (!d.reason && !d.note)) return null;
                         return <div className="xs muted" style={{ marginTop: 4, maxWidth: 220 }}>
-                          &ldquo;{d.reason ?? ''}{d.reason && d.note ? ' — ' : ''}{d.note ?? ''}&rdquo;
+                          &ldquo;{d.reason ?? ''}{d.reason && d.note ? '. ' : ''}{d.note ?? ''}&rdquo;
                         </div>; })()}
                       {gaps ? <div className="xs muted" style={{ marginTop: 4 }}>{gaps} condition gap{gaps > 1 ? 's' : ''}</div> : null}</td>
                     <td><MatchControls clientId={clientId} talentId={person.id}
                       talentName={person.name} clientName={chosen?.full_name ?? 'this executive'}
                       matched={!!byTalent[person.id]} released={!!byTalent[person.id]?.released}
                       manual={!!byTalent[person.id]?.manual}
-                      blocked={notReady.length ? `${notReady.join(' · ')} — this person cannot be sent to an executive yet.` : null}
+                      blocked={notReady.length ? `${notReady.join(' · ')}. This person cannot be sent to an executive yet.` : null}
                       note={byTalent[person.id]?.release_note ?? null} /></td>
                   </tr>
                 );

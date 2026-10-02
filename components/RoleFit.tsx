@@ -2,6 +2,7 @@ import {
   fitByDiscipline, roleFitScore, DISCIPLINE,
   type RoleBreakdown, type SkillsProfile
 } from '@/lib/roles-public';
+import { firstName } from '@/lib/words';
 
 const TONE = { strong: 'good', covered: 'good', thin: 'warn', missing: 'crit' } as const;
 const WORD = { strong: 'Strong', covered: 'Covered', thin: 'Thin', missing: 'Not done it' } as const;
@@ -16,7 +17,7 @@ export default function RoleFit({ role, skills, name }: {
   if (!fits.length) return null;
 
   const score = roleFitScore(fits);
-  const first = name.split(' ')[0];
+  const first = firstName(name);
   const missing = fits.flatMap(f => f.missingCore);
 
   return (
@@ -32,7 +33,7 @@ export default function RoleFit({ role, skills, name }: {
         {missing.length === 0
           ? `${first} can do everything you marked as a must-have.`
           : missing.length === 1
-            ? `${first} covers almost all of it. One must-have — ${missing[0].label.toLowerCase()} — they have not done before.`
+            ? `${first} covers almost all of it. One must-have, ${missing[0].label.toLowerCase()}, is something they have not done before.`
             : `${first} covers most of it, with ${missing.length} must-haves they have not done before.`}
       </p>
 

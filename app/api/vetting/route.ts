@@ -65,7 +65,7 @@ export async function POST(req: Request) {
      server-side stopped a direct call from overwriting an already-filed,
      possibly already-verified agreement with a self-supplied file. */
   if (kind === 'agreement' && me.role !== 'admin')
-    return NextResponse.json({ error: 'Relève issues and files this one — nothing for you to upload here.' }, { status: 403 });
+    return NextResponse.json({ error: 'Relève issues and files this one. There is nothing for you to upload here.' }, { status: 403 });
   if (!(file instanceof Blob)) return NextResponse.json({ error: 'no file received' }, { status: 400 });
   if (file.size > MAX_BYTES) return NextResponse.json({ error: 'that file is over 10MB' }, { status: 413 });
   if (!OK_TYPES.includes(file.type)) {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     const name = (file as File).name ?? '';
     if (file.type === 'image/heic' || file.type === 'image/heif' || /\.hei[cf]$/i.test(name))
       return NextResponse.json({
-        error: 'that photo is saved in HEIC format, which we cannot read — in Photos, choose Share, then "Save as JPEG" (or turn off Camera > Formats > High Efficiency in Settings), and upload that version instead'
+        error: 'That photo is saved in HEIC format, which we cannot read. In Photos, choose Share, then "Save as JPEG" (or turn off Camera > Formats > High Efficiency in Settings), and upload that version instead.'
       }, { status: 415 });
     return NextResponse.json({ error: 'send a PDF or a photo (JPG, PNG, or WEBP)' }, { status: 415 });
   }
@@ -86,9 +86,23 @@ export async function POST(req: Request) {
   const path = `${owner}/${kind}.${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
   if (!looksLike(file.type, bytes))
-    return NextResponse.json({ error: 'that file does not look like a PDF or a photo — try saving it again and re-uploading' }, { status: 415 });
+    return NextResponse.json({ error: 'That file does not look like a PDF or a photo. Try saving it again and re-uploading.' }, { status: 415 });
 
   const sb = await supabaseServer();
+
+  /* A document Relève has verified, and that has not expired, is locked in
+     storage for its owner (PART 39). Say so plainly rather than surfacing
+     the storage refusal. */
+  if (me.role !== 'admin') {
+    const { data: held } = await sb.from('vetting')
+      .select('state, expires_on').eq('talent_id', owner).eq('kind', kind).maybeSingle();
+    const today = new Date().toISOString().slice(0, 10);
+    if ((held as any)?.state === 'verified' && (!(held as any).expires_on || (held as any).expires_on >= today))
+      return NextResponse.json({
+        error: 'That document is already verified. If it needs replacing, message your Talent Success Manager.'
+      }, { status: 409 });
+  }
+
   const { error } = await sb.storage.from('vetting')
     .upload(path, bytes, { contentType: file.type, upsert: true });
   if (error) return NextResponse.json({ error: safeMessage(error) }, { status: 500 });

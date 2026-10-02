@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from '@/components/Toast';
 import { PAYOUT_METHODS, payoutMissing, type Payout, type PayoutMethod } from '@/lib/payout-public';
@@ -12,6 +12,7 @@ import { PAYOUT_METHODS, payoutMissing, type Payout, type PayoutMethod } from '@
    happens to the information, because handing your bank details to a company
    you met three weeks ago deserves an explanation. */
 export default function PayoutForm({ initial }: { initial: Payout | null }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [f, setF] = useState({
@@ -32,7 +33,7 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
     const ok = await saving(() => fetch('/api/payout', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify(f)
-    }), 'Saved — Relève will check these before the first payment');
+    }), 'Saved. Relève will check these before the first payment');
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -48,17 +49,18 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
 
       <p className="small muted" style={{ marginBottom: 22, maxWidth: 620 }}>
         Relève pays you directly, once a month. These details are seen by the Relève team
-        and by nobody else — never by an executive, and never by anyone else on the roster.
+        and by nobody else: never by an executive, and never by anyone else on the roster.
         You can change them whenever you like; if you do, we check them again before the
         next payment.
       </p>
 
       <div className="ff">
-        <label>How</label>
-        <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+        <span className="label-like" id={`${fid}-how`}>How</span>
+        <div className="row" role="group" aria-labelledby={`${fid}-how`} style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
           {PAYOUT_METHODS.map(m => (
             <button key={m.key} type="button"
               className={`btn sm ${f.method === m.key ? 'solid' : 'ghost'}`}
+              aria-pressed={f.method === m.key}
               onClick={() => setF(p => ({ ...p, method: m.key }))}>{m.label}</button>
           ))}
         </div>
@@ -68,21 +70,21 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
       {chosen && (
         <>
           <div className="grid-2" style={{ gap: 14 }}>
-            <div className="ff"><label>The name on the account</label>
-              <input value={f.beneficiary} onChange={e => setF(p => ({ ...p, beneficiary: e.target.value }))}
+            <div className="ff"><label htmlFor={`${fid}-1`}>The name on the account</label>
+              <input id={`${fid}-1`} value={f.beneficiary} onChange={e => setF(p => ({ ...p, beneficiary: e.target.value }))}
                 placeholder="Exactly as it appears there" />
               <span className="xs muted">If it does not match, the transfer bounces and you wait another week.</span></div>
-            <div className="ff"><label>Country</label>
-              <input value={f.country} onChange={e => setF(p => ({ ...p, country: e.target.value }))}
+            <div className="ff"><label htmlFor={`${fid}-2`}>Country</label>
+              <input id={`${fid}-2`} value={f.country} onChange={e => setF(p => ({ ...p, country: e.target.value }))}
                 placeholder="Philippines" /></div>
           </div>
 
-          <div className="ff"><label>{chosen.asks}</label>
-            <textarea rows={3} value={f.detail}
+          <div className="ff"><label htmlFor={`${fid}-3`}>{chosen.asks}</label>
+            <textarea id={`${fid}-3`} rows={3} value={f.detail}
               onChange={e => setF(p => ({ ...p, detail: e.target.value }))} /></div>
 
-          <div className="ff"><label>Anything else we should know <span className="muted">— optional</span></label>
-            <input value={f.note} onChange={e => setF(p => ({ ...p, note: e.target.value }))}
+          <div className="ff"><label htmlFor={`${fid}-4`}>Anything else we should know <span className="muted">(optional)</span></label>
+            <input id={`${fid}-4`} value={f.note} onChange={e => setF(p => ({ ...p, note: e.target.value }))}
               placeholder="A reference the transfer needs to carry, for instance" /></div>
 
           {/* Tax residency. Asked once, here, because this is the screen where
@@ -91,13 +93,15 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
               payment rather than during it. No tax number is asked for or
               stored, on purpose. */}
           <div className="ff">
-            <label>Where are you tax resident?</label>
-            <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+            <span className="label-like" id={`${fid}-tax`}>Where are you tax resident?</span>
+            <div className="row" role="group" aria-labelledby={`${fid}-tax`} style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
               <button type="button"
                 className={`btn sm ${f.us_person === false ? 'solid' : 'ghost'}`}
+                aria-pressed={f.us_person === false}
                 onClick={() => setF(p => ({ ...p, us_person: false }))}>Outside the United States</button>
               <button type="button"
                 className={`btn sm ${f.us_person === true ? 'solid' : 'ghost'}`}
+                aria-pressed={f.us_person === true}
                 onClick={() => setF(p => ({ ...p, us_person: true, tax_residence: 'United States' }))}>
                 I am a US person for tax</button>
             </div>
@@ -110,15 +114,15 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
 
           {f.us_person === false && (
             <div className="ff">
-              <label>Country of tax residence</label>
-              <input value={f.tax_residence}
+              <label htmlFor={`${fid}-5`}>Country of tax residence</label>
+              <input id={`${fid}-5`} value={f.tax_residence}
                 onChange={e => setF(p => ({ ...p, tax_residence: e.target.value }))}
                 placeholder="Philippines" />
               <span className="xs muted">
                 We will send you a W-8BEN to sign before your first payment. It is a short
                 form that says you are taxed where you live rather than in the United
                 States. <b>We never ask for a tax identification number and never store
-                one</b> — the same rule as your identity documents.
+                one</b>, the same rule as your identity documents.
               </span>
             </div>
           )}

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
      wording fix risked flipping their whole account. */
   if (action === 'open' || action === 'close') {
     if (pending) return NextResponse.json(
-      { error: 'that person has no account yet — there is nothing to show them' }, { status: 400 });
+      { error: 'that person has no account yet, so there is nothing to show them' }, { status: 400 });
     await setSearchOpen(client_key, action === 'open',
       reason === 'on_hold' ? 'on_hold' : 'withdrawn');
     return NextResponse.json({ ok: true });

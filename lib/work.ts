@@ -4,6 +4,8 @@
    that the database is not already enforcing. */
 import { configured, supabaseServer } from './supabase/server';
 import type { Checkin, Decision, DecisionState, InterviewFeedback, Message, Origin, Placement, Priority, Task, Vetting } from './work-public';
+import { todayInPacific } from './money-public';
+import { teamEmailsAdmin } from './supabase/admin';
 
 export * from './work-public';
 
@@ -88,7 +90,8 @@ export async function updateTask(id: string, patch: Partial<Task>, byUser: strin
   const { data, error } = await sb.from('tasks').update(body).eq('id', id)
     .select('id, placement_id, title, done, done_by, created_by').maybeSingle();
   if (error) throw new Error(error.message);
-  return (data ?? null) as { id: string; placement_id: string; title: string; done: boolean; done_by: string | null; created_by: string } | null;
+  if (!data) throw new Error('That task could not be changed. It may not be on a placement you are part of.');
+  return data as { id: string; placement_id: string; title: string; done: boolean; done_by: string | null; created_by: string } | null;
 }
 
 export async function deleteTask(id: string) {
@@ -101,7 +104,7 @@ export async function deleteTask(id: string) {
      that into a real error instead of a false success. */
   const { data, error } = await sb.from('tasks').delete().eq('id', id).select('id').maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error('That task could not be deleted — it may not be yours to remove.');
+  if (!data) throw new Error('That task could not be deleted. It may not be yours to remove.');
 }
 
 /* ---------- check-ins ---------- */
@@ -275,7 +278,7 @@ export async function createPlacement(
 
   const { data: made, error } = await sb.from('placements').insert({
     client_id: clientId, talent_id: talentId,
-    started_on: startedOn || new Date().toISOString().slice(0, 10),
+    started_on: startedOn || todayInPacific(),
     predicted_fit: m?.overall ?? null,
     /* Writing this is what settles a replacement guarantee. Nothing had ever
        written it, so every guaranteed ending stayed on the owed list for good
@@ -353,7 +356,7 @@ export async function markRevealSeen(placementId: string, side: PlacementRevealS
 export async function endPlacement(id: string, endedOn?: string | null, reason?: string | null) {
   const sb = await supabaseServer();
   const patch: Record<string, unknown> = {
-    ended_on: endedOn || new Date().toISOString().slice(0, 10)
+    ended_on: endedOn || todayInPacific()
   };
   /* Why it ended decides whether the replacement guarantee is owed, so it is
      recorded at the moment it is known rather than remembered later. */
@@ -447,7 +450,7 @@ export function alertsFor(input: {
   const flagged = input.checkins.filter(c => c.needs_attention).slice(0, 3);
   flagged.forEach(c => out.push({
     level: 'high',
-    text: `Check-in for week ending ${c.week_ending} raised a flag${c.blocked ? ` — "${c.blocked.slice(0, 70)}"` : ''}`
+    text: `Check-in for week ending ${c.week_ending} needs a look${c.blocked ? `: "${c.blocked.slice(0, 70)}"` : ''}`
   }));
 
   const overdue = input.tasks.filter(t => !t.done && t.due_on && t.due_on < today);
@@ -465,7 +468,8 @@ export function alertsFor(input: {
   if (heavy >= 2) out.push({ level: 'watch', text: 'Workload reported as unsustainable more than once' });
 
   if (daysIn >= 75 && daysIn <= 105)
-    out.push({ level: 'watch', text: 'Approaching the end of the three-month minimum — worth a renewal conversation' });
+    out.push({ level: 'watch', text: 'Approaching the end of the three-month minimum. Worth a renewal conversation.'
+ });
 
   return out;
 }
@@ -629,6 +633,10 @@ export async function vettingFileLink(path: string, seconds = 120) {
    went to an empty list while reporting success. */
 export async function teamEmails(): Promise<string[]> {
   if (!configured()) return [];
+  /* team_emails() is no longer callable by anon, and the Stripe webhook runs
+     with no cookies, so the service role is the first choice. */
+  const viaAdmin = await teamEmailsAdmin();
+  if (viaAdmin.length) return viaAdmin;
   const sb = await supabaseServer();
   const { data, error } = await sb.rpc('team_emails');
   if (error) { console.error('[teamEmails]', error.message); return []; }

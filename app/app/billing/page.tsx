@@ -3,15 +3,18 @@ import { redirect } from 'next/navigation';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { listInvoicesFor } from '@/lib/money';
 import {
-  money, dayLabel, monthLabel, daysOverdue,
-  MINIMUM_MONTHS, NOTICE_DAYS, minimumTermEnds, INVOICE_STATUS
+  money, dayLabel, monthLabel, daysOverdue, addDaysISO,
+  MINIMUM_MONTHS, NOTICE_TERMS, minimumTermEnds
 } from '@/lib/money-public';
+import { PAYMENT_STATUS } from '@/lib/billing-public';
+import BillingReturnBanner from '@/components/BillingReturnBanner';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import PaymentMethod from '@/components/PaymentMethod';
 import PayInvoiceButton from '@/components/PayInvoiceButton';
 import { billingAccount } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
+import { todayIn } from '@/lib/experience-public';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,8 +31,11 @@ export default async function Billing() {
   const account = await billingAccount(profile.id);
 
   let live: any[] = [];
+  let tz: string | null = null;
   if (configured()) {
     const sb = await supabaseServer();
+    const { data: me } = await sb.from('profiles').select('timezone').eq('id', profile.id).maybeSingle();
+    tz = (me as any)?.timezone ?? null;
     const { data: placements } = await sb.from('placements')
       .select('id, started_on, talent:talent_id(full_name)')
       .eq('client_id', profile.id).is('ended_on', null);
@@ -40,7 +46,7 @@ export default async function Billing() {
     const ids = (placements ?? []).map((p: any) => p.id);
     const { data: terms } = ids.length
       ? await sb.from('my_placement_terms')
-          .select('placement_id, rate_month_cents, minimum_months, notice_given_on')
+          .select('placement_id, rate_month_cents, minimum_months, notice_given_on, notice_ends_on, minimum_ends')
           .in('placement_id', ids)
       : { data: [] as any[] };
     const byId = new Map((terms ?? []).map((t: any) => [t.placement_id, t]));
@@ -48,9 +54,15 @@ export default async function Billing() {
       const t = byId.get(r.id);
       return { ...r, rate_month_cents: t?.rate_month_cents ?? null,
                minimum_months: t?.minimum_months ?? MINIMUM_MONTHS,
-               notice_given_on: t?.notice_given_on ?? null };
+               notice_given_on: t?.notice_given_on ?? null,
+               notice_ends_on: t?.notice_ends_on ?? null,
+               minimum_ends: t?.minimum_ends ?? null };
     });
   }
+
+  /* "Today" where the client is, so a term that ends today still reads as in
+     term for them; business dates themselves stay recorded in Pacific time. */
+  const today = todayIn(tz ?? 'America/Los_Angeles');
 
   /* Money already collected and clearing is not outstanding — showing it as
      owed makes a client think they have missed something days after they
@@ -63,6 +75,7 @@ export default async function Billing() {
   return (
     <Shell profile={profile} active="/app/billing" title="Billing" crumb="What you are paying, and when">
 
+      <BillingReturnBanner />
       <PaymentMethod account={account} ready={stripeReady()} />
 
       <div className="money-strip">
@@ -86,19 +99,21 @@ export default async function Billing() {
         <div className="card">
           <div className="card-head"><h3>Your placements</h3></div>
           {live.map((p: any) => {
-            const ends = minimumTermEnds(p.started_on, p.minimum_months ?? MINIMUM_MONTHS);
-            const inTerm = ends >= new Date().toISOString().slice(0, 10);
+            const minEnds: string = p.minimum_ends ?? minimumTermEnds(p.started_on, p.minimum_months ?? MINIMUM_MONTHS);
+            const minLast = addDaysISO(minEnds, -1);
+            const inTerm = minLast >= today;
             return (
               <div key={p.id} className="row between" style={{ padding: '12px 0', gap: 14, flexWrap: 'wrap' }}>
                 <div>
                   <b>{p.talent?.full_name ?? 'Your placement'}</b>
                   <div className="xs muted">
                     Started {dayLabel(p.started_on)} · {inTerm
-                      ? `minimum term runs to ${dayLabel(ends)}`
-                      : `month to month, ${NOTICE_DAYS} days' notice`}
+                      ? `minimum term runs through ${dayLabel(minLast)}`
+                      : 'month to month'}
                   </div>
                   {p.notice_given_on &&
-                    <div className="xs muted">Notice given {dayLabel(p.notice_given_on)}</div>}
+                    <div className="xs muted">Notice given {dayLabel(p.notice_given_on)}
+                      {p.notice_ends_on ? `. Runs and is billed through ${dayLabel(p.notice_ends_on)}` : ''}</div>}
                 </div>
                 <b className="amount">{money(p.rate_month_cents)}<span className="xs muted"> /mo</span></b>
               </div>
@@ -114,14 +129,14 @@ export default async function Billing() {
         ) : (
           <table className="data">
             <thead><tr>
-              <th>Number</th><th>For</th><th>Issued</th>
+              <th>Number</th><th>For</th><th>Dated</th>
               <th style={{ textAlign: 'right' }}>Amount</th><th>Status</th><th></th>
             </tr></thead>
             <tbody>
               {invoices.map(i => {
                 const late = daysOverdue(i.due_on);
                 const openInv = i.status === 'sent' || i.status === 'failed';
-                const tone = INVOICE_STATUS.find(s => s.key === i.status)?.tone ?? '';
+                const st = PAYMENT_STATUS[i.status] ?? { label: i.status, tone: '' };
                 return (
                   <tr key={i.id}>
                     <td className="inv-num xs">
@@ -134,17 +149,18 @@ export default async function Billing() {
                     </td>
                     <td className="xs">{dayLabel(i.issued_on)}
                       {openInv && late > 0 &&
-                        <><br /><span className={`pill ${late >= 14 ? 'crit' : 'warn'}`}>
-                          {late} day{late === 1 ? '' : 's'} late
+                        <><br /><span className="pill warn">
+                          {late} day{late === 1 ? '' : 's'} open
                         </span></>}
                     </td>
-                    <td className="amount">{money(i.amount_cents)}</td>
-                    <td><span className={`pill ${tone}`}>
-                      {INVOICE_STATUS.find(s => s.key === i.status)?.label}
-                    </span></td>
+                    <td className="amount">{money(i.amount_cents, true)}</td>
+                    <td><span className={`pill ${st.tone}`}>{st.label}</span></td>
                     <td>
-                      {openInv && stripeReady() &&
-                        <PayInvoiceButton invoiceId={i.id} label="Pay" className="btn sm ghost" />}
+                      <div className="row" style={{ gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <Link className="btn sm ghost" href={`/app/billing/${i.id}`}>View</Link>
+                        {openInv && i.amount_cents > 0 && stripeReady() &&
+                          <PayInvoiceButton invoiceId={i.id} label="Pay" className="btn sm solid" />}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -154,10 +170,10 @@ export default async function Billing() {
         )}
         <div style={{ marginTop: 14 }}>
           <Explain>
-            Invoices are issued on the first Monday of each month and are due on
-            receipt. Placements carry a {MINIMUM_MONTHS}-month minimum; after that
-            either side may end the engagement with {NOTICE_DAYS} days' written
-            notice. The full terms are at relevestaffing.com/terms.
+            Invoices are dated the first Monday of each month and are due on receipt.
+            A first or final month is billed by the day. Your $500 search deposit is
+            credited on your first invoice. {NOTICE_TERMS} The full terms are at
+            relevestaffing.com/terms.
           </Explain>
         </div>
       </div>

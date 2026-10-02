@@ -1,46 +1,51 @@
-/* The 14-Day Placement Guarantee, made visible on the dashboard rather than
-   buried in a paragraph of "needs attention" copy. It reads three ways:
-   still counting down, met (a candidate arrived), or running past day
-   fourteen — which the console's own guarantee_watch is already handling
-   operationally, so this stays reassuring rather than alarming. */
-export default function GuaranteeBadge({ openedAt, firstCandidateOn }: {
+import { daysFrom } from '@/lib/experience-public';
+
+/* The 14-day promise, on the dashboard rather than in a paragraph.
+   ---------------------------------------------------------------
+   What the promise is, said one way everywhere: a qualified candidate within
+   fourteen days of the search opening, and a replacement if a hire does not
+   work out. It counts toward the first candidate (which is what the console's
+   guarantee_watch measures), uses the search's own guarantee_days rather than
+   a hard-coded fourteen, and reads three ways: counting, met, or past the
+   day, where it stays calm and says what happens next. */
+export default function GuaranteeBadge({ openedAt, firstCandidateOn, guaranteeDays = 14, today }: {
   openedAt: string; firstCandidateOn: string | null;
+  guaranteeDays?: number | null;
+  /* "today" in the reader's timezone, YYYY-MM-DD. */
+  today: string;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
-  /* Count ELAPSED days, the same convention the console's guarantee_watch
-     uses (current_date - opened_at). The old +1 made the badge read "Day 15 /
-     overdue" while the console still showed 14 days open — the two disagreed
-     by a day on the client's own screen. */
-  const dayNumber = Math.max(1, Math.round(
-    (new Date((firstCandidateOn ?? today) + 'T00:00:00Z').getTime() -
-     new Date(openedAt + 'T00:00:00Z').getTime()) / 86_400_000
-  ));
+  const days = guaranteeDays && guaranteeDays > 0 ? guaranteeDays : 14;
+  /* Elapsed days, the same convention as the console (current_date - opened_at). */
+  const dayNumber = Math.max(1, daysFrom(openedAt.slice(0, 10), (firstCandidateOn ?? today).slice(0, 10)));
   const met = !!firstCandidateOn;
-  const withinPromise = met && dayNumber <= 14;
-  const overdue = !met && dayNumber > 14;
-  const pct = Math.min(100, (dayNumber / 14) * 100);
+  const withinPromise = met && dayNumber <= days;
+  const past = !met && dayNumber > days;
+  const pct = Math.min(100, (dayNumber / days) * 100);
 
   return (
     <div className="card dark">
-      <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 14 }}>
-        <div>
+      <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0 }}>
           <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 6 }}>
-            The 14-Day Placement Guarantee
+            {days}-day promise: a qualified candidate within {days} days
           </div>
-          <p className="small" style={{ color: 'var(--cream)', margin: 0, maxWidth: 520 }}>
+          <p className="small" style={{ color: 'var(--cream)', margin: 0, maxWidth: 560 }}>
             {met
               ? withinPromise
-                ? <>We put your first candidate in front of you on <b>day {dayNumber}</b> — inside our fourteen-day promise.</>
-                : <>Your first candidate arrived on <b>day {dayNumber}</b>.</>
-              : overdue
-                ? <>Day <b>{dayNumber}</b> since your search opened. We are still finding the right person, not just an available one — your Client Success Manager is on this personally.</>
-                : <>Day <b>{dayNumber} of 14.</b> One vetted candidate, chosen for you personally — never a list to sort through.</>}
+                ? <>Your first candidate was in front of you on <b>day {dayNumber}</b>, inside the promise.</>
+                : <>Your first candidate was in front of you on <b>day {dayNumber}</b>.</>
+              : past
+                ? <>Day <b>{dayNumber}</b>. We are holding out for the right person rather than an available one, and your Client Success Manager is on this search personally. You will hear from them with an update.</>
+                : <>Day <b>{dayNumber} of {days}</b>. One vetted candidate, chosen for you by hand, never a list to sort through.</>}
+          </p>
+          <p className="xs" style={{ color: 'var(--pale)', margin: '10px 0 0', maxWidth: 560 }}>
+            And if a hire does not work out, we find the replacement.
           </p>
         </div>
-        {met && withinPromise && <span className="pill good">Met</span>}
+        {withinPromise && <span className="pill good"><span className="dot" />Kept</span>}
       </div>
       <div className="fortnight-bar">
-        <i style={{ width: `${pct}%`, background: overdue ? 'var(--needs)' : undefined }} />
+        <i style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

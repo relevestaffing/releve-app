@@ -92,27 +92,36 @@ export function verifyWebhook(rawBody: string, signatureHeader: string | null, t
   if (!WEBHOOK_SECRET) throw new StripeError('No STRIPE_WEBHOOK_SECRET is set, so webhooks cannot be trusted.');
   if (!signatureHeader) throw new StripeError('No signature on that request.');
 
-  const parts = Object.fromEntries(
-    signatureHeader.split(',').map(p => p.split('=', 2) as [string, string])
-  );
-  const timestamp = parts['t'];
-  const signature = parts['v1'];
-  if (!timestamp || !signature) throw new StripeError('Malformed signature header.');
+  /* Stripe may send more than one v1 signature (during a secret roll, one per
+     active secret). Keep every one of them, and accept the event if any
+     matches. Collapsing the header into an object kept only the last v1. */
+  let timestamp: string | undefined;
+  const signatures: string[] = [];
+  for (const part of signatureHeader.split(',')) {
+    const i = part.indexOf('=');
+    if (i < 1) continue;
+    const k = part.slice(0, i).trim();
+    const v = part.slice(i + 1).trim();
+    if (k === 't') timestamp = v;
+    else if (k === 'v1' && v) signatures.push(v);
+  }
+  if (!timestamp || !signatures.length) throw new StripeError('Malformed signature header.');
 
   /* An old signature is a replay. Five minutes is Stripe's own tolerance. */
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
   if (!Number.isFinite(age) || age > toleranceSeconds)
     throw new StripeError('That signature is too old to trust.');
 
-  const expected = createHmac('sha256', WEBHOOK_SECRET)
-    .update(`${timestamp}.${rawBody}`, 'utf8').digest('hex');
+  const expected = Buffer.from(createHmac('sha256', WEBHOOK_SECRET)
+    .update(`${timestamp}.${rawBody}`, 'utf8').digest('hex'), 'utf8');
 
-  const a = Buffer.from(expected, 'utf8');
-  const b = Buffer.from(signature, 'utf8');
-  /* Constant time, and length-checked first — timingSafeEqual throws on a
+  /* Constant time, and length-checked first: timingSafeEqual throws on a
      length mismatch rather than returning false. */
-  if (a.length !== b.length || !timingSafeEqual(a, b))
-    throw new StripeError('That signature does not match.');
+  const matched = signatures.some(sig => {
+    const b = Buffer.from(sig, 'utf8');
+    return b.length === expected.length && timingSafeEqual(expected, b);
+  });
+  if (!matched) throw new StripeError('That signature does not match.');
 
   return JSON.parse(rawBody);
 }

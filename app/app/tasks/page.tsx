@@ -5,6 +5,7 @@ import Shell from '@/components/Shell';
 import TaskBoard from '@/components/TaskBoard';
 import { firstName, EMPTY } from '@/lib/words';
 import Empty from '@/components/Empty';
+import { viewerTimezone } from '@/lib/experience';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,7 @@ export default async function TasksPage() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   const side = profile.role === 'client' ? 'client' : 'talent';
-  const placements = await listPlacementsFor(profile.id);
+  const [placements, tz] = await Promise.all([listPlacementsFor(profile.id), viewerTimezone(profile.id)]);
 
   return (
     <Shell profile={profile} active="/app/tasks" title="Tasks"
@@ -29,6 +30,7 @@ export default async function TasksPage() {
           <TaskBoard
             placementId={p.id} me={profile.id} side={side}
             counterpart={firstName(side === 'client' ? p.talent_name : p.client_name)}
+            tz={tz}
           />
         </div>
       ))}

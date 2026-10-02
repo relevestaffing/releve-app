@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import type { JobApplication } from '@/lib/jobs-public';
+import { firstName } from '@/lib/words';
 
 /* Booking a call with somebody who does not exist in the system yet.
    ------------------------------------------------------------------
@@ -26,6 +27,7 @@ const localValue = (d: Date) =>
   new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 
 export default function CallBooker({ app, onDone }: { app: JobApplication; onDone: () => void }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [when, setWhen] = useState(localValue(atHour(1, 10)));
@@ -51,7 +53,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
         id: app.id, action: moving ? 'move_call' : 'book_call',
         startISO: new Date(when).toISOString(), minutes
       })
-    }), moving ? 'Moved — they have been told' : `${app.full_name.split(' ')[0]} has the invitation`);
+    }), moving ? 'Moved. They have been told' : `${firstName(app.full_name)} has the invitation`);
     setBusy(false);
     if (ok) { onDone(); router.refresh(); }
   }
@@ -61,7 +63,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
       <p className="small" style={{ margin: '0 0 14px' }}>
         {moving ? <>Move the call with <b>{app.full_name}</b>. The old meeting is cancelled and they are told the new time.</>
                 : <>A conversation before anything else. Nothing about Relève reaches them
-                    until this has happened — no account, no assessment, no roster.</>}
+                    until this has happened: no account, no assessment, no roster.</>}
       </p>
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -74,10 +76,10 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
       </div>
 
       <div className="grid-2" style={{ gap: 14 }}>
-        <div className="ff"><label>When, your time</label>
-          <input type="datetime-local" value={when} onChange={e => setWhen(e.target.value)} /></div>
-        <div className="ff"><label>How long</label>
-          <select value={minutes} onChange={e => setMinutes(Number(e.target.value))}>
+        <div className="ff"><label htmlFor={`${fid}-1`}>When, your time</label>
+          <input id={`${fid}-1`} type="datetime-local" value={when} onChange={e => setWhen(e.target.value)} /></div>
+        <div className="ff"><label htmlFor={`${fid}-2`}>How long</label>
+          <select id={`${fid}-2`} value={minutes} onChange={e => setMinutes(Number(e.target.value))}>
             <option value={20}>20 minutes</option>
             <option value={30}>30 minutes</option>
             <option value={45}>45 minutes</option>
@@ -86,7 +88,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
 
       <p className="xs muted" style={{ marginBottom: 14 }}>
         {theirTime
-          ? <>For {app.full_name.split(' ')[0]} in {app.timezone!.replace(/_/g, ' ')} that is <b>{theirTime}</b>. That is what the email will say.</>
+          ? <>For {firstName(app.full_name)} in {app.timezone!.replace(/_/g, ' ')} that is <b>{theirTime}</b>. That is what the email will say.</>
           : <>They did not give a timezone, so the email will state the time in yours and name the zone.</>}
       </p>
 

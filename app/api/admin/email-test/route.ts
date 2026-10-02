@@ -23,11 +23,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
 
   const seen = {
-    SMTP_HOST: process.env.SMTP_HOST ?? '(unset — defaults to smtp.gmail.com)',
-    SMTP_PORT: process.env.SMTP_PORT ?? '(unset — defaults to 465)',
+    SMTP_HOST: process.env.SMTP_HOST ?? '(unset, defaults to smtp.gmail.com)',
+    SMTP_PORT: process.env.SMTP_PORT ?? '(unset, defaults to 465)',
     SMTP_USER: process.env.SMTP_USER ? 'set' : 'MISSING',
     SMTP_PASS: process.env.SMTP_PASS ? 'set' : 'MISSING',
-    SMTP_FROM: process.env.SMTP_FROM ?? '(unset — falls back to SMTP_USER)'
+    SMTP_FROM: process.env.SMTP_FROM ?? '(unset, falls back to SMTP_USER)'
   };
 
   if (!emailReady())
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     const info = await sendOrThrow(target, tpl);
     return NextResponse.json({
       ok: true, stage: 'accepted', to: target, seen,
-      says: `The mail host accepted it for ${target}. If it does not arrive within a minute or two, check spam — that is a deliverability problem rather than a configuration one.`,
+      says: `The mail host accepted it for ${target}. If it does not arrive within a minute or two, check spam. That is a deliverability problem rather than a configuration one.`,
       response: (info as any)?.response ?? null
     });
   } catch (e: any) {

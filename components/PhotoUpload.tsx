@@ -40,7 +40,7 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
   async function take(file: File | undefined) {
     setErr(null);
     if (!file) return;
-    if (!file.type.startsWith('image/')) return setErr('That needs to be an image — a JPG, PNG or HEIC from your phone or camera roll.');
+    if (!file.type.startsWith('image/')) return setErr('That needs to be an image: a JPG, PNG or HEIC from your phone or camera roll.');
     if (file.size > MAX_INPUT_MB * 1024 * 1024) return setErr(`That photo is over ${MAX_INPUT_MB}MB. Pick a smaller one.`);
 
     setBusy(true);
@@ -88,13 +88,13 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
             )}
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>
-            From your computer or phone — JPG, PNG or HEIC. Drag one here if you prefer.
+            From your computer or phone: JPG, PNG or HEIC. Drag one here if you prefer.
             We crop it to a square for you, so anything roughly centred works.
           </p>
         </div>
       </div>
 
-      <input ref={input} type="file" accept="image/*" hidden
+      <input aria-label="Choose a photo" ref={input} type="file" accept="image/*" hidden
         onChange={e => { take(e.target.files?.[0]); e.target.value = ''; }} />
 
       {err && <p className="small" style={{ color: 'var(--rust, #8C4A3F)', marginTop: 10 }}>{err}</p>}

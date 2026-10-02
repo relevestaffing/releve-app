@@ -48,7 +48,7 @@ export async function POST(req: Request) {
        their side for the first time should never see a schema-migration
        instruction; that is a note for whoever operates the console, not
        something they can act on. */
-    console.error('[role] update was ignored — is PART 7 of schema.sql applied?');
+    console.error('[role] update was ignored. Is PART 7 of schema.sql applied?');
     return NextResponse.json(
       { error: 'Your account could not be set up. Please try again, or write to hello@relevestaffing.com.' },
       { status: 500 });

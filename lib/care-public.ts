@@ -68,7 +68,7 @@ export type Feedback = {
 };
 
 export const FEEDBACK_SCORES: { key: 'quality' | 'communication' | 'ownership'; label: string; what: string }[] = [
-  { key: 'quality',       label: 'Quality',       what: 'The work itself — accurate, finished, needs little sending back' },
+  { key: 'quality',       label: 'Quality',       what: 'The work itself: accurate, finished, needs little sending back' },
   { key: 'communication', label: 'Communication', what: 'Clear, timely, says when something is stuck' },
   { key: 'ownership',     label: 'Ownership',     what: 'Picks things up, closes loops, does not wait to be asked' }
 ];

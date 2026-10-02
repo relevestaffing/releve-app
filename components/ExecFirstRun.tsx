@@ -5,6 +5,8 @@ import { toast } from '@/components/Toast';
 import HowContent from '@/components/vision/HowContent';
 import DelegateContent from '@/components/vision/DelegateContent';
 import ValueContent from '@/components/vision/ValueContent';
+import { CONTACT_EMAIL } from '@/lib/experience-public';
+import './experience.css';
 
 /* The executive's first sign-in. The three screens play in sequence, full
    screen, and they click through. Finishing marks the account onboarded so it
@@ -48,7 +50,16 @@ export default function ExecFirstRun() {
     <div className="firstrun">
       <div className="firstrun-top">
         <img src="/logo-fern.png" alt="Relève Executive Staffing" />
-        <span className="firstrun-step">{i + 1} of {STEPS.length}</span>
+        <div className="firstrun-exit">
+          <span className="firstrun-step">{i + 1} of {STEPS.length}</span>
+          {/* Full screen, but never a trap: a person, or the door. */}
+          <a className="gate-link" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('A question about Relève')}`}>
+            Write to us
+          </a>
+          <form action="/api/signout" method="post" style={{ margin: 0 }}>
+            <button className="gate-link" type="submit">Sign out</button>
+          </form>
+        </div>
       </div>
 
       <div className="firstrun-scroll">

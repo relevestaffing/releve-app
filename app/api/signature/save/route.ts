@@ -6,7 +6,7 @@ import { safeMessage } from '@/lib/errors';
 export async function POST(req: Request) {
   const { side, answers, pairs, timings, conditions } = await req.json();
   const profile = await currentProfile();
-  if (!profile) return NextResponse.json({ error: 'Your session has expired — sign in again and your answers so far are kept.' }, { status: 401 });
+  if (!profile) return NextResponse.json({ error: 'Your session has expired. Sign in again and your answers so far are kept.' }, { status: 401 });
   try {
     await saveAttempt(side, profile?.id ?? null, { answers, pairs, timings, conditions: conditions ?? {} });
     return NextResponse.json({ ok: true });

@@ -6,6 +6,9 @@ import { createInterview, setInterviewStatus, listInterviews, getInterview, getA
 import { createZoomMeeting, zoomConfigured, cancelZoomMeeting } from '@/lib/zoom';
 import { getBench } from '@/lib/data';
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const STAGES = ['First interview', 'Second interview', 'Final interview', 'Working session'];
+
 /* Each side reads a time in their own timezone, never the other person's. */
 const when = (iso: string, tz: string | null) => new Intl.DateTimeFormat('en-GB', {
   timeZone: tz || 'UTC', weekday: 'long', day: 'numeric', month: 'long',
@@ -23,7 +26,29 @@ export async function GET() {
 export async function POST(req: Request) {
   const p = await currentProfile();
   if (!p) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  const { talentId, clientId, startISO, durationMin = 45, stage = 'First interview' } = await req.json();
+  const body = await req.json().catch(() => ({}));
+  const { talentId, clientId } = body ?? {};
+
+  /* Checked here as well as in the database: a time that is not a time, a
+     meeting that runs for a day, or a stage name nobody chose. */
+  const start = typeof body?.startISO === 'string' ? new Date(body.startISO) : null;
+  if (!start || Number.isNaN(start.getTime()))
+    return NextResponse.json({ error: 'Please choose a time for the interview.' }, { status: 400 });
+  if (start.getTime() < Date.now() - 5 * 60_000)
+    return NextResponse.json({ error: 'That time has already passed. Please choose another.' }, { status: 400 });
+  if (start.getTime() > Date.now() + 366 * 86_400_000)
+    return NextResponse.json({ error: 'Please choose a time within the next year.' }, { status: 400 });
+  const startISO = start.toISOString();
+  const durationMin = body?.durationMin == null ? 45 : Number(body.durationMin);
+  if (!Number.isInteger(durationMin) || durationMin < 15 || durationMin > 180)
+    return NextResponse.json({ error: 'An interview runs between 15 minutes and 3 hours.' }, { status: 400 });
+  const stage = body?.stage == null ? 'First interview' : String(body.stage);
+  if (!STAGES.includes(stage))
+    return NextResponse.json({ error: 'That is not an interview stage.' }, { status: 400 });
+  if (typeof talentId !== 'string' || !UUID.test(talentId))
+    return NextResponse.json({ error: 'which candidate?' }, { status: 400 });
+  if (p.role === 'admin' && (typeof clientId !== 'string' || !UUID.test(clientId)))
+    return NextResponse.json({ error: 'which executive?' }, { status: 400 });
 
   /* Interviews are booked by the executive (from the candidate's slots) or
      by Relève on their behalf. A talent calling this used to become both
@@ -54,14 +79,14 @@ export async function POST(req: Request) {
   let warning: string | null = null;
   try {
     meeting = await createZoomMeeting({
-      topic: `Relève interview — ${talent?.name ?? 'candidate'}`,
+      topic: `Relève interview: ${talent?.name ?? 'candidate'}`,
       startISO, durationMin, timezone: 'UTC',
       agenda: 'Introductory interview arranged by Relève Executive Staffing.'
     });
   } catch (e: any) {
     warning = e.message;                       // booking still stands; the link can be added by hand
   }
-  if (!zoomConfigured()) warning = 'Zoom is not connected yet — add the meeting link manually.';
+  if (!zoomConfigured()) warning = 'Zoom is not connected yet. Add the meeting link by hand.';
 
   const iv = await createInterview({
     client_id: cid, talent_id: talentId,
@@ -101,7 +126,11 @@ const STATUSES = ['Proposed','Confirmed','Declined','Completed','No-show','Cance
 export async function PATCH(req: Request) {
   const p = await currentProfile();
   if (!p) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  const { id, status } = await req.json();
+  const { id, status } = await req.json().catch(() => ({}));
+  if (typeof id !== 'string' || !id)
+    return NextResponse.json({ error: 'which interview?' }, { status: 400 });
+  if (!STATUSES.includes(status))
+    return NextResponse.json({ error: 'That is not an interview status.' }, { status: 400 });
 
   const before = await getInterview(id);
   if (!before) return NextResponse.json({ error: 'that interview no longer exists' }, { status: 404 });

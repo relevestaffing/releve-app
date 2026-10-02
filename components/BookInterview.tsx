@@ -34,14 +34,14 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
       d = await r.json().catch(() => ({}));
     } catch {
       setBusy(null);
-      toast.bad('No connection \u2014 the interview was not booked.');
+      toast.bad('No connection, so the interview was not booked.');
       return;
     }
     setBusy(null);
     /* Only claim it is booked once the server says so. Showing "Confirmed"
        over a failed request is how someone turns up to a meeting nobody made. */
     if (!r.ok) {
-      toast.bad(d.error ? `Not booked \u2014 ${d.error}` : 'That slot could not be booked. Please pick another.');
+      toast.bad(d.error ? `Not booked. ${d.error}` : 'That slot could not be booked. Please pick another.');
       router.refresh();
       return;
     }
@@ -60,7 +60,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
             ? <a className="small" href={done.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>Join link</a>
             : clientId
               /* Relève booking it: say plainly that the link is owed, and why. */
-              ? <div className="xs" style={{ marginTop: 6, color: 'var(--warn, #B4762E)' }}>No meeting link was made{done.warning ? ` — ${done.warning}` : ''}. Both sides were told it is coming; send it yourself.</div>
+              ? <div className="xs" style={{ marginTop: 6, color: 'var(--warn, #B4762E)' }}>No meeting link was made{done.warning ? `: ${done.warning}` : ''}. Both sides were told it is coming; send it yourself.</div>
               : <div className="xs muted" style={{ marginTop: 6 }}>Relève will send the meeting link shortly.</div>}
         </div>
         <span className="pill good"><span className="dot" />Confirmed</span>
@@ -78,7 +78,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
     <div className="card tight">
       <div className="card-head" style={{ marginBottom: 10 }}>
         <h3>Times you are both free</h3>
-        <button className="x-btn" onClick={() => setOpen(false)}>×</button>
+        <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="xs muted" style={{ marginBottom: 16 }}>Shown in your time ({tz.replace('_', ' ')}). 45 minutes.</p>
       {Object.entries(byDay).slice(0, 5).map(([day, list]) => (

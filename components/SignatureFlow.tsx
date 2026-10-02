@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 import { SCALE, COND_PUBLIC, TOOLS } from '@/lib/signature/public';
 import { toast } from '@/components/Toast';
 
@@ -19,6 +19,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
   /* start over rather than resume — a retake, or an Invalid result */
   fresh?: boolean;
 }) {
+  const fid = useId();
   const [data, setData] = useState<Started | null>(null);
   const [qi, setQi] = useState(-2);                       // -2 loading, -1 intro
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -98,7 +99,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
         } catch { /* fall through to the warning */ }
         if (!saveWarned.current) {
           saveWarned.current = true;
-          toast.bad('Your answers have stopped saving. Stay on this page — we will keep trying.');
+          toast.bad('Your answers have stopped saving. Stay on this page and we will keep trying.');
         }
       }
     };
@@ -169,7 +170,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       }
       setResult(out);
     } catch {
-      toast.bad('No connection. Stay on this page — your answers are still here.');
+      toast.bad('No connection. Stay on this page. Your answers are still here.');
     }
     setBusy(false);
   }
@@ -180,7 +181,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <h3>We could not load your assessment</h3>
       <p className="small">
         That is almost always the connection rather than anything you did. Nothing you
-        have already answered is lost — it is saved on our side.
+        have already answered is lost. It is saved on our side.
       </p>
       <button className="btn sm solid" style={{ marginTop: 16 }}
         onClick={() => { setQi(-2); setAttempt(n => n + 1); }}>Try again</button>
@@ -199,8 +200,8 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <h2 style={{ fontSize: 32, margin: '0 0 16px' }}>{side === 'client' ? 'Executive Signature' : 'Talent Signature'}</h2>
       <p style={{ maxWidth: 680, marginBottom: 14 }}>
         {side === 'talent'
-          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly — a flattering profile in the wrong role is a failed placement, and the controls will find it anyway.'
-          : 'This measures how you actually run your day and what your environment demands of the person beside you — across the same eighteen facets every candidate is measured on, not a rougher version of it — plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
+          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly. A flattering profile in the wrong role is a failed placement, and the controls will find it anyway.'
+          : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on (not a rougher version of it), plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
         {data.total} screens, about {side === 'talent' ? 'twenty to twenty-five' : 'twelve to sixteen'} minutes.
@@ -212,8 +213,8 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <button className="btn solid" onClick={() => setQi(
         answeredCount >= data.total ? data.total
           : answeredCount ? answeredCount : 0)}>
-        {answeredCount >= data.total && !existing ? 'Resume — one section left'
-          : answeredCount && answeredCount < data.total ? `Resume — ${answeredCount} of ${data.total} answered`
+        {answeredCount >= data.total && !existing ? 'Resume: one section left'
+          : answeredCount && answeredCount < data.total ? `Resume: ${answeredCount} of ${data.total} answered`
           : existing ? 'Retake the assessment' : 'Begin the assessment'}
       </button>
       {chip && <div className="chip-note"><span className="tick" />{chip}</div>}
@@ -227,7 +228,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <div className="progress-rail"><span style={{ width: '97%' }} /></div>
       <h2 style={{ fontSize: 24, marginBottom: 12 }}>Conditions</h2>
       <p className="small muted" style={{ marginBottom: 30 }}>
-        Not scored — checked. A match that clears every axis and fails on hours or discretion is not a match.
+        Not scored, only checked. A match that clears every axis and fails on hours or discretion is not a match.
       </p>
       {/* Controlled and saved on change. These used to be read out of the DOM
           at submit time only, with the middle option pre-selected — so Back
@@ -235,16 +236,16 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
           never actually chosen. */}
       {COND_PUBLIC.map(c => (
         <div className="ff" key={c.key}>
-          <label>{c.label} — {side === 'client' ? c.cQ : c.tQ}</label>
-          <select value={conds[c.key] ?? ''} onChange={e => setCond(c.key, e.target.value)}>
+          <label htmlFor={`${fid}-cond-${c.key}`}>{c.label}: {side === 'client' ? c.cQ : c.tQ}</label>
+          <select id={`${fid}-cond-${c.key}`} value={conds[c.key] ?? ''} onChange={e => setCond(c.key, e.target.value)}>
             <option value="" disabled>Choose one…</option>
-            {c.ord.map(o => <option key={o}>{o}</option>)}
+            {c.ord.map(o => <option key={o} value={o}>{o.replace(/\s+\u2014\s+/g, ', ')}</option>)}
           </select>
         </div>
       ))}
       <div className="ff">
-        <label>Tools — {side === 'client' ? 'what the work runs on' : 'what you are fluent in'}</label>
-        <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+        <span className="label-like" id={`${fid}-tools`}>Tools: {side === 'client' ? 'what the work runs on' : 'what you are fluent in'}</span>
+        <div className="row" role="group" aria-labelledby={`${fid}-tools`} style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
           {TOOLS.map(t => (
             <label className="pill" style={{ cursor: 'pointer', gap: 9 }} key={t}>
               <input type="checkbox" checked={(conds.tools ?? []).includes(t)}
@@ -255,11 +256,11 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
         {/* The list is never going to be complete. The first person to use it
             worked in Wix, Gmail and a social scheduler and had nowhere to say so. */}
         <div className="ff" style={{ marginTop: 14 }}>
-          <label>{side === 'client' ? 'Anything else the work runs on' : 'Anything else you are fluent in'}</label>
-          <input value={conds.tools_other ?? ''}
+          <label htmlFor={`${fid}-1`}>{side === 'client' ? 'Anything else the work runs on' : 'Anything else you are fluent in'}</label>
+          <input id={`${fid}-1`} value={conds.tools_other ?? ''}
             onChange={e => setConds({ ...conds, tools_other: e.target.value })}
             onBlur={e => setCond('tools_other', e.target.value.trim())}
-            placeholder="Wix, Mailchimp, a booking system — whatever it actually is" />
+            placeholder="Wix, Mailchimp, a booking system, whatever it actually is" />
         </div>
       </div>
       <div className="assess-foot">
@@ -404,7 +405,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
 
       <div className="card">
         <div className="card-head"><h3>Scored and saved</h3>
-          <span className="pill">{result.saved ? 'Stored to your account' : 'Demo — not stored'}</span></div>
+          <span className="pill">{result.saved ? 'Stored to your account' : 'Demo, not stored'}</span></div>
 
       {result.validity.verdict !== 'Valid' && (
         <div className="card" style={{ marginTop: 20 }}>
@@ -415,13 +416,13 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
           </div>
           <p className="small" style={{ marginBottom: 14 }}>
             {result.validity.verdict === 'Invalid'
-              ? 'The answers did not hold together well enough to build a match on. That is almost always the assessment\u2019s fault rather than yours \u2014 usually a reading check missed, or a run of answers that contradict each other. Nothing is held against you.'
+              ? 'The answers did not hold together well enough to build a match on. That is almost always the assessment\u2019s fault rather than yours. Usually it is a missed reading check, or a run of answers that contradict each other. Nothing is held against you.'
               : 'Your profile is good and it is being used. This is only a note on how we weigh it, and it reflects the questions rather than you.'}
           </p>
           {result.validity.flags?.length > 0 && (
             <ul className="plain" style={{ marginBottom: 16 }}>
               {result.validity.flags.map((f: any, i: number) => (
-                <li key={i}><b>{f.k}</b> — {f.d}</li>
+                <li key={i}><b>{f.k}</b>: {f.d}</li>
               ))}
             </ul>
           )}
@@ -429,8 +430,8 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
             <>
               <p className="small muted" style={{ marginBottom: 16 }}>
                 Take it again when you have twenty uninterrupted minutes. Read each statement, and
-                answer as you actually are rather than as you would like to be — a couple of
-                statements ask you to pick one specific answer rather than rate yourself, so read
+                answer as you actually are rather than as you would like to be.
+                A couple of statements ask you to pick one specific answer rather than rate yourself, so read
                 each one carefully before responding.
               </p>
               <a className="btn solid" href="/app/signature?retake=1">Take it again</a>

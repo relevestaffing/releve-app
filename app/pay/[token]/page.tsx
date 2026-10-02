@@ -1,48 +1,44 @@
-import { redirect } from 'next/navigation';
 import { verifyDepositLink } from '@/lib/deposit-link';
-import { startDepositPaymentForSearch } from '@/lib/billing';
+import { depositLinkSummary } from '@/lib/billing';
+import { stripeReady } from '@/lib/stripe';
+import { money } from '@/lib/money-public';
 
 export const dynamic = 'force-dynamic';
 
-/* Where the onboarding email's deposit button actually lands.
-   ------------------------------------------------------------
-   No session to read — this is routinely the first thing a discovery-call
-   lead ever clicks from Relève, before they have ever signed in. The token
-   is the only credential it has, and it is enough: it names one search and
-   nothing else, the same way any other one-purpose link would.
+/* Where the onboarding email's deposit button lands.
+   ------------------------------------------------
+   No session: often the first thing a new client ever clicks from Relève.
+   The token names one search and nothing else. Opening this page creates
+   nothing at Stripe (mail scanners open links too); the button below does,
+   by posting to ./go, which sends the person on to the payment page. */
+const ERRORS: Record<string, string> = {
+  settled: 'This deposit is already settled. Nothing more to do here.',
+  stripe: 'Card and bank payment is not switched on yet. Your Client Success Manager will take this deposit directly. Nothing is wrong with your link.',
+  failed: 'The payment page did not open. Please try once more, or reply to your onboarding email and we will help.'
+};
 
-   The happy path never renders — a valid, still-due link sends the person
-   straight on to Stripe. Only a link that cannot be honoured stops here to
-   say which of the small number of reasons that is. */
-export default async function PayDeposit({ params }: { params: Promise<{ token: string }> }) {
+export default async function PayDeposit({ params, searchParams }: {
+  params: Promise<{ token: string }>; searchParams: Promise<{ e?: string }>;
+}) {
   const { token } = await params;
+  const { e } = await searchParams;
   const verified = verifyDepositLink(token);
+  const summary = verified ? await depositLinkSummary(verified.searchId) : null;
 
-  let message = 'This link is not valid — check that you copied the whole thing from the email.';
-  if (verified) {
-    try {
-      const url = await startDepositPaymentForSearch(verified.searchId);
-      redirect(url);
-    } catch (e: any) {
-      /* redirect() throws internally to unwind the render — never treat
-         that as "the payment failed" and swallow the navigation. */
-      if (e?.digest?.startsWith?.('NEXT_REDIRECT')) throw e;
-      if (e?.message === 'That deposit is already settled.') {
-        message = 'This deposit is already settled — nothing more to do here.';
-      } else if (String(e?.message ?? '').includes('Stripe is not configured')) {
-        /* Card payment is not switched on yet — the deposit is still owed and
-           still real, it is just collected by hand for now. Without this
-           check, a valid link with nowhere to send the card hit the generic
-           branch below and told a paying customer their link had "expired",
-           which sends them straight back to ask for a new one that would
-           fail the exact same way. */
-        message = 'Card payment is not switched on yet — your Client Success Manager will take this deposit directly. Nothing is wrong with your link.';
-      } else {
-        message = 'This link has expired. Ask your Client Success Manager to send a fresh one.';
-      }
-    }
+  let heading = 'Your search deposit';
+  let message: string | null = null;
+  let canPay = false;
+  if (!verified) {
+    heading = 'That link has expired';
+    message = 'Ask your Client Success Manager to send a fresh one. It takes a minute.';
+  } else if (!summary?.ok) {
+    heading = summary?.settled ? 'Already settled' : 'That link has expired';
+    message = summary?.settled ? ERRORS.settled : 'Ask your Client Success Manager to send a fresh one. It takes a minute.';
+  } else if (!stripeReady()) {
+    message = ERRORS.stripe;
   } else {
-    message = 'This link has expired. Ask your Client Success Manager to send a fresh one.';
+    canPay = true;
+    if (e && ERRORS[e]) message = ERRORS[e];
   }
 
   return (
@@ -51,11 +47,26 @@ export default async function PayDeposit({ params }: { params: Promise<{ token: 
         <img className="auth-logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="auth-card">
           <div className="eyebrow" style={{ marginBottom: 10 }}>Search deposit</div>
-          <h2 style={{ fontSize: 24, marginBottom: 12 }}>That link didn't work</h2>
-          <p className="note">{message}</p>
-          <a className="btn ghost sm" style={{ marginTop: 22, display: 'inline-block' }} href="/">
-            Go to Relève
-          </a>
+          <h2 style={{ fontSize: 24, marginBottom: 12 }}>{heading}</h2>
+          {canPay && summary && (
+            <>
+              <p className="note" style={{ marginBottom: 6 }}>
+                <b>{money(summary.cents)}</b>{summary.who ? <> for {summary.who}</> : null}. This opens your search.
+              </p>
+              <p className="xs muted" style={{ marginBottom: 20 }}>
+                Non-refundable, and credited in full against your first month once you are placed. By bank or card,
+                on Stripe&rsquo;s secure page.
+              </p>
+            </>
+          )}
+          {message && <p className="note" style={{ marginBottom: 16 }}>{message}</p>}
+          {canPay ? (
+            <form method="post" action={`/pay/${encodeURIComponent(token)}/go`}>
+              <button className="btn solid" type="submit">Continue to secure payment</button>
+            </form>
+          ) : (
+            <a className="btn ghost sm" style={{ marginTop: 10, display: 'inline-block' }} href="/">Go to Relève</a>
+          )}
         </div>
       </div>
     </div>

@@ -6,12 +6,17 @@ import QuickBar from './QuickBar';
 import Motion from './Motion';
 import TermsGate from './TermsGate';
 import InvoiceGate from './InvoiceGate';
+import BillingBanner from '@/components/BillingBanner';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 import { unpaidInvoiceFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { executiveStage, execInTour } from '@/lib/stage';
 import { listPlacementsFor } from '@/lib/work';
 import { firstName } from '@/lib/words';
+import { teamUnreadCount, unreadTotal } from '@/lib/experience';
+import UnreadSync from './UnreadSync';
+import UnreadBadge from './UnreadBadge';
+import './experience.css';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
    four labelled groups is a product. Nothing is removed — everything stays
@@ -62,6 +67,8 @@ const NAV: Record<string, NavGroup[]> = {
     { group: 'Your placement', items: [
       { href: '/app/care', label: 'Your Placement' },
       { href: '/app/tasks', label: 'Tasks' },
+      { href: '/app/log', label: 'Daily Log' },
+      { href: '/app/brief', label: 'Your Briefing' },
       { href: '/app/checkin', label: 'Weekly Check-in' },
       { href: '/app/pay', label: 'Your Pay' }
     ]},
@@ -175,6 +182,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
       group: placements.length > 1 ? 'Your team' : 'Working together',
       items: [...items,
         { href: '/app/tasks', label: 'Tasks' },
+        { href: '/app/report', label: 'Your Month' },
         { href: '/app/billing', label: 'Billing' }]
     });
   } else {
@@ -189,6 +197,23 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
      menu, but one link away for a client who wants to revisit them. */
   nav.push({ items: [{ href: '/app/how', label: 'About Relève' }] });
   return nav;
+}
+
+/* The talent's menu. The working screens (daily log, the executive's
+   briefing, check-ins) only mean something once somebody is placed. */
+async function talentNav(profile: Profile): Promise<NavGroup[]> {
+  const placed = (await listPlacementsFor(profile.id)).length > 0;
+  if (placed) return NAV.talent;
+  return NAV.talent.map(g => g.group === 'Your placement'
+    ? { ...g, items: g.items.filter(i => !['/app/log', '/app/brief'].includes(i.href)) }
+    : g);
+}
+
+async function unreadCount(profile: Profile): Promise<number> {
+  if (!configured()) return 0;
+  try {
+    return profile.role === 'admin' ? await teamUnreadCount() : await unreadTotal();
+  } catch { return 0; }
 }
 
 export default async function Shell({
@@ -223,7 +248,14 @@ export default async function Shell({
 
   const nav = profile.role === 'client'
     ? await clientNav(profile)
-    : (NAV[profile.role] ?? NAV.talent);
+    : profile.role === 'talent'
+      ? await talentNav(profile)
+      : (NAV[profile.role] ?? NAV.talent);
+  /* Unread, for the badge on Messages in the sidebar, the drawer and the
+     quick bar. Read once here; UnreadSync keeps it current while the page
+     stays open. A failure reads as zero, never as an error. */
+  const unread = await unreadCount(profile);
+  const messagesHref = profile.role === 'admin' ? '/console/messages' : '/app/messages';
   /* The mobile quick bar follows the same stage the sidebar does. */
   const clientStage = profile.role === 'client' ? await executiveStage(profile.id) : null;
   const placedOnly = !!clientStage && clientStage.placed && !clientStage.hiring;
@@ -232,12 +264,13 @@ export default async function Shell({
   return (
     <>
       <Motion />
+      <UnreadSync initial={unread} href={messagesHref} />
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
       <MobileNav role={profile.role} active={active} nav={nav}
         who={WHO[profile.role]}
         name={profile.full_name ?? profile.email}
         org={profile.org_name}
-        profileHref={profileHref} />
+        profileHref={profileHref} unread={unread} messagesHref={messagesHref} />
       <div className="shell">
         <aside className="side">
           <Link href={home} className="side-logo"><img src="/logo-white.png" alt="Relève" /></Link>
@@ -245,14 +278,14 @@ export default async function Shell({
             <Link href={profileHref} className="side-role">
               <div className="eyebrow">{WHO[profile.role]}</div>
               <div className="name">{profile.full_name ?? profile.email}
-                {profile.org_name && <><br /><span className="small" style={{ color: '#93A394' }}>{profile.org_name}</span></>}
+                {profile.org_name && <><br /><span className="small" style={{ color: 'var(--pale)' }}>{profile.org_name}</span></>}
               </div>
             </Link>
           ) : (
             <div className="side-role">
               <div className="eyebrow">{WHO[profile.role]}</div>
               <div className="name">{profile.full_name ?? profile.email}
-                {profile.org_name && <><br /><span className="small" style={{ color: '#93A394' }}>{profile.org_name}</span></>}
+                {profile.org_name && <><br /><span className="small" style={{ color: 'var(--pale)' }}>{profile.org_name}</span></>}
               </div>
             </div>
           )}
@@ -261,8 +294,10 @@ export default async function Shell({
               <div className="nav-group" key={g.group ?? `g${i}`}>
                 {g.group && <div className="nav-group-label">{g.group}</div>}
                 {g.items.map(n => (
-                  <Link key={n.href} href={n.href} className={active === n.href ? 'active' : ''}>
+                  <Link key={n.href} href={n.href} className={active === n.href ? 'active' : ''}
+                    aria-current={active === n.href ? 'page' : undefined}>
                     {n.label}
+                    {n.href === messagesHref && <UnreadBadge initial={unread} variant="side" />}
                   </Link>
                 ))}
               </div>
@@ -288,8 +323,11 @@ export default async function Shell({
             {action && <div className="topbar-action">{action}</div>}
           </div>
           <div className="page-body">
-            <QuickBar role={profile.role} active={active} placedOnly={placedOnly} />
+            <QuickBar role={profile.role} active={active} placedOnly={placedOnly} unread={unread} />
             {action && <div className="mobile-action">{action}</div>}
+            {/* The grace banner, on every client page, so an open invoice is
+                seen well before the fourteen-day gate. */}
+            {profile.role === 'client' && <BillingBanner clientId={profile.id} />}
             {children}
           </div>
         </main>

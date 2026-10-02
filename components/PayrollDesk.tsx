@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
-import { money } from '@/lib/money-public';
-import { PAYOUT_METHODS, periodLabel, taxClear, taxNote,
+import { money, toCents, dayLabel } from '@/lib/money-public';
+import { PAYOUT_METHODS, periodLabel, taxClear, taxNote, taxFormName,
          type TalentPayment, type Payout } from '@/lib/payout-public';
 
 /* Money going out.
@@ -52,20 +52,20 @@ export function PaymentRow({ p, payout }: { p: TalentPayment; payout: Payout | n
   const [marking, setMarking] = useState(false);
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);
 
-  /* Paperwork before payment, not during it. A non-US contractor generally
-     wants a signed W-8BEN on file before money moves; asking afterwards is how
-     a payment run turns into a week of chasing forms. This does not block the
-     button — the judgement is Relève's, and there will be times you pay anyway
-     — but it refuses to let the question go unnoticed. */
+  /* Paperwork before payment, not during it: a W-9 for a US person (for the
+     year-end 1099), a W-8BEN for anyone else. This does not block the
+     button; the judgement is Relève's. It only refuses to let the question
+     go unnoticed. */
   const taxOk = taxClear(payout);
   const tax = taxNote(payout);
+  const form = taxFormName(payout);
 
   async function holdForm() {
     setBusy(true);
     const ok = await saving(() => fetch('/api/payout', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'taxform', talent_id: p.talent_id, held: true })
-    }), 'Recorded — the signed form is on file');
+    }), `Recorded: the signed ${form} is on file`);
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -73,13 +73,21 @@ export function PaymentRow({ p, payout }: { p: TalentPayment; payout: Payout | n
   async function mark(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const sentText = String(f.get('sent') ?? '').trim();
+    const feeText = String(f.get('fee') ?? '').trim();
+    const sent = sentText ? toCents(sentText) : null;
+    const fee = feeText ? toCents(feeText) : null;
+    if (sentText && sent == null) { toast.bad('The amount sent is not a dollar amount.'); return; }
+    if (feeText && fee == null) { toast.bad('The fee is not a dollar amount.'); return; }
     setBusy(true);
     const ok = await saving(() => fetch('/api/payout', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         action: 'payment', id: p.id, state: String(f.get('state')),
         method: payout?.method ?? null,
-        reference: String(f.get('reference') ?? '')
+        reference: String(f.get('reference') ?? ''),
+        sent_cents: sent, fee_cents: fee,
+        fx_note: String(f.get('fx_note') ?? '')
       })
     }), 'Recorded');
     setBusy(false); setMarking(false);
@@ -88,13 +96,21 @@ export function PaymentRow({ p, payout }: { p: TalentPayment; payout: Payout | n
 
   if (marking) return (
     <form onSubmit={mark} className="decide-form">
-      <div className="ff"><label>What happened</label>
-        <select name="state" defaultValue="sent">
+      <div className="ff"><label htmlFor={`st-${p.id}`}>What happened</label>
+        <select id={`st-${p.id}`} name="state" defaultValue="sent">
           <option value="sent">Sent</option>
-          <option value="failed">It failed</option>
+          <option value="failed">It did not go through</option>
         </select></div>
-      <div className="ff"><label>Reference <span className="muted">— the transfer id</span></label>
-        <input name="reference" placeholder="So a question in six months has an answer" /></div>
+      <div className="grid-2" style={{ gap: 14 }}>
+        <div className="ff"><label htmlFor={`sent-${p.id}`}>Amount sent, US dollars <span className="muted">(if not {money(p.amount_cents, true)})</span></label>
+          <input id={`sent-${p.id}`} name="sent" inputMode="decimal" placeholder={(p.amount_cents / 100).toFixed(2)} /></div>
+        <div className="ff"><label htmlFor={`fee-${p.id}`}>Transfer fee Relève paid, US dollars <span className="muted">(optional)</span></label>
+          <input id={`fee-${p.id}`} name="fee" inputMode="decimal" placeholder="0.00" /></div>
+      </div>
+      <div className="ff"><label htmlFor={`ref-${p.id}`}>Reference <span className="muted">(the transfer id)</span></label>
+        <input id={`ref-${p.id}`} name="reference" placeholder="So a question in six months has an answer" /></div>
+      <div className="ff"><label htmlFor={`fx-${p.id}`}>What landed locally <span className="muted">(optional, a note)</span></label>
+        <input id={`fx-${p.id}`} name="fx_note" placeholder="For example: PHP 196,400 at Wise rate" /></div>
       <div className="row" style={{ gap: 10 }}>
         <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : 'Record it'}</button>
         <button type="button" className="btn sm ghost" onClick={() => setMarking(false)}>Cancel</button>
@@ -107,22 +123,29 @@ export function PaymentRow({ p, payout }: { p: TalentPayment; payout: Payout | n
       <div>
         <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)' }}>{p.talent_name ?? 'Someone'}</b>
         <div className="xs muted">
-          {periodLabel(p.period_start)} · {money(p.amount_cents)}
+          {periodLabel(p.period_start)}{p.client_name ? ` · with ${p.client_name}` : ''} · {money(p.amount_cents, true)} USD
+          {p.sent_cents != null && p.sent_cents !== p.amount_cents ? ` · sent ${money(p.sent_cents, true)}` : ''}
+          {p.fee_cents ? ` · fee ${money(p.fee_cents, true)}` : ''}
           {method ? ` · ${method.label}` : ' · no payment details on file'}
           {p.reference && ` · ${p.reference}`}
         </div>
+        {p.note && <div className="xs muted">{p.note}</div>}
+        {p.fx_note && <div className="xs muted">Landed: {p.fx_note}</div>}
       </div>
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+        {p.paused && p.state !== 'sent' && (
+          <span className="pill" title="The placement is paused for an unpaid balance. Pay what was worked; nothing new is created while paused.">Placement paused</span>
+        )}
         {p.state !== 'sent' && !taxOk && tax && (
           <>
-            <span className="pill warn" title={tax}><span className="dot" />W-8BEN</span>
+            <span className="pill warn" title={tax}><span className="dot" />{form}</span>
             <button className="btn sm ghost" disabled={busy} onClick={holdForm}>
-              I have the signed form
+              I have the signed {form}
             </button>
           </>
         )}
         {p.state === 'sent'
-          ? <span className="pill good"><span className="dot" />Sent {p.sent_on}</span>
+          ? <span className="pill good"><span className="dot" />Sent {dayLabel(p.sent_on)}</span>
           : p.state === 'failed'
             ? <><span className="pill crit"><span className="dot" />Failed</span>
                 <button className="btn sm ghost" onClick={() => setMarking(true)}>Try again</button></>

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
-import { moneySummary, money } from '@/lib/money';
+import { moneySummary, moneyReports, money, monthLabel } from '@/lib/money';
 import { calibration } from '@/lib/care';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
@@ -128,10 +128,15 @@ export default async function Reports() {
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
 
-  const [c, m, cal, exp] = await Promise.all([counts(), moneySummary(), calibration(), exposure()]);
+  const [c, m, cal, exp, r] = await Promise.all([counts(), moneySummary(), calibration(), exposure(), moneyReports()]);
 
-  const started = c.placementsLive + c.placementsEnded;
-  const retention = started ? Math.round((c.placementsLive / started) * 100) : null;
+  /* By seat: a guaranteed ending that was replaced is the same seat carrying
+     on, not churn (B19). */
+  const retention = r.retention.pct;
+  const cashMax = Math.max(1, ...r.cashByMonth.map(x => x.cents));
+  const mrrMax = Math.max(1, ...r.mrrByMonth.map(x => x.cents));
+  const cash12 = r.cashByMonth.reduce((n, x) => n + x.cents, 0);
+  const owed = r.aging.current + r.aging.d1_14 + r.aging.d15_30 + r.aging.d30plus;
   const gaps = cal.map((r: any) => r.gap).filter((g: any) => typeof g === 'number');
   const meanGap = gaps.length
     ? Math.round(gaps.reduce((a: number, b: number) => a + b, 0) / gaps.length)
@@ -150,16 +155,85 @@ export default async function Reports() {
         <div className={`money-stat ${m.overdueCents ? 'alert' : ''}`}>
           <div className="n">{money(m.overdueCents)}</div><div className="k">Overdue</div></div>
         <div className="money-stat">
-          <div className="n">{c.placementsLive ? money(Math.round(m.monthlyRunRateCents / c.placementsLive)) : '—'}</div>
+          <div className="n">{c.placementsLive ? money(Math.round(m.monthlyRunRateCents / c.placementsLive)) : '–'}</div>
           <div className="k">Average placement</div></div>
       </div>
+
+      <h3 className="section-h">Cash collected</h3>
+      <div className="card">
+        <div className="card-head">
+          <h3>By the month it landed</h3>
+          <span className="xs muted">Last twelve months · {money(cash12)} · net of refunds</span>
+        </div>
+        <table className="data" style={{ boxShadow: 'none' }}>
+          <thead><tr><th>Month</th><th style={{ width: '55%' }}></th><th style={{ textAlign: 'right' }}>Collected</th><th style={{ textAlign: 'right' }}>Contracted MRR</th></tr></thead>
+          <tbody>
+            {r.cashByMonth.map((x, i) => (
+              <tr key={x.month}>
+                <td className="xs">{monthLabel(x.month)}</td>
+                <td>
+                  <div aria-hidden style={{ height: 8, background: 'var(--mist)', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, width: `${Math.round((x.cents / cashMax) * 100)}%`, background: 'var(--fern)' }} />
+                  </div>
+                  <div aria-hidden style={{ height: 4, marginTop: 3, background: 'transparent', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, width: `${Math.round((r.mrrByMonth[i].cents / mrrMax) * 100)}%`, background: 'var(--pale)' }} />
+                  </div>
+                </td>
+                <td className="amount">{money(x.cents)}{x.count ? <span className="xs muted"> · {x.count}</span> : null}</td>
+                <td className="amount">{money(r.mrrByMonth[i].cents)}<span className="xs muted"> · {r.mrrByMonth[i].placements}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{ marginTop: 12 }}>
+          <Explain>
+            Collected is money that actually landed, by the date Stripe or the owner marked it paid. Contracted MRR
+            is what live placements were billing at each month end, at today&rsquo;s rates (the pale bar).
+          </Explain>
+        </div>
+      </div>
+
+      <h3 className="section-h">Owed to Relève</h3>
+      <div className="money-strip">
+        <div className="money-stat"><div className="n">{money(r.aging.current)}</div>
+          <div className="k">Not yet due · {r.aging.currentCount}</div></div>
+        <div className={`money-stat ${r.aging.d1_14 ? 'alert' : ''}`}><div className="n">{money(r.aging.d1_14)}</div>
+          <div className="k">1 to 14 days · {r.aging.d1_14Count}</div></div>
+        <div className={`money-stat ${r.aging.d15_30 ? 'alert' : ''}`}><div className="n">{money(r.aging.d15_30)}</div>
+          <div className="k">15 to 30 days · {r.aging.d15_30Count}</div></div>
+        <div className={`money-stat ${r.aging.d30plus ? 'alert' : ''}`}><div className="n">{money(r.aging.d30plus)}</div>
+          <div className="k">Over 30 days · {r.aging.d30plusCount}</div></div>
+      </div>
+      {owed > 0 && (
+        <div style={{ margin: '-8px 0 20px' }}>
+          <Explain>Sent and unpaid invoices only, by days past their due date in Pacific time. Drafts are not owed yet.</Explain>
+        </div>
+      )}
+
+      {r.us1099.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>Form 1099-NEC this year</h3><span className="xs muted">US persons paid $600 or more</span></div>
+          <table className="data" style={{ boxShadow: 'none' }}>
+            <thead><tr><th>Person</th><th style={{ textAlign: 'right' }}>Paid this year</th><th>W-9</th></tr></thead>
+            <tbody>
+              {r.us1099.map(t => (
+                <tr key={t.talent_id}>
+                  <td>{t.name}</td>
+                  <td className="amount">{money(t.cents, true)}</td>
+                  <td><span className={`pill ${t.w9 ? 'good' : 'warn'}`}>{t.w9 ? 'On file' : 'Needed'}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <h3 className="section-h">The pipeline</h3>
       <div className="money-strip">
         <div className="money-stat"><div className="n">{c.clients}</div><div className="k">Clients</div></div>
         <div className="money-stat"><div className="n">{c.searchesOpen}</div><div className="k">Open searches</div></div>
         <div className="money-stat">
-          <div className="n">{c.medianDaysToPlace ?? '—'}</div><div className="k">Median days to place</div></div>
+          <div className="n">{c.medianDaysToPlace ?? '–'}</div><div className="k">Median days to place</div></div>
         <div className="money-stat">
           <div className="n">{c.interviewsBooked ? Math.round((c.interviewsCompleted / c.interviewsBooked) * 100) : 0}%</div>
           <div className="k">Interviews completed</div></div>
@@ -179,8 +253,8 @@ export default async function Reports() {
       <h3 className="section-h">Placements</h3>
       <div className="money-strip">
         <div className="money-stat"><div className="n">{c.placementsLive}</div><div className="k">Live</div></div>
-        <div className="money-stat"><div className="n">{retention ?? '—'}{retention != null && '%'}</div>
-          <div className="k">Still running</div></div>
+        <div className="money-stat"><div className="n">{retention ?? '–'}{retention != null && '%'}</div>
+          <div className="k">Seats retained{r.retention.awaitingReplacement ? ` · ${r.retention.awaitingReplacement} awaiting replacement` : ''}</div></div>
         <div className={`money-stat ${c.endedNotWorking ? 'alert' : ''}`}>
           <div className="n">{c.endedNotWorking}</div><div className="k">Ended not working</div></div>
         <div className="money-stat"><div className="n">{cal.length}</div><div className="k">Reviewed at six months</div></div>
@@ -194,23 +268,23 @@ export default async function Reports() {
         <div className="money-stat"><div className="n">{exp.clientsPaying}</div>
           <div className="k">Clients paying</div></div>
         <div className={`money-stat ${exp.topShare != null && exp.topShare >= 33 ? 'alert' : ''}`}>
-          <div className="n">{exp.topShare != null ? `${exp.topShare}%` : '—'}</div>
+          <div className="n">{exp.topShare != null ? `${exp.topShare}%` : '–'}</div>
           <div className="k">Biggest client&rsquo;s share</div></div>
         <div className={`money-stat ${exp.top3Share != null && exp.clientsPaying > 3 && exp.top3Share >= 75 ? 'alert' : ''}`}>
-          <div className="n">{exp.top3Share != null ? `${exp.top3Share}%` : '—'}</div>
+          <div className="n">{exp.top3Share != null ? `${exp.top3Share}%` : '–'}</div>
           <div className="k">Top three&rsquo;s share</div></div>
-        <div className="money-stat"><div className="n">{retention ?? '—'}{retention != null && '%'}</div>
-          <div className="k">Placements retained</div></div>
+        <div className="money-stat"><div className="n">{r.retention.replacements}</div>
+          <div className="k">Guarantee replacements</div></div>
       </div>
       <div className="card tight" style={{ marginTop: -8 }}>
         <p className="small muted" style={{ margin: 0, maxWidth: 680 }}>
           {exp.clientsPaying === 0
-            ? 'No paying clients yet — concentration starts mattering the moment the second one signs.'
+            ? 'No paying clients yet. Concentration starts mattering the moment the second one signs.'
             : exp.clientsPaying === 1
-              ? <>Everything currently rests on one client{exp.topName ? <> — <b>{exp.topName}</b></> : ''}. Normal this early, and the number to watch: the second and third placements are what turn a single thread into a business.</>
+              ? <>Everything currently rests on one client{exp.topName ? <>: <b>{exp.topName}</b></> : ''}. Normal this early, and the number to watch: the second and third placements are what turn a single thread into a business.</>
               : exp.topShare != null && exp.topShare >= 33
-                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. That is past the line where one notice is a real hole — worth having a second search in flight before you would feel it.</>
-                : <>No single client is more than a third of the run rate — the base is spread enough that one departure is a dip, not a crisis. Keep it here as you grow.</>}
+                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. That is past the line where one notice is a real hole. Worth having a second search in flight before you would feel it.</>
+                : <>No single client is more than a third of the run rate. The base is spread enough that one departure is a dip, not a crisis. Keep it here as you grow.</>}
         </p>
       </div>
 
@@ -238,7 +312,7 @@ export default async function Reports() {
               was on average <b>{meanGap != null && meanGap > 0 ? `${meanGap} points pessimistic` :
                 meanGap != null && meanGap < 0 ? `${Math.abs(meanGap)} points optimistic` : 'exactly right'}</b>.
               {meanGap != null && meanGap < -8 &&
-                ' Consistently optimistic means the matching is promising more than it delivers — worth looking at before it costs a client.'}
+                ' Consistently optimistic means the matching is promising more than it delivers. Worth looking at before it costs a client.'}
             </p>
             <table className="data">
               <thead><tr>

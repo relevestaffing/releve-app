@@ -9,11 +9,11 @@
   --pale:#B0C4B2;
   --mist:#DDE5DC;
   --body:#3C463F;
-  --sage:#7D9080;
+  --sage:#5F7163;      /* was #7D9080 (3.3:1 on paper); now 5.0:1 */
   --line:rgba(53,68,58,.14);
   --line-strong:rgba(53,68,58,.24);
   --good:#4E7A5C;
-  --warn:#9A7B3F;
+  --warn:#856A35;      /* was #9A7B3F (3.8:1); now 4.9:1 on paper */
   --crit:#8C4A3F;
   --script:'WindSong',cursive;
   --sidebar:268px;
@@ -1120,7 +1120,7 @@ span.step-tick{cursor:default}
    sub-label and hint on the newer screens fell back to inherited body colour
    and lost its hierarchy. It sits between --sage and --body. */
 :root{
-  --muted:#6A7A6E;
+  --muted:#5F7163;     /* was #6A7A6E (4.35:1); now 5.0:1 on paper */
   --tap:44px;          /* the smallest thing a thumb should have to hit */
 }
 
@@ -1392,14 +1392,14 @@ input:focus-visible,textarea:focus-visible{
 .nav-group + .nav-group{margin-top:20px}
 .nav-group-label{
   font-family:'Tenor Sans',sans-serif;font-size:9.5px;letter-spacing:.22em;
-  text-transform:uppercase;color:#7E8F80;
+  text-transform:uppercase;color:var(--pale);
   padding:0 26px 9px;margin-top:2px
 }
 .side-foot-form{margin-top:auto}
 .side-foot{
   background:none;border:none;width:100%;text-align:left;cursor:pointer;
   font-family:inherit;font-size:13px;letter-spacing:.09em;text-transform:uppercase;
-  color:#93A394;padding:16px 26px
+  color:var(--pale);padding:16px 26px
 }
 .side-foot:hover{color:#F0F2EE}
 
@@ -2024,4 +2024,33 @@ table.data.skel-table td{vertical-align:middle}
   .skel-side{display:none}
   .skel-topbar{height:auto;min-height:60px;padding:14px 18px 14px 60px}
   .skel-page-body{padding:16px 14px 72px}
+}
+
+/* ============================================================
+   ACCESSIBILITY PASS, 2 Oct 2026
+   --sage, --muted and --warn were darkened above so every caption,
+   label and hint reads at 4.5:1 or better on paper, white and cream.
+   On the fern surfaces the darker greys would sink, so text there
+   lifts to --pale (5.6:1 on fern) instead.
+   ============================================================ */
+.card.dark .muted,.card.dark .eyebrow,.card.dark .xs,.card.dark .small.muted,
+.card.dark .ff label,.card.dark .label-like{color:var(--pale)}
+.pick.on span{color:#F0F2EE}
+
+/* Focus on dark surfaces: the fern outline disappears against fern. */
+aside.side a:focus-visible,aside.side button:focus-visible,
+.nav-drawer a:focus-visible,.nav-drawer button:focus-visible,
+.card.dark a:focus-visible,.card.dark button:focus-visible,
+.btn.solid:focus-visible,.pick.on:focus-visible{outline-color:var(--pale)}
+.pick:focus-visible,.disc:focus-visible,.avail-cell:focus-visible{outline:2px solid var(--fern);outline-offset:2px}
+
+/* A group heading that labels buttons rather than a single field. */
+.ff .label-like{display:block}
+
+/* Phones: the last few controls under the 44px line. */
+@media (max-width:900px){
+  .x-btn{min-width:44px;min-height:44px}
+  .pick{min-height:44px}
+  .picker-clear{min-height:44px}
+  .unread-badge.side{margin-right:2px}
 }

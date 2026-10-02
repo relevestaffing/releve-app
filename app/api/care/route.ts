@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
-import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
+import { currentProfile } from '@/lib/supabase/server';
 import { send, templates } from '@/lib/email';
 import { personEmail, teamEmails, getPlacement } from '@/lib/work';
-import { dayLabel } from '@/lib/money-public';
+import { dayLabel, todayInPacific } from '@/lib/money-public';
 import { safeMessage } from '@/lib/errors';
 import {
   assignManagers, decideTimeOff, endPlacementWithReason, markFeedbackSeen,
   markFirstCandidate, recordOutcome, requestTimeOff, savePulse, saveFeedback,
-  setTeamRole, shareFeedback, tickStep
+  shareFeedback, tickStep
 } from '@/lib/care';
 
 export const dynamic = 'force-dynamic';
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
         try {
           const pl = await getPlacement(String(b.placement_id));
           if (pl) {
-            const endedOn = dayLabel(b.on ?? new Date().toISOString().slice(0, 10));
+            const endedOn = dayLabel(b.on ?? todayInPacific());
             const [exec, talent] = await Promise.all([personEmail(pl.client_id), personEmail(pl.talent_id)]);
             if (exec?.email && talent) await send(exec.email, templates.placementEnded({ name: exec.name, withWhom: talent.full, endedOn, side: 'client' }));
             if (talent?.email && exec) await send(talent.email, templates.placementEnded({ name: talent.name, withWhom: exec.full, endedOn, side: 'talent' }));
@@ -138,37 +138,9 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
       }
 
-      /* ---- notice, given by the executive themselves ---- */
-      /* Thirty days' written notice is the one contractual action a
-         month-to-month customer must be able to take from their own account.
-         give_notice() checks the placement is theirs and still running. */
-      case 'give_notice': {
-        if (me.role !== 'client') return NextResponse.json({ error: 'the executive gives notice' }, { status: 403 });
-        if (!configured()) return NextResponse.json({ ok: true, ends_on: null, note: 'Preview mode' });
-        const sb = await supabaseServer();
-        const { data: on, error } = await sb.rpc('give_notice', { p_placement: String(b.placement_id) });
-        if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-        /* give_notice now stores the true end date — the first Monday of the
-           following month, matching the written terms and the boundary billing
-           runs on. Read it back rather than recomputing a different rule here. */
-        const { data: term } = await sb.from('my_placement_terms')
-          .select('notice_ends_on').eq('placement_id', String(b.placement_id)).maybeSingle();
-        const endsOn = dayLabel((term as any)?.notice_ends_on ?? String(on));
-        try {
-          const pl = await getPlacement(String(b.placement_id));
-          const who = me.full_name ?? me.email;
-          for (const t of await teamEmails())
-            await send(t, templates.noticeGiven({ name: 'there', who: `${who}${pl ? ` (${pl.talent_name})` : ''}`, endsOn, toTeam: true }));
-          await send(me.email, templates.noticeGiven({ name: (me.full_name ?? '').split(' ')[0] || 'there', who, endsOn, toTeam: false }));
-        } catch { /* the notice stands */ }
-        return NextResponse.json({ ok: true, notice_given_on: on, ends_on: endsOn });
-      }
-
-      /* ---- the team ---- */
-      case 'team_role':
-        if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-        await setTeamRole(String(b.user_id), b.team_role);
-        return NextResponse.json({ ok: true });
+      /* Notice is given through /api/billing (give_notice there applies the
+         business rule and the three-month minimum). Team roles are set on the
+         Team page through /api/admin/team. */
 
       case 'assign_managers':
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });

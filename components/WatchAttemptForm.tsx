@@ -72,7 +72,7 @@ export default function WatchAttemptForm({
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) { toast.bad(d?.error ?? 'Could not submit.'); setSubmitting(false); setConfirming(false); return; }
-      toast.saved('Submitted — your Talent Success Manager will review it.');
+      toast.saved('Submitted. Your Talent Success Manager will review it.');
       router.push('/app/watch');
       router.refresh();
     } catch {
@@ -92,7 +92,7 @@ export default function WatchAttemptForm({
               <h2 style={{ color: 'var(--cream)', fontSize: 22, marginTop: 4 }}>Taking The Watch</h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up — submit what you have' : 'Time remaining'}</div>
+              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up. Submit what you have' : 'Time remaining'}</div>
               <div className="mono-num" style={{ color: over ? '#D99C8C' : 'var(--cream)' }}>{over ? '+' : ''}{clock}</div>
             </div>
           </div>
@@ -104,7 +104,7 @@ export default function WatchAttemptForm({
           <div key={t.id} className="card">
             <div className="card-head"><h3>{i + 1}. {t.title}</h3></div>
             <p className="small" style={{ whiteSpace: 'pre-wrap', marginBottom: 14 }}>{t.prompt}</p>
-            <textarea
+            <textarea aria-label={`Your answer to ${t.title}`}
               rows={7}
               defaultValue={t.response ?? ''}
               placeholder={t.placeholder}

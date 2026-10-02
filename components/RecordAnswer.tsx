@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { APPROVE_REASONS, PASS_REASONS } from '@/lib/work-public';
 import { saving } from './Toast';
@@ -14,6 +14,7 @@ import { saving } from './Toast';
 export default function RecordAnswer({ clientId, clientName, talentId, talentName }: {
   clientId: string; clientName: string; talentId: string; talentName: string;
 }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState<null | 'shortlisted' | 'passed'>(null);
@@ -28,7 +29,7 @@ export default function RecordAnswer({ clientId, clientName, talentId, talentNam
         client_id: clientId, talent_id: talentId, state: asking,
         reason: String(f.get('reason') ?? ''), note: String(f.get('note') ?? '')
       })
-    }), asking === 'shortlisted' ? `Recorded — ${clientName} approved ${talentName}` : `Recorded — ${clientName} declined ${talentName}`);
+    }), asking === 'shortlisted' ? `Recorded: ${clientName} approved ${talentName}` : `Recorded: ${clientName} declined ${talentName}`);
     setBusy(false); setAsking(null);
     if (ok) router.refresh();
   }
@@ -38,18 +39,18 @@ export default function RecordAnswer({ clientId, clientName, talentId, talentNam
     return (
       <form onSubmit={submit} className="decide-form" style={{ textAlign: 'left', minWidth: 260, marginTop: 8 }}>
         <p className="xs muted" style={{ marginBottom: 10 }}>
-          Recording that <b>{clientName}</b> {yes ? 'approved' : 'declined'} <b>{talentName}</b> — as told to you, in their words where you can.
+          Recording that <b>{clientName}</b> {yes ? 'approved' : 'declined'} <b>{talentName}</b>, as told to you, in their words where you can.
         </p>
         <div className="ff">
-          <label>{yes ? 'What made them right' : 'What was not right'}{yes && <span className="muted"> — optional</span>}</label>
-          <select name="reason" required={!yes} defaultValue="">
+          <label htmlFor={`${fid}-1`}>{yes ? 'What made them right' : 'What was not right'}{yes && <span className="muted"> (optional)</span>}</label>
+          <select id={`${fid}-1`} name="reason" required={!yes} defaultValue="">
             <option value="" disabled={!yes}>{yes ? 'Not said' : 'Choose one…'}</option>
             {(yes ? APPROVE_REASONS : PASS_REASONS).map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
         <div className="ff">
-          <label>In their words <span className="muted">— optional</span></label>
-          <textarea name="note" rows={2} placeholder="What they actually said." />
+          <label htmlFor={`${fid}-2`}>In their words <span className="muted">(optional)</span></label>
+          <textarea id={`${fid}-2`} name="note" rows={2} placeholder="What they actually said." />
         </div>
         <div className="row" style={{ gap: 8 }}>
           <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : 'Record it'}</button>

@@ -35,9 +35,9 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         prompt:
           'Below is a list of 14 subject lines that landed in Priya’s inbox over the weekend, each ' +
           'with a one-line summary of the sender and ask. Sort them into Handle yourself, Draft a reply ' +
-          'for her to approve, Flag for her the moment she lands, and Can wait a week — and say, in one ' +
+          'for her to approve, Raise with her the moment she lands, and Can wait a week, and say, in one ' +
           'line each, why. Then write the actual draft reply for the one item you marked most urgent.',
-        placeholder: 'Handle yourself: ...\nDraft for approval: ...\nFlag on landing: ...\nCan wait: ...\n\nDraft reply:'
+        placeholder: 'Handle yourself: ...\nDraft for approval: ...\nRaise on landing: ...\nCan wait: ...\n\nDraft reply:'
       },
       {
         key: 'scheduling_conflict',
@@ -46,7 +46,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
           'Priya has a board call already fixed for Thursday 9am Pacific. A lead investor’s assistant just asked ' +
           'to move a term-sheet call, previously Wednesday, to the only other slot their partner has this week: ' +
           'Thursday 9am Singapore time. Work out whether these actually clash, and write the email you would send ' +
-          'back to the investor’s assistant — including what you’d propose instead if they do.',
+          'back to the investor’s assistant, including what you’d propose instead if they do.',
         placeholder: 'Do they clash? ...\n\nEmail to the investor’s assistant:'
       },
       {
@@ -54,8 +54,8 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'A client-facing email in a specified tone',
         prompt:
           'A long-standing enterprise customer’s renewal is 60% likely to slip past the quarter, purely on their ' +
-          'procurement timeline, not on product issues. Priya asked you to send their VP of Ops a short check-in — ' +
-          'warm, direct, no hint of anxiety about the number, and absolutely not sounding like a sales chase. Write it.',
+          'procurement timeline, not on product issues. Priya asked you to send their VP of Ops a short check-in: ' +
+          'warm, direct, no hint of anxiety about the number, and absolutely not sounding like a sales push. Write it.',
         placeholder: 'Subject:\n\nBody:'
       }
     ]
@@ -72,7 +72,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'content_calendar',
         title: 'A two-week content plan against a brand voice brief',
         prompt:
-          'Fieldwork is launching a resoled-boot repair program — send in old boots, get them rebuilt instead of ' +
+          'Fieldwork is launching a resoled-boot repair program: send in old boots, get them rebuilt instead of ' +
           'replaced. Plan two weeks of posts announcing and sustaining this (Instagram feed, one Reel idea, one ' +
           'newsletter blurb). For each: platform, one-line concept, and the actual caption or copy.',
         placeholder: 'Week 1:\n• ...\n\nWeek 2:\n• ...'
@@ -94,7 +94,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
           'Last month: Reels averaged 3.1% engagement and static posts averaged 0.9%, but static posts drove 4x ' +
           'the link-clicks to the shop. Followers grew 6%, mostly off one Reel that got picked up by a hiking page. ' +
           'Write the one paragraph you would send Fieldwork’s founder about what this means for next month’s mix ' +
-          'and why — not just the numbers back at her.',
+          'and why, not just the numbers back at her.',
         placeholder: ''
       }
     ]
@@ -120,7 +120,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
       },
       {
         key: 'ar_chase',
-        title: 'Chasing an overdue invoice',
+        title: 'Following up on an overdue invoice',
         prompt:
           'Invoice #1042 to a client, $6,400, was due 21 days ago. This client has always paid eventually but is ' +
           'consistently late, and the studio’s owner does not want to damage the relationship over it. Write the ' +
@@ -133,7 +133,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         prompt:
           'Given: revenue this month $84,300 (last month $76,900), expenses $61,150 (last month $58,400), largest ' +
           'expense increase was $4,200 more spent on contractor design labor tied to two rush projects. Cash in the ' +
-          'business account is $48,212.60. Write the short summary you’d actually hand the owner — what changed, ' +
+          'business account is $48,212.60. Write the short summary you’d actually hand the owner: what changed, ' +
           'and the one thing worth her attention.',
         placeholder: ''
       }
@@ -152,7 +152,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         prompt:
           'Three tickets are open. Reply to each as you actually would, in order:\n' +
           '1) "Mattress arrived with a 2-inch dent in the corner, day 3 of the 100-night trial, want a replacement."\n' +
-          '2) "Where is my order" — tracking shows it delivered yesterday, customer says it never arrived.\n' +
+          '2) "Where is my order": tracking shows it delivered yesterday, customer says it never arrived.\n' +
           '3) A customer asking whether the mattress works on an adjustable base, clearly still deciding whether to buy.',
         placeholder: '1)\n2)\n3)'
       },
@@ -169,7 +169,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'kb_article',
         title: 'Writing a help article',
         prompt:
-          'The same question — "can I use my old bed frame or do I need a new base" — has come in nine times this ' +
+          'The same question, "can I use my old bed frame or do I need a new base", has come in nine times this ' +
           'week. Write the help center article that would stop this question being asked, in plain, reassuring ' +
           'language, no jargon.',
         placeholder: ''
@@ -187,9 +187,9 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'followup_sequence',
         title: 'Follow-up discipline',
         prompt:
-          'A prospect went quiet 9 days after a strong demo where they said "this looks great, let me talk to my ' +
-          'team." Write the two follow-up messages you’d send — one now, and the one you’d send a week after that ' +
-          'if there’s still no reply — without sounding like you’re chasing.',
+          'A prospect has not replied in the 9 days since a strong demo where they said "this looks great, let me talk to my ' +
+          'team." Write the two follow-up messages you’d send: one now, and the one you’d send a week after that ' +
+          'if there’s still no reply, without sounding pushy.',
         placeholder: 'Message 1 (now):\n\nMessage 2 (one week later):'
       },
       {
@@ -224,7 +224,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         prompt:
           'Given: logo, brand guidelines, and new website all need to ship together in 6 weeks; the design lead is ' +
           'out for one of those weeks on pre-booked leave; the client’s legal team needs 5 business days to review ' +
-          'final assets. Build the milestone plan — dates, owners, and the two points where this is most likely to slip.',
+          'final assets. Build the milestone plan: dates, owners, and the two points where this is most likely to slip.',
         placeholder: ''
       },
       {
@@ -240,7 +240,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'sop',
         title: 'Writing a process someone else can follow',
         prompt:
-          'New team members keep asking how client assets get handed off to the design team. Write the SOP — short, ' +
+          'New team members keep asking how client assets get handed off to the design team. Write the SOP: short, ' +
           'numbered, specific enough that someone could follow it without asking you a single question.',
         placeholder: ''
       }
@@ -258,7 +258,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'An email for a dated launch',
         prompt:
           'Write the launch email announcing the new sleep-tracking feature to Halcyon’s existing subscriber list ' +
-          '— subject line, preview text, and body. It should feel like news, not an ad.',
+          'with subject line, preview text, and body. It should feel like news, not an ad.',
         placeholder: 'Subject line:\nPreview text:\n\nBody:'
       },
       {
@@ -273,8 +273,8 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'ab_test',
         title: 'Reading a test honestly',
         prompt:
-          'You ran the launch email as an A/B test on subject line. Version A: "Sleep tracking is here" — ' +
-          '31% open rate. Version B: "We watched you sleep (in a good way)" — 38% open rate, but click rate on B ' +
+          'You ran the launch email as an A/B test on subject line. Version A: "Sleep tracking is here", ' +
+          '31% open rate. Version B: "We watched you sleep (in a good way)", 38% open rate, but click rate on B ' +
           'was lower than A. What do you send to the remaining 80% of the list, and why?',
         placeholder: ''
       }
@@ -289,10 +289,10 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
     tasks: [
       {
         key: 'screening',
-        title: 'Screening to a shortlist',
+        title: 'Screening to one candidate',
         prompt:
-          'Given the role needs 5+ years backend experience, comfort with on-call rotation, and startup experience ' +
-          'preferred but not required — here are three one-line candidate summaries. Decide who advances and who ' +
+          'The role needs 5+ years backend experience and comfort with on-call rotation, with startup experience ' +
+          'preferred but not required. Here are three one-line candidate summaries. Decide who advances and who ' +
           'doesn’t, and write the one-line reason for each:\n' +
           '1) 7 years, all at one large enterprise, no on-call experience, wants full remote.\n' +
           '2) 3 years, two early-stage startups, ran production on-call at both.\n' +
@@ -304,7 +304,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'A rejection that keeps the door open',
         prompt:
           'Candidate #1 above made it to a final interview and was strong, but the team chose someone else. Write ' +
-          'the email letting them know — warm enough that they’d apply again for a future role.',
+          'the email letting them know, warm enough that they’d apply again for a future role.',
         placeholder: ''
       },
       {
@@ -312,7 +312,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'A first-week onboarding plan',
         prompt:
           'The new hire starts in two weeks, fully remote, in a timezone 6 hours ahead of the rest of engineering. ' +
-          'Write their first-week plan — accounts, introductions, and what they should actually be doing by Friday.',
+          'Write their first-week plan: accounts, introductions, and what they should actually be doing by Friday.',
         placeholder: ''
       }
     ]
@@ -339,7 +339,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'A recurring report, right every time',
         prompt:
           'Design the weekly pack the owner actually needs to run five locations: which numbers, broken out how, ' +
-          'and in what order. List the metrics and a one-line reason each earns its place — not a wish list of ' +
+          'and in what order. List the metrics and a one-line reason each earns its place, not a wish list of ' +
           'everything the booking system can export.',
         placeholder: ''
       },
@@ -365,9 +365,9 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'brief_taking',
         title: 'Working from a brief',
         prompt:
-          'The partners said: "We want to look established but not stuffy, trustworthy but not boring — everyone in ' +
+          'The partners said: "We want to look established but not stuffy, trustworthy but not boring. Everyone in ' +
           'our field uses navy and a serif logo and we’re tired of looking like all of them." Write the direction ' +
-          'you’d actually take into the first concept — palette feel, type feel, and the one idea that makes it ' +
+          'you’d actually take into the first concept: palette feel, type feel, and the one idea that makes it ' +
           'not look like every other law firm.',
         placeholder: ''
       },
@@ -376,7 +376,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'Social assets, sized and formatted per channel',
         prompt:
           'The new brand needs to announce itself. List exactly what assets you’d produce for the announcement ' +
-          '— which channels, which sizes, and what each one needs to say — as a production checklist, not a mood board.',
+          '(which channels, which sizes, and what each one needs to say) as a production checklist, not a mood board.',
         placeholder: ''
       },
       {
@@ -384,7 +384,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'Staying inside a brand system',
         prompt:
           'A partner asks you to make a one-off event flyer "pop more" by adding a bright orange gradient that’s ' +
-          'nowhere in the new brand guidelines. Write how you’d actually respond — to the partner, in a way that ' +
+          'nowhere in the new brand guidelines. Write how you’d actually respond to the partner, in a way that ' +
           'protects the brand without just saying no.',
         placeholder: ''
       }
@@ -395,7 +395,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
     disciplineKey: 'personal',
     timeLimitMinutes: 180,
     scenario:
-      'You support the personal side of a busy executive’s life alongside their EA — two kids, frequent travel, a household to run.',
+      'You support the personal side of a busy executive’s life alongside their EA: two kids, frequent travel, a household to run.',
     tasks: [
       {
         key: 'family_travel',
@@ -437,7 +437,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'Offboarding, done properly',
         prompt:
           'An employee is leaving Friday. List, in order, every account and access point you’d need to check and ' +
-          'revoke — not just email — and the one step people most often forget that causes a problem weeks later.',
+          'revoke (not just email) and the one step people most often forget that causes a problem weeks later.',
         placeholder: ''
       },
       {
@@ -445,7 +445,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'Building a small automation',
         prompt:
           'New client contracts arrive as signed PDFs in a shared inbox, and someone manually creates a folder and ' +
-          'a project in the project tool for each one — taking about 15 minutes and sometimes forgotten for days. ' +
+          'a project in the project tool for each one, taking about 15 minutes and sometimes forgotten for days. ' +
           'Describe, step by step, the automation you’d actually build (tool, trigger, steps) to fix this.',
         placeholder: ''
       },
@@ -454,7 +454,8 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         title: 'Troubleshooting methodically',
         prompt:
           'Three people report Slack notifications randomly stopped working this week, but only on desktop, not ' +
-          'mobile, and only for direct messages, not channels. Walk through how you’d actually diagnose this — ' +
+          'mobile, and only for direct messages, not channels. Walk through how you’d actually diagnose this: ' +
+
           'the order you’d check things in, not just a guess at the answer.',
         placeholder: ''
       }

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
 import { InvoiceStatusPicker } from './InvoiceControls';
 import ChargeInvoice from './ChargeInvoice';
+import RefundInvoice from './RefundInvoice';
+import Link from 'next/link';
 import InvoiceFilter from './InvoiceFilter';
 import { money, dayLabel, monthLabel, daysOverdue, type Invoice } from '@/lib/money-public';
 
@@ -14,8 +16,8 @@ type Method = { label: string; ok: boolean } | null;
    own row (unchanged, via InvoiceStatusPicker), or a batch of drafts can be
    checked and sent together — one client, a chosen few, or "select all" for
    everyone waiting on a first invoice this month. */
-export default function InvoiceTable({ invoices, stripeOn, methods }: {
-  invoices: Invoice[]; stripeOn: boolean; methods: Record<string, Method>;
+export default function InvoiceTable({ invoices, stripeOn, methods, owner = false }: {
+  invoices: Invoice[]; stripeOn: boolean; methods: Record<string, Method>; owner?: boolean;
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -54,7 +56,7 @@ export default function InvoiceTable({ invoices, stripeOn, methods }: {
         setSelected(new Set());
         router.refresh();
       }
-    } catch { toast.bad('No connection — nothing was sent.'); }
+    } catch { toast.bad('No connection. Nothing was sent.'); }
     setBusy(false);
   }
 
@@ -85,7 +87,7 @@ export default function InvoiceTable({ invoices, stripeOn, methods }: {
         <tbody>
           {invoices.map(i => {
             const late = daysOverdue(i.due_on);
-            const open = i.status === 'draft' || i.status === 'sent';
+            const open = i.status === 'sent' || i.status === 'failed';
             const m = methods[i.client_id] ?? null;
             return (
               <tr key={i.id} data-status={i.status} data-late={open ? Math.max(0, late) : 0}>
@@ -95,10 +97,17 @@ export default function InvoiceTable({ invoices, stripeOn, methods }: {
                       aria-label={`Select invoice ${i.number ?? 'not yet issued'}`} />
                   )}
                 </td>
-                <td className="inv-num xs">{i.number ?? <span className="muted">not issued</span>}</td>
+                <td className="inv-num xs">
+                  <Link href={`/console/money/invoice/${i.id}`} title="Open the invoice document">
+                    {i.number ?? <span className="muted">draft</span>}
+                  </Link>
+                </td>
                 <td>{i.org_name ?? i.client_name}</td>
                 <td className="xs">
                   {i.kind === 'deposit' ? 'Search deposit' : monthLabel(i.period_start)}
+                  {(i.deposit_credit_cents ?? 0) > 0 && <><br /><span className="muted">deposit credit {money(i.deposit_credit_cents, true)}</span></>}
+                  {i.days_billed != null && i.days_in_period != null && i.days_billed < i.days_in_period &&
+                    <><br /><span className="muted">{i.days_billed} of {i.days_in_period} days</span></>}
                 </td>
                 <td className="xs">{dayLabel(i.issued_on)}
                   {open && late >= 14 &&
@@ -106,19 +115,27 @@ export default function InvoiceTable({ invoices, stripeOn, methods }: {
                   {open && late > 0 && late < 14 &&
                     <><br /><span className="pill warn">{late} day{late === 1 ? '' : 's'} late</span></>}
                 </td>
-                <td className="amount">{money(i.amount_cents)}</td>
-                <td><InvoiceStatusPicker key={i.status} inv={i} /></td>
+                <td className="amount">{money(i.amount_cents, true)}
+                  {(i.refunded_cents ?? 0) > 0 && <div className="xs muted">refunded {money(i.refunded_cents, true)}</div>}
+                </td>
+                <td><InvoiceStatusPicker key={i.status} inv={i} />
+                  {i.status === 'failed' && i.failure_reason && <div className="xs muted" style={{ marginTop: 4, maxWidth: 220 }}>{i.failure_reason}</div>}
+                </td>
                 {stripeOn && (
                   <td>
-                    {i.amount_cents <= 0
-                      ? <span className="xs muted">Credit</span>
-                      : i.status === 'processing'
-                        ? <span className="xs muted">Clearing</span>
-                        : i.status === 'paid' || i.status === 'void'
-                          ? <span className="xs muted">—</span>
-                          : <ChargeInvoice invoiceId={i.id} amount={money(i.amount_cents)}
-                              who={i.org_name ?? i.client_name ?? 'this executive'}
-                              method={m?.ok ? m.label : null} />}
+                    {i.status === 'paid' && owner
+                      ? <RefundInvoice invoiceId={i.id} cents={i.amount_cents - (i.refunded_cents ?? 0)} />
+                      : i.amount_cents <= 0
+                        ? <span className="xs muted">Nothing to collect</span>
+                        : i.status === 'processing'
+                          ? <span className="xs muted">Clearing</span>
+                          : i.status === 'draft'
+                            ? <span className="xs muted">Send first</span>
+                            : ['paid', 'void', 'refunded', 'disputed'].includes(i.status)
+                              ? <span className="xs muted">–</span>
+                              : <ChargeInvoice invoiceId={i.id} amount={money(i.amount_cents, true)}
+                                  who={i.org_name ?? i.client_name ?? 'this executive'}
+                                  method={m?.ok ? m.label : null} />}
                   </td>
                 )}
               </tr>

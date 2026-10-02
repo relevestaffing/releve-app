@@ -36,8 +36,8 @@ export default async function Applications() {
           <h3>Nobody has applied yet</h3>
           <p className="small">
             Applications land here the moment someone fills in the form on a live
-            posting, with their answers, their resume and the role they came from — so
-            you are never re-typing a person out of an inbox.
+            posting, with their answers, their resume and the role they came from,
+            so you are never re-typing a person out of an inbox.
           </p>
           <Link className="btn sm ghost" href="/console/postings" style={{ marginTop: 18 }}>
             Write a role
@@ -48,8 +48,8 @@ export default async function Applications() {
           <div className="card tight">
             <p className="small" style={{ margin: 0 }}>
               <b>Read it, talk to them, then decide.</b> Booking a call emails them a time
-              and a joining link, in their own timezone. Nobody reaches the platform — an
-              account, the assessment, the roster — until that call has happened.
+              and a joining link, in their own timezone. Nobody reaches the platform (an account,
+              the assessment, the roster) until that call has happened.
               Declining is silent, so you write to them in your own words when you are ready.
             </p>
           </div>

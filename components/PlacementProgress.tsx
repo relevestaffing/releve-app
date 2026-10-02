@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { Step } from '@/lib/care-public';
 import { dueOn } from '@/lib/care-public';
+import { daysFrom, todayIn } from '@/lib/experience-public';
 
 /* A read-only look at the first fortnight, for the dashboard rail.
    ------------------------------------------------------------
@@ -10,8 +11,10 @@ import { dueOn } from '@/lib/care-public';
    somewhere to see where it stands. This card is that: a progress bar and
    whatever's next, no button anywhere on it. It steps aside once the plan is
    finished rather than sitting there as a stale "done" card forever. */
-export default function PlacementProgress({ steps, startedOn, planHref }: {
+export default function PlacementProgress({ steps, startedOn, planHref, today: todayProp }: {
   steps: Step[]; startedOn: string; planHref: string;
+  /* "today" in the reader's timezone; Pacific when it is not known. */
+  today?: string;
 }) {
   if (!steps.length) return null;
 
@@ -19,11 +22,9 @@ export default function PlacementProgress({ steps, startedOn, planHref }: {
   const total = steps.length;
   if (done === total) return null;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayProp ?? todayIn('America/Los_Angeles');
   const totalDays = Math.max(14, ...steps.map(s => s.day + 1));
-  const dayNumber = Math.min(totalDays, Math.max(1, Math.round(
-    (new Date(today + 'T00:00:00Z').getTime() - new Date(startedOn + 'T00:00:00Z').getTime()) / 86400000
-  ) + 1));
+  const dayNumber = Math.min(totalDays, Math.max(1, daysFrom(startedOn.slice(0, 10), today) + 1));
 
   const next = steps.find(s => !s.done)!;
   const overdue = dueOn(startedOn, next.day) < today;

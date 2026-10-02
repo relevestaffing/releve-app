@@ -8,6 +8,9 @@ import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import { TimeOffDecider, OutcomeForm } from '@/components/CareControls';
 import { fmtDate } from '@/lib/words';
+import Link from 'next/link';
+import RequestDesk from '@/components/RequestDesk';
+import { allRequests, mineFor } from '@/lib/experience';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,20 +18,35 @@ const day = fmtDate;
 
 /* Everything that needs a person to look at it, in the order it will hurt if
    nobody does. */
-export default async function ConsoleCare() {
+export default async function ConsoleCare({ searchParams }: { searchParams: Promise<{ mine?: string }> }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
+  const mine = (await searchParams).mine === '1';
 
-  const [pulses, off, due, watch, owed] = await Promise.all([
-    allPulses(60), upcomingTimeOff(45), reviewsDue(), guaranteeWatch(), replacementsOwed()
+  const [allPulsesRows, allOff, due, watch, owed, allReq, scope] = await Promise.all([
+    allPulses(60), upcomingTimeOff(45), reviewsDue(), guaranteeWatch(), replacementsOwed(), allRequests(80),
+    mine ? mineFor(profile.id) : Promise.resolve(null)
   ]);
+  /* "Mine": only the placements this manager looks after as CSM or TSM.
+     Searches with no placement yet (the 14-day watch) stay team-wide. */
+  const inScope = (placementId: string | null | undefined) => !scope || (!!placementId && scope.placements.has(placementId));
+  const pulses = allPulsesRows.filter(p => inScope(p.placement_id));
+  const off = allOff.filter(t => inScope(t.placement_id));
+  const requests = allReq.filter(r => inScope(r.placement_id));
   const flagged = pulses.filter(p => p.needs_attention);
   const waiting = off.filter(t => t.state === 'requested');
+  const openRequests = requests.filter(r => r.state === 'open');
 
   return (
     <Shell profile={profile} active="/console/care" title="Care"
-      crumb="What needs a person today">
+      crumb={mine ? 'Your placements, and what needs you today' : 'What needs a person today'}
+      action={
+        <span className="row" role="group" aria-label="Whose placements" style={{ gap: 6 }}>
+          <Link className={`btn sm ${mine ? 'ghost' : 'solid'}`} href="/console/care">Everyone</Link>
+          <Link className={`btn sm ${mine ? 'solid' : 'ghost'}`} href="/console/care?mine=1">Mine</Link>
+        </span>
+      }>
 
       <div className="money-strip">
         <div className={`money-stat ${flagged.length ? 'alert' : ''}`}>
@@ -40,19 +58,24 @@ export default async function ConsoleCare() {
         <div className={`money-stat ${watch.length ? 'alert' : ''}`}>
           <div className="n">{watch.length}</div><div className="k">Guarantee at risk</div>
         </div>
+        <div className={`money-stat ${openRequests.length ? 'alert' : ''}`}>
+          <div className="n">{openRequests.length}</div><div className="k">Requests to answer</div>
+        </div>
         <div className="money-stat">
           <div className="n">{due.length}</div><div className="k">Six-month reviews</div>
         </div>
       </div>
 
       <div className="stack">
+        <RequestDesk rows={requests} />
+
         {watch.length > 0 && (
           <div className="card">
             <div className="card-head"><h3>The 14-day promise</h3></div>
             <div style={{ marginBottom: 16 }}>
               <Explain>
                 Searches with nobody put forward yet, at or near the fourteen days
-                you promise. This is the one that costs you a client quietly.
+                promised. A candidate sent today keeps the promise.
               </Explain>
             </div>
             {watch.map((w: any) => (
@@ -134,7 +157,7 @@ export default async function ConsoleCare() {
                 </div>
                 <div className="row" style={{ gap: 8 }}>
                   {p.needs_attention && <span className="pill crit"><span className="dot" />Look at this</span>}
-                  <span className="pill">{GOING.find(g => g.n === p.going)?.label ?? '—'}</span>
+                  <span className="pill">{GOING.find(g => g.n === p.going)?.label ?? '–'}</span>
                 </div>
               </div>
               <div className="xs muted" style={{ marginTop: 5 }}>

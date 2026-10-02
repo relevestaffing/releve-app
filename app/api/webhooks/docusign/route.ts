@@ -33,7 +33,10 @@ export async function POST(req: Request) {
 
   const raw = await req.text();
   try {
-    verifyDocuSignWebhook(raw, req.headers.get('x-docusign-signature-1'));
+    const sigs = [1, 2, 3, 4, 5]
+      .map(n => req.headers.get(`x-docusign-signature-${n}`))
+      .filter((v): v is string => Boolean(v));
+    verifyDocuSignWebhook(raw, sigs);
   } catch (e: any) {
     /* 400, not 500: a rejected request, not a broken server — DocuSign
        should not retry it. */

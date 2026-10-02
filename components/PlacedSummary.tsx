@@ -44,7 +44,7 @@ export default function PlacedSummary({
                 </div>
               </Link>
               <div className="row" style={{ gap: 16 }}>
-                <Link href="/app/messages" className="btn sm ghost">Message</Link>
+                <Link href={`/app/messages?tab=${p.id}`} className="btn sm ghost">Message {firstName(p.talent_name)}</Link>
                 <Link href={one ? '/app/care' : `/app/care/${p.id}`} className="choose-go">
                   {one ? 'Open the placement →' : `${firstName(p.talent_name)}’s page →`}
                 </Link>
@@ -57,7 +57,7 @@ export default function PlacedSummary({
       <p className="xs muted" style={{ marginTop: 16, maxWidth: 620 }}>
         {hiring
           ? 'A search is still open alongside this, so your candidate screens stay where they are.'
-          : 'Want a second person? Tell your Client Success Manager and we will open a new search — the hiring screens come back the moment we do.'}
+          : 'Want a second person? Tell your Client Success Manager and we will open a new search. The hiring screens come back the moment we do.'}
       </p>
     </div>
   );

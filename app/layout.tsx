@@ -3,9 +3,19 @@ import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
 import SWRegister from '@/components/SWRegister';
 
+const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
+const TITLE = 'Relève · Accounts Center';
+const DESCRIPTION = 'The Relève Signature, talent matching, and placement management.';
+
 export const metadata: Metadata = {
-  title: 'Relève — Accounts Center',
-  description: 'The Relève Signature, talent matching, and placement management.',
+  metadataBase: new URL(SITE),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: 'website', siteName: 'Relève', title: TITLE, description: DESCRIPTION, url: '/',
+    images: [{ url: '/icon-1024.png', width: 1024, height: 1024, alt: 'Relève' }]
+  },
+  twitter: { card: 'summary', title: TITLE, description: DESCRIPTION, images: ['/icon-1024.png'] },
   manifest: '/manifest.webmanifest',
   applicationName: 'Relève',
   appleWebApp: { capable: true, title: 'Relève', statusBarStyle: 'default' },

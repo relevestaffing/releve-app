@@ -24,12 +24,18 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
   const [busy, setBusy] = useState(false);
   const tone = DEPOSIT_STATUS.find(s => s.key === value)?.tone ?? '';
 
+  /* Clearing is Stripe's: shown, never offered. */
+  if (status === 'processing') return (
+    <span className="rate-set"><span className="pill" title="A bank payment is on its way">Clearing</span>
+      {invoiced && <span className="xs muted">Invoiced</span>}</span>
+  );
+
   async function commit(next: DepositStatus) {
     const prev = value;
     setValue(next); setBusy(true);
     const ok = await saving(
       () => post({ action: 'deposit_status', search_id: searchId, status: next }),
-      next === 'paid' ? `${money(cents)} deposit marked paid` : `Deposit ${next}`
+      next === 'paid' ? `${money(cents)} deposit marked paid` : next === 'waived' ? 'Deposit waived. Its invoice is void' : `Deposit ${next}`
     );
     setBusy(false);
     if (ok) router.refresh(); else setValue(prev);
@@ -47,23 +53,25 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
 
   return (
     <span className="rate-set">
-      <select className={`pill ${tone}`} value={value} disabled={busy}
+      <select aria-label="Deposit status" className={`pill ${tone}`} value={value} disabled={busy}
         style={{ padding: '5px 10px', cursor: 'pointer' }}
         onChange={e => {
           const next = e.target.value as DepositStatus;
           if (next === value) return;
           /* Recording money received is the one change that gets a confirm; the
              select snaps back to its current value until it is confirmed. */
-          if (next === 'paid') { setPending('paid'); e.target.value = value; return; }
+          if (next === 'paid' || next === 'waived') { setPending(next); e.target.value = value; return; }
           commit(next);
         }}>
-        {DEPOSIT_STATUS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+        {DEPOSIT_STATUS.filter(s => s.key !== 'processing').map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
       </select>
-      {pending === 'paid' ? (
+      {pending ? (
         <>
-          <span className="xs muted">Mark the {money(cents)} deposit paid?</span>
+          <span className="xs muted">{pending === 'paid'
+            ? `Mark the ${money(cents)} deposit paid?`
+            : `Waive the ${money(cents)} deposit? Its invoice is voided.`}</span>
           <button className="btn sm solid" disabled={busy}
-            onClick={() => { setPending(null); commit('paid'); }}>Confirm</button>
+            onClick={() => { const p = pending; setPending(null); commit(p); }}>Confirm</button>
           <button className="btn sm ghost" disabled={busy} onClick={() => setPending(null)}>Cancel</button>
         </>
       ) : (

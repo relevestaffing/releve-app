@@ -4,6 +4,7 @@ import { send, templates } from '@/lib/email';
 import { SITE } from '@/lib/stripe';
 import { depositLinkReady, signDepositLink } from '@/lib/deposit-link';
 import { safeMessage } from '@/lib/errors';
+import { firstName } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
   if (!email || !email.includes('@')) return NextResponse.json({ error: 'That email does not look right.' }, { status: 400 });
 
   if (!configured())
-    return NextResponse.json({ ok: true, emailed: false, note: 'Preview mode — nothing was sent.' });
+    return NextResponse.json({ ok: true, emailed: false, note: 'Preview mode. Nothing was sent.' });
 
   try {
     const sb = await supabaseServer();
@@ -101,13 +102,13 @@ export async function POST(req: Request) {
 
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app/billing`;
     const sent = await send(email, templates.depositReady({
-      name: name.split(' ')[0] ?? '', payUrl, cents, docsUrl
+      name: firstName(name, ''), payUrl, cents, docsUrl
     }));
 
     return NextResponse.json({
       ok: true, emailed: sent,
       warning: canLink ? undefined
-        : 'Sent without a pay-by-link (DEPOSIT_LINK_SECRET is not set in Netlify) — the button in their email opens their billing page instead.'
+        : 'Sent without a pay-by-link (DEPOSIT_LINK_SECRET is not set in Netlify), so the button in their email opens their billing page instead.'
     });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });

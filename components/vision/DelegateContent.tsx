@@ -14,7 +14,7 @@ export default function DelegateContent() {
           The hardest part of hiring is picturing what someone could take off your plate.
         </h2>
         <p className="small" style={{ maxWidth: 640, color: 'var(--pale)' }}>
-          Most executives under-hire — they hand over the calendar and stop there, because the
+          Most executives under-hire. They hand over the calendar and stop there, because the
           rest never occurs to them until they are drowning in it. Below is the whole territory
           a Relève placement can own, in the words we actually match on. Read it as a menu, not a
           checklist: pick the few areas that would give you your week back, and the role brief

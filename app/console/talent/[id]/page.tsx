@@ -77,13 +77,13 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
               <span className={`pill ${verified ? 'good' : 'warn'}`}><span className="dot" />{verified ? 'Verified' : 'Not verified'}</span>
               {type && <span className="pill">{type.n}</span>}
               {sig && <span className={`pill ${sig.validity?.verdict === 'Valid' ? 'good' : sig.validity?.verdict === 'Review' ? 'warn' : 'crit'}`}>
-                Signature {sig.validity?.verdict ?? '—'}</span>}
+                Signature {sig.validity?.verdict ?? '·'}</span>}
               {disciplines.length > 0 && (
                 <span className={`pill ${watch.every(w => w.cleared) && watch.length === disciplines.length ? 'good' : 'warn'}`}>
                   Watch {watch.filter(w => w.cleared).length}/{disciplines.length} cleared
                 </span>
               )}
-              <span className="pill">{self.years_exp != null ? `${self.years_exp} yrs` : 'Years —'}{self.english ? ` · ${self.english}` : ''}</span>
+              <span className="pill">{self.years_exp != null ? `${self.years_exp} yrs` : 'Years not set'}{self.english ? ` · ${self.english}` : ''}</span>
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
               {sig.validity?.flags?.length ? (
                 <div style={{ marginTop: 12 }}>
                   <Explain>
-                    {sig.validity.flags.map((f: any) => `${f.k}: ${f.v} — ${f.d}`).join(' ')}
+                    {sig.validity.flags.map((f: any) => `${f.k}: ${f.v}. ${f.d}`).join(' ')}
                   </Explain>
                 </div>
               ) : null}
@@ -132,7 +132,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
               <dt>Identity</dt><dd><span className={`pill ${stateTone(identity)}`}>{stateWord(identity)}</span></dd>
               <dt>Agreement</dt><dd><span className={`pill ${stateTone(agreement)}`}>{stateWord(agreement)}</span>
                 {(agreement as any)?.signed_on && <span className="xs muted" style={{ marginLeft: 8 }}>signed {dayLabel((agreement as any).signed_on)}</span>}</dd>
-              <dt>Stage</dt><dd>{(self as any).stage ?? '—'}</dd>
+              <dt>Stage</dt><dd>{(self as any).stage ?? '·'}</dd>
             </dl>
           </div>
 
@@ -158,7 +158,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           <div className="card">
             <div className="card-head"><h3>Availability</h3></div>
             {!avail.timezone?.trim() || !avail.windows?.length ? (
-              <p className="small muted">Not set — no executive can book them until it is.</p>
+              <p className="small muted">Not set. No executive can book them until it is.</p>
             ) : (
               <>
                 <p className="xs muted" style={{ marginBottom: 8 }}>{avail.timezone.replace('_', ' ')}</p>
@@ -231,7 +231,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
                 <li key={d.client_id}>
                   <span className="past-date">{d.released ? 'Sent' : 'Matched'}</span>
                   <span className="small">{d.client_name}{d.state ? ` · ${d.state === 'passed' ? 'declined' : d.state === 'shortlisted' ? 'approved' : d.state}` : ' · no answer yet'}
-                    {d.reason ? <span className="xs muted"> — {d.reason}</span> : null}</span>
+                    {d.reason ? <span className="xs muted"> · {d.reason}</span> : null}</span>
                 </li>
               ))}
             </ul>

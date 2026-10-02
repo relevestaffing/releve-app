@@ -21,7 +21,7 @@ export default function VideoUpload({ initial, name }: { initial?: string | null
   async function take(file: File | undefined) {
     setErr(null);
     if (!file) return;
-    if (!file.type.startsWith('video/')) return setErr('That needs to be a video — an MP4 or MOV from your phone works well.');
+    if (!file.type.startsWith('video/')) return setErr('That needs to be a video: an MP4 or MOV from your phone works well.');
     if (file.size > MAX_MB * 1024 * 1024) return setErr(`That video is over ${MAX_MB}MB. A shorter clip, thirty to sixty seconds, is plenty.`);
 
     setBusy(true);
@@ -77,7 +77,7 @@ export default function VideoUpload({ initial, name }: { initial?: string | null
         </div>
       </div>
 
-      <input ref={input} type="file" accept="video/*" hidden
+      <input aria-label="Choose a video" ref={input} type="file" accept="video/*" hidden
         onChange={e => { take(e.target.files?.[0]); e.target.value = ''; }} />
 
       {err && <p className="small" style={{ color: 'var(--rust, #8C4A3F)', marginTop: 10 }}>{err}</p>}

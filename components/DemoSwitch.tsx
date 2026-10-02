@@ -19,7 +19,7 @@ export default function DemoSwitch({ current }: { current: string }) {
       <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 10 }}>Preview as</div>
       <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
         {[['client', 'Executive'], ['talent', 'Talent'], ['admin', 'Relève'], ['new', 'New sign-up']].map(([k, label]) => (
-          <button key={k} onClick={() => to(k)} className={`demo-btn ${current === k ? 'on' : ''}`}>{label}</button>
+          <button key={k} onClick={() => to(k)} className={`demo-btn ${current === k ? 'on' : ''}`} aria-pressed={current === k}>{label}</button>
         ))}
       </div>
       <button onClick={() => to(current, true)} className="demo-reset">

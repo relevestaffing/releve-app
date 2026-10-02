@@ -19,6 +19,8 @@ export const PAYMENT_STATUS: Record<string, { label: string; tone: string; says:
   sent:       { label: 'Due',          tone: 'warn', says: 'Due on receipt.' },
   processing: { label: 'Clearing',     tone: '',     says: 'Collected from your account and clearing. Bank transfers take a few days.' },
   paid:       { label: 'Paid',         tone: 'good', says: 'Received in full.' },
-  failed:     { label: 'Failed',       tone: 'crit', says: 'Your bank refused it. We will be in touch.' },
-  void:       { label: 'Void',         tone: '',     says: 'Cancelled.' }
+  failed:     { label: 'Needs another try', tone: 'warn', says: 'The last attempt did not go through. Pay it from this page, by bank or card.' },
+  void:       { label: 'Void',         tone: '',     says: 'Cancelled. Nothing is owed.' },
+  refunded:   { label: 'Refunded',     tone: '',     says: 'Returned to you in full.' },
+  disputed:   { label: 'Under review', tone: '',     says: 'Your bank has asked about this payment. We are working through it with them.' }
 };

@@ -31,7 +31,7 @@ export default function PaymentMethod({ account, ready }: {
       if (!r.ok || !d.url) { toast.bad(d.error ?? 'That did not open. Please try again.'); setBusy(false); return; }
       window.location.href = d.url;
     } catch {
-      toast.bad('No connection — nothing was changed.');
+      toast.bad('No connection. Nothing was changed.');
       setBusy(false);
     }
   }
@@ -54,7 +54,7 @@ export default function PaymentMethod({ account, ready }: {
             {' '}Invoices are collected from this automatically when they fall due.
           </p>
           <p className="xs muted" style={{ marginBottom: 16, maxWidth: 620 }}>
-            We hold nothing but the last four digits — the account details stay with
+            We hold nothing but the last four digits. The account details stay with
             Stripe, who are the ones actually moving the money.
           </p>
           <button className="btn sm ghost" disabled={busy} onClick={start}>

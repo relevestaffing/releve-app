@@ -8,14 +8,17 @@ import { saving } from './Toast';
    one click removes it. A real account cascades away everything on file for
    that person the moment their auth user is deleted, so this makes the admin
    type the person's own first name before that call goes out. */
-export default function DeletePerson({ id, name, pending }: {
-  id: string; name: string; pending: boolean;
+export default function DeletePerson({ id, name: rawName, pending }: {
+  id: string; name: string | null; pending: boolean;
 }) {
+  /* full_name is nullable on a self-serve account; .trim() on null took the
+     whole People page down. An unnamed record is confirmed by its label. */
+  const name = (rawName ?? '').trim() || 'this person';
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
-  const first = (name.trim().split(' ')[0] || name).toLowerCase();
+  const first = (rawName ?? '').trim() ? (name.split(/\s+/)[0]).toLowerCase() : 'remove';
 
   async function remove() {
     setBusy(true);
@@ -38,11 +41,13 @@ export default function DeletePerson({ id, name, pending }: {
       ) : (
         <>
           <span className="xs muted">
-            Type their first name to remove everything on file for them. This cannot be undone.
+            {(rawName ?? '').trim()
+              ? 'Type their first name to remove everything on file for them. This cannot be undone.'
+              : 'Type REMOVE to remove everything on file for them. This cannot be undone.'}
           </span>
           <span className="ff" style={{ margin: 0 }}>
-            <input value={typed} autoFocus disabled={busy} style={{ width: 110 }}
-              placeholder={name.split(' ')[0] ?? name}
+            <input aria-label="Type the name to confirm" value={typed} autoFocus disabled={busy} style={{ width: 110 }}
+              placeholder={(rawName ?? '').trim() ? name.split(/\s+/)[0] : 'REMOVE'}
               onChange={e => setTyped(e.target.value)}
               onKeyDown={e => { if (e.key === 'Escape') { setOpen(false); setTyped(''); } }} />
           </span>

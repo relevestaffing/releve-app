@@ -51,8 +51,8 @@ export default async function People() {
           </div></div>
         <div style={{ marginBottom: 20 }}>
           <Explain>
-            Send the onboarding email right after the discovery call and the record is made for you —
-            no separate add step. They can sign in any time with the email on file, no password.
+            Send the onboarding email right after the discovery call and the record is made for you,
+            with no separate add step. They can sign in any time with the email on file, no password.
             The role brief is yours to fill in from the intro call; clients are never asked to write their own.
           </Explain>
         </div>
@@ -63,8 +63,8 @@ export default async function People() {
             <h3>No executives yet</h3>
             <p className="small">
               Send the onboarding email above once you have had the discovery call. It opens their
-              search, and they can sign in any time with the email you put on file — no invitation
-              to wait on and no password to set.
+              search, and they can sign in any time with the email you put on file.
+              There is no invitation to wait on and no password to set.
             </p>
           </div>
         )}

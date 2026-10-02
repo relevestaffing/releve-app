@@ -38,15 +38,10 @@ export async function POST(req: Request) {
            ?? process.env.SUPABASE_SECRET_KEY
            ?? process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) {
-    const seen = Object.keys(process.env)
-      .filter(k => k.startsWith('SUPABASE') || k.startsWith('NEXT_PUBLIC_SUPABASE'))
-      .sort();
-    return NextResponse.json({
-      error: 'Supabase secret key not configured',
-      missing: !url ? 'NEXT_PUBLIC_SUPABASE_URL' : 'the secret key',
-      lookedFor: ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_KEY'],
-      supabaseVarsTheServerCanSee: seen
-    }, { status: 500 });
+    /* The detail goes to the server log only. A response body is no place to
+       list what the server can and cannot see. */
+    console.error('[cron] missing', !url ? 'NEXT_PUBLIC_SUPABASE_URL' : 'the Supabase service key');
+    return NextResponse.json({ error: 'not configured' }, { status: 500 });
   }
 
   const sb = createClient(url, key, { auth: { persistSession: false } });
@@ -54,7 +49,10 @@ export async function POST(req: Request) {
   /* Who is due, worked out in the database rather than here — the same
      definition the console reads, so the two can never drift apart. */
   const { data: due, error } = await sb.rpc('pulse_due');
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[pulse-nudge] pulse_due failed:', error.message);
+    return NextResponse.json({ error: 'could not read who is due' }, { status: 500 });
+  }
 
   const rows = (due ?? []) as { placement_id: string; client_id: string; month_of: string }[];
   if (!rows.length) return NextResponse.json({ ok: true, sent: 0, skipped: 0, due: 0 });

@@ -58,7 +58,7 @@ export default async function Pipeline() {
       <div style={{ maxWidth: 620 }}>
         <Explain>
           We do not hand you a stack to sort through. Relève interviews widely, narrows
-          the field itself, and puts forward one professional — matched to the role,
+          the field itself, and puts forward one professional, matched to the role,
           matched to how you work, and briefed on your business before you meet.
           Approve them, or decline and we bring the next.
         </Explain>
@@ -69,7 +69,7 @@ export default async function Pipeline() {
           <div className="card-head"><h3>{declined.length ? 'We are finding the next one' : 'Your candidate is being chosen'}</h3></div>
           <p className="small" style={{ marginBottom: 16 }}>
             {declined.length
-              ? 'Thank you for telling us why the last one was not right — that is exactly how the next match gets sharper. Your Client Success Manager is already on it.'
+              ? 'Thank you for telling us why the last one was not right. That is exactly how the next match gets sharper. Your Client Success Manager is already on it.'
               : 'Nobody has been put forward yet, and that is deliberate. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time.'}
           </p>
           <div style={{ marginBottom: 18 }}>
@@ -158,11 +158,11 @@ export default async function Pipeline() {
               <div className="inner">
                 <div className="grid-2" style={{ marginBottom: 22 }}>
                   <div>
-                    <div className="eyebrow" style={{ marginBottom: 12 }}>Working style — {match.l1}/100</div>
+                    <div className="eyebrow" style={{ marginBottom: 12 }}>Working style · {match.l1}/100</div>
                     <AxisBars values={person.scores} axes={L1} />
                   </div>
                   <div>
-                    <div className="eyebrow" style={{ marginBottom: 12 }}>Disposition — {match.l2}/100</div>
+                    <div className="eyebrow" style={{ marginBottom: 12 }}>Disposition · {match.l2}/100</div>
                     <AxisBars values={person.scores} axes={L2_SHOWN} />
                   </div>
                 </div>
@@ -187,8 +187,10 @@ export default async function Pipeline() {
                       <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 14 }}>{c.label}</b>
                       <div className="xs muted">{c.note}</div>
                     </div>
-                    <span className={`pill ${c.state === 'pass' ? 'good' : c.state === 'warn' ? 'warn' : 'crit'}`}>
-                      <span className="dot" />{c.state === 'pass' ? 'Clear' : c.state === 'warn' ? 'Gap' : 'Fails'}
+                    {/* An executive is never shown a red "Fails" about a person we
+                        put in front of them: a mismatch is a point to discuss. */}
+                    <span className={`pill ${c.state === 'pass' ? 'good' : 'warn'}`}>
+                      <span className="dot" />{c.state === 'pass' ? 'Clear' : c.state === 'warn' ? 'Worth a word' : 'To discuss'}
                     </span>
                   </div>
                 ))}

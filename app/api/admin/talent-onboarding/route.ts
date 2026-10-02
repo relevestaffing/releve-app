@@ -3,6 +3,7 @@ import { currentProfile, configured, supabaseServer } from '@/lib/supabase/serve
 import { send, templates } from '@/lib/email';
 import { createPerson } from '@/lib/store';
 import { safeMessage } from '@/lib/errors';
+import { firstName } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   if (!email || !email.includes('@')) return NextResponse.json({ error: 'That email does not look right.' }, { status: 400 });
 
   if (!configured())
-    return NextResponse.json({ ok: true, emailed: false, note: 'Preview mode — nothing was sent.' });
+    return NextResponse.json({ ok: true, emailed: false, note: 'Preview mode. Nothing was sent.' });
 
   try {
     const sb = await supabaseServer();
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
 
     /* The record stands whether or not the mail server answers — a failed
        send should never look like a failed save. */
-    const tpl = templates.applicationInvited({ name: name.split(/\s+/)[0], role: role ?? 'the role', docsUrl });
+    const tpl = templates.applicationInvited({ name: firstName(name, 'there'), role: role ?? 'the role', docsUrl });
     const sent = await send(email, tpl);
 
     return NextResponse.json({ ok: true, emailed: sent });

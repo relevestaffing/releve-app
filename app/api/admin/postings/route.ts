@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const existing = await getPosting(b.id);
     if (existing && existing.state !== 'draft')
       return NextResponse.json({
-        error: 'A posting that has been live can only be closed, not deleted — its link may already be shared, and its applications point back to it.'
+        error: 'A posting that has been live can only be closed, not deleted. Its link may already be shared, and its applications point back to it.'
       }, { status: 400 });
     try { await deletePosting(b.id); return NextResponse.json({ ok: true }); }
     catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }

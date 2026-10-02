@@ -1,4 +1,5 @@
 'use client';
+import { openSignedLink } from '@/lib/open-tab';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
@@ -22,7 +23,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
      page out of static rendering. */
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('signed') === '1') {
-      toast.saved('Signed — we will verify it shortly');
+      toast.saved('Signed. We will verify it shortly');
       router.replace('/app/vetting');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,11 +61,14 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
 
   const done = rows.filter(r => r.state === 'verified').length;
 
-  async function view(path: string) {
-    const res = await fetch(`/api/vetting?path=${encodeURIComponent(path)}`);
-    const d = await res.json();
-    if (!res.ok) return toast.bad(d.error ?? 'Could not open that.');
-    window.open(d.url, '_blank', 'noopener');
+  /* The tab opens inside the tap (Safari blocks one opened after an await). */
+  function view(path: string) {
+    return openSignedLink(async () => {
+      const res = await fetch(`/api/vetting?path=${encodeURIComponent(path)}`);
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error ?? 'That document did not open.');
+      return d.url;
+    }, msg => toast.bad(msg), 'That document did not open.');
   }
 
   return (
@@ -78,7 +82,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
       </div>
       <p className="small muted" style={{ marginBottom: 24 }}>
         We check these once, for everyone. It is the reason an executive is willing to hand you their calendar
-        in the first week rather than the third month. Nothing here is ever shown to a client —
+        in the first week rather than the third month. Nothing here is ever shown to a client:
         they see that you are cleared, never the documents.
       </p>
 
@@ -129,7 +133,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
                     <button className="btn sm solid" disabled={busy === item.kind} onClick={() => sign(item.kind)}>
                       {busy === item.kind ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}
                     </button>
-                    {state === 'submitted' && <span className="xs muted">Started earlier — pick up where you left off.</span>}
+                    {state === 'submitted' && <span className="xs muted">Started earlier. Pick up where you left off.</span>}
                   </div>
                 ) : (
                   <div className="vet-actions">
@@ -139,7 +143,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
               )
             ) : state !== 'verified' && (
               <div className="vet-actions">
-                <input
+                <input aria-label={`Upload ${item.label}`}
                   ref={el => { inputs.current[item.kind] = el; }}
                   type="file" accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp" hidden
                   onChange={e => {

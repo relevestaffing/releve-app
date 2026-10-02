@@ -26,7 +26,7 @@ export default async function WatchPage() {
         <div className="card">
           <div className="card-head"><h3>Finish your Skills breakdown first</h3></div>
           <p className="small muted" style={{ maxWidth: 560 }}>
-            Taking The Watch is built from the disciplines you claim on your Skills page — there is
+            Taking The Watch is built from the disciplines you claim on your Skills page. There is
             nothing generic to test until that is done. Once it is, come back here.
           </p>
         </div>
@@ -34,7 +34,7 @@ export default async function WatchPage() {
         <>
           <div className="card tight">
             <Explain>
-              A live, timed simulation of a real day in each discipline you claim — one attempt,
+              A live, timed simulation of a real day in each discipline you claim: one attempt,
               three hours, completed on your own time once you start it, and paid at $6/hour. It is
               the one part of intake that is observed rather than reported, and it has to be cleared
               before you enter the Talent Roster.

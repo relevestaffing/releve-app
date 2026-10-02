@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { saving } from '@/components/Toast';
 
 /* Nothing reaches an executive on one click.
@@ -17,6 +17,7 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
      The database would refuse anyway; this says so before the click. */
   blocked?: string | null;
 }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [approving, setApproving] = useState(false);
@@ -24,9 +25,9 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
   async function act(action: string, extra: Record<string, unknown> = {}) {
     setBusy(true);
     const word: Record<string, string> = {
-      add: 'Matched — not sent yet', remove: 'Unmatched',
-      release: `Approved — ${talentName} is now with ${clientName}`,
-      unrelease: 'Pulled back — no longer visible to them'
+      add: 'Matched. Not sent yet', remove: 'Unmatched',
+      release: `Approved: ${talentName} is now with ${clientName}`,
+      unrelease: 'Pulled back. No longer visible to them'
     };
     const ok = await saving(() => fetch('/api/admin/matches', {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -51,8 +52,8 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
           visible while this decision is open.
         </p>
         <div className="ff">
-          <label>Why this person <span className="muted">— they read this</span></label>
-          <textarea name="note" rows={3} defaultValue={note ?? ''}
+          <label htmlFor={`${fid}-1`}>Why this person <span className="muted">(they read this)</span></label>
+          <textarea id={`${fid}-1`} name="note" rows={3} defaultValue={note ?? ''}
             placeholder="One or two sentences in your own words. What made you choose them for this role, and for this leader." />
         </div>
         <p className="xs muted" style={{ marginBottom: 12 }}>

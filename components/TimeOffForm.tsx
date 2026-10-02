@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from '@/components/Toast';
 import { TIME_OFF_STATE, nights, type TimeOff } from '@/lib/care-public';
@@ -12,6 +12,7 @@ function label(iso: string) {
 export default function TimeOffForm({ placementId, existing }: {
   placementId: string; existing: TimeOff[];
 }) {
+  const fid = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [from, setFrom] = useState('');
@@ -30,7 +31,7 @@ export default function TimeOffForm({ placementId, existing }: {
         action: 'time_off_request', placement_id: placementId,
         starts_on: from, ends_on: to, reason: why
       })
-    }), 'Asked for — Relève will come back to you');
+    }), 'Asked for. Relève will come back to you');
     setBusy(false);
     if (ok) { setOpen(false); setFrom(''); setTo(''); setWhy(''); router.refresh(); }
   }
@@ -49,17 +50,17 @@ export default function TimeOffForm({ placementId, existing }: {
             so nobody is caught out on the morning.
           </p>
           <div className="grid-2" style={{ gap: 14 }}>
-            <div className="ff"><label>First day away</label>
-              <input type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
-            <div className="ff"><label>Last day away</label>
-              <input type="date" value={to} onChange={e => setTo(e.target.value)} /></div>
+            <div className="ff"><label htmlFor={`${fid}-1`}>First day away</label>
+              <input id={`${fid}-1`} type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
+            <div className="ff"><label htmlFor={`${fid}-2`}>Last day away</label>
+              <input id={`${fid}-2`} type="date" value={to} onChange={e => setTo(e.target.value)} /></div>
           </div>
           {bad && <div className="err">The last day cannot be before the first.</div>}
           {from && to && !bad &&
             <p className="xs muted">{nights(from, to)} day{nights(from, to) === 1 ? '' : 's'}.</p>}
-          <div className="ff"><label>Anything Relève should know (optional)</label>
-            <input value={why} onChange={e => setWhy(e.target.value)}
-              placeholder="Family wedding — booked a while ago" /></div>
+          <div className="ff"><label htmlFor={`${fid}-3`}>Anything Relève should know (optional)</label>
+            <input id={`${fid}-3`} value={why} onChange={e => setWhy(e.target.value)}
+              placeholder="Family wedding, booked a while ago" /></div>
           <div className="row" style={{ gap: 10 }}>
             <button className="btn sm solid" disabled={!from || !to || !!bad || busy} onClick={submit}>
               {busy ? 'Sending…' : 'Send the request'}

@@ -264,7 +264,7 @@ export async function markFirstCandidate(searchId: string, on?: string) {
   if (!configured()) return;
   const sb = await supabaseServer();
   const { error } = await sb.from('searches')
-    .update({ first_candidate_on: on ?? new Date().toISOString().slice(0, 10) })
+    .update({ first_candidate_on: on ?? todayInPacific() })
     .eq('id', searchId).is('first_candidate_on', null);
   if (error) throw new Error(error.message);
 }
@@ -295,7 +295,7 @@ export async function replacementsOwed() {
   const settled = new Set((replaced ?? []).map((r: any) => r.replaces_id));
 
   return (data ?? []).filter((r: any) => !settled.has(r.id)).map((r: any) => ({
-    id: r.id, ended_on: r.ended_on, ended_reason: r.ended_reason,
+    id: r.id, client_id: r.client_id as string, ended_on: r.ended_on, ended_reason: r.ended_reason,
     client_name: r.client?.org_name ?? r.client?.full_name ?? 'Client',
     talent_name: r.talent?.full_name ?? 'Talent'
   }));

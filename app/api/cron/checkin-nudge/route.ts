@@ -35,17 +35,10 @@ export async function POST(req: Request) {
            ?? process.env.SUPABASE_SECRET_KEY
            ?? process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) {
-    /* Names only, never values, so a 500 tells us what the server can
-       actually see instead of leaving us guessing at a spelling. */
-    const seen = Object.keys(process.env)
-      .filter(k => k.startsWith('SUPABASE') || k.startsWith('NEXT_PUBLIC_SUPABASE'))
-      .sort();
-    return NextResponse.json({
-      error: 'Supabase secret key not configured',
-      missing: !url ? 'NEXT_PUBLIC_SUPABASE_URL' : 'the secret key',
-      lookedFor: ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SECRET_KEY', 'SUPABASE_SERVICE_KEY'],
-      supabaseVarsTheServerCanSee: seen
-    }, { status: 500 });
+    /* The detail goes to the server log only. A response body is no place to
+       list what the server can and cannot see. */
+    console.error('[cron] missing', !url ? 'NEXT_PUBLIC_SUPABASE_URL' : 'the Supabase service key');
+    return NextResponse.json({ error: 'not configured' }, { status: 500 });
   }
 
   const sb = createClient(url, key, { auth: { persistSession: false } });

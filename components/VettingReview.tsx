@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
 import { saving, toast } from './Toast';
 import { fmtDate } from '@/lib/words';
+import { openSignedLink } from '@/lib/open-tab';
 
 type Row = Vetting & { talent?: { full_name: string | null; email: string; stage: string | null } };
 
@@ -12,11 +13,14 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
   const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState<string | null>(null);
 
-  async function open(path: string) {
-    const res = await fetch(`/api/vetting?path=${encodeURIComponent(path)}`);
-    const d = await res.json();
-    if (!res.ok) return toast.bad(d.error ?? 'Could not open that.');
-    window.open(d.url, '_blank', 'noopener');
+  /* The tab opens inside the tap (Safari blocks one opened after an await). */
+  function open(path: string) {
+    return openSignedLink(async () => {
+      const res = await fetch(`/api/vetting?path=${encodeURIComponent(path)}`);
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.error ?? 'That document did not open.');
+      return d.url;
+    }, msg => toast.bad(msg), 'That document did not open.');
   }
 
   async function decide(id: string, verdict: 'verified' | 'rejected', reason?: string, expires?: string,
@@ -50,7 +54,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
             <span className="pill">{pendingSignature.length}</span></div>
           {pendingSignature.map(r => (
             <p key={r.id} className="small" style={{ margin: '4px 0' }}>
-              <b>{r.talent?.full_name ?? r.talent?.email ?? 'Candidate'}</b> — sent
+              <b>{r.talent?.full_name ?? r.talent?.email ?? 'Candidate'}</b>, sent
               {r.submitted_at && ` ${new Date(r.submitted_at)
                 .toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`}, nothing to do here until
               it comes back signed.
@@ -94,9 +98,9 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                 onSubmit={e => { e.preventDefault();
                   const v = new FormData(e.currentTarget).get('reason');
                   decide(r.id, 'rejected', String(v ?? ''), undefined, r.talent_id, r.kind); }}>
-                <div className="ff"><label>What do they need to fix?</label>
-                  <input name="reason" required
-                    placeholder="The photo is cut off — we need to see all four corners." /></div>
+                <div className="ff"><label htmlFor={`fix-${r.id}`}>What do they need to fix?</label>
+                  <input id={`fix-${r.id}`} name="reason" required
+                    placeholder="The photo is cut off. We need to see all four corners." /></div>
                 <p className="xs muted" style={{ marginBottom: 10 }}>They see this word for word, so make it useful.</p>
                 <button className="btn solid" disabled={busy}>Send it back</button>
               </form>
@@ -115,7 +119,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
             <tbody>
               {rest.map(r => (
                 <tr key={r.id}>
-                  <td><b>{r.talent?.full_name ?? r.talent?.email ?? '—'}</b></td>
+                  <td><b>{r.talent?.full_name ?? r.talent?.email ?? '–'}</b></td>
                   <td className="small">{labelOf(r.kind)}</td>
                   <td><span className={`pill ${r.state === 'verified' ? 'good' : r.state === 'rejected' ? 'crit' : ''}`}>
                     {r.state === 'verified' && <span className="dot" />}{VETTING_WORDING[r.state]}</span></td>

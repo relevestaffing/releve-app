@@ -43,7 +43,14 @@ export type TalentPayment = {
   sent_on: string | null;
   note: string | null;
   created_at: string;
+  /* What was actually sent, any fee on top, and what landed locally. US
+     cents; fx_note is words, never a second amount. */
+  sent_cents?: number | null;
+  fee_cents?: number | null;
+  fx_note?: string | null;
   talent_name?: string;
+  client_name?: string | null;
+  paused?: boolean;
 };
 
 /* Named for the person filling it in, not for the payments industry. */
@@ -92,19 +99,24 @@ export function taxAnswered(p: Partial<Payout> | null): boolean {
     && (p.us_person === true || (p.tax_residence ?? '').trim().length > 1));
 }
 
-/* Safe to pay. A non-US person needs the signed form held before money moves;
-   the payroll desk reads this so the question is answered before a payment
+/* Safe to pay. Everyone needs a signed tax form held before money moves: a
+   W-9 for a US person (so the 1099 can be filed), a W-8BEN for anyone else.
+   The payroll desk reads this so the question is answered before a payment
    run rather than during one. */
 export function taxClear(p: Partial<Payout> | null): boolean {
   if (!p) return false;
-  if (p.us_person === true) return true;
   return Boolean(p.tax_form_on_file);
+}
+
+/* Which form, by name. */
+export function taxFormName(p: Partial<Payout> | null): 'W-9' | 'W-8BEN' {
+  return p?.us_person === true ? 'W-9' : 'W-8BEN';
 }
 
 export function taxNote(p: Partial<Payout> | null): string | null {
   if (!p || !taxAnswered(p)) return 'Tax residence not declared yet.';
-  if (p.us_person === true) return null;
   if (p.tax_form_on_file) return null;
+  if (p.us_person === true) return 'W-9 not yet held. Needed for the year-end 1099.';
   return `W-8BEN not yet held for ${(p.tax_residence ?? 'this person').trim()}.`;
 }
 
@@ -114,7 +126,7 @@ export function payoutMissing(p: Partial<Payout> | null): string[] {
   const out: string[] = [];
   if (!(p.beneficiary ?? '').trim()) out.push('We need the name on the account, exactly as it appears there.');
   if (!(p.detail ?? '').trim()) out.push('We need the account details themselves.');
-  if (!taxAnswered(p)) out.push(`${TAX_RESIDENCE_PROMPT} — one question, below.`);
+  if (!taxAnswered(p)) out.push(`${TAX_RESIDENCE_PROMPT}: one question, below.`);
   return out;
 }
 

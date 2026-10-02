@@ -32,13 +32,13 @@ export async function saving<T extends Response>(
     if (!res.ok) {
       let why = '';
       try { why = (await res.json())?.error ?? ''; } catch { /* not json */ }
-      toast.bad(why ? `Not saved — ${why}` : 'That did not save. Please try again.');
+      toast.bad(why ? `Not saved. ${why}` : 'That did not save. Please try again.');
       return false;
     }
     toast.saved(okText);
     return true;
   } catch {
-    toast.bad('No connection — nothing was saved.');
+    toast.bad('No connection, so nothing was saved.');
     return false;
   }
 }

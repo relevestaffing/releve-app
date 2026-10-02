@@ -17,8 +17,8 @@ export default function ValueContent({ retainerMonthlyCents, placed }: {
         </h2>
         <p className="small" style={{ color: 'var(--pale)', maxWidth: 640, margin: 0 }}>
           A full-time executive assistant of this calibre costs six figures once you count
-          benefits, payroll and recruiting. Relève puts the same standard in the seat, in
-          fourteen days, for a fraction of it.
+          benefits, payroll and recruiting. Relève brings you the same standard, with
+          a qualified candidate within fourteen days of the search opening, for a fraction of it.
         </p>
       </div>
 

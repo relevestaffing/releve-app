@@ -17,7 +17,7 @@ export default function ClientAgreementCard({ state, rejectReason }: {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get('agreement') === '1') {
-      toast.saved('Signed — Relève countersigns next, then it is fully on file');
+      toast.saved('Signed. Relève countersigns next, then it is fully on file');
       router.replace('/app');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -43,7 +43,7 @@ export default function ClientAgreementCard({ state, rejectReason }: {
           {state === 'submitted' ? 'Waiting on a signature' : state === 'rejected' ? 'Needs another look' : 'Not yet signed'}
         </span></div>
       <p className="small muted" style={{ marginBottom: 18 }}>
-        The commercial terms you already agreed to, as a real signed agreement — the deposit, the monthly
+        The commercial terms you already agreed to, as a real signed agreement: the deposit, the monthly
         retainer, the guarantees, and the twelve-month non-circumvention. You sign first; Relève
         countersigns right after, and this card clears once both signatures are on file.
       </p>
@@ -54,7 +54,7 @@ export default function ClientAgreementCard({ state, rejectReason }: {
         {busy ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}
       </button>
       {state === 'submitted' && (
-        <span className="xs muted" style={{ marginLeft: 10 }}>Started earlier — pick up where you left off.</span>
+        <span className="xs muted" style={{ marginLeft: 10 }}>Started earlier. Pick up where you left off.</span>
       )}
     </div>
   );

@@ -56,13 +56,13 @@ export default async function ConsoleCheckins() {
               <div className="row between" style={{ marginBottom: 8 }}>
                 <b>{p?.talent_name ?? 'Talent'}</b>
                 <span className="xs muted">
-                  with {p?.client_name ?? '—'} · rapport {c.rapport ?? '—'}/5 · {c.workload ?? '—'}
+                  with {p?.client_name ?? '·'} · rapport {c.rapport ?? '·'}/5 · {c.workload ?? '·'}
                   {c.needs_attention && <span className="pill crit" style={{ marginLeft: 10 }}>Attention</span>}
                 </span>
               </div>
-              {c.shipped && <p className="small"><span className="muted">Shipped — </span>{c.shipped}</p>}
-              {c.blocked && <p className="small"><span className="muted">Blocked — </span>{c.blocked}</p>}
-              {c.note && <p className="small"><span className="muted">Private — </span>{c.note}</p>}
+              {c.shipped && <p className="small"><span className="muted">Shipped: </span>{c.shipped}</p>}
+              {c.blocked && <p className="small"><span className="muted">Blocked: </span>{c.blocked}</p>}
+              {c.note && <p className="small"><span className="muted">Private: </span>{c.note}</p>}
             </div>
           );
         })}

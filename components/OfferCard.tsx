@@ -30,13 +30,13 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
         body: JSON.stringify({ action: 'answer', id: offer.id, answer: a })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) { toast.bad(d.error ? `Not saved — ${d.error}` : 'That did not save.'); setBusy(false); return; }
+      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); setBusy(false); return; }
       toast.saved(
-        d.result === 'accepted' ? 'Accepted — both sides have said yes'
+        d.result === 'accepted' ? 'Accepted. Both sides have said yes'
         : d.result === 'declined' ? 'Declined. We will be in touch.'
-        : 'Thank you — we are waiting on the other side now');
+        : 'Thank you. We are waiting on the other side now');
       router.refresh();
-    } catch { toast.bad('No connection — nothing was saved.'); }
+    } catch { toast.bad('No connection, so nothing was saved.'); }
     setBusy(false); setConfirming(null);
   }
 
@@ -108,7 +108,7 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
           <p className="xs muted" style={{ marginTop: 14 }}>
             Nothing is settled until both sides have answered. If anything here is
             not what you discussed, message your {side === 'client' ? 'Client' : 'Talent'} Success
-            Manager before accepting — there is no rush on our side.
+            Manager before accepting. There is no rush on our side.
           </p>
         </>
       )}

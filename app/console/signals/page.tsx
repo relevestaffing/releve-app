@@ -37,8 +37,8 @@ export default async function Signals() {
 
       <div className="card tight">
         <p className="small" style={{ margin: 0, maxWidth: 660 }}>
-          <b>Are the people you put forward the right people?</b> This is the early
-          answer — how often an executive approves rather than declines, how they
+          <b>Are the people you put forward the right people?</b> This is the early answer:
+          how often an executive approves rather than declines, how they
           score the interviews, and what they say when someone is not right. The
           later answer, six months in, is on Reports under <i>Is the assessment right?</i>
         </p>
@@ -48,11 +48,11 @@ export default async function Signals() {
         <div className="card stat"><div className="eyebrow">Decisions recorded</div>
           <div className="score">{decisions.length}</div></div>
         <div className="card stat"><div className="eyebrow">Approved</div>
-          <div className="score">{rate === null ? '—' : `${rate}%`}</div></div>
+          <div className="score">{rate === null ? '·' : `${rate}%`}</div></div>
         <div className="card stat"><div className="eyebrow">Interviews scored</div>
           <div className="score">{rated.length}</div></div>
         <div className="card stat"><div className="eyebrow">Average interview</div>
-          <div className="score">{avg ?? '—'}{avg && <span className="of">/5</span>}</div></div>
+          <div className="score">{avg ?? '·'}{avg && <span className="of">/5</span>}</div></div>
       </div>
 
       {decisions.length < 8 && (
@@ -69,7 +69,7 @@ export default async function Signals() {
           <span className="pill">{passed.length}</span></div>
         {ranked.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nobody has passed on a candidate yet — or nobody has told you why.</p></div>
+            <p className="small">Nobody has passed on a candidate yet, or nobody has told you why.</p></div>
         ) : (
           <>
             <ul className="past-list">
@@ -83,8 +83,8 @@ export default async function Signals() {
             {worst && worst[1] >= 3 && (
               <p className="small" style={{ marginTop: 18 }}>
                 <b>Worth noticing:</b> “{worst[0]}” is your most common rejection.
-                {worst[0].includes('experience') && ' That is a briefing problem, not a matching one — it means the role brief and the roster are describing different jobs.'}
-                {worst[0].includes('timezone') && ' That is a conditions problem — the overlap check should be catching this before a name reaches an executive.'}
+                {worst[0].includes('experience') && ' That is a briefing problem, not a matching one. It means the role brief and the roster are describing different jobs.'}
+                {worst[0].includes('timezone') && ' That is a conditions problem. The overlap check should be catching this before a name reaches an executive.'}
                 {worst[0].includes('Communication') && ' That is the one your Signature should be predicting. If it keeps appearing, the instrument is missing something real.'}
               </p>
             )}
@@ -102,13 +102,13 @@ export default async function Signals() {
             <tbody>
               {decisions.slice(0, 25).map(d => (
                 <tr key={d.id}>
-                  <td><b>{d.client?.full_name ?? '—'}</b>
+                  <td><b>{d.client?.full_name ?? '·'}</b>
                     {d.client?.org_name && <div className="small muted">{d.client.org_name}</div>}</td>
-                  <td>{d.talent?.full_name ?? '—'}</td>
+                  <td>{d.talent?.full_name ?? '·'}</td>
                   <td><span className={`pill ${d.state === 'shortlisted' || d.state === 'hired' ? 'good' : ''}`}>
                     {d.state === 'shortlisted' ? 'Approved' : d.state === 'passed' ? 'Declined'
                       : d.state === 'interviewing' ? 'Interviewing' : 'Hired'}</span></td>
-                  <td className="small muted">{d.reason ?? '—'}{d.note ? ` · ${d.note}` : ''}</td>
+                  <td className="small muted">{d.reason ?? '·'}{d.note ? ` · ${d.note}` : ''}</td>
                   <td className="small muted">{day(d.decided_at)}</td>
                 </tr>
               ))}
@@ -128,12 +128,12 @@ export default async function Signals() {
             <div className="row between" style={{ marginBottom: 6 }}>
               <b>{f.side === 'client' ? 'Executive' : 'Talent'} · {f.interview?.stage ?? 'Interview'}</b>
               <span className="xs muted">
-                {f.rating ?? '—'}/5 · would proceed: {f.proceed ?? '—'} · {day(f.created_at)}
+                {f.rating ?? '·'}/5 · would proceed: {f.proceed ?? '·'} · {day(f.created_at)}
               </span>
             </div>
-            {f.strengths && <p className="small"><span className="muted">Stood out — </span>{f.strengths}</p>}
-            {f.concerns && <p className="small"><span className="muted">Pause — </span>{f.concerns}</p>}
-            {f.notes && <p className="small"><span className="muted">For Relève — </span>{f.notes}</p>}
+            {f.strengths && <p className="small"><span className="muted">Stood out: </span>{f.strengths}</p>}
+            {f.concerns && <p className="small"><span className="muted">Pause: </span>{f.concerns}</p>}
+            {f.notes && <p className="small"><span className="muted">For Relève: </span>{f.notes}</p>}
           </div>
         ))}
       </div>

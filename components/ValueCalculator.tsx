@@ -52,9 +52,9 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
         </div>
 
         <p className="verdict" style={{ marginTop: 4 }}>
-          The same calibre of executive assistant, in the seat in fourteen days — for {over}
-          <b>{fmt(firstYearSave)}</b> less in year one, and {over}<b>{fmt(ongoingSave)}</b> less
-          every year after.
+          The same calibre of executive assistant, with a qualified candidate within fourteen days of
+          your search opening, for {over}<b>{fmt(firstYearSave)}</b> less in year one, and {over}
+          <b>{fmt(ongoingSave)}</b> less every year after.
         </p>
         <p className="xs muted" style={{ marginTop: 10 }}>
           Full-time figures include benefits, payroll and the one-time fee to recruit them.
@@ -65,10 +65,10 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
         <div className="card-head"><h3>The same hire, none of the overhead</h3></div>
         <ul className="plain">
           <li>No recruiting fee.</li>
-          <li>No payroll, benefits or HR to run — they are a contractor, not headcount.</li>
-          <li>In the seat in fourteen days, not months.</li>
-          <li>Wrong fit? We replace them — no bad hire to exit.</li>
-          <li>Cancel any month. No severance, no contract, no sunk spend.</li>
+          <li>No payroll, benefits or HR to run. They are a virtual contractor, not headcount.</li>
+          <li>A qualified candidate within fourteen days of your search opening, not months.</li>
+          <li>Not the right fit? We replace them, and the replacement is covered. No bad hire to exit.</li>
+          <li>A three-month minimum, then month to month with thirty days&rsquo; notice. No severance, no sunk spend.</li>
         </ul>
       </div>
     </>

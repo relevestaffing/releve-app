@@ -8,6 +8,7 @@ import { getPayout, listPayments, periodLabel } from '@/lib/payout';
 import { money } from '@/lib/money-public';
 import { supabaseServer, configured } from '@/lib/supabase/server';
 import { fmtDate } from '@/lib/words';
+import { listPlacementsFor } from '@/lib/work';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,8 +17,12 @@ export default async function PayPage() {
   if (!profile) redirect('/');
   if (profile.role !== 'talent') redirect('/app');
 
-  const payout = await getPayout(profile.id);
-  const payments = await listPayments(profile.id);
+  const [payout, payments, placements] = await Promise.all([
+    getPayout(profile.id), listPayments(profile.id), listPlacementsFor(profile.id)
+  ]);
+  /* Which executive each rate (and each payment) belongs to. Two placements
+     used to show two bare numbers with nothing to tell them apart. */
+  const forWhom = new Map(placements.map(p => [p.id, p.org_name ?? p.client_name]));
 
   /* Their own rate, and only theirs. The client's number lives in another
      table that no policy admits them to. A talent can now hold two active
@@ -42,17 +47,32 @@ export default async function PayPage() {
         <div className="card">
           <div className="card-head"><h3>{placementRates.length > 1 ? 'Your rates' : 'Your rate'}</h3></div>
           {placementRates.map(p => (
-            <div key={p.placement_id} style={{ marginBottom: 10 }}>
+            <div key={p.placement_id} style={{ marginBottom: 12 }}>
               <div className="score" style={{ marginBottom: 4 }}>{money(p.talent_pay_cents ?? 0)}</div>
+              {forWhom.get(p.placement_id) && (
+                <div className="xs muted">a month, working with {forWhom.get(p.placement_id)}</div>
+              )}
             </div>
           ))}
           <p className="small muted" style={{ margin: 0 }}>
             {placementRates.length > 1
-              ? 'A month, each, paid by Relève — one per placement. This is what was agreed in each offer.'
+              ? 'Each paid by Relève, one per placement. This is what was agreed in each offer.'
               : 'A month, paid by Relève. This is what was agreed in your offer.'}
           </p>
         </div>
       )}
+
+      <div className="card">
+        <div className="card-head"><h3>When you are paid</h3></div>
+        <p className="small" style={{ marginTop: 0, maxWidth: 640 }}>
+          Monthly. Relève prepares each month’s pay at the start of the month and sends it to the
+          account below. Every payment appears in the list underneath with the date it was sent and
+          a reference.
+        </p>
+        <p className="xs muted" style={{ margin: 0 }}>
+          A question about a payment? Write to your Talent Success Manager. Replies within one business day, usually sooner.
+        </p>
+      </div>
       {!placementRates.length && rate != null && (
         <div className="card">
           <div className="card-head"><h3>Your rate</h3></div>
@@ -70,21 +90,22 @@ export default async function PayPage() {
         {payments.length === 0 ? (
           <p className="small muted" style={{ margin: 0 }}>
             Nothing yet. Once you are placed, every payment appears here with the date it
-            was sent and a reference — so if anything ever goes missing, there is a record
+            was sent and a reference, so if anything ever goes missing, there is a record
             rather than a conversation.
           </p>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Month</th><th style={{ textAlign: 'right' }}>Amount</th><th>Sent</th><th>Reference</th></tr></thead>
+            <thead><tr><th>Month</th>{placements.length > 1 && <th>For</th>}<th style={{ textAlign: 'right' }}>Amount</th><th>Sent</th><th>Reference</th></tr></thead>
             <tbody>
               {payments.map(p => (
                 <tr key={p.id}>
                   <td>{periodLabel(p.period_start)}</td>
+                  {placements.length > 1 && <td className="small">{(p.placement_id && forWhom.get(p.placement_id)) || '–'}</td>}
                   <td className="amount">{money(p.amount_cents)}</td>
                   <td className="small">{p.sent_on ? fmtDate(p.sent_on)
-                    : p.state === 'failed' ? <span className="pill crit"><span className="dot" />Failed — we are on it</span>
+                    : p.state === 'failed' ? <span className="pill crit"><span className="dot" />Failed. We are on it</span>
                     : <span className="pill warn"><span className="dot" />Due</span>}</td>
-                  <td className="xs muted">{p.reference ?? '—'}</td>
+                  <td className="xs muted">{p.reference ?? '–'}</td>
                 </tr>
               ))}
             </tbody>

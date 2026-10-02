@@ -39,7 +39,7 @@ export default function InvoiceFilter({ scope }: { scope: string }) {
     <div className="row between" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         {TABS.map(t => (
-          <button key={t.key} className={`btn sm ${tab === t.key ? 'solid' : 'ghost'}`}
+          <button key={t.key} className={`btn sm ${tab === t.key ? 'solid' : 'ghost'}`} aria-pressed={tab === t.key}
             onClick={() => setTab(t.key)}>{t.label}</button>
         ))}
       </div>

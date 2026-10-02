@@ -14,7 +14,7 @@ const EXEC_LINES: Record<string, [string, string]> = {
   //            低 (score <= 40)                                   高 (score >= 60)
   tempo:        ['You decide deliberately and dislike being rushed.', 'You move fast and expect the people around you to keep up.'],
   direction:    ['You give the goal and stay out of the how.',        'You brief thoroughly before you hand anything over.'],
-  cadence:      ['You would rather not be interrupted.',              'You want contact — live, and often.'],
+  cadence:      ['You would rather not be interrupted.',              'You want contact: live, and often.'],
   candor:       ['You give correction carefully.',                    'You say what is not working, plainly.'],
   initiative:   ['You want to be asked before anything moves.',       'You want the small calls made without you.'],
   structure:    ['You run on instinct more than process.',            'You want everything documented and systematised.'],
@@ -67,7 +67,7 @@ const FACET_EXEC_LINES: Record<string, [string, string]> = {
   w_empathy:  ["You'd rather someone ask than guess how you're feeling.", 'You expect them to read the room, especially remotely.'],
   w_rapport:  ['Trust with you builds slowly, over time.', 'You extend trust fast to someone who earns it in the first conversation.'],
   r_detail:   ['A small slip rarely changes anything for you.', "A typo in something that goes out is a real problem, not a small one."],
-  r_follow:   ["You're forgiving if something occasionally falls off the list.", "If it was promised, you expect it closed — no exceptions."],
+  r_follow:   ["You're forgiving if something occasionally falls off the list.", "If it was promised, you expect it closed. No exceptions."],
   r_standard: ['Good enough is genuinely good enough, most of the time.', "You'd rather something take longer and be exactly right."],
   a_change:   ['What you need on Monday is what you still need on Friday.', 'Your priorities can reverse in a single day, without warning.'],
   a_switch:   ["You'd rather someone finish one thing before starting the next.", "You expect them to drop what they're doing and pick it back up later, without losing the thread."],
@@ -90,7 +90,7 @@ const FACET_TALENT_LINES: Record<string, [string, string]> = {
   r_detail:   ["Small errors can slip past you when you're moving fast.", 'You notice when a detail is off even when nobody else does.'],
   r_follow:   ['Things occasionally fall off your list.', "If you said you'd do it, it's done."],
   r_standard: ["You move on once something is good enough.", 'A small error in something client-facing bothers you for days.'],
-  a_change:   ['Frequent changes of direction wear you down.', "A reversed priority doesn't bother you — you just re-plan."],
+  a_change:   ['Frequent changes of direction wear you down.', "A reversed priority doesn't bother you. You just re-plan."],
   a_switch:   ['You need to finish what you started before switching.', 'You can drop what you are doing and pick it up later without losing your place.'],
   a_ambig:    ['Unclear instructions stop you until you get clarity.', 'You can act without knowing the full picture.'],
   s_voice:    ["You'd rather do it their way than have the conversation.", "You'll tell an executive plainly that they're wrong."],
@@ -131,26 +131,26 @@ function clientNote(p: { axis: { key: string }; client: number; talent: number; 
     tempo: {
       same: c >= 60 ? `${name} moves fast, the way you do.` : `${name} works deliberately, the way you do.`,
       higher: `${name} moves faster than you do.`,
-      lower: `${name} works more deliberately than you do — expect a little longer for a polished result.` },
+      lower: `${name} works more deliberately than you do. Expect a little longer for a polished result.` },
     direction: {
       same: `${name} can run on the amount of direction you naturally give.`,
       higher: `${name} needs more explicit instruction than you tend to give. This is the thing most likely to cause friction.`,
-      lower: `${name} needs less instruction than you tend to give — expect them to want more rope than you might offer.` },
+      lower: `${name} needs less instruction than you tend to give. Expect them to want more rope than you might offer.` },
     cadence: {
       same: c >= 60 ? `You both like frequent contact.` : `You both prefer to work quietly and check in rarely.`,
       higher: `${name} likes more contact than you do.`,
-      lower: `${name} prefers more quiet than you do — you may find them less visible than you expect.` },
+      lower: `${name} prefers more quiet than you do. You may find them less visible than you expect.` },
     candor: {
       same: c >= 60 ? `You are both direct. Nothing will need softening.` : `You both handle correction carefully.`,
       higher: `${name} is blunter than you are.`,
-      lower: `${name} is gentler than you are — your directness may land harder than you intend.` },
+      lower: `${name} is gentler than you are. Your directness may land harder than you intend.` },
     initiative: {
       same: `${name} takes the amount of ownership you want taken.`,
       higher: `${name} moves ahead of you more than you may want.`,
       lower: `${name} waits to be asked more than you would like.` },
     structure: {
       same: c >= 60 ? `You both run on documented process.` : `Neither of you needs heavy process.`,
-      higher: `${name} builds more structure than you do — which may be exactly what you are missing.`,
+      higher: `${name} builds more structure than you do, which may be exactly what you are missing.`,
       lower: `${name} works less systematically than you do.` },
     composure: {
       same: `${name} absorbs the kind of pressure your world carries.`,
@@ -162,7 +162,7 @@ function clientNote(p: { axis: { key: string }; client: number; talent: number; 
       lower: `${name} is more contained than you are.` },
     rigor: {
       same: `${name} holds the standard you hold.`,
-      higher: `${name} is more exacting than you require — expect more time spent on polish than you may want.`,
+      higher: `${name} is more exacting than you require. Expect more time spent on polish than you may want.`,
       lower: `Your standard is higher than the one ${name} naturally works to.` },
     adaptability: {
       same: `${name} handles the amount of change your week carries.`,
@@ -171,7 +171,7 @@ function clientNote(p: { axis: { key: string }; client: number; talent: number; 
     assertion: {
       same: `${name} will push back about as much as you want to be pushed back on.`,
       higher: `${name} pushes back harder than you may invite.`,
-      lower: `${name} defers more than you say you want — you may not hear it when they disagree.` },
+      lower: `${name} defers more than you say you want. You may not hear it when they disagree.` },
     drive: { same: '', higher: '', lower: '' }
   };
   const set = A[k]; if (!set || !set.same) return null;

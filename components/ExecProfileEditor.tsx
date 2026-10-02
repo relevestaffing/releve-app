@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import PhotoUpload from './PhotoUpload';
 import { saving } from './Toast';
@@ -12,6 +12,7 @@ import { saving } from './Toast';
    open form reads like nothing here is finished — "Edit profile" is the one
    door in, and saving walks back out through it. */
 export default function ExecProfileEditor({ initial }: { initial: any }) {
+  const fid = useId();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,11 +37,11 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
           <button type="button" className="btn sm ghost" onClick={() => setEditing(true)}>Edit profile</button>
         </div>
         <dl className="brief-facts">
-          <dt>Name</dt><dd>{initial.full_name || '—'}</dd>
-          <dt>Title</dt><dd>{initial.headline || '—'}</dd>
-          <dt>Company</dt><dd>{initial.org_name || '—'}</dd>
-          <dt>Based in</dt><dd>{initial.location || '—'}</dd>
-          <dt>Timezone</dt><dd>{initial.timezone || '—'}</dd>
+          <dt>Name</dt><dd>{initial.full_name || '·'}</dd>
+          <dt>Title</dt><dd>{initial.headline || '·'}</dd>
+          <dt>Company</dt><dd>{initial.org_name || '·'}</dd>
+          <dt>Based in</dt><dd>{initial.location || '·'}</dd>
+          <dt>Timezone</dt><dd>{initial.timezone || '·'}</dd>
         </dl>
         {initial.bio && <p className="small muted" style={{ marginTop: 16, maxWidth: 620 }}>{initial.bio}</p>}
       </div>
@@ -55,19 +56,19 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
           <span className="pill">Shown to matched talent</span>
         </div>
         <div className="grid-2" style={{ gap: 14 }}>
-          <div className="ff"><label>Your name</label>
-            <input name="full_name" defaultValue={initial.full_name ?? ''} /></div>
-          <div className="ff"><label>Your title</label>
-            <input name="headline" defaultValue={initial.headline ?? ''} placeholder="Founder & CEO" /></div>
+          <div className="ff"><label htmlFor={`${fid}-1`}>Your name</label>
+            <input id={`${fid}-1`} name="full_name" defaultValue={initial.full_name ?? ''} /></div>
+          <div className="ff"><label htmlFor={`${fid}-2`}>Your title</label>
+            <input id={`${fid}-2`} name="headline" defaultValue={initial.headline ?? ''} placeholder="Founder & CEO" /></div>
         </div>
         <div className="grid-2" style={{ gap: 14 }}>
-          <div className="ff"><label>Company</label>
-            <input name="org_name" defaultValue={initial.org_name ?? ''} placeholder="Marsh & Co." /></div>
-          <div className="ff"><label>Where you are based</label>
-            <input name="location" defaultValue={initial.location ?? ''} placeholder="Los Angeles, USA" /></div>
+          <div className="ff"><label htmlFor={`${fid}-3`}>Company</label>
+            <input id={`${fid}-3`} name="org_name" defaultValue={initial.org_name ?? ''} placeholder="Marsh & Co." /></div>
+          <div className="ff"><label htmlFor={`${fid}-4`}>Where you are based</label>
+            <input id={`${fid}-4`} name="location" defaultValue={initial.location ?? ''} placeholder="Los Angeles, USA" /></div>
         </div>
-        <div className="ff" style={{ maxWidth: 320 }}><label>Your timezone</label>
-          <input name="timezone" defaultValue={initial.timezone ?? ''} placeholder="America/Los_Angeles" /></div>
+        <div className="ff" style={{ maxWidth: 320 }}><label htmlFor={`${fid}-5`}>Your timezone</label>
+          <input id={`${fid}-5`} name="timezone" defaultValue={initial.timezone ?? ''} placeholder="America/Los_Angeles" /></div>
         <p className="xs muted">
           Your timezone decides which interview slots you are offered. It is the one field worth getting exactly right.
         </p>
@@ -80,7 +81,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
           Candidates read this before an interview, and it is the difference between someone who prepared and someone who did not.
         </p>
         <div className="ff">
-          <textarea name="bio" rows={4} defaultValue={initial.bio ?? ''}
+          <textarea aria-label="A short introduction" name="bio" rows={4} defaultValue={initial.bio ?? ''}
             placeholder="What the company does, what the last year has looked like, and what you actually need off your plate." />
         </div>
       </div>
@@ -88,8 +89,8 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
       <div className="card">
         <div className="card-head"><h3>Photo</h3><span className="pill">Optional, but it helps</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
-          People prepare differently for a person than for a job title. It saves on its own —
-          you do not need to press save below for this one.
+          People prepare differently for a person than for a job title. It saves on its own,
+          so you do not need to press save below for this one.
         </p>
         <PhotoUpload initial={initial.photo_url} name={initial.full_name ?? ''} />
       </div>
@@ -97,7 +98,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
       <div className="row" style={{ gap: 14 }}>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
         <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Cancel</button>
-        <span className="small muted">Only matched candidates see this — never the wider roster.</span>
+        <span className="small muted">Only matched candidates see this, never the wider roster.</span>
       </div>
     </form>
   );

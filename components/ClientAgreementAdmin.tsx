@@ -25,7 +25,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
       });
       const out = await res.json();
       if (!res.ok) throw new Error(out.error ?? 'DocuSign would not send that.');
-      toast.saved('Sent — they can sign from their own dashboard');
+      toast.saved('Sent. They can sign from their own dashboard');
       router.refresh();
     } catch (e: any) { toast.bad(e.message); }
     finally { setBusy(false); }
@@ -48,7 +48,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
   return (
     <div className="row" style={{ gap: 8, alignItems: 'center' }}>
       {state === 'rejected' && rejectReason && (
-        <span className="xs muted" title={rejectReason}>Needs another go — </span>
+        <span className="xs muted" title={rejectReason}>Needs another go: </span>
       )}
       <button className="btn sm ghost" disabled={busy} onClick={send}>
         {busy ? 'Sending…' : 'Send Client Services Agreement'}

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import type { InterviewFeedback as FB } from '@/lib/work-public';
 import { saving } from './Toast';
@@ -7,6 +7,7 @@ import { saving } from './Toast';
 export default function InterviewFeedback({ interviewId, who, side, existing }: {
   interviewId: string; who: string; side: 'client' | 'talent'; existing: FB | null;
 }) {
+  const fid = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -35,33 +36,33 @@ export default function InterviewFeedback({ interviewId, who, side, existing }: 
 
   return (
     <form onSubmit={submit} className="fb-form">
-      <div className="ff"><label>How did the conversation go?</label>
-        <div className="rapport">
+      <div className="ff"><span className="label-like" id={`${fid}-rating`}>How did the conversation go?</span>
+        <div className="rapport" role="group" aria-labelledby={`${fid}-rating`}>
           {[1, 2, 3, 4, 5].map(n => (
             <button type="button" key={n} className={rating === n ? 'on' : ''}
-              onClick={() => setRating(n)} aria-label={`${n} out of 5`}>{n}</button>
+              aria-pressed={rating === n} onClick={() => setRating(n)} aria-label={`${n} out of 5`}>{n}</button>
           ))}
           <span className="xs muted">{['', 'Badly', 'Not great', 'Fine', 'Well', 'Very well'][rating]}</span>
         </div>
       </div>
 
-      <div className="ff"><label>{side === 'client' ? `Would you take ${who} forward?` : 'Would you want this role?'}</label>
-        <select name="proceed" defaultValue={existing?.proceed ?? 'yes'}>
+      <div className="ff"><label htmlFor={`${fid}-1`}>{side === 'client' ? `Would you take ${who} forward?` : 'Would you want this role?'}</label>
+        <select id={`${fid}-1`} name="proceed" defaultValue={existing?.proceed ?? 'yes'}>
           <option value="yes">Yes</option>
-          <option value="maybe">Maybe — I have reservations</option>
+          <option value="maybe">Maybe, I have reservations</option>
           <option value="no">No</option>
         </select></div>
 
-      <div className="ff"><label>What stood out</label>
-        <textarea name="strengths" rows={2} defaultValue={existing?.strengths ?? ''}
+      <div className="ff"><label htmlFor={`${fid}-2`}>What stood out</label>
+        <textarea id={`${fid}-2`} name="strengths" rows={2} defaultValue={existing?.strengths ?? ''}
           placeholder={side === 'client' ? 'What made you think they could do this.' : 'What you liked about the role or the person.'} /></div>
 
-      <div className="ff"><label>Anything that gave you pause</label>
-        <textarea name="concerns" rows={2} defaultValue={existing?.concerns ?? ''}
+      <div className="ff"><label htmlFor={`${fid}-3`}>Anything that gave you pause</label>
+        <textarea id={`${fid}-3`} name="concerns" rows={2} defaultValue={existing?.concerns ?? ''}
           placeholder="Be blunt. This is the part that improves the next match." /></div>
 
-      <div className="ff"><label>For Relève only <span className="muted">— optional</span></label>
-        <textarea name="notes" rows={2} defaultValue={existing?.notes ?? ''} /></div>
+      <div className="ff"><label htmlFor={`${fid}-4`}>For Relève only <span className="muted">(optional)</span></label>
+        <textarea id={`${fid}-4`} name="notes" rows={2} defaultValue={existing?.notes ?? ''} /></div>
 
       <p className="xs muted" style={{ marginBottom: 12 }}>
         Only Relève reads this. {side === 'client' ? who : 'The executive'} never sees it.

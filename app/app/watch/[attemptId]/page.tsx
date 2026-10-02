@@ -25,7 +25,7 @@ export default async function WatchAttemptPage({ params }: { params: Promise<{ a
         <div className="card tight" style={{ marginBottom: 4 }}>
           <p className="small muted">
             {attempt.status === 'submitted'
-              ? 'Submitted — this is a read-only copy of what you sent. Your Talent Success Manager will follow up once it is reviewed.'
+              ? 'Submitted. This is a read-only copy of what you sent. Your Talent Success Manager will follow up once it is reviewed.'
               : 'This attempt has been reviewed. See the result on the Taking The Watch page.'}
           </p>
         </div>

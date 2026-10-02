@@ -1,3 +1,4 @@
+import { tzLabel as tzName } from '@/lib/experience-public';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { currentProfile } from '@/lib/supabase/server';
@@ -103,9 +104,9 @@ export default async function Interviews() {
       {!hasAvailRow && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>Your availability is not set</b>, so times here are shown in {tz.replace('_', ' ')} and{' '}
+            <b>Your availability is not set</b>, so times here are shown in {tzName(tz)} and{' '}
             {isClient ? 'nobody can be booked from times you are both free' : 'no executive can book you'}.{' '}
-            <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set it now</Link> — it takes two minutes.
+            <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set it now</Link>. It takes two minutes.
           </p>
         </div>
       )}

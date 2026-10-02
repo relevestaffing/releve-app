@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { configured, supabaseServer } from '@/lib/supabase/server';
+import { configured } from '@/lib/supabase/server';
+import { adminClient, hasServiceKey, teamEmailsAdmin } from '@/lib/supabase/admin';
 import { corsHeaders, preflight } from '@/lib/cors';
-import { teamEmails } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { APPLY_QUESTIONS, ENGLISH_LEVELS } from '@/lib/jobs-public';
 import { looksLike } from '@/lib/filetype';
@@ -16,13 +16,30 @@ const RESUME_TYPES = [
 ];
 
 /* A stranger can write here, so the door is narrow: a honeypot, a per-address
-   cool-off, a cap on every string, and the database's own check constraint
-   refusing anything that is not a real open posting. Nothing read back. */
+   cool-off, a cap on every string, a database rate limit, a resume checked by
+   its bytes, and a posting confirmed open. Nothing read back.
+
+   This route is now the ONLY way in (PART 39). The anonymous insert policy on
+   job_applications and the anonymous upload policy on the resume bucket are
+   gone, so every write below runs with the service role, after every check
+   here has passed. Nothing a script posts straight at Supabase can skip them. */
 const recent = new Map<string, number>();
 const COOLOFF = 60_000;
 
 function tidy(v: FormDataEntryValue | null, max: number): string {
   return String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+/* Netlify's own record of the connecting address comes first: it is set at
+   the edge and cannot be supplied by the caller. x-forwarded-for is only a
+   fallback for other hosts, and only its first hop is used. */
+function clientIp(req: Request): string {
+  const nf = req.headers.get('x-nf-client-connection-ip')?.trim();
+  if (nf) return nf.slice(0, 64);
+  const real = req.headers.get('x-real-ip')?.trim();
+  if (real) return real.slice(0, 64);
+  const fwd = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim();
+  return (fwd || 'unknown').slice(0, 64);
 }
 
 export async function OPTIONS(req: Request) { return preflight(req); }
@@ -32,7 +49,8 @@ export async function POST(req: Request) {
   const fail = (error: string, status = 400) =>
     NextResponse.json({ error }, { status, headers: cors });
 
-  if (!configured()) return fail('Applications are not switched on yet.', 503);
+  if (!configured() || !hasServiceKey()) return fail('Applications are not switched on yet.', 503);
+  const sb = adminClient();
 
   let form: FormData;
   try { form = await req.formData(); }
@@ -78,7 +96,7 @@ export async function POST(req: Request) {
   const key = `${email}|${post_id || 'general'}`;
   const last = recent.get(key);
   if (last && Date.now() - last < COOLOFF)
-    return fail('We already have that one — thank you.', 429);
+    return fail('We already have that one. Thank you.', 429);
 
   /* The map above lives in one lambda's memory — gone on a cold start, not
      shared across instances, keyed on an email the caller chose. The real
@@ -91,10 +109,10 @@ export async function POST(req: Request) {
      Workspace send quota, and once that is spent every invoice and sign-in
      link in the platform stops too. */
   try {
-    const ip = (req.headers.get('x-nf-client-connection-ip')
-      ?? req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
-    const sbLimit = await supabaseServer();
-    const { data: allowed, error } = await sbLimit.rpc('apply_allowed', { p_ip: ip, p_email: email });
+    /* The address is read here, on the server, from what Netlify's edge
+       recorded. It is never something the caller supplies to the limiter. */
+    const ip = clientIp(req);
+    const { data: allowed, error } = await sb.rpc('apply_allowed', { p_ip: ip, p_email: email });
     if (error) throw error;
     if (allowed === false)
       return fail('Too many applications from this address today. Please try again tomorrow.', 429);
@@ -108,15 +126,13 @@ export async function POST(req: Request) {
     if (v) answers[q.key] = v;
   }
 
-  const sb = await supabaseServer();
-
-  /* Only open postings are readable without signing in, so this both confirms
-     the role exists and confirms it is still taking applications. Skipped
-     entirely for a general application — there is no posting to check. */
+  /* The service role reads every posting, so "open" is checked explicitly:
+     this both confirms the role exists and confirms it is still taking
+     applications. Skipped for a general application, which has no posting. */
   let post: { id: string; title: string } | null = null;
   if (!isGeneral) {
     const { data } = await sb.from('job_posts')
-      .select('id, title').eq('id', post_id).maybeSingle();
+      .select('id, title').eq('id', post_id).eq('state', 'open').maybeSingle();
     if (!data)
       return fail('That role is no longer open. Have a look at what else is posted.', 409);
     post = data;
@@ -125,7 +141,7 @@ export async function POST(req: Request) {
   /* A resume is required — checked before it ever touches storage. */
   const file = form.get('resume');
   if (!(file instanceof Blob) || file.size === 0) return fail('Please attach your resume.');
-  if (file.size > MAX_RESUME) return fail('That resume is over 5MB — please send a smaller file.', 413);
+  if (file.size > MAX_RESUME) return fail('That resume is over 5MB. Please send a smaller file.', 413);
   if (!RESUME_TYPES.includes(file.type)) return fail('Please send a PDF or a Word document.', 415);
   const ext = file.type === 'application/pdf' ? 'pdf'
             : file.type === 'application/msword' ? 'doc' : 'docx';
@@ -138,7 +154,7 @@ export async function POST(req: Request) {
     return fail('That file is not a PDF or a Word document, whatever it is named.', 415);
   const { error: uploadError } = await sb.storage.from('applications')
     .upload(path, bytes, { contentType: file.type, upsert: false });
-  if (uploadError) return fail('We could not save that resume — please try again.', 500);
+  if (uploadError) return fail('We could not save that resume. Please try again.', 500);
   const resume_path = path;
   const resume_name = ((file as File).name ?? `resume.${ext}`).slice(0, 160);
 
@@ -156,10 +172,12 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    /* The insert policy refuses anything that is not a live posting (or,
-       now, a general application) — so for a specific role this is nearly
-       always one that closed while the form sat open. */
-    return fail('That role is no longer open. Have a look at what else is posted.', 409);
+    /* The posting was confirmed open a moment ago, so a failure here is the
+       database, not the applicant. Tidy the resume away so it is not left
+       orphaned, and ask them to try again. */
+    console.error('[apply] insert failed:', error.message);
+    await sb.storage.from('applications').remove([resume_path]).then(() => {}, () => {});
+    return fail('We could not file that application just now. Please try again in a few minutes.', 503);
   }
 
   recent.set(key, Date.now());
@@ -171,7 +189,7 @@ export async function POST(req: Request) {
     const first = full_name.split(/\s+/)[0];
     const mine = templates.applicationReceived({ name: first, role });
     await send(email, mine);
-    for (const addr of await teamEmails()) {
+    for (const addr of await teamEmailsAdmin()) {
       const tpl = templates.newApplication({
         full_name, role, email, phone, location, years, heard_via, links, resume_name,
         english_speaking: speaking || null, english_writing: writing || null, answers, note

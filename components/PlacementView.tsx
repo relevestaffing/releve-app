@@ -13,6 +13,12 @@ import { dayLabel } from '@/lib/money-public';
 import { configured, supabaseServer } from '@/lib/supabase/server';
 import { Portrait } from '@/components/Viz';
 import { WORDS } from '@/lib/words';
+import { getBrief, myRequests, primaryManager, viewerTimezone, todayIn } from '@/lib/experience';
+import { currentProfile } from '@/lib/supabase/server';
+import ManagerLine from '@/components/ManagerLine';
+import ClientRequests from '@/components/ClientRequests';
+import BriefEditor from '@/components/BriefEditor';
+import { firstName } from '@/lib/words';
 
 /* A rough, human "how long" rather than a precise day count — this is the
    executive reading about a relationship, not an admin reading a ledger.
@@ -53,6 +59,13 @@ export default async function PlacementView({
   userId: string;
 }) {
   const p = placement;
+  const [me, tz] = await Promise.all([currentProfile(), viewerTimezone(userId)]);
+  const today = todayIn(tz ?? 'America/Los_Angeles');
+  const [manager, brief, requests] = await Promise.all([
+    me ? primaryManager(me, p.id) : Promise.resolve(null),
+    side === 'client' ? getBrief(p.id) : Promise.resolve(null),
+    side === 'client' ? myRequests(userId) : Promise.resolve([])
+  ]);
   const [steps, pulse, off, feedback, tasks, talentSelf, terms] = await Promise.all([
     stepsFor(p.id),
     side === 'client' ? pulseFor(p.id) : Promise.resolve(null),
@@ -64,14 +77,13 @@ export default async function PlacementView({
     side === 'client' ? getSelfProfile(p.talent_id) : Promise.resolve(null),
     side === 'client' ? clientTerms(p.id) : Promise.resolve(null)
   ]);
-  const upcomingOff = off.filter(o => (o.state === 'approved' || o.state === 'requested') && o.ends_on >= new Date().toISOString().slice(0, 10));
+  const upcomingOff = off.filter(o => (o.state === 'approved' || o.state === 'requested') && o.ends_on >= today);
 
   const shared = feedback.filter(f => f.shared);
   const unseen = shared.find(f => !f.seen_at);
 
   const open = tasks.filter(t => !t.done);
   const done = tasks.filter(t => t.done);
-  const today = new Date().toISOString().slice(0, 10);
   const overdue = open.filter(t => t.due_on && t.due_on < today);
 
   return (
@@ -109,12 +121,24 @@ export default async function PlacementView({
           <div><b>{done.length}</b><span>task {done.length === 1 ? 'win' : 'wins'}</span></div>
           <div><b>{overdue.length}</b><span>overdue</span></div>
         </div>
-        <a className="btn sm ghost" href="/app/tasks" style={{ marginTop: 16 }}>
-          {side === 'client' ? 'Assign and review work' : 'See your tasks'}
-        </a>
+        <div className="row" style={{ gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+          <a className="btn sm ghost" href="/app/tasks">
+            {side === 'client' ? 'Assign and review work' : 'See your tasks'}
+          </a>
+          {side === 'client'
+            ? <a className="btn sm ghost" href={`/app/report?placement=${p.id}`}>Your month with {firstName(p.talent_name)}</a>
+            : <>
+                <a className="btn sm ghost" href="/app/log">Today’s log</a>
+                <a className="btn sm ghost" href={`/app/brief?placement=${p.id}`}>Your briefing</a>
+              </>}
+        </div>
       </div>
 
-      <FirstFortnight steps={steps} startedOn={p.started_on} side={side} />
+      <FirstFortnight steps={steps} startedOn={p.started_on} side={side} today={today} />
+
+      {side === 'client' && (
+        <BriefEditor placementId={p.id} talentName={firstName(p.talent_name)} initial={brief} />
+      )}
 
       {side === 'talent' && (
         <>
@@ -132,7 +156,7 @@ export default async function PlacementView({
                 <div className="fb-scores">
                   {FEEDBACK_SCORES.map(s => (
                     <div key={s.key} className="fb-score">
-                      <div className="n">{f[s.key] ?? '—'}<small> / 5</small></div>
+                      <div className="n">{f[s.key] ?? '–'}<small> / 5</small></div>
                       <div className="k">{s.label}</div>
                     </div>
                   ))}
@@ -148,14 +172,21 @@ export default async function PlacementView({
       )}
 
       <div className="card">
-        <div className="card-head"><h3>Anything not working</h3></div>
+        <div className="card-head"><h3>{side === 'client' ? 'Your Client Success Manager' : 'Your Talent Success Manager'}</h3></div>
+        {manager && <div style={{ marginBottom: 16 }}><ManagerLine manager={manager} /></div>}
         <p className="small muted" style={{ marginBottom: 16, maxWidth: 620 }}>
           {side === 'client'
-            ? 'Your Client Success Manager reads everything here. If something needs saying that does not belong in a monthly form, say it to them directly — that is what they are for.'
-            : 'Your Talent Success Manager is yours, not the executive’s. Nothing you send them is passed on.'}
+            ? 'Anything that is not working, or anything you want changed, say it here directly. That is what they are for.'
+            : 'Yours, not the executive’s. Nothing you send is passed on.'}
         </p>
-        <a className="btn sm ghost" href="/app/messages">Message your manager</a>
+        <a className="btn sm ghost" href="/app/messages?tab=sm">
+          {manager?.id ? `Message ${firstName(manager.name)}` : 'Message your manager'}
+        </a>
       </div>
+
+      {side === 'client' && (
+        <ClientRequests placementId={p.id} talentName={firstName(p.talent_name)} existing={requests} today={today} />
+      )}
 
       {side === 'client' && upcomingOff.length > 0 && (
         <div className="card">
@@ -165,7 +196,7 @@ export default async function PlacementView({
             return (
               <div key={o.id} className="row between" style={{ padding: '10px 0', borderBottom: '1px solid var(--mist)', gap: 12, flexWrap: 'wrap' }}>
                 <span className="small"><b>{dayLabel(o.starts_on)}</b> to <b>{dayLabel(o.ends_on)}</b></span>
-                <span className={`pill ${st?.tone ?? ''}`}>{o.state === 'requested' ? 'Requested — Relève deciding' : st?.label ?? o.state}</span>
+                <span className={`pill ${st?.tone ?? ''}`}>{o.state === 'requested' ? 'Requested, Relève arranging cover' : st?.label ?? o.state}</span>
                 {o.cover_note && <span className="xs muted" style={{ width: '100%' }}>Cover: {o.cover_note}</span>}
               </div>
             );
@@ -181,17 +212,22 @@ export default async function PlacementView({
       )}
 
       {side === 'client' && (
-        <GiveNotice placementId={p.id} talentName={p.talent_name} noticeGivenOn={terms?.notice_given_on ?? null} />
+        <GiveNotice placementId={p.id} talentName={p.talent_name} noticeGivenOn={terms?.notice_given_on ?? null}
+          noticeEndsOn={terms?.notice_ends_on ?? null} minimumEnds={terms?.minimum_ends ?? null} />
       )}
     </div>
   );
 }
 
-/* The executive's own terms row, for the notice state only. placement_terms
-   has a read policy for the client on their own placement. */
-async function clientTerms(placementId: string): Promise<{ notice_given_on: string | null } | null> {
+/* The executive's own terms, for the notice state only. Read through
+   my_placement_terms, the client-safe view: the placement_terms base table
+   carries talent pay and has no client policy. */
+async function clientTerms(placementId: string): Promise<{
+  notice_given_on: string | null; notice_ends_on: string | null; minimum_ends: string | null;
+} | null> {
   if (!configured()) return null;
   const sb = await supabaseServer();
-  const { data } = await sb.from('placement_terms').select('notice_given_on').eq('placement_id', placementId).maybeSingle();
+  const { data } = await sb.from('my_placement_terms')
+    .select('notice_given_on, notice_ends_on, minimum_ends').eq('placement_id', placementId).maybeSingle();
   return (data as any) ?? null;
 }

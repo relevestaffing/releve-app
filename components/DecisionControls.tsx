@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { APPROVE_REASONS, PASS_REASONS, type Decision, type DecisionState } from '@/lib/work-public';
 import { saving } from './Toast';
@@ -18,6 +18,7 @@ const WORDING: Record<DecisionState, string> = {
 export default function DecisionControls({ talentId, name, decision }: {
   talentId: string; name: string; decision: Decision | null;
 }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState<null | 'shortlisted' | 'passed'>(null);
@@ -27,8 +28,8 @@ export default function DecisionControls({ talentId, name, decision }: {
     const ok = await saving(() => fetch('/api/decisions', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ talent_id: talentId, state, reason, note })
-    }), state === 'shortlisted' ? `${name} approved — we will arrange the introduction`
-      : state === 'passed' ? 'Noted — we will bring the next one forward' : 'Saved');
+    }), state === 'shortlisted' ? `${name} approved. We will arrange the introduction`
+      : state === 'passed' ? 'Noted. We will bring the next one forward' : 'Saved');
     setBusy(false); setAsking(null);
     if (ok) router.refresh();
   }
@@ -49,16 +50,16 @@ export default function DecisionControls({ talentId, name, decision }: {
             : <>You are declining <b>{name}</b>. We will put the next candidate forward.</>}
         </p>
         <div className="ff">
-          <label>{yes ? `What made ${name} right?` : `What was not right about ${name}?`}
-            {yes && <span className="muted"> — optional</span>}</label>
-          <select name="reason" required={!yes} defaultValue="">
+          <label htmlFor={`${fid}-1`}>{yes ? `What made ${name} right?` : `What was not right about ${name}?`}
+            {yes && <span className="muted"> (optional)</span>}</label>
+          <select id={`${fid}-1`} name="reason" required={!yes} defaultValue="">
             <option value="" disabled={!yes}>{yes ? 'Rather not say' : 'Choose one…'}</option>
             {(yes ? APPROVE_REASONS : PASS_REASONS).map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
         <div className="ff">
-          <label>Anything else <span className="muted">— optional</span></label>
-          <textarea name="note" rows={2}
+          <label htmlFor={`${fid}-2`}>Anything else <span className="muted">(optional)</span></label>
+          <textarea id={`${fid}-2`} name="note" rows={2}
             placeholder={yes
               ? 'A sentence is plenty. What you say here shapes who we look for next.'
               : 'A sentence is plenty. This is what makes the next candidate sharper.'} />

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import UnreadBadge from './UnreadBadge';
 
 type NavItem = { href: string; label: string };
 type NavGroup = { group?: string; items: NavItem[] };
@@ -25,9 +26,10 @@ const Icon = ({ k }: { k: string }) => (
    sidebar desktop uses, sliding in from the left instead of sitting fixed
    beside the content. Same nav-group markup, same classes, same fern —
    so this never drifts out of sync with the desktop sidebar's own look. */
-export default function MobileNav({ role, active, nav, who, name, org, profileHref }: {
+export default function MobileNav({ role, active, nav, who, name, org, profileHref, unread = 0, messagesHref }: {
   role: string; active: string; nav: NavGroup[];
   who: string; name: string; org?: string | null; profileHref?: string;
+  unread?: number; messagesHref?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -50,6 +52,7 @@ export default function MobileNav({ role, active, nav, who, name, org, profileHr
       <button type="button" className="menu-trigger" onClick={() => setOpen(true)}
         aria-expanded={open} aria-label="Open menu">
         <Icon k="menu" />
+        <UnreadBadge initial={unread} variant="dot" />
       </button>
 
       {open && (
@@ -64,14 +67,14 @@ export default function MobileNav({ role, active, nav, who, name, org, profileHr
               <Link href={profileHref} onClick={() => setOpen(false)} className="side-role">
                 <div className="eyebrow">{who}</div>
                 <div className="name">{name}
-                  {org && <><br /><span className="small" style={{ color: '#93A394' }}>{org}</span></>}
+                  {org && <><br /><span className="small" style={{ color: 'var(--pale)' }}>{org}</span></>}
                 </div>
               </Link>
             ) : (
               <div className="side-role">
                 <div className="eyebrow">{who}</div>
                 <div className="name">{name}
-                  {org && <><br /><span className="small" style={{ color: '#93A394' }}>{org}</span></>}
+                  {org && <><br /><span className="small" style={{ color: 'var(--pale)' }}>{org}</span></>}
                 </div>
               </div>
             )}
@@ -82,8 +85,10 @@ export default function MobileNav({ role, active, nav, who, name, org, profileHr
                   {g.group && <div className="nav-group-label">{g.group}</div>}
                   {g.items.map(n => (
                     <Link key={n.href} href={n.href} onClick={() => setOpen(false)}
-                      className={active === n.href ? 'active' : ''}>
+                      className={active === n.href ? 'active' : ''}
+                      aria-current={active === n.href ? 'page' : undefined}>
                       {n.label}
+                      {n.href === messagesHref && <UnreadBadge initial={unread} variant="side" />}
                     </Link>
                   ))}
                 </div>

@@ -7,6 +7,7 @@ import { markInvited } from '@/lib/jobs';
 import { send, templates } from '@/lib/email';
 import { supabaseServer } from '@/lib/supabase/server';
 import { safeMessage } from '@/lib/errors';
+import { firstName } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
       let warning: string | null = null;
       try {
         meeting = await createZoomMeeting({
-          topic: `Relève — a call with ${app.full_name}`,
+          topic: `Relève: a call with ${app.full_name}`,
           startISO, durationMin: minutes, timezone: 'UTC',
           agenda: `Screening call for ${(app as any).post?.title ?? 'a role'} at Relève Executive Staffing.`
         });
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
 
       let mailed = false;
       try {
-        const first = String(app.full_name).split(/\s+/)[0];
+        const first = firstName(app.full_name, 'there');
         const tpl = b.action === 'move_call'
           ? templates.callMoved({ name: first, when, url: meeting?.url ?? app.call_url ?? null })
           : templates.callInvite({
@@ -140,7 +141,7 @@ export async function POST(req: Request) {
       await markInvited(b.id, pendingId as any);
       try {
         const tpl = templates.applicationInvited({
-          name: String(a.full_name).split(/\s+/)[0],
+          name: firstName(a.full_name, 'there'),
           role: a.post?.title ?? 'the role'
         });
         await send(a.email, tpl);

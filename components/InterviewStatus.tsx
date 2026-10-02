@@ -38,7 +38,7 @@ export default function InterviewStatus({ id, status, mode }: {
   if (mode === 'read') return pill;
 
   if (mode === 'admin') return (
-    <select value={value} disabled={saving} className={`pill ${cls(value)}`}
+    <select aria-label="Interview status" value={value} disabled={saving} className={`pill ${cls(value)}`}
       style={{ padding: '5px 10px', cursor: 'pointer' }}
       onChange={e => set(e.target.value, `Interview marked ${e.target.value}`)}>
       {OPTIONS.map(o => <option key={o}>{o}</option>)}
@@ -52,12 +52,12 @@ export default function InterviewStatus({ id, status, mode }: {
     <div className="decide-form" style={{ minWidth: 230 }}>
       <p className="small" style={{ margin: '0 0 12px' }}>
         Tell us you cannot make this one? We will arrange another time with
-        {mode === 'client' ? ' the candidate' : ' the executive'} — nobody is told anything
+        {mode === 'client' ? ' the candidate' : ' the executive'}. Nobody is told anything
         beyond that it needs moving.
       </p>
       <div className="row" style={{ gap: 10 }}>
         <button className="btn sm solid" disabled={saving}
-          onClick={() => set('Cancelled', 'Noted — we will find another time')}>
+          onClick={() => set('Cancelled', 'Noted. We will find another time')}>
           Yes, I need to move it
         </button>
         <button className="btn sm ghost" onClick={() => setAsking(false)}>Keep it</button>
@@ -70,7 +70,7 @@ export default function InterviewStatus({ id, status, mode }: {
       {value === 'Confirmed'
         ? pill
         : <button className="btn sm solid" disabled={saving}
-            onClick={() => set('Confirmed', 'Confirmed — it is in the diary')}>
+            onClick={() => set('Confirmed', 'Confirmed. It is in the diary')}>
             {saving ? 'Saving…' : 'Confirm I will be there'}
           </button>}
       <button className="btn sm ghost" disabled={saving} onClick={() => setAsking(true)}>

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
-import { INVOICE_STATUS, money, type Invoice, type InvoiceStatus } from '@/lib/money-public';
+import { INVOICE_STATUS, MANUAL_STATUSES, money, monthLabel, type Invoice, type InvoiceStatus } from '@/lib/money-public';
 
 async function post(body: any) {
   return fetch('/api/admin/money', {
@@ -21,12 +21,20 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
   const [ask, setAsk] = useState<InvoiceStatus | null>(null);
   const tone = INVOICE_STATUS.find(s => s.key === value)?.tone ?? '';
 
+  /* Stripe's states are shown, never offered: the database refuses a hand
+     change while money is clearing, refunded or disputed. */
+  if (!MANUAL_STATUSES.includes(inv.status)) return (
+    <span className={`pill ${tone}`} title="Set by Stripe">
+      {INVOICE_STATUS.find(s => s.key === inv.status)?.label ?? inv.status}
+    </span>
+  );
+
   async function apply(next: InvoiceStatus) {
     const prev = value;
     setValue(next); setBusy(true); setAsk(null);
     const ok = await saving(
       () => post({ action: 'invoice_status', id: inv.id, status: next }),
-      next === 'paid' ? `${money(inv.amount_cents)} marked paid` : `Marked ${next}`
+      next === 'paid' ? `${money(inv.amount_cents)} marked paid` : next === 'sent' ? 'Sent to the client' : `Marked ${next}`
     );
     setBusy(false);
     if (ok) router.refresh(); else setValue(prev);
@@ -36,8 +44,8 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
       <span className="xs">
         {ask === 'paid'
-          ? `${money(inv.amount_cents)} from ${inv.org_name ?? inv.client_name ?? 'them'} — received?`
-          : 'Void this invoice?'}
+          ? `${money(inv.amount_cents)} from ${inv.org_name ?? inv.client_name ?? 'them'}, received outside Stripe?`
+          : 'Void this invoice? Nothing will be owed on it.'}
       </span>
       <button className="btn sm solid" disabled={busy} onClick={() => apply(ask)}>Yes</button>
       <button className="btn sm ghost" onClick={() => setAsk(null)}>No</button>
@@ -45,55 +53,63 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
   );
 
   return (
-    <select className={`pill ${tone}`} value={value} disabled={busy}
+    <select aria-label="Invoice status" className={`pill ${tone}`} value={value} disabled={busy}
       style={{ padding: '5px 10px', cursor: 'pointer' }}
       onChange={e => {
         const next = e.target.value as InvoiceStatus;
         if (next === 'paid' || next === 'void') { setAsk(next); return; }
         apply(next);
       }}>
-      {INVOICE_STATUS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+      {INVOICE_STATUS.filter(s => MANUAL_STATUSES.includes(s.key)).map(s =>
+        <option key={s.key} value={s.key}>{s.key === 'sent' && inv.status === 'draft' ? 'Send' : s.label}</option>)}
     </select>
   );
 }
 
-/* The monthly run. Idempotent in the database, so pressing it twice in a
-   month is harmless — it simply reports that there was nothing new. */
-export function RunTheMonth({ month }: { month: string }) {
+/* The monthly run. Idempotent in the database, so pressing it twice is
+   harmless: it reports that there was nothing new. The daily scheduled run
+   does the same thing every morning; this is for running it now, or for a
+   month that was missed. */
+export function RunTheMonth({ month, previous }: { month: string; previous?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [armed, setArmed] = useState(false);
+  const [which, setWhich] = useState(month);
 
   async function run() {
     setBusy(true);
     try {
-      const r = await post({ action: 'run_month', month });
+      const r = await post({ action: 'run_month', month: which });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        toast.bad(d.error ? `Not issued — ${d.error}` : 'Nothing was issued. Please try again.');
+        toast.bad(d.error ? `Not drafted: ${d.error}` : 'Nothing was drafted. Please try again.');
       } else {
         toast.saved(d.made === 0
-          ? 'Already issued for this month — nothing new'
+          ? `${monthLabel(which)} is already drafted. Nothing new`
           : `${d.made} invoice${d.made === 1 ? '' : 's'} drafted`);
         router.refresh();
       }
     } catch {
-      toast.bad('No connection — nothing was issued.');
+      toast.bad('No connection. Nothing was drafted.');
     }
     setBusy(false);
     setArmed(false);
   }
 
-  /* One deliberate step before a money run, matching the invoice picker's
-     paid/void guard. It is idempotent server-side, but this is the founder's
-     whole month of billing, so it should not fire on a stray tap. */
   if (!armed) return (
     <button className="btn sm solid" onClick={() => setArmed(true)}>Run the month</button>
   );
   return (
     <span className="rate-set">
+      {previous && (
+        <select aria-label="Which month" value={which} disabled={busy} onChange={e => setWhich(e.target.value)}
+          className="pill" style={{ padding: '5px 10px' }}>
+          <option value={month}>{monthLabel(month)}</option>
+          <option value={previous}>{monthLabel(previous)}</option>
+        </select>
+      )}
       <button className="btn sm solid" disabled={busy} onClick={run}>
-        {busy ? 'Working…' : 'Yes, draft this month’s invoices'}
+        {busy ? 'Working…' : 'Yes, draft the invoices'}
       </button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button>
     </span>

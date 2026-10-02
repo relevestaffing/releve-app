@@ -22,7 +22,7 @@ export default function PayInvoiceButton({ invoiceId, label, className }: {
       if (!r.ok || !d.url) { toast.bad(d.error ?? 'That did not open. Please try again.'); setBusy(false); return; }
       window.location.href = d.url;
     } catch {
-      toast.bad('No connection — nothing was changed.');
+      toast.bad('No connection. Nothing was changed.');
       setBusy(false);
     }
   }

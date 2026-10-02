@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { firstName } from '@/lib/words';
 
 
 /* The very first thing a new account sees, unless Relève added them by hand —
@@ -37,8 +38,8 @@ export default function ChooseRole({ name }: { name?: string | null }) {
       <div className="welcome-inner">
         <img className="logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="welcome-card">
-          <h1>{name ? `Welcome, ${name.split(' ')[0]}` : 'Welcome to Relève'}</h1>
-          <p className="lede">Before anything else — which side of this are you on?</p>
+          <h1>{name ? `Welcome, ${firstName(name)}` : 'Welcome to Relève'}</h1>
+          <p className="lede">Before anything else, which side of this are you on?</p>
         </div>
 
         <div className="choose-grid">
@@ -55,7 +56,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
               actually work rather than to a job description.
             </p>
             <p className="xs muted" style={{ marginTop: 10 }}>
-              This starts with a short discovery call, not a sign-up form — reach out and we will find a time.
+              This starts with a short discovery call, not a sign-up form. Reach out and we will find a time.
             </p>
             <span className="choose-go">Talk to us →</span>
           </a>
@@ -72,8 +73,8 @@ export default function ChooseRole({ name }: { name?: string | null }) {
         </div>
 
         <p className="xs muted" style={{ marginTop: 22, maxWidth: 440, marginInline: 'auto' }}>
-          Pick the one that fits. If you choose wrong, your Relève contact can move you across —
-          you just cannot switch yourself once the account is set up.
+          Pick the one that fits. If you choose wrong, your Relève contact can move you across.
+          You just cannot switch yourself once the account is set up.
         </p>
         {err && <p className="small" style={{ color: 'var(--rust, #8C4A3F)', marginTop: 14 }}>{err}</p>}
       </div>

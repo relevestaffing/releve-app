@@ -36,9 +36,9 @@ export default function ChargeInvoice({ invoiceId, amount, who, method }: {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) toast.bad(d.error ?? 'That did not go through.');
-      else toast.saved(`Submitted — ${amount} from ${who}. It will show as paid once it clears.`);
+      else toast.saved(`Submitted: ${amount} from ${who}. It shows as paid once it clears.`);
       router.refresh();
-    } catch { toast.bad('No connection — nothing was charged.'); }
+    } catch { toast.bad('No connection. Nothing was charged.'); }
     setBusy(false); setConfirming(false);
   }
 

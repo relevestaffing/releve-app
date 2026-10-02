@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 export type Person = {
   id: string; full_name: string | null; email: string;
@@ -60,6 +60,8 @@ export default function PersonPicker({
     setOpen(false);
   }
 
+  const fid = useId();
+
   function keys(e: React.KeyboardEvent) {
     if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setCursor(c => Math.min(c + 1, shown.length - 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setCursor(c => Math.max(c - 1, 0)); }
@@ -69,7 +71,7 @@ export default function PersonPicker({
 
   return (
     <div className="ff picker" ref={box}>
-      {label && <label>{label}</label>}
+      {label && <label htmlFor={fid}>{label}</label>}
       {name && <input type="hidden" name={name} value={value} />}
 
       {chosen ? (
@@ -85,7 +87,8 @@ export default function PersonPicker({
         </div>
       ) : (
         <>
-          <input
+          <input id={fid}
+            aria-label={label ? undefined : (placeholder ?? 'Search people')}
             value={q} autoFocus={autoFocus} placeholder={placeholder}
             onChange={e => { setQ(e.target.value); setOpen(true); }}
             onFocus={() => setOpen(true)}

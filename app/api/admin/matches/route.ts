@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
 function friendly(why: string) {
   if (/not verified/i.test(why))
-    return 'This candidate is not verified yet — both documents must be verified on the Verification page before they can be sent to an executive.';
+    return 'This candidate is not verified yet. Both documents must be verified on the Verification page before they can be sent to an executive.';
   if (/Taking The Watch/i.test(why)) return why;
   return why.replace(/^error:\s*/i, '');
 }

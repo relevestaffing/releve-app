@@ -82,14 +82,14 @@ export const APPLICATION_ORDER: ApplicationState[] =
    never leave somebody wondering whose turn it is. */
 export function whoseTurn(a: { state: ApplicationState; call_state: CallState; call_at: string | null }): string {
   if (a.state === 'declined') return 'Closed.';
-  if (a.state === 'invited') return 'With them — they have the invitation and the assessment.';
+  if (a.state === 'invited') return 'With them. They have the invitation and the assessment.';
   if (a.call_state === 'no_show') return 'They did not come to the call. Rebook it, or decline.';
   if (a.call_state === 'held') return 'Yours: decide whether to bring them into the platform.';
   if (a.call_state === 'invited') {
     if (!a.call_at) return 'A call was offered with no time on it.';
     return new Date(a.call_at).getTime() > Date.now()
       ? 'Booked. Nothing to do until the call.'
-      : 'The call time has passed — say whether it happened.';
+      : 'The call time has passed. Say whether it happened.';
   }
   if (a.state === 'reviewing') return 'Yours: book the screening call, or decline.';
   return 'Yours: read it.';
@@ -121,10 +121,10 @@ export const APPLICATION_SECTIONS: { key: ApplicationStageKey; head: string; not
   { key: 'unread',   head: 'Nobody has read these yet',
     note: 'A good applicant who waits a week is applying somewhere else.' },
   { key: 'toBook',   head: 'Ready for a call',
-    note: 'Nothing about Relève reaches them until you have spoken — no account, no assessment.' },
+    note: 'Nothing about Relève reaches them until you have spoken: no account, no assessment.' },
   { key: 'toRecord', head: 'The call has passed',
     note: 'Say whether it happened, so the next step is not guesswork in a week.' },
-  { key: 'decide',   head: 'Spoken to — your decision',
+  { key: 'decide',   head: 'Spoken to: your decision',
     note: 'Bring them into the platform, or decline. Either is a fine answer.' },
   { key: 'booked',   head: 'Booked, nothing to do',
     note: 'They have the time and the joining link.' },
@@ -179,8 +179,9 @@ export function postReady(p: Partial<JobPost>): string[] {
   const missing: string[] = [];
   if (!(p.title ?? '').trim())   missing.push('It needs a title.');
   if (!(p.summary ?? '').trim()) missing.push('It needs the one-line summary that shows on the card.');
-  if (!lines(p.owns).length)     missing.push('Say what this person will own — at least one line.');
-  if (!lines(p.needs).length)    missing.push('Say what you are looking for — at least one line.');
+  if (!lines(p.owns).length)     missing.push('Say what this person will own, in at least one line.');
+  if (!lines(p.needs).length)    missing.push('Say what you are looking for, in at least one line.'
+);
   if (!(p.location ?? '').trim() && !(p.hours ?? '').trim())
     missing.push('Give either the hours or the location, so applicants can tell if it fits.');
   return missing;

@@ -1,10 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saving } from './Toast';
 import { ENDED_REASONS, owesReplacement, type EndedReason } from '@/lib/care-public';
 import PersonPicker from './PersonPicker';
+import { todayInPacific } from '@/lib/money-public';
 
 type Person = { id: string; full_name: string | null; email: string; role: string; org_name: string | null };
 type Row = {
@@ -17,19 +18,24 @@ const label = (p: Person) =>
 const day = (d: string) =>
   new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
-export default function PlacementMaker({ people, placements, owed = [] }: {
+export default function PlacementMaker({ people, placements, owed = [], initialReplaces = '' }: {
   people: Person[]; placements: Row[];
   /* Endings that carry a replacement guarantee and have not been settled. */
-  owed?: { id: string; client_name: string; talent_name: string }[];
+  owed?: { id: string; client_id?: string; client_name: string; talent_name: string }[];
+  /* Arriving from a placement file's "Place the replacement". */
+  initialReplaces?: string;
 }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [ending, setEnding] = useState<string | null>(null);
-  const [clientId, setClientId] = useState('');
+  const [confirmEnd, setConfirmEnd] = useState<{ id: string; reason: EndedReason } | null>(null);
+  const startReplaces = owed.some(o => o.id === initialReplaces) ? initialReplaces : '';
+  const [clientId, setClientId] = useState(owed.find(o => o.id === startReplaces)?.client_id ?? '');
   const [talentId, setTalentId] = useState('');
   /* Placing somebody as a replacement is what discharges the guarantee on the
      placement that failed. It has to be said at the moment of placing. */
-  const [replaces, setReplaces] = useState('');
+  const [replaces, setReplaces] = useState(startReplaces);
   const [find, setFind] = useState('');
   const clients = people.filter(p => p.role === 'client');
   const talent = people.filter(p => p.role === 'talent');
@@ -60,19 +66,6 @@ export default function PlacementMaker({ people, placements, owed = [] }: {
     if (ok) { form.reset(); setClientId(''); setTalentId(''); setReplaces(''); router.refresh(); }
   }
 
-  /* Thirty days, effective at the end of the following billing month. The
-     column and the function both existed; nothing in the product could reach
-     them, so notice was recorded by nobody and billed by guesswork. */
-  async function notice(id: string) {
-    setBusy(true);
-    const ok = await saving(() => fetch('/api/admin/money', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'notice', placement_id: id })
-    }), 'Notice recorded — billing runs to the end of next month');
-    setBusy(false);
-    if (ok) router.refresh();
-  }
-
   /* Ending a placement asks why, because the answer decides whether the
      replacement guarantee is owed. Without it the promise is only ever
      remembered, which means sometimes it is not. */
@@ -82,10 +75,10 @@ export default function PlacementMaker({ people, placements, owed = [] }: {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id, reason })
     }), owesReplacement(reason)
-        ? 'Ended — a replacement is now owed, and it is on the Care page'
+        ? 'Ended. A replacement is now owed, and it is listed here'
         : 'Placement ended');
     setBusy(false);
-    setEnding(null);
+    setEnding(null); setConfirmEnd(null);
     if (ok) router.refresh();
   }
 
@@ -111,16 +104,16 @@ export default function PlacementMaker({ people, placements, owed = [] }: {
                 placeholder="Type a name…" />
             </div>
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label>Start date</label>
-                <input type="date" name="started_on" defaultValue={new Date().toISOString().slice(0, 10)} /></div>
-              <div className="ff"><label>The executive pays, per month</label>
-                <input name="rate" inputMode="numeric" placeholder="3,500" />
+              <div className="ff"><label htmlFor={`${fid}-1`}>Start date</label>
+                <input id={`${fid}-1`} type="date" name="started_on" defaultValue={todayInPacific()} /></div>
+              <div className="ff"><label htmlFor={`${fid}-2`}>The executive pays, per month</label>
+                <input id={`${fid}-2`} name="rate" inputMode="numeric" placeholder="3,500" />
                 <span className="xs muted">Leave blank to set it later, but nothing is invoiced until you do.</span></div>
             </div>
             {owed.length > 0 && (
               <div className="ff">
-                <label>Is this a replacement? <span className="muted">— optional</span></label>
-                <select value={replaces} onChange={e => setReplaces(e.target.value)}>
+                <label htmlFor={`${fid}-3`}>Is this a replacement? <span className="muted">(optional)</span></label>
+                <select id={`${fid}-3`} value={replaces} onChange={e => setReplaces(e.target.value)}>
                   <option value="">No, this is a new placement</option>
                   {owed.map(o => (
                     <option key={o.id} value={o.id}>
@@ -129,8 +122,8 @@ export default function PlacementMaker({ people, placements, owed = [] }: {
                   ))}
                 </select>
                 <span className="xs muted">
-                  Saying so is what settles the replacement guarantee. Without it the
-                  original stays on the owed list for good.
+                  Saying so settles the replacement guarantee, and the replacement carries only what was
+                  left of the original&rsquo;s three-month minimum, so the client never pays twice for one seat.
                 </span>
               </div>
             )}
@@ -168,12 +161,10 @@ export default function PlacementMaker({ people, placements, owed = [] }: {
                   <td style={{ textAlign: 'right' }}>
                     <div className="row" style={{ gap: 8, justifyContent: 'flex-end' }}>
                       <Link className="btn sm ghost" href={`/console/placements/${p.id}`}>Open file</Link>
-                      {!p.notice_given_on && (
-                        <button className="btn sm ghost" disabled={busy} onClick={() => notice(p.id)}
-                          title="Thirty days, ending at the close of the following billing month">
-                          Notice given
-                        </button>
-                      )}
+                      <Link className="btn sm ghost" href={`/console/placements/${p.id}#notice`}
+                        title="Record notice on the placement file">
+                        {p.notice_given_on ? 'Notice given' : 'Notice'}
+                      </Link>
                       <button className="btn sm ghost" disabled={busy}
                         onClick={() => setEnding(ending === p.id ? null : p.id)}>
                         {ending === p.id ? 'Cancel' : 'End'}
@@ -181,18 +172,35 @@ export default function PlacementMaker({ people, placements, owed = [] }: {
                     </div>
                     {ending === p.id && (
                       <div className="end-why">
-                        <div className="xs muted" style={{ marginBottom: 8 }}>Why is it ending?</div>
-                        <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                          {ENDED_REASONS.map(r => (
-                            <button key={r.key} className="btn sm ghost" disabled={busy}
-                              onClick={() => end(p.id, r.key)}>
-                              {r.label}{r.guaranteed && ' *'}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="xs muted" style={{ marginTop: 8 }}>
-                          * owes the client a free replacement
-                        </div>
+                        {confirmEnd?.id === p.id ? (
+                          <>
+                            <div className="xs" style={{ marginBottom: 8 }}>
+                              End it today as {ENDED_REASONS.find(r => r.key === confirmEnd.reason)?.label}?{' '}
+                              {owesReplacement(confirmEnd.reason)
+                                ? 'Billing stops today; the replacement carries the rest of the minimum.'
+                                : 'The minimum term and any notice period are still billed.'}
+                            </div>
+                            <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
+                              <button className="btn sm solid danger" disabled={busy} onClick={() => end(p.id, confirmEnd.reason)}>Yes, end it</button>
+                              <button className="btn sm ghost" disabled={busy} onClick={() => setConfirmEnd(null)}>Back</button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="xs muted" style={{ marginBottom: 8 }}>Why is it ending?</div>
+                            <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                              {ENDED_REASONS.map(r => (
+                                <button key={r.key} className="btn sm ghost" disabled={busy}
+                                  onClick={() => setConfirmEnd({ id: p.id, reason: r.key })}>
+                                  {r.label}{r.guaranteed && ' *'}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="xs muted" style={{ marginTop: 8 }}>
+                              * owes the client a free replacement
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </td>

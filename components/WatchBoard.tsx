@@ -14,7 +14,7 @@ type Item = {
 const LABEL: Record<WatchStatus, string> = {
   not_started: 'Not started',
   in_progress: 'In progress',
-  awaiting_review: 'Submitted — waiting on review',
+  awaiting_review: 'Submitted. Waiting on review',
   cleared: 'Cleared',
   needs_retake: 'Needs another attempt'
 };

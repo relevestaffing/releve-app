@@ -1,23 +1,26 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from './Toast';
 import { APPLICATION_STATE, APPLY_QUESTIONS, whoseTurn, type JobApplication } from '@/lib/jobs-public';
 import Linkify from './Linkify';
 import CallBooker from './CallBooker';
-import { fmtDate } from '@/lib/words';
+import { fmtDate, firstName } from '@/lib/words';
+import { openSignedLink } from '@/lib/open-tab';
+import { toast } from './Toast';
 
 /* One applicant. A stranger until Relève invites them — at which point they
    become a talent record and get the assessment. Everything they typed is on
    this card so nobody has to open an inbox to make the decision. */
 export default function ApplicationCard({ app, role }: { app: JobApplication; role?: string }) {
+  const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [declining, setDeclining] = useState(false);
   const [booking, setBooking] = useState(false);
   const [result, setResult] = useState(false);
   const [more, setMore] = useState(false);
-  const first = app.full_name.split(' ')[0];
+  const first = firstName(app.full_name, 'them');
   const callWhen = app.call_at
     ? new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short',
         hour: 'numeric', minute: '2-digit' }).format(new Date(app.call_at))
@@ -34,10 +37,15 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
     if (ok) router.refresh();
   }
 
-  async function openResume() {
-    const r = await fetch(`/api/admin/applications?path=${encodeURIComponent(app.resume_path!)}`);
-    const j = await r.json();
-    if (j.url) window.open(j.url, '_blank', 'noopener');
+  /* Used to do nothing at all when the link failed, or when Safari blocked a
+     tab opened after the await. */
+  function openResume() {
+    return openSignedLink(async () => {
+      const r = await fetch(`/api/admin/applications?path=${encodeURIComponent(app.resume_path!)}`);
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error ?? 'The resume did not open. Please try again.');
+      return j.url;
+    }, msg => toast.bad(msg), 'The resume did not open. Please try again.');
   }
 
   return (
@@ -55,7 +63,7 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             {app.location && ` · ${app.location}`}
             {app.years != null && ` · ${app.years} years`}
             {(app.english_speaking || app.english_writing) &&
-              ` · English (speak/write): ${app.english_speaking ?? '—'} / ${app.english_writing ?? '—'}`}
+              ` · English (speak/write): ${app.english_speaking ?? '–'} / ${app.english_writing ?? '–'}`}
           </div>
           <div className="xs muted" style={{ marginTop: 3 }}>
             Applied {fmtDate(app.created_at)}
@@ -118,13 +126,13 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             act({ action: 'call_result', result: String(fd.get('result')),
                   notes: String(fd.get('notes') ?? '') },
                 String(fd.get('result')) === 'held' ? 'Call recorded' : 'Marked as missed'); }}>
-          <div className="ff"><label>How did the call go?</label>
-            <select name="result" defaultValue="held">
+          <div className="ff"><label htmlFor={`${fid}-1`}>How did the call go?</label>
+            <select id={`${fid}-1`} name="result" defaultValue="held">
               <option value="held">We spoke</option>
               <option value="no_show">They did not come</option>
             </select></div>
-          <div className="ff"><label>Notes <span className="muted">— yours only</span></label>
-            <textarea name="notes" rows={3} defaultValue={app.call_notes ?? ''}
+          <div className="ff"><label htmlFor={`${fid}-2`}>Notes <span className="muted">(yours only)</span></label>
+            <textarea id={`${fid}-2`} name="notes" rows={3} defaultValue={app.call_notes ?? ''}
               placeholder="How they came across, what they asked, anything you want to remember before deciding." /></div>
           <p className="xs muted" style={{ marginBottom: 12 }}>
             Never shown to {first}, and never shown to an executive.
@@ -139,11 +147,11 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
           onSubmit={e => { e.preventDefault();
             const fd = new FormData(e.currentTarget);
             act({ state: 'declined', team_note: String(fd.get('team_note') ?? '') },
-                'Declined — they are not emailed'); }}>
-          <div className="ff"><label>Why, for your own records <span className="muted">— optional</span></label>
-            <input name="team_note" placeholder="A few words is plenty." /></div>
+                'Declined. They are not emailed'); }}>
+          <div className="ff"><label htmlFor={`${fid}-3`}>Why, for your own records <span className="muted">(optional)</span></label>
+            <input id={`${fid}-3`} name="team_note" placeholder="A few words is plenty." /></div>
           <p className="xs muted" style={{ marginBottom: 12 }}>
-            Nothing is sent to {app.full_name.split(' ')[0]}. Write to them yourself when you are ready.
+            Nothing is sent to {first}. Write to them yourself when you are ready.
           </p>
           <div className="row" style={{ gap: 10 }}>
             <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Decline'}</button>
@@ -177,7 +185,7 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             )}
             {app.state !== 'invited' && app.call_state === 'held' && (
               <button className="btn sm solid" disabled={busy}
-                onClick={() => act({ action: 'invite' }, `${first} is in — they have the invitation`)}>
+                onClick={() => act({ action: 'invite' }, `${first} is in. They have the invitation`)}>
                 Bring {first} into the platform
               </button>
             )}

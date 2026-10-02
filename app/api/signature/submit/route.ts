@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     if (sigErr) {
       console.error('[signature] could not save:', sigErr.message);
       return NextResponse.json({
-        error: 'Your answers could not be saved. Nothing is lost — stay on this page and press Finish again.'
+        error: 'Your answers could not be saved. Nothing is lost. Stay on this page and press Finish again.'
       }, { status: 500 });
     }
 

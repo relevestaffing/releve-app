@@ -7,18 +7,18 @@ type Panel = { h: string; lede: string; points?: string[]; note?: string };
 
 const TALENT: Panel[] = [
   { h: 'Welcome to Relève',
-    lede: 'You have been invited to join the roster — the assessed, verified group Relève puts in front of executives. This account is where that happens.',
+    lede: 'You have been invited to join the roster, the assessed and verified group Relève puts in front of executives. This account is where that happens.',
     points: [
       'We place virtual staff with executives who need a right hand, not a task-taker.',
       'You are never sent to a role on volume. You are matched to one person, deliberately.',
       'Everything you do here is between you, us, and eventually one executive.'
     ] },
   { h: 'The part that matters',
-    lede: 'Most agencies match on a CV. We match on how you actually work — because that is what decides whether a placement lasts.',
+    lede: 'Most agencies match on a CV. We match on how you actually work, because that is what decides whether a placement lasts.',
     points: [
       'The Signature asks how you work and who you are under pressure, across eighteen facets.',
       'It takes twenty to twenty-five minutes. It saves as you go, so you can stop and come back.',
-      'There is no right answer. A flattering profile in the wrong role is a failed placement — for you more than anyone.'
+      'There is no right answer. A flattering profile in the wrong role is a failed placement, for you more than anyone.'
     ],
     note: 'Executives never see your pay, and never see how you rank against other candidates.' },
   { h: 'What happens next',
@@ -29,19 +29,19 @@ const TALENT: Panel[] = [
        first impression that costs trust nobody gets back. */
     lede: 'Your dashboard tracks all of it until it is done. Four things carry your account itself:',
     points: [
-      'Verify who you are, and sign your agreement — a document check we run once, never shown to an executive.',
-      'Take the Signature — twenty to twenty-five minutes, saved as you go. Nothing is matched until it exists.',
-      'Break down your skills — every discipline you claim opens its own quick breakdown.',
-      'Take the Watch for each discipline you claimed — a real day of work, done once, that clears you to be put forward.'
+      'Verify who you are, and sign your agreement: a document check we run once, never shown to an executive.',
+      'Take the Signature: twenty to twenty-five minutes, saved as you go. Nothing is matched until it exists.',
+      'Break down your skills. Every discipline you claim opens its own quick breakdown.',
+      'Take the Watch for each discipline you claimed: a real day of work, done once, that clears you to be put forward.'
     ],
-    note: 'Set your availability along the way, so an executive can actually book you. Once everything is cleared, we do the work — you will hear from your Talent Success Manager when a role fits.' }
+    note: 'Set your availability along the way, so an executive can actually book you. Once everything is cleared, we do the work. You will hear from your Talent Success Manager when a role fits.' }
 ];
 
 const CLIENT: Panel[] = [
   { h: 'Welcome to Relève',
     lede: 'This is your account. Everything about your search runs through here.',
     points: [
-      'We find, vet and manage world-class virtual staff — and match the working relationship, not just the role.',
+      'We find, vet and manage world-class virtual staff, and match the working relationship, not just the role.',
       'A qualified candidate within fourteen days, and a replacement if a hire does not work out.',
       'Every placement comes with a Client Success Manager and a Talent Success Manager.'
     ] },
@@ -49,16 +49,16 @@ const CLIENT: Panel[] = [
     lede: 'Three short screens, then the one step that starts everything.',
     points: [
       'See how Relève works, what a placement can take off your plate, and what it is worth against a full-time hire.',
-      'Open your search with your $500 deposit — credited in full to your first month, and the moment sourcing begins.',
+      'Open your search with your $500 deposit, credited in full to your first month, and the moment sourcing begins.',
       'Read as much or as little as you like. A decided executive can pay straight away.'
     ],
     note: 'If you already arranged the deposit on your call, that step is done and you move straight on.' },
   { h: 'Once your search is open',
     lede: 'Then the part only you can give us: how you actually work.',
     points: [
-      'Build your Executive Signature — fifteen to twenty minutes, saved as you go. Every candidate is scored against it before their name reaches you.',
-      'Break down the role — what the person will own, and what they must be good at.',
-      'Set the hours you are open to meeting candidates — we never offer anyone a slot outside them.'
+      'Build your Executive Signature: fifteen to twenty minutes, saved as you go. Every candidate is scored against it before their name reaches you.',
+      'Break down the role: what the person will own, and what they must be good at.',
+      'Set the hours you are open to meeting candidates. We never offer anyone a slot outside them.'
     ],
     note: 'Then we put forward one vetted professional. You approve them and we book the introduction, or decline and we bring the next. Your Client Success Manager is with you throughout.' }
 ];

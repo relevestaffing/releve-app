@@ -8,11 +8,11 @@ import Explain from '@/components/Explain';
 
 const METHOD: { t: string; d: string }[] = [
   { t: 'A conversation first',
-    d: 'Before anything is built, your Client Success Manager talks with you — what the seat is really for, who you are to work alongside, what has gone wrong with past hires. Relève is a matching platform, not a job board; the match starts with understanding, not a posting.' },
+    d: 'Before anything is built, your Client Success Manager talks with you: what the seat is really for, who you are to work alongside, what has gone wrong with past hires. Relève is a matching platform, not a job board; the match starts with understanding, not a posting.' },
   { t: 'Your Executive Signature',
-    d: 'You spend twenty to twenty-five minutes on the Signature — the instrument every candidate is measured against. It reads twelve working-style axes across eighteen facets: how you decide, how you delegate, where you want someone ahead of you and where you want them to wait to be asked. It is saved as you go, and it is the whole basis of who you are shown.' },
+    d: 'You spend twenty to twenty-five minutes on the Signature, the instrument every candidate is measured against. It reads twelve working-style axes across eighteen facets: how you decide, how you delegate, where you want someone ahead of you and where you want them to wait to be asked. It is saved as you go, and it is the whole basis of who you are shown.' },
   { t: 'One person, chosen by hand',
-    d: 'We do not send you a directory to sort through. Your manager sources against your Signature, vets the shortlist themselves, and puts a single person in front of you — the one they would stake the relationship on — with the reasons written out in plain words. If that one is not right, you tell us why, and the next is sharper for it.' },
+    d: 'We do not send you a directory to sort through. Your manager sources against your Signature, vets every candidate themselves, and puts a single person in front of you, the one they would stake the relationship on, with the reasons written out in plain words. If that one is not right, you tell us why, and the next is sharper for it.' },
   { t: 'You meet them',
     d: 'You interview on your own terms and your own calendar. Nobody is placed on you; the decision is always yours to make, and there is no pressure to take a candidate you are not sure of. A good no is worth more to the next match than a reluctant yes.' },
   { t: 'The working relationship',
@@ -27,13 +27,13 @@ export default function HowContent() {
           The whole idea
         </div>
         <h2 style={{ fontSize: 30, color: 'var(--cream)', marginBottom: 14, maxWidth: 620 }}>
-          One person, matched to how you actually work — not the first one available.
+          One person, matched to how you actually work, not the first one available.
         </h2>
         <p className="small" style={{ maxWidth: 640, color: 'var(--pale)' }}>
           Most staffing sends you a stack of résumés and calls the sorting your job.
           Relève does the opposite: we measure how you work, source against it by hand,
-          vet the person ourselves, and bring you the one we would stand behind — inside
-          fourteen days of opening your search. What follows is exactly how that happens,
+          vet the person ourselves, and bring you the one we would stand behind,
+          within fourteen days of your search opening. What follows is exactly how that happens,
           and exactly what it costs.
         </p>
       </div>
@@ -85,7 +85,7 @@ export default function HowContent() {
           <li>completed a skills breakdown their manager has reviewed against your role.</li>
         </ul>
         <p className="small muted" style={{ marginTop: 14, maxWidth: 640 }}>
-          It is why we send one name and not twenty — the work of trusting someone has
+          It is why we send one name and not twenty. The work of trusting someone has
           been done for you, rather than handed to you.
         </p>
       </div>
@@ -96,7 +96,7 @@ export default function HowContent() {
         </div>
         <p className="small" style={{ color: 'var(--cream)', maxWidth: 620, margin: 0 }}>
           One vetted candidate, chosen for you personally, in front of you within fourteen
-          days of your search opening. Not a list to sort — a person to meet. If the search
+          days of your search opening. Not a list to sort, but a person to meet. If the search
           runs long, it is because we are still finding the right one rather than settling
           for an available one, and your manager is on it personally the whole way.
         </p>
@@ -115,8 +115,8 @@ export default function HowContent() {
           </div>
         </div>
         <p className="small muted" style={{ marginTop: 4, maxWidth: 640 }}>
-          The <b>{money(DEPOSIT_CENTS)}</b> deposit is what starts the sourcing — and it is
-          not an extra fee. It is credited in full against your first month once you are
+          The <b>{money(DEPOSIT_CENTS)}</b> deposit is what starts the sourcing,
+          and it is not an extra fee. It is credited in full against your first month once you are
           placed, so the only thing it really buys is the search beginning now instead of
           after an invoice clears. The monthly retainer, set with you inside the range above,
           begins when your placement does, is prorated for the first partial month, and can

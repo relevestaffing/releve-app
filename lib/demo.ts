@@ -54,7 +54,8 @@ const vals: Record<string, Validity> = {
   t4:{verdict:'Valid',im:40,attFails:0,inconsistency:16,extreme:30,straight:5,medSec:6.2,flags:[]},
   t5:{verdict:'Valid',im:20,attFails:0,inconsistency:10,extreme:38,straight:4,medSec:9.1,flags:[]},
   t6:{verdict:'Review',im:78,attFails:0,inconsistency:22,extreme:52,straight:7,medSec:4.4,
-      flags:[{k:'Impression management',v:'78/100',d:'Endorsed implausibly flattering statements — trait highs may be inflated.'}]},
+      flags:[{k:'Impression management',v:'78/100',d:'Endorsed implausibly flattering statements, so trait highs may be inflated.'
+}]},
   t7:{verdict:'Valid',im:35,attFails:0,inconsistency:14,extreme:46,straight:5,medSec:7.1,flags:[]},
   t8:{verdict:'Valid',im:28,attFails:0,inconsistency:6,extreme:26,straight:4,medSec:10.4,flags:[]}
 };

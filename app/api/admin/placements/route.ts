@@ -5,7 +5,9 @@ import { setPlacementRate } from '@/lib/money';
 import { personEmail, getPlacement } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { fmtDate } from '@/lib/words';
-import { toCents, rateInRange } from '@/lib/money-public';
+import { toCents, rateInRange, todayInPacific } from '@/lib/money-public';
+import { ENDED_REASONS } from '@/lib/care-public';
+import { configured, supabaseServer } from '@/lib/supabase/server';
 import { safeMessage } from '@/lib/errors';
 
 export async function POST(req: Request) {
@@ -25,6 +27,24 @@ export async function POST(req: Request) {
       error: 'That rate is outside the agreed range. Leave it blank to set it later in Billing.'
     }, { status: 400 });
 
+  if (started_on && !/^\d{4}-\d{2}-\d{2}$/.test(String(started_on)))
+    return NextResponse.json({ error: 'that start date is not a date' }, { status: 400 });
+
+  /* A replacement settles the guarantee on the placement it replaces and
+     inherits what is left of that one's minimum term, so it has to be a real
+     guaranteed ending for the same executive. Anything else would let the
+     minimum be reset, or a different client's seat be marked settled. */
+  if (replaces_id && configured()) {
+    const sb = await supabaseServer();
+    const { data: prev } = await sb.from('placements')
+      .select('id, client_id, ended_on, ended_reason').eq('id', String(replaces_id)).maybeSingle();
+    const guaranteed = ENDED_REASONS.find(r => r.key === (prev as any)?.ended_reason)?.guaranteed;
+    if (!prev || (prev as any).client_id !== client_id || !(prev as any).ended_on || !guaranteed)
+      return NextResponse.json({
+        error: 'A replacement has to replace an ended placement with the same executive that is owed one.'
+      }, { status: 400 });
+  }
+
   try {
     const id = await createPlacement(client_id, talent_id, started_on, replaces_id ?? null);
     if (cents != null && id) await setPlacementRate(id, cents);
@@ -33,7 +53,7 @@ export async function POST(req: Request) {
        been generated for them. Nine onboarding steps used to appear in an
        account neither person had been asked to open. */
     try {
-      const on = fmtDate(started_on || new Date().toISOString().slice(0, 10));
+      const on = fmtDate(started_on || todayInPacific());
       const [exec, talent] = await Promise.all([personEmail(client_id), personEmail(talent_id)]);
       if (exec?.email && talent) {
         const t = templates.placementStarted({
@@ -58,13 +78,17 @@ export async function PATCH(req: Request) {
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
   const { id, ended_on, reason } = await req.json();
   if (!id) return NextResponse.json({ error: 'which placement?' }, { status: 400 });
+  if (reason && !ENDED_REASONS.some(r => r.key === reason))
+    return NextResponse.json({ error: 'that is not a reason we record' }, { status: 400 });
+  if (ended_on && !/^\d{4}-\d{2}-\d{2}$/.test(String(ended_on)))
+    return NextResponse.json({ error: 'that end date is not a date' }, { status: 400 });
   try {
     await endPlacement(id, ended_on, reason);
     /* Both sides hear that it has ended, in their own terms. */
     try {
       const pl = await getPlacement(id);
       if (pl) {
-        const endedOn = fmtDate(ended_on ?? new Date().toISOString().slice(0, 10));
+        const endedOn = fmtDate(ended_on ?? todayInPacific());
         const [exec, talent] = await Promise.all([personEmail(pl.client_id), personEmail(pl.talent_id)]);
         if (exec?.email && talent) await send(exec.email, templates.placementEnded({ name: exec.name, withWhom: talent.full, endedOn, side: 'client' }));
         if (talent?.email && exec) await send(talent.email, templates.placementEnded({ name: talent.name, withWhom: exec.full, endedOn, side: 'talent' }));

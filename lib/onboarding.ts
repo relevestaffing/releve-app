@@ -37,7 +37,7 @@ export function talentSteps(o: {
   return [
     { key: 'vetting', title: 'Verify who you are', href: '/app/vetting', minutes: '5 min',
       blurb: idDone
-        ? 'Verified. The signed agreement is ours to send and file — nothing more for you to do.'
+        ? 'Verified. The signed agreement is ours to send and file. There is nothing more for you to do.'
         : sent > 0
           ? 'Sent, and with us. We check documents within one working day and will email you either way.'
           : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',
@@ -49,7 +49,7 @@ export function talentSteps(o: {
         : 'How you work and who you are under pressure. Nothing is matched until this is done.',
       done: o.hasSignature && !o.signatureInvalid, critical: true },
     { key: 'skills', title: 'Break down your skills', href: '/app/skills', minutes: '8 min',
-      blurb: 'Pick every kind of work you are good at — each opens its own breakdown. This is what decides the roles you are put forward for.',
+      blurb: 'Pick every kind of work you are good at. Each opens its own breakdown. This is what decides the roles you are put forward for.',
       done: !!o.hasSkills, critical: true },
     { key: 'watch', title: 'Take the Watch', href: '/app/watch', minutes: '2½–3 hrs, per discipline',
       blurb: o.watch === 'awaiting_review'
@@ -57,7 +57,7 @@ export function talentSteps(o: {
         : o.watch === 'cleared'
           ? 'Cleared. You are eligible to be put forward for every discipline you claimed.'
           : o.watch === 'none'
-            ? 'Comes after you pick your skills below — a real day of work in each discipline you claim, done once. Nobody is put in front of an executive without it.'
+            ? 'Comes after you pick your skills below: a real day of work in each discipline you claim, done once. Nobody is put in front of an executive without it.'
             : 'A real day of work in each discipline you claimed, done once. Nobody is put in front of an executive without it.',
       /* Only actually cleared counts as done. 'none' used to count as done
          too, on the idea that nothing is outstanding if nothing has been
@@ -72,7 +72,7 @@ export function talentSteps(o: {
       blurb: 'The hours you can genuinely take a call. Without this, no executive can book you.',
       done: o.hasAvailability, critical: true },
     { key: 'profile', title: 'Complete your profile', href: '/app/talent/edit', minutes: '5 min',
-      blurb: 'Skills, experience and a short introduction — this is what an executive reads first.',
+      blurb: 'Skills, experience and a short introduction. This is what an executive reads first.',
       done: o.hasProfile },
     { key: 'payout', title: 'Say how you want to be paid', href: '/app/pay', minutes: '2 min',
       blurb: 'Relève pays you directly each month. Doing this now means the first payment is not held up while we ask.',
@@ -81,7 +81,7 @@ export function talentSteps(o: {
       blurb: 'People hire people. A face makes a real difference to how a profile lands.',
       done: o.hasPhoto },
     { key: 'intro_video', title: 'Record a short introduction', href: '/app/talent/edit#video', minutes: '5 min',
-      blurb: 'Thirty to sixty seconds of you, in your own voice. Executives read a lot of profiles — this is what makes yours stick.',
+      blurb: 'Thirty to sixty seconds of you, in your own voice. Executives read a lot of profiles. This is what makes yours stick.',
       done: !!o.hasIntroVideo }
   ];
 }
@@ -91,7 +91,7 @@ export function clientSteps(o: {
 }): Step[] {
   return [
     { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: '15–20 min',
-      blurb: 'How you run your day. Every candidate is scored against it before you see a name. It saves as you go — stop and come back whenever you like.',
+      blurb: 'How you run your day. Every candidate is scored against it before you see a name. It saves as you go, so stop and come back whenever you like.',
       done: o.hasSignature, critical: true },
     { key: 'role', title: 'Break down the role', href: '/app/role', minutes: '10 min',
       blurb: 'Say what the role is, then answer questions specific to it. The more exact you are, the closer the match lands.',

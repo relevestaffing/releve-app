@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useId } from 'react';
 import { WEEKDAYS, minutesToLabel, type Window } from '@/lib/scheduling';
 import { saving } from './Toast';
 
@@ -19,6 +19,7 @@ const ZONES = [
 ];
 
 export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }) {
+  const fid = useId();
   const [tz, setTz] = useState('UTC');
   const [windows, setWindows] = useState<Window[]>([]);
   const [saved, setSaved] = useState(false);
@@ -80,14 +81,14 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
         <h3>When you are free</h3>
       </div>
       <div className="ff" style={{ maxWidth: 340 }}>
-        <label>Your timezone</label>
-        <select value={ZONES.includes(tz) ? tz : ''} onChange={e => { setTz(e.target.value); setSaved(false); }}>
+        <label htmlFor={`${fid}-1`}>Your timezone</label>
+        <select id={`${fid}-1`} value={ZONES.includes(tz) ? tz : ''} onChange={e => { setTz(e.target.value); setSaved(false); }}>
           {!ZONES.includes(tz) && <option value="">{tz.replace(/_/g, ' ')} (detected)</option>}
-          {ZONES.map(z => <option key={z} value={z}>{z.replace(/_/g, ' ').replace('/', ' — ')}</option>)}
+          {ZONES.map(z => <option key={z} value={z}>{z.replace(/_/g, ' ').replace('/', ': ')}</option>)}
         </select>
         <span className="xs muted">
           Every time you are shown, and every slot offered to you, is worked out from this.
-          We guessed it from your device — change it if that is wrong.
+          We guessed it from your device, so change it if that is wrong.
         </span>
       </div>
       <p className="small muted" style={{ marginBottom: 20 }}>
@@ -104,7 +105,7 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
           <div key={d} style={{ display: 'contents' }}>
             <div className="avail-day">{WEEKDAYS[d].slice(0, 3)}</div>
             {HOURS.map(h => (
-              <button key={h} className={`avail-cell ${isOn(d, h) ? 'on' : ''}`}
+              <button key={h} className={`avail-cell ${isOn(d, h) ? 'on' : ''}`} aria-pressed={isOn(d, h)}
                 onClick={() => toggle(d, h)} aria-label={`${WEEKDAYS[d]} ${minutesToLabel(h)}`} />
             ))}
           </div>
@@ -131,7 +132,7 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
 
       <div className="row" style={{ marginTop: 22, gap: 14, flexWrap: 'wrap' }}>
         <button className="btn solid" disabled={busy} onClick={save}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save availability'}</button>
-        <span className="small muted">{windows.length ? `${windows.length} window${windows.length > 1 ? 's' : ''} set` : 'Nothing set — you will not be offered any interviews'}</span>
+        <span className="small muted">{windows.length ? `${windows.length} window${windows.length > 1 ? 's' : ''} set` : 'Nothing set. You will not be offered any interviews'}</span>
       </div>
     </div>
   );

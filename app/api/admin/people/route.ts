@@ -3,6 +3,7 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { createPerson, listPending, deleteAccount, deletePendingPerson } from '@/lib/store';
 import { send, templates } from '@/lib/email';
 import { safeMessage } from '@/lib/errors';
+import { firstName } from '@/lib/words';
 
 async function guard() {
   const p = await currentProfile();
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
        whatever signing link (DocuSign, most likely) the admin already has in
        hand for this person — it is not stored, only used for this one send,
        so there is no schema to migrate for it. */
-    const first = String(body.full_name ?? '').split(' ')[0] ?? '';
+    const first = firstName(body.full_name, '');
     const docsUrl = String(body.docs_url ?? '').trim() || undefined;
     const tpl = body.role === 'client'
       ? templates.clientInvite(first, { docsUrl })

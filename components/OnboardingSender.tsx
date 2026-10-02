@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/Toast';
+import { firstName } from '@/lib/words';
 
 /* The whole intake for an executive, right after the discovery call.
    --------------------------------------------------------------
@@ -10,6 +11,7 @@ import { toast } from '@/components/Toast';
    role brief and everything else can be filled in afterwards, from their
    row below; nothing here waits on it. */
 export default function OnboardingSender() {
+  const fid = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -28,8 +30,8 @@ export default function OnboardingSender() {
       });
       d = await r.json().catch(() => ({}));
     } catch {
-      setBusy(false); setErr('No connection — nothing was sent.');
-      toast.bad('No connection — nothing was sent.'); return;
+      setBusy(false); setErr('No connection, so nothing was sent.');
+      toast.bad('No connection, so nothing was sent.'); return;
     }
     setBusy(false);
     if (!r.ok) {
@@ -38,9 +40,9 @@ export default function OnboardingSender() {
     }
     /* emailed:false in real mode means the mail host refused — not preview
        mode. The record stands either way; the words have to say which. */
-    if (d.emailed === false && d.note) toast.saved(`${name.split(' ')[0]} added — nothing emailed in preview mode`);
-    else if (d.emailed === false) toast.bad(`${name.split(' ')[0]} added, but the email did not send — check Email on the Team page and resend`);
-    else toast.saved(`Onboarding sent to ${name.split(' ')[0]}`);
+    if (d.emailed === false && d.note) toast.saved(`${firstName(name)} added. Nothing was emailed in preview mode`);
+    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check Email on the Team page and resend`);
+    else toast.saved(`Onboarding sent to ${firstName(name)}`);
     if (d.warning) toast.ok(d.warning);
     (e.target as HTMLFormElement).reset();
     setOpen(false);
@@ -55,7 +57,7 @@ export default function OnboardingSender() {
     <div className="card" style={{ marginBottom: 22 }}>
       <div className="card-head">
         <h3>Send onboarding email</h3>
-        <button className="x-btn" onClick={() => setOpen(false)}>×</button>
+        <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="small muted" style={{ marginBottom: 20, maxWidth: 560 }}>
         For right after the discovery call. Opens their search and emails them
@@ -64,11 +66,11 @@ export default function OnboardingSender() {
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>
-          <div className="ff"><label>Full name</label><input name="name" required placeholder="Elena Marsh" /></div>
-          <div className="ff"><label>Email</label><input name="email" type="email" required placeholder="elena@marshco.com" /></div>
+          <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="name" required placeholder="Elena Marsh" /></div>
+          <div className="ff"><label htmlFor={`${fid}-2`}>Email</label><input id={`${fid}-2`} name="email" type="email" required placeholder="elena@marshco.com" /></div>
         </div>
-        <div className="ff"><label>Documents link — optional</label>
-          <input name="docs_url" type="url" placeholder="Paste the DocuSign link once it's out, or leave blank and send it separately" /></div>
+        <div className="ff"><label htmlFor={`${fid}-3`}>Documents link (optional)</label>
+          <input id={`${fid}-3`} name="docs_url" type="url" placeholder="Paste the DocuSign link once it's out, or leave blank and send it separately" /></div>
         <button className="btn solid" disabled={busy}>{busy ? 'Sending…' : 'Send onboarding email'}</button>
         {err && <div className="err">{err}</div>}
       </form>

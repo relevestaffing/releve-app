@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { firstName } from '@/lib/words';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from '@/components/Toast';
 import { fmtDate } from '@/lib/words';
@@ -7,7 +8,8 @@ import { fmtDate } from '@/lib/words';
 const STAGES = ['Sourcing', 'Presented', 'Interviewing', 'Placed', 'On hold'];
 
 export default function RoleBriefEditor({ clientKey, pending, initial, name }:
-  { clientKey: string; pending: boolean; initial: any; name: string }) {
+  { clientKey: string; pending: boolean; initial: any; name: string | null }) {
+  const fid = useId();
   const router = useRouter();
   const [open, setOpen] = useState(!initial?.role_title);
   const [busy, setBusy] = useState(false);
@@ -27,7 +29,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
     const ok = await saving(() => fetch('/api/admin/search', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ client_key: clientKey, pending, action: open ? 'open' : 'close', reason: 'withdrawn' })
-    }), open ? `${name.split(' ')[0]} can see candidates again` : 'Search closed');
+    }), open ? `${firstName(name, 'The executive')} can see candidates again` : 'Search closed');
     setFlipping(false);
     if (ok) router.refresh();
   }
@@ -65,8 +67,8 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
       </div>
       <p className="xs muted" style={{ marginTop: 8 }}>
         {hiring
-          ? `${name.split(' ')[0]} can see their candidate, interviews and role brief.`
-          : `${name.split(' ')[0]} sees only the people already working with them. Open a search to put someone new in front of them.`}
+          ? `${firstName(name, 'The executive')} can see their candidate, interviews and role brief.`
+          : `${firstName(name, 'The executive')} sees only the people already working with them. Open a search to put someone new in front of them.`}
       </p>
       <dl className="brief-facts">
         {initial.scope && <><dt>Owns</dt><dd>{initial.scope}</dd></>}
@@ -80,26 +82,26 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
   return (
     <form onSubmit={submit} onChange={() => setSaved(false)} className="brief-read">
       <p className="xs muted" style={{ marginBottom: 14 }}>
-        From the intro call with {name.split(' ')[0]}. Written the way you would say it back to them.
+        From the intro call with {firstName(name, 'the executive')}. Written the way you would say it back to them.
       </p>
       <div className="grid-2" style={{ gap: 12 }}>
-        <div className="ff"><label>Role</label>
-          <input name="role_title" defaultValue={initial?.role_title ?? ''} placeholder="Chief of Staff" required /></div>
-        <div className="ff"><label>Stage</label>
-          <select name="stage" defaultValue={initial?.stage ?? 'Sourcing'}>
+        <div className="ff"><label htmlFor={`${fid}-1`}>Role</label>
+          <input id={`${fid}-1`} name="role_title" defaultValue={initial?.role_title ?? ''} placeholder="Chief of Staff" required /></div>
+        <div className="ff"><label htmlFor={`${fid}-2`}>Stage</label>
+          <select id={`${fid}-2`} name="stage" defaultValue={initial?.stage ?? 'Sourcing'}>
             {STAGES.map(s => <option key={s}>{s}</option>)}</select></div>
       </div>
-      <div className="ff"><label>What the talent will own</label>
-        <textarea name="scope" rows={2} defaultValue={initial?.scope ?? ''}
+      <div className="ff"><label htmlFor={`${fid}-3`}>What the talent will own</label>
+        <textarea id={`${fid}-3`} name="scope" rows={2} defaultValue={initial?.scope ?? ''}
           placeholder="Inbox and calendar, board prep, running the weekly leadership meeting end to end." /></div>
       <div className="grid-2" style={{ gap: 12 }}>
-        <div className="ff"><label>Hours</label>
-          <input name="hours" defaultValue={initial?.hours ?? ''} placeholder="40 a week, four overlapping 8am–12pm Pacific" /></div>
-        <div className="ff"><label>Tools they must know</label>
-          <input name="tools" defaultValue={initial?.tools ?? ''} placeholder="Notion, Superhuman, Ramp" /></div>
+        <div className="ff"><label htmlFor={`${fid}-4`}>Hours</label>
+          <input id={`${fid}-4`} name="hours" defaultValue={initial?.hours ?? ''} placeholder="40 a week, four overlapping 8am–12pm Pacific" /></div>
+        <div className="ff"><label htmlFor={`${fid}-5`}>Tools they must know</label>
+          <input id={`${fid}-5`} name="tools" defaultValue={initial?.tools ?? ''} placeholder="Notion, Superhuman, Ramp" /></div>
       </div>
-      <div className="ff" style={{ maxWidth: 300 }}><label>Target start</label>
-        <input type="date" name="target_at" defaultValue={initial?.target_at ?? ''} /></div>
+      <div className="ff" style={{ maxWidth: 300 }}><label htmlFor={`${fid}-6`}>Target start</label>
+        <input id={`${fid}-6`} type="date" name="target_at" defaultValue={initial?.target_at ?? ''} /></div>
       <div className="row" style={{ gap: 12 }}>
         <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save brief'}</button>
         {initial?.role_title && <button type="button" className="btn sm ghost" onClick={() => setOpen(false)}>Cancel</button>}

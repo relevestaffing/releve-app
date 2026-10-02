@@ -4190,7 +4190,7 @@ begin
   for c in
     select conname from pg_constraint
      where conrelid = 'talent_payments'::regclass and contype = 'u'
-       and (select array_agg(attname order by attname) from pg_attribute
+       and (select array_agg(attname::text order by attname) from pg_attribute
              where attrelid = 'talent_payments'::regclass and attnum = any(conkey))
            = array['period_start','talent_id']
   loop

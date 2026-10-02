@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UnreadBadge from './UnreadBadge';
 
 /* Line icons at a single 1.25px stroke, matching MobileNav's. */
 const ICONS: Record<string, React.ReactNode> = {
@@ -56,8 +57,8 @@ const CLIENT_PLACED = [
   { href: '/app/messages', label: 'Messages',   icon: 'message' }
 ];
 
-export default function QuickBar({ role, active, placedOnly = false }: {
-  role: string; active: string;
+export default function QuickBar({ role, active, placedOnly = false, unread = 0 }: {
+  role: string; active: string; unread?: number;
   /* true for an executive with a placement and no open search */
   placedOnly?: boolean;
 }) {
@@ -69,6 +70,7 @@ export default function QuickBar({ role, active, placedOnly = false }: {
           aria-current={active === p.href ? 'page' : undefined}>
           <Icon k={p.icon} />
           <span>{p.label}</span>
+          {p.icon === 'message' && <UnreadBadge initial={unread} variant="quick" />}
         </Link>
       ))}
     </nav>

@@ -87,8 +87,8 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
           <div className="empty-mark" aria-hidden="true" />
           <h3>The queue is empty for now</h3>
           <p className="small">
-            Once someone applies to this role, they land here — grouped by where they
-            stand, the same way your Applications page groups the whole queue.
+            Once someone applies to this role, they land here,
+            grouped by where they stand, the same way your Applications page groups the whole queue.
           </p>
         </div>
       ) : (

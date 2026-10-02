@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
-import { savePayout, confirmPayout, setPaymentState, payTheMonth, setTaxForm, setTalentPay } from '@/lib/payout';
+import { savePayout, confirmPayout, setPaymentState, payTheMonth, setTaxForm, setTalentPay, setPlacementPay } from '@/lib/payout';
+import { isOwner } from '@/lib/money';
 import { PAYOUT_METHODS, TAX_RESIDENCE_PROMPT, TAX_COUNTRY_PROMPT, periodLabel } from '@/lib/payout-public';
 import { money } from '@/lib/money-public';
 import { send, templates } from '@/lib/email';
@@ -18,6 +19,10 @@ export async function POST(req: Request) {
     if (me.role !== 'talent' && me.role !== 'admin')
       return NextResponse.json({ error: 'not permitted' }, { status: 403 });
     const target = me.role === 'admin' && b.talent_id ? String(b.talent_id) : me.id;
+    /* Where somebody's pay is sent is the owner's to change on their behalf,
+       nobody else's on the team (B18). */
+    if (me.role === 'admin' && target !== me.id && !(await isOwner()))
+      return NextResponse.json({ error: 'Only the owner can change someone else\'s payment details.' }, { status: 403 });
     if (!PAYOUT_METHODS.some(m => m.key === b.method))
       return NextResponse.json({ error: 'Choose how you would like to be paid.' }, { status: 400 });
     const beneficiary = String(b.beneficiary ?? '').trim().slice(0, 160);
@@ -58,6 +63,8 @@ export async function POST(req: Request) {
   try {
     if (b.action === 'confirm') {
       if (!b.talent_id) return NextResponse.json({ error: 'which person?' }, { status: 400 });
+      if (!(await isOwner()))
+        return NextResponse.json({ error: 'Only the owner confirms payment details.' }, { status: 403 });
       await confirmPayout(String(b.talent_id));
       return NextResponse.json({ ok: true });
     }
@@ -71,11 +78,19 @@ export async function POST(req: Request) {
     if (b.action === 'payment') {
       if (!b.id || !['due', 'sent', 'failed'].includes(b.state))
         return NextResponse.json({ error: 'which payment, and what happened to it?' }, { status: 400 });
+      const cents = (v: unknown) => {
+        if (v === undefined || v === null || v === '') return null;
+        const n = Math.round(Number(v));
+        return Number.isFinite(n) && n >= 0 ? n : null;
+      };
       await setPaymentState(String(b.id), {
         state: b.state,
         method: b.method ?? null,
         reference: String(b.reference ?? '').trim().slice(0, 160) || null,
-        note: String(b.note ?? '').trim().slice(0, 600) || null
+        ...(b.note !== undefined ? { note: String(b.note ?? '').trim().slice(0, 600) || null } : {}),
+        sent_cents: cents(b.sent_cents),
+        fee_cents: cents(b.fee_cents),
+        fx_note: String(b.fx_note ?? '').trim().slice(0, 200) || null
       });
       /* The talent's own notification for their own payment status — the
          notification half of this screen that never existed (talent-
@@ -85,13 +100,13 @@ export async function POST(req: Request) {
         try {
           const sb = await supabaseServer();
           const { data: payment } = await sb.from('talent_payments')
-            .select('talent_id, amount_cents, period_start, talent:talent_id(full_name, email)')
+            .select('talent_id, amount_cents, sent_cents, period_start, talent:talent_id(full_name, email)')
             .eq('id', String(b.id)).maybeSingle();
           const talent = (payment as any)?.talent;
           if (talent?.email) {
             const args = {
               name: talent.full_name?.split(/\s+/)?.[0] || 'there',
-              amount: money((payment as any).amount_cents),
+              amount: money((payment as any).sent_cents ?? (payment as any).amount_cents, true),
               period: periodLabel((payment as any).period_start),
               reference: b.reference ? String(b.reference).trim().slice(0, 160) : null
             };
@@ -107,6 +122,14 @@ export async function POST(req: Request) {
       if (!b.talent_id || !Number.isFinite(cents) || cents <= 0)
         return NextResponse.json({ error: 'which person, and how much a month?' }, { status: 400 });
       await setTalentPay(String(b.talent_id), Math.round(cents));
+      return NextResponse.json({ ok: true });
+    }
+    /* What Relève pays the talent on one placement: the number payroll uses. */
+    if (b.action === 'set_placement_pay') {
+      const cents = b.cents == null || b.cents === '' ? null : Number(b.cents);
+      if (!b.placement_id || (cents != null && (!Number.isFinite(cents) || cents <= 0)))
+        return NextResponse.json({ error: 'which placement, and how much a month?' }, { status: 400 });
+      await setPlacementPay(String(b.placement_id), cents == null ? null : Math.round(cents));
       return NextResponse.json({ ok: true });
     }
     if (b.action === 'run') {

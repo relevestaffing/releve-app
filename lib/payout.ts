@@ -1,5 +1,6 @@
 import { configured, supabaseServer } from '@/lib/supabase/server';
 import type { Payout, TalentPayment } from '@/lib/payout-public';
+import { todayInPacific } from '@/lib/money-public';
 export * from '@/lib/payout-public';
 
 /* ---------- how somebody gets paid ---------- */
@@ -33,7 +34,7 @@ export async function setTaxForm(talentId: string, held: boolean) {
   const sb = await supabaseServer();
   const { error } = await sb.from('talent_payout').update({
     tax_form_on_file: held,
-    tax_form_signed_on: held ? new Date().toISOString().slice(0, 10) : null
+    tax_form_signed_on: held ? todayInPacific() : null
   }).eq('talent_id', talentId);
   if (error) throw new Error(error.message);
 }
@@ -62,7 +63,7 @@ export async function setTalentPay(talentId: string, cents: number) {
     .select('id').eq('talent_id', talentId).is('ended_on', null);
   const activeIds = ((live ?? []) as any[]).map(p => p.id);
   if (activeIds.length > 1) {
-    throw new Error('This person is on two active placements at once — open each placement and set pay there instead of from the roster.');
+    throw new Error('This person works two placements at once. Set the pay for each one on its placement file, under Placements.');
   }
   if (activeIds.length === 1) {
     const { error } = await sb.from('placement_terms')
@@ -75,6 +76,21 @@ export async function setTalentPay(talentId: string, cents: number) {
     .upsert({ talent_id: talentId, rate_month_cents: cents, rate_month: Math.round(cents / 100),
               updated_at: new Date().toISOString() }, { onConflict: 'talent_id' });
   if (error) throw new Error(error.message);
+}
+
+/** What Relève pays the talent on one placement. The per-placement number
+    payroll actually reads; the roster rate is only the fallback. */
+export async function setPlacementPay(placementId: string, cents: number | null) {
+  const sb = await supabaseServer();
+  const { data, error } = await sb.from('placement_terms')
+    .update({ talent_pay_cents: cents, updated_at: new Date().toISOString() })
+    .eq('placement_id', placementId).select('placement_id').maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) {
+    const { error: e2 } = await sb.from('placement_terms')
+      .insert({ placement_id: placementId, talent_pay_cents: cents });
+    if (e2) throw new Error(e2.message);
+  }
 }
 
 /** Live placements whose talent has no pay on file — the people the
@@ -103,21 +119,35 @@ export async function listPayments(talentId?: string): Promise<TalentPayment[]> 
   if (!configured()) return [];
   const sb = await supabaseServer();
   let q = sb.from('talent_payments')
-    .select('*, talent:talent_id(full_name)')
+    .select('*, talent:talent_id(full_name), placement:placement_id(suspended_at, client:client_id(full_name, org_name))')
     .order('period_start', { ascending: false });
   if (talentId) q = q.eq('talent_id', talentId);
   const { data } = await q;
-  return ((data ?? []) as any[]).map(r => ({ ...r, talent_name: r.talent?.full_name })) as TalentPayment[];
+  return ((data ?? []) as any[]).map(r => ({
+    ...r, talent_name: r.talent?.full_name,
+    client_name: r.placement?.client?.org_name ?? r.placement?.client?.full_name ?? null,
+    paused: Boolean(r.placement?.suspended_at)
+  })) as TalentPayment[];
 }
 
+/* Recorded in US dollars: what was owed is amount_cents; what actually left
+   (if different), any fee Relève paid on top, and a free-text note of what
+   landed in the local currency. Never a second currency amount. */
 export async function setPaymentState(id: string, patch: {
   state: 'due' | 'sent' | 'failed'; method?: string | null; reference?: string | null; note?: string | null;
+  sent_cents?: number | null; fee_cents?: number | null; fx_note?: string | null;
 }) {
   const sb = await supabaseServer();
-  const { error } = await sb.from('talent_payments').update({
-    ...patch,
-    sent_on: patch.state === 'sent' ? new Date().toISOString().slice(0, 10) : null
-  }).eq('id', id);
+  const row: Record<string, unknown> = {
+    state: patch.state, method: patch.method ?? null, reference: patch.reference ?? null,
+    currency: 'USD',
+    sent_on: patch.state === 'sent' ? todayInPacific() : null
+  };
+  if (patch.note !== undefined) row.note = patch.note;
+  if (patch.sent_cents !== undefined) row.sent_cents = patch.sent_cents;
+  if (patch.fee_cents !== undefined) row.fee_cents = patch.fee_cents;
+  if (patch.fx_note !== undefined) row.fx_note = patch.fx_note;
+  const { error } = await sb.from('talent_payments').update(row).eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -125,7 +155,7 @@ export async function setPaymentState(id: string, patch: {
 export async function payTheMonth(month?: string): Promise<number> {
   const sb = await supabaseServer();
   const { data, error } = await sb.rpc('pay_the_month',
-    { for_month: month ?? new Date().toISOString().slice(0, 10) });
+    { for_month: month ?? todayInPacific() });
   if (error) throw new Error(error.message);
   return (data as number) ?? 0;
 }

@@ -32,6 +32,8 @@ import { firstName } from '@/lib/words';
 import { docusignClientReady } from '@/lib/docusign';
 import { getClientAgreement } from '@/lib/agreement';
 import ClientAgreementCard from '@/components/ClientAgreementCard';
+import ManagerLine from '@/components/ManagerLine';
+import { primaryManager, viewerTimezone, todayIn } from '@/lib/experience';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -97,6 +99,10 @@ export default async function AppHome() {
      Guarantee, made visible rather than left to a line of copy — same gate
      as the deposit. All three only need stage, not each other, so they run
      together rather than one after the next. */
+  /* Dates on this page ("today", "day 3 of 14") in the reader's own
+     timezone; Pacific, the business's own, when their profile has none. */
+  const tz = await viewerTimezone(profile.id);
+  const today = todayIn(tz ?? 'America/Los_Angeles');
   const [placements, deposit, brief, clientAgreement] = await Promise.all([
     side === 'client'
       ? (stage.placed ? listPlacementsFor(profile.id) : Promise.resolve([]))
@@ -155,7 +161,9 @@ export default async function AppHome() {
      below, which from here on only ever catches talent, and clients who have
      already paid and still owe their Signature. A placed executive never
      enters here. */
-  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived';
+  /* An ACH deposit in 'processing' has been paid from the client's side; it
+     only waits on the bank, so it does not hold them in the tour. */
+  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived' || deposit?.status === 'processing';
   if (side === 'client' && !stage.placed && !depositSettled) {
     return (
       <Shell profile={profile} active="/app"
@@ -175,8 +183,8 @@ export default async function AppHome() {
       <div className="card tight">
         <p className="small muted">
           {side === 'client'
-            ? 'Your search is open and your deposit is in. The Signature is the last thing we need from you — every candidate is scored against it before their name reaches you. Your Client Success Manager is already sourcing.'
-            : 'Nothing is matched until your Signature exists. Once these are done, we do the work — your Talent Success Manager will come to you when a role fits.'}
+            ? 'Your search is open and your deposit is in. The Signature is the last thing we need from you: every candidate is scored against it before their name reaches you. Your Client Success Manager is already sourcing.'
+            : 'Nothing is matched until your Signature exists. Once these are done, we do the work, and your Talent Success Manager will come to you when a role fits.'}
         </p>
       </div>
     </Shell>
@@ -204,6 +212,8 @@ export default async function AppHome() {
      what the relationship needs today: what is waiting on you, what your
      talent is working on, and a fast way to reach them. The talent side is
      unchanged below — this split only applies to the client dashboard. */
+  const manager = stage.placed || side === 'talent' ? await primaryManager(profile) : null;
+
   if (side === 'client') {
     /* Waiting on the executive means a candidate is in front of them with no
        answer. With nobody released yet the wait is Relève's, and the card
@@ -227,10 +237,10 @@ export default async function AppHome() {
           <div className="row between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
             <p className="small" style={{ margin: 0, maxWidth: 520 }}>
               {declinedAll
-                ? 'Thank you for telling us why that one was not right — it is exactly how the next match gets sharper. Your Client Success Manager is choosing the next candidate now.'
-                : 'Your Signature is done, and your Client Success Manager is working the search now. We put one person forward by hand rather than sending you a directory — you will hear from us within fourteen days of the search opening.'}
+                ? 'Thank you for telling us why that one was not right. It is exactly how the next match gets sharper. Your Client Success Manager is choosing the next candidate now.'
+                : 'Your Signature is done, and your Client Success Manager is working the search now. We put one person forward by hand rather than sending you a directory: a qualified candidate within fourteen days of the search opening.'}
             </p>
-            <Link className="btn sm solid" href="/app/messages">Message your manager</Link>
+            <Link className="btn sm solid" href="/app/messages?tab=sm">Message your manager</Link>
           </div>
         ) : (
           <>
@@ -285,14 +295,24 @@ export default async function AppHome() {
             <div className="stack dash-main">
               {placements.flatMap(p => [
                 <TaskBoard key={`tasks-${p.id}`} placementId={p.id} me={profile.id} side="client"
-                  counterpart={firstName(p.talent_name)} limit={10} seeAllHref="/app/tasks" />,
+                  counterpart={firstName(p.talent_name)} limit={10} seeAllHref="/app/tasks" tz={tz} />,
                 <PlacementProgress key={`progress-${p.id}`} steps={stepsByPlacement[p.id] ?? []} startedOn={p.started_on}
-                  planHref={placements.length === 1 ? '/app/care' : `/app/care/${p.id}`} />
+                  planHref={placements.length === 1 ? '/app/care' : `/app/care/${p.id}`} today={today} />
               ])}
             </div>
             <div className="stack dash-rail">
               {needsAttention}
               <PlacedSummary placements={placements} hiring={stage.hiring} />
+              {manager && (
+                <div className="card">
+                  <div className="card-head"><h3>Your Client Success Manager</h3></div>
+                  <ManagerLine manager={manager} />
+                  <div className="row" style={{ gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
+                    <Link className="btn sm ghost" href="/app/messages?tab=sm">Message</Link>
+                    <Link className="btn sm ghost" href="/app/report">Your month</Link>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -301,7 +321,8 @@ export default async function AppHome() {
              so this is the between-deposit-and-placement view: the guarantee
              countdown and whatever needs them. */
           <>
-            {brief?.opened_at && <GuaranteeBadge openedAt={brief.opened_at} firstCandidateOn={brief.first_candidate_on ?? null} />}
+            {brief?.opened_at && <GuaranteeBadge openedAt={brief.opened_at} firstCandidateOn={brief.first_candidate_on ?? null}
+              guaranteeDays={(brief as { guarantee_days?: number | null }).guarantee_days ?? 14} today={today} />}
             {needsAttention}
           </>
         )}
@@ -354,8 +375,32 @@ export default async function AppHome() {
 
       {placements.map(p => (
         <PlacementProgress key={`progress-${p.id}`} steps={stepsByPlacement[p.id] ?? []} startedOn={p.started_on}
-          planHref={placements.length === 1 ? '/app/care' : `/app/care/${p.id}`} />
+          planHref={placements.length === 1 ? '/app/care' : `/app/care/${p.id}`} today={today} />
       ))}
+
+      {placements.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>Today</h3></div>
+          <p className="small muted" style={{ marginTop: 0, maxWidth: 620 }}>
+            Two minutes at the end of the day: what got done, your hours, anything in the way.
+          </p>
+          <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+            <Link className="btn sm solid" href="/app/log">Write today’s log</Link>
+            <Link className="btn sm ghost" href="/app/tasks">Your tasks</Link>
+            <Link className="btn sm ghost" href="/app/brief">Your briefing</Link>
+          </div>
+        </div>
+      )}
+
+      {placements.length > 0 && manager && (
+        <div className="card">
+          <div className="card-head"><h3>Your Talent Success Manager</h3></div>
+          <ManagerLine manager={manager} />
+          <div className="row" style={{ marginTop: 16 }}>
+            <Link className="btn sm ghost" href="/app/messages?tab=sm">Message</Link>
+          </div>
+        </div>
+      )}
 
       {setup.complete ? (
         <div className="next-step">

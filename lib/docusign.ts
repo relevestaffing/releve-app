@@ -28,13 +28,14 @@ const USER_ID = process.env.DOCUSIGN_USER_ID;
 const PRIVATE_KEY = process.env.DOCUSIGN_PRIVATE_KEY;
 const TALENT_TEMPLATE_ID = process.env.DOCUSIGN_TALENT_AGREEMENT_TEMPLATE_ID;
 const CLIENT_TEMPLATE_ID = process.env.DOCUSIGN_CLIENT_AGREEMENT_TEMPLATE_ID;
-/* Sage's own signer identity — the "Company" role on both templates.
+/* Relève's countersigning identity: the "Company" role on both templates.
    Not a secret; just who DocuSign's second, countersigning recipient is.
-   The name is cosmetic (shows on the envelope and the signed PDF); the
-   email is what actually routes the countersign step to her. clientUserId
+   The name shows on the envelope and the signed PDF, so it defaults to the
+   brand, never a person (B26): nothing is signed as Sage personally. The
+   email is what actually routes the countersign step. clientUserId
    only has to stay the same across calls for the same person, so a fixed
    string is fine — there is exactly one Company signer. */
-const COMPANY_NAME = process.env.DOCUSIGN_COMPANY_SIGNER_NAME || 'Sage Jackson';
+const COMPANY_NAME = process.env.DOCUSIGN_COMPANY_SIGNER_NAME || 'Relève';
 const COMPANY_EMAIL = process.env.DOCUSIGN_COMPANY_SIGNER_EMAIL;
 const COMPANY_USER_ID = 'releve-company-signer';
 /* The HMAC key configured on the Connect subscription that delivers the
@@ -57,7 +58,7 @@ export function docusignWebhookReady() { return Boolean(CONNECT_KEY); }
    var — DocuSign's own error for a missing recipient email is much less
    legible than this. */
 export function companySigner(): { name: string; email: string; clientUserId: string } {
-  if (!COMPANY_EMAIL) throw new DocuSignError('DOCUSIGN_COMPANY_SIGNER_EMAIL is not set — Sage has no countersigning identity yet.');
+  if (!COMPANY_EMAIL) throw new DocuSignError('DocuSign has no countersigning address yet. Set DOCUSIGN_COMPANY_SIGNER_EMAIL on the server.');
   return { name: COMPANY_NAME, email: COMPANY_EMAIL, clientUserId: COMPANY_USER_ID };
 }
 
@@ -103,7 +104,7 @@ async function authenticate() {
   const tok: any = await tokRes.json().catch(() => ({}));
   if (!tokRes.ok) {
     const why = tok.error === 'consent_required'
-      ? 'DocuSign needs one-time consent — open the approval link (docusignConsentUrl) signed in as the sending account, then try again.'
+      ? 'DocuSign needs one-time consent. Open the approval link (docusignConsentUrl) signed in as the sending account, then try again.'
       : (tok.error_description ?? tok.error ?? 'DocuSign refused the login.');
     throw new DocuSignError(why);
   }
@@ -235,11 +236,18 @@ export async function downloadCompletedEnvelope(envelopeId: string): Promise<Buf
    because underneath it is the same thirty lines either way. Simpler than
    Stripe's: no timestamp to age-check, just a base64 HMAC-SHA256 of the
    raw body. */
-export function verifyDocuSignWebhook(rawBody: string, signatureHeader: string | null): void {
+export function verifyDocuSignWebhook(rawBody: string, signatureHeader: string | string[] | null): void {
   if (!CONNECT_KEY) throw new DocuSignError('No DOCUSIGN_CONNECT_KEY is set, so webhooks cannot be trusted.');
-  if (!signatureHeader) throw new DocuSignError('No signature on that request.');
-  const expected = createHmac('sha256', CONNECT_KEY).update(rawBody, 'utf8').digest('base64');
-  const a = Buffer.from(expected, 'utf8'), b = Buffer.from(signatureHeader, 'utf8');
-  if (a.length !== b.length || !timingSafeEqual(a, b))
-    throw new DocuSignError('That signature does not match.');
+  /* Connect sends one header per active HMAC key (X-DocuSign-Signature-1,
+     -2, ...), so a key rotation never drops events. Any one matching is
+     enough. */
+  const given = (Array.isArray(signatureHeader) ? signatureHeader : [signatureHeader])
+    .filter((v): v is string => Boolean(v));
+  if (!given.length) throw new DocuSignError('No signature on that request.');
+  const expected = Buffer.from(createHmac('sha256', CONNECT_KEY).update(rawBody, 'utf8').digest('base64'), 'utf8');
+  const matched = given.some(sig => {
+    const b = Buffer.from(sig.trim(), 'utf8');
+    return b.length === expected.length && timingSafeEqual(expected, b);
+  });
+  if (!matched) throw new DocuSignError('That signature does not match.');
 }

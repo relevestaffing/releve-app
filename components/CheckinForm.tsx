@@ -41,37 +41,38 @@ export default function CheckinForm({ placement, week, existing }: {
           </span>
         </div>
         <p className="small muted" style={{ marginBottom: 22 }}>
-          This goes to your Talent Success Manager at Relève — not to {firstName(placement.client_name)}.
-          Say what is actually true; that is the only way we can help.
+          This goes to your Talent Success Manager at Relève, not to {firstName(placement.client_name)}.
+          Say what is actually true; that is the only way we can help. Your day-to-day notes and the
+          highlights you share with {firstName(placement.client_name)} live in your <a href="/app/log">daily log</a>.
         </p>
 
-        <div className="ff"><label>What got done this week</label>
-          <textarea name="shipped" rows={3} defaultValue={existing?.shipped ?? ''}
+        <div className="ff"><label htmlFor={`ci-shipped-${placement.id}`}>What got done this week</label>
+          <textarea id={`ci-shipped-${placement.id}`} name="shipped" rows={3} defaultValue={existing?.shipped ?? ''}
             placeholder="The board pack, the inbox back to zero, the new supplier onboarded." /></div>
 
-        <div className="ff"><label>What is in the way</label>
-          <textarea name="blocked" rows={3} defaultValue={existing?.blocked ?? ''}
+        <div className="ff"><label htmlFor={`ci-blocked-${placement.id}`}>What is in the way</label>
+          <textarea id={`ci-blocked-${placement.id}`} name="blocked" rows={3} defaultValue={existing?.blocked ?? ''}
             placeholder="Anything you are waiting on, unclear about, or stuck behind. Leave empty if nothing." /></div>
 
-        <div className="ff"><label>How the working relationship feels</label>
-          <div className="rapport">
+        <div className="ff"><span className="label-like" id={`ci-rap-${placement.id}`}>How the working relationship feels</span>
+          <div className="rapport" role="group" aria-labelledby={`ci-rap-${placement.id}`}>
             {[1, 2, 3, 4, 5].map(n => (
               <button type="button" key={n} className={rapport === n ? 'on' : ''}
-                onClick={() => setRapport(n)} aria-label={`${n} out of 5`}>{n}</button>
+                onClick={() => setRapport(n)} aria-label={`${n} out of 5`} aria-pressed={rapport === n}>{n}</button>
             ))}
             <span className="xs muted">{['', 'Difficult', 'Strained', 'Fine', 'Good', 'Excellent'][rapport]}</span>
           </div>
         </div>
 
-        <div className="ff" style={{ maxWidth: 320 }}><label>Workload</label>
-          <select name="workload" defaultValue={existing?.workload ?? 'right'}>
+        <div className="ff" style={{ maxWidth: 320 }}><label htmlFor={`ci-load-${placement.id}`}>Workload</label>
+          <select id={`ci-load-${placement.id}`} name="workload" defaultValue={existing?.workload ?? 'right'}>
             <option value="light">Lighter than I could take</option>
             <option value="right">About right</option>
             <option value="heavy">Heavier than is sustainable</option>
           </select></div>
 
-        <div className="ff"><label>Anything else for Relève <span className="muted">— private</span></label>
-          <textarea name="note" rows={2} defaultValue={existing?.note ?? ''} /></div>
+        <div className="ff"><label htmlFor={`ci-note-${placement.id}`}>Anything else for Relève <span className="muted">(private)</span></label>
+          <textarea id={`ci-note-${placement.id}`} name="note" rows={2} defaultValue={existing?.note ?? ''} /></div>
 
         <button className="btn solid" disabled={busy}>
           {busy ? 'Sending…' : existing ? 'Update this week' : 'Send check-in'}

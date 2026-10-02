@@ -23,14 +23,14 @@ export default function RateSetter({ placementId, cents }: { placementId: string
       });
       const d = await r.json().catch(() => ({}));
       setBusy(false);
-      if (!r.ok) { toast.bad(d.error ? `Not saved — ${d.error}` : 'That did not save.'); return; }
+      if (!r.ok) { toast.bad(d.error ? `Not saved: ${d.error}` : 'That did not save.'); return; }
       /* Saved either way, but say so when it sits outside the quoted band —
          a number outside $2,500–$4,500 should be deliberate, not a typo. */
       if (d.outsideQuotedBand)
-        toast.ok(`Set to ${money(c)} — outside the ${money(RATE_MIN_CENTS)}–${money(RATE_MAX_CENTS)} band`);
+        toast.ok(`Set to ${money(c)}, outside the ${money(RATE_MIN_CENTS)} to ${money(RATE_MAX_CENTS)} band`);
       else toast.saved(`Rate set to ${money(c)} a month`);
       setEditing(false); router.refresh();
-    } catch { setBusy(false); toast.bad('No connection — nothing was saved.'); }
+    } catch { setBusy(false); toast.bad('No connection. Nothing was saved.'); }
   }
 
   if (!editing) return (
@@ -45,7 +45,7 @@ export default function RateSetter({ placementId, cents }: { placementId: string
   return (
     <span className="rate-set">
       <span className="ff" style={{ margin: 0 }}>
-        <input value={text} inputMode="decimal" placeholder="3500" disabled={busy}
+        <input aria-label="Monthly rate in US dollars" value={text} inputMode="decimal" placeholder="3500" disabled={busy}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') save(); }} />
       </span>

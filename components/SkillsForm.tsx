@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
@@ -12,6 +12,7 @@ import {
    social media and bookkeeping is rare and valuable, and a single dropdown
    would have thrown that away. */
 export default function SkillsForm({ initial }: { initial: SkillsProfile | null }) {
+  const fid = useId();
   const router = useRouter();
   const [picked, setPicked] = useState<string[]>(initial?.disciplines ?? []);
   const [primary, setPrimary] = useState(initial?.primary ?? '');
@@ -60,7 +61,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
     const ok = await saving(() => fetch('/api/roles', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'skills', data: draft })
-    }), done ? 'Skills profile saved' : 'Saved — you can finish the rest later');
+    }), done ? 'Skills profile saved' : 'Saved. You can finish the rest later');
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -73,7 +74,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
           {picked.length > 0 && <span className="pill">{picked.length} chosen</span>}
         </div>
         <p className="small muted" style={{ marginBottom: 20, maxWidth: 620 }}>
-          Pick every kind of work you can actually do well — as many as apply.
+          Pick every kind of work you can actually do well, as many as apply.
           Each one opens its own set of questions, because &ldquo;good at social
           media&rdquo; could mean five different jobs and we would rather know
           which one you are.
@@ -89,7 +90,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             const on = picked.includes(d.key);
             return (
               <button key={d.key} type="button"
-                className={`disc ${on ? 'on' : ''}`} onClick={() => toggle(d.key)}>
+                className={`disc ${on ? 'on' : ''}`} aria-pressed={on} onClick={() => toggle(d.key)}>
                 <b>{d.name}</b>
                 <span className="xs">{d.blurb}</span>
                 <span className="xs disc-aka">{d.aka.join(' · ')}</span>
@@ -100,11 +101,12 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
 
         {picked.length > 1 && (
           <div className="ff" style={{ marginTop: 22 }}>
-            <label>Which one do you know best?</label>
-            <div className="pick-row">
+            <span className="label-like" id={`${fid}-primary`}>Which one do you know best?</span>
+            <div className="pick-row" role="group" aria-labelledby={`${fid}-primary`}>
               {picked.map(d => (
                 <button key={d} type="button"
                   className={`pick wide ${primary === d ? 'on' : ''}`}
+                  aria-pressed={primary === d}
                   onClick={() => setPrimary(d)}>
                   <span>{DISCIPLINE[d]?.name}</span>
                 </button>
@@ -134,14 +136,14 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             </div>
 
             <div className="ff" style={{ maxWidth: 240 }}>
-              <label>Years doing this</label>
-              <input type="number" min="0" max="40" value={years[dk] ?? ''}
+              <label htmlFor={`${fid}-years-${dk}`}>Years doing this</label>
+              <input id={`${fid}-years-${dk}`} type="number" min="0" max="40" value={years[dk] ?? ''}
                 onChange={e => setYears({ ...years, [dk]: Number(e.target.value) })} />
             </div>
 
             <p className="small muted" style={{ margin: '6px 0 14px' }}>
-              Honestly, for each one. <b>Never done it</b> is a perfectly good answer —
-              nobody is strong across all twelve, and a profile claiming otherwise
+              Honestly, for each one. <b>Never done it</b> is a perfectly good answer.
+              Nobody is strong across all twelve, and a profile claiming otherwise
               is the one we cannot place.
             </p>
             {/* What each level means used to live in a hover tooltip, which does
@@ -149,7 +151,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             <ul className="tokens" style={{ marginBottom: 20 }}>
               {PROFS.filter(pr => pr.hint).map(pr => (
                 <li key={pr.key} style={{ fontSize: 11.5 }}>
-                  <b style={{ fontWeight: 400 }}>{pr.label}</b> — {pr.hint}
+                  <b style={{ fontWeight: 400 }}>{pr.label}</b>: {pr.hint}
                 </li>
               ))}
             </ul>
@@ -163,7 +165,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
                 <div className="pick-row">
                   {PROFS.map(pr => (
                     <button key={pr.key} type="button"
-                      className={`pick ${levels[key(dk, c.key)] === pr.key ? 'on' : ''}`}
+                      className={`pick ${levels[key(dk, c.key)] === pr.key ? 'on' : ''}`} aria-pressed={levels[key(dk, c.key)] === pr.key}
                       title={pr.hint}
                       onClick={() => setLevels({ ...levels, [key(dk, c.key)]: pr.key })}>
                       <span>{pr.label}</span>
@@ -178,19 +180,22 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
                 <div className="eyebrow" style={{ marginBottom: 14 }}>A little more about your experience</div>
                 {d.details.map(q => (
                   <div className="ff" key={q.key}>
-                    <label>{q.askTalent}</label>
+                    {q.kind === 'choice'
+                      ? <span className="label-like" id={`${fid}-${key(dk, q.key)}`}>{q.askTalent}</span>
+                      : <label htmlFor={`${fid}-${key(dk, q.key)}`}>{q.askTalent}</label>}
                     {q.kind === 'choice' ? (
-                      <div className="pick-row">
+                      <div className="pick-row" role="group" aria-labelledby={`${fid}-${key(dk, q.key)}`}>
                         {(q.options ?? []).map(o => (
                           <button key={o} type="button"
                             className={`pick wide ${details[key(dk, q.key)] === o ? 'on' : ''}`}
+                            aria-pressed={details[key(dk, q.key)] === o}
                             onClick={() => setDetails({ ...details, [key(dk, q.key)]: o })}>
-                            <span>{o}</span>
+                            <span>{o.replace(/\s+\u2014\s+/g, ', ')}</span>
                           </button>
                         ))}
                       </div>
                     ) : (
-                      <input value={details[key(dk, q.key)] ?? ''}
+                      <input id={`${fid}-${key(dk, q.key)}`} value={details[key(dk, q.key)] ?? ''}
                         placeholder={q.placeholder}
                         onChange={e => setDetails({ ...details, [key(dk, q.key)]: e.target.value })} />
                     )}
@@ -213,23 +218,23 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
           <div className="card-head"><h3>In your own words</h3></div>
 
           <div className="ff">
-            <label>What are you best at?</label>
-            <textarea rows={2} value={best} onChange={e => setBest(e.target.value)}
+            <label htmlFor={`${fid}-1`}>What are you best at?</label>
+            <textarea id={`${fid}-1`} rows={2} value={best} onChange={e => setBest(e.target.value)}
               placeholder="Taking a messy inbox and a chaotic calendar and making both boring within a fortnight." />
           </div>
 
           <div className="ff">
-            <label>What would you like to grow into?</label>
-            <textarea rows={2} value={growing} onChange={e => setGrowing(e.target.value)}
-              placeholder="More project ownership — I want to run the process, not just keep it tidy." />
+            <label htmlFor={`${fid}-2`}>What would you like to grow into?</label>
+            <textarea id={`${fid}-2`} rows={2} value={growing} onChange={e => setGrowing(e.target.value)}
+              placeholder="More project ownership. I want to run the process, not just keep it tidy." />
             <p className="xs muted" style={{ marginTop: 6 }}>
               We use this when a role comes up that stretches you the right way.
             </p>
           </div>
 
           <div className="ff">
-            <label>Tools you know well</label>
-            <input value={tools} onChange={e => setTools(e.target.value)}
+            <label htmlFor={`${fid}-3`}>Tools you know well</label>
+            <input id={`${fid}-3`} value={tools} onChange={e => setTools(e.target.value)}
               placeholder="Notion, Slack, HubSpot, Xero, Canva" />
           </div>
 

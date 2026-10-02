@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import { FEEDBACK_SCORES, type Feedback } from '@/lib/care-public';
+import { firstName } from '@/lib/words';
 
 /* Written in draft, released deliberately. The talent sees nothing until the
    Share switch is thrown — a half-finished review turning up in someone's
@@ -10,6 +11,7 @@ import { FEEDBACK_SCORES, type Feedback } from '@/lib/care-public';
 export default function FeedbackWriter({ placementId, talentId, talentName, existing }: {
   placementId: string; talentId: string; talentName: string; existing: Feedback[];
 }) {
+  const fid = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -28,7 +30,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
         action: 'feedback_save', placement_id: placementId, talent_id: talentId,
         period, strengths, growing, ...scores, shared
       })
-    }), shared ? `Shared with ${talentName.split(' ')[0]}` : 'Saved as a draft');
+    }), shared ? `Shared with ${firstName(talentName)}` : 'Saved as a draft');
     setBusy(false);
     if (ok) {
       setOpen(false); setStrengths(''); setGrowing(''); setScores({});
@@ -41,7 +43,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
     const ok = await saving(() => fetch('/api/care', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'feedback_share', id: f.id, shared: !f.shared })
-    }), f.shared ? 'Hidden again' : `Shared with ${talentName.split(' ')[0]}`);
+    }), f.shared ? 'Hidden again' : `Shared with ${firstName(talentName)}`);
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -49,22 +51,23 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Feedback for {talentName.split(' ')[0]}</h3>
+        <h3>Feedback for {firstName(talentName)}</h3>
         {!open && <button className="btn sm solid" onClick={() => setOpen(true)}>Write one</button>}
       </div>
 
       {open && (
         <div style={{ marginBottom: 24 }}>
-          <div className="ff"><label>Period</label>
-            <input value={period} onChange={e => setPeriod(e.target.value)} /></div>
+          <div className="ff"><label htmlFor={`${fid}-1`}>Period</label>
+            <input id={`${fid}-1`} value={period} onChange={e => setPeriod(e.target.value)} /></div>
 
           {FEEDBACK_SCORES.map(s => (
             <div key={s.key} className="ff">
-              <label>{s.label}</label>
-              <div className="pick-row">
+              <span className="label-like" id={`${fid}-${s.key}`}>{s.label}</span>
+              <div className="pick-row" role="group" aria-labelledby={`${fid}-${s.key}`}>
                 {[1, 2, 3, 4, 5].map(n => (
                   <button key={n} type="button"
                     className={`pick ${scores[s.key] === n ? 'on' : ''}`}
+                    aria-pressed={scores[s.key] === n}
                     onClick={() => setScores({ ...scores, [s.key]: n })}>
                     <b>{n}</b>
                   </button>
@@ -74,12 +77,12 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
             </div>
           ))}
 
-          <div className="ff"><label>What is going well</label>
-            <textarea rows={3} value={strengths} onChange={e => setStrengths(e.target.value)}
+          <div className="ff"><label htmlFor={`${fid}-2`}>What is going well</label>
+            <textarea id={`${fid}-2`} rows={3} value={strengths} onChange={e => setStrengths(e.target.value)}
               placeholder="Be specific. 'Great work' tells them nothing they can repeat." /></div>
 
-          <div className="ff"><label>What to build on</label>
-            <textarea rows={3} value={growing} onChange={e => setGrowing(e.target.value)}
+          <div className="ff"><label htmlFor={`${fid}-3`}>What to build on</label>
+            <textarea id={`${fid}-3`} rows={3} value={growing} onChange={e => setGrowing(e.target.value)}
               placeholder="Written as something to grow into, not a complaint. They will read this exactly as you write it." /></div>
 
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
@@ -92,8 +95,8 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
 
       {!existing.length ? (
         <p className="small muted">
-          Nothing written yet. After their first full month is the natural moment —
-          people do better work when they know how they are doing.
+          Nothing written yet. After their first full month is the natural moment.
+          People do better work when they know how they are doing.
         </p>
       ) : existing.map(f => (
         <div key={f.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
@@ -110,7 +113,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
             </div>
           </div>
           <p className="xs muted" style={{ marginTop: 6 }}>
-            {FEEDBACK_SCORES.map(s => `${s.label} ${f[s.key] ?? '—'}`).join(' · ')}
+            {FEEDBACK_SCORES.map(s => `${s.label} ${f[s.key] ?? '·'}`).join(' · ')}
           </p>
           <p className="small" style={{ marginTop: 8 }}>{f.strengths}</p>
           {f.growing && <p className="small muted" style={{ marginTop: 6 }}>{f.growing}</p>}

@@ -8,6 +8,8 @@ import {
   AXES, AXIS, L1, L2, FACETS, facetsOf, INSTRUMENT, PAIRS, PAIRS_CLIENT, COND,
   CLIENT_TYPES, TALENT_TYPES, type Side, type Scores, type Conf, type Validity
 } from './model';
+import { COND_PUBLIC } from './public';
+
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 const val01 = (raw: number, sign: 1 | -1) => (sign === 1 ? (raw - 1) * 25 : (5 - raw) * 25);
@@ -123,7 +125,7 @@ export function scoreValidity(side: Side, answers: (number | null)[], timings: n
   }
   const medSec = timings.length ? median(timings) : null;
 
-  if (im >= 82) flags.push({ k: 'Answered generously', v: `${im}/100`, d: 'A few statements were the kind nobody can honestly say always applies to them. It says nothing about you as a person or a manager — it just means we read the very highest scores as a little generous, and lean on the rest.' });
+  if (im >= 82) flags.push({ k: 'Answered generously', v: `${im}/100`, d: 'A few statements were the kind nobody can honestly say always applies to them. It says nothing about you as a person or a manager. It just means we read the very highest scores as a little generous, and lean on the rest.' });
   if (attFails > 0) flags.push({ k: 'A couple of answers slipped', v: `${attFails}`, d: 'One or two questions asked for a specific answer to check the page was being read, and got a different one.' });
   if (inconsistency >= 52) flags.push({ k: 'Two similar questions, two answers', v: `${inconsistency}/100`, d: 'A few statements meant much the same thing and were answered differently. Usually tiredness rather than anything else.' });
   if (longest >= 15) flags.push({ k: 'A long run of the same answer', v: `${longest} in a row`, d: 'Which can be perfectly true, and can also mean the questions stopped being read.' });
@@ -162,7 +164,16 @@ export const axisWord = (key: string, v: number) => {
 
 /* ---- conditions ---- */
 export type CondSet = { overlap: string; volume: string; discretion: string; mix: string; tools: string[]; never?: string };
-const ordIdx = (k: string, v: string) => COND.find(c => c.key === k)!.ord.indexOf(v);
+/* Saved answers carry the wording the person chose, which is the public
+   wording (COND_PUBLIC) for every Signature taken in the app. Match either
+   list: the two run in the same order. */
+const ordIdx = (k: string, v: string) => {
+  const i = COND.find(c => c.key === k)!.ord.indexOf(v);
+  if (i >= 0) return i;
+  return COND_PUBLIC.find(c => c.key === k)?.ord.indexOf(v) ?? -1;
+};
+/* A saved option, for reading: some carry a dash in the stored value. */
+const condText = (v: unknown) => String(v ?? '').replace(/\s+—\s+/g, ', ');
 export function conditionCheck(c?: CondSet | null, t?: CondSet | null) {
   if (!c || !t) return [];
   const out: { label: string; state: 'pass' | 'warn' | 'fail'; note: string }[] = [];
@@ -172,12 +183,12 @@ export function conditionCheck(c?: CondSet | null, t?: CondSet | null) {
     out.push({
       label: cd.label,
       state: has >= need ? 'pass' : need - has === 1 ? 'warn' : 'fail',
-      note: has >= need ? `Meets the requirement (${t[k]}).` : `Requires ${c[k]}; talent offers ${t[k]}.`
+      note: has >= need ? `Meets the requirement (${condText(t[k])}).` : `Requires ${condText(c[k])}; talent offers ${condText(t[k])}.`
     });
   });
   out.push({
     label: 'Work mix',
-    state: c.mix === t.mix ? 'pass' : c.mix === 'Balanced' || t.mix === 'Balanced' ? 'warn' : 'fail',
+    state: c.mix === t.mix ? 'pass' : ['Balanced', 'A mix of both'].includes(c.mix) || ['Balanced', 'A mix of both'].includes(t.mix) ? 'warn' : 'fail',
     note: c.mix === t.mix ? `Both set to ${t.mix.toLowerCase()}.` : `Role is ${c.mix.toLowerCase()}; talent prefers ${t.mix.toLowerCase()}.`
   });
   const missing = (c.tools || []).filter(x => !(t.tools || []).includes(x));
@@ -207,7 +218,7 @@ export function matchScore(
     if (a.type === 'align') {
       s = 100 - Math.abs(diff) * (a.k ?? 1);
       note = Math.abs(diff) <= 12
-        ? `Both sit at ${label(a, cv)} — no translation needed.`
+        ? `Both sit at ${label(a, cv)}, so no translation needed.`
         : diff > 0
           ? `Talent runs more ${a.hi.toLowerCase()} than the executive (${Math.abs(diff)} pts apart).`
           : `Talent runs more ${a.lo.toLowerCase()} than the executive (${Math.abs(diff)} pts apart).`;
@@ -215,7 +226,7 @@ export function matchScore(
       const deficit = Math.max(0, tv - cv), surplus = Math.max(0, cv - tv);
       s = 100 - deficit * (a.def ?? 1.5) - surplus * (a.sur ?? 0.5);
       note = deficit > 14
-        ? 'Talent needs more explicit direction than this executive gives — the main risk in this pairing.'
+        ? 'Talent needs more explicit direction than this executive gives. This is the main risk in this pairing.'
         : surplus > 28
           ? 'Executive briefs more heavily than this talent requires; expect them to want more rope.'
           : 'Direction given and direction needed are in balance.';
@@ -257,8 +268,8 @@ export function matchConfidence(opts?: { validity?: Validity | null; confidence?
     else if (lows || mods >= 3) { level = 'Moderate'; why = 'Some traits scored with mixed facet agreement.'; }
   }
   if (v) {
-    if (v.verdict === 'Invalid') { level = 'Low'; why = 'Profile failed validity checks — re-test before relying on this score.'; }
-    else if (v.verdict === 'Review' && level === 'High') { level = 'Moderate'; why = 'Profile flagged for review on a validity check.'; }
+    if (v.verdict === 'Invalid') { level = 'Low'; why = 'Profile failed validity checks. Re-test before relying on this score.'; }
+    else if (v.verdict === 'Review' && level === 'High') { level = 'Moderate'; why = 'Profile up for review on a validity check.'; }
   }
   return { level, why };
 }
@@ -270,7 +281,7 @@ function demandNote(key: string, k: 'short' | 'over' | 'ok') {
       ok: 'Ownership expected and ownership offered line up.'
     },
     composure: {
-      short: 'This environment carries more pressure than the talent has shown they absorb — the likeliest source of burnout here.',
+      short: 'This environment carries more pressure than the talent has shown they absorb. It is the likeliest source of burnout here.',
       over: 'Talent is steadier than this role demands; no risk, simply unused capacity.',
       ok: 'Talent absorbs the pressure this role carries.'
     },
@@ -289,7 +300,7 @@ function demandNote(key: string, k: 'short' | 'over' | 'ok') {
 }
 function driveFlag(c: Scores, t: Scores) {
   const gap = (t.drive ?? 50) - (c.drive ?? 50);
-  if (gap > 25) return { level: 'Watch', note: 'Talent wants materially more growth than this seat offers. Retention risk beyond 12 months — brief the client on a widening scope.' };
+  if (gap > 25) return { level: 'Watch', note: 'Talent wants materially more growth than this seat offers. Retention risk beyond 12 months. Brief the client on a widening scope.' };
   if (gap < -25) return { level: 'Watch', note: 'The executive expects someone building a career; this talent is content in a steady role. Expect the growth on offer to go unused.' };
   return { level: 'Clear', note: 'Growth on offer and growth wanted are compatible.' };
 }
@@ -306,4 +317,4 @@ export function percentile(value: number, pool: number[]) {
   return Math.round(((below + equal / 2) / pool.length) * 100);
 }
 export const pctLabel = (p: number | null) =>
-  p == null ? '—' : p >= 90 ? 'Top 10% of the roster' : p >= 75 ? 'Upper quartile' : p >= 25 ? 'Mid-range' : 'Lower quartile';
+  p == null ? '·' : p >= 90 ? 'Top 10% of the roster' : p >= 75 ? 'Upper quartile' : p >= 25 ? 'Mid-range' : 'Lower quartile';

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from './Toast';
 import PhotoUpload from './PhotoUpload';
@@ -7,6 +7,7 @@ import VideoUpload from './VideoUpload';
 
 
 export default function ProfileEditor({ initial }: { initial: any }) {
+  const fid = useId();
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -31,20 +32,20 @@ export default function ProfileEditor({ initial }: { initial: any }) {
         <div className="card-head"><h3>About you</h3>
           <span className="pill">Shown to executives</span></div>
         <div className="grid-2" style={{ gap: 14 }}>
-          <div className="ff"><label>Full name</label><input name="full_name" defaultValue={initial.full_name ?? ''} /></div>
-          <div className="ff"><label>Your role</label>
-            <input name="headline" defaultValue={initial.headline ?? ''} placeholder="Executive Assistant" /></div>
+          <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="full_name" defaultValue={initial.full_name ?? ''} /></div>
+          <div className="ff"><label htmlFor={`${fid}-2`}>Your role</label>
+            <input id={`${fid}-2`} name="headline" defaultValue={initial.headline ?? ''} placeholder="Executive Assistant" /></div>
         </div>
         <div className="grid-4" style={{ gap: 14 }}>
-          <div className="ff"><label>Location</label><input name="location" defaultValue={initial.location ?? ''} placeholder="Cebu, Philippines" /></div>
-          <div className="ff"><label>Timezone</label><input name="timezone" defaultValue={initial.timezone ?? ''} placeholder="Asia/Manila" /></div>
-          <div className="ff"><label>Years of experience</label><input name="years_exp" type="number" min="0" defaultValue={initial.years_exp ?? ''} /></div>
-          <div className="ff"><label>English</label>
-            <select name="english" defaultValue={initial.english ?? 'Fluent'}>
+          <div className="ff"><label htmlFor={`${fid}-3`}>Location</label><input id={`${fid}-3`} name="location" defaultValue={initial.location ?? ''} placeholder="Cebu, Philippines" /></div>
+          <div className="ff"><label htmlFor={`${fid}-4`}>Timezone</label><input id={`${fid}-4`} name="timezone" defaultValue={initial.timezone ?? ''} placeholder="Asia/Manila" /></div>
+          <div className="ff"><label htmlFor={`${fid}-5`}>Years of experience</label><input id={`${fid}-5`} name="years_exp" type="number" min="0" defaultValue={initial.years_exp ?? ''} /></div>
+          <div className="ff"><label htmlFor={`${fid}-6`}>English</label>
+            <select id={`${fid}-6`} name="english" defaultValue={initial.english ?? 'Fluent'}>
               <option>Native-fluent</option><option>Fluent</option><option>Conversational</option></select></div>
         </div>
-        <div className="ff"><label>A short introduction</label>
-          <textarea name="bio" rows={4} defaultValue={initial.bio ?? ''}
+        <div className="ff"><label htmlFor={`${fid}-7`}>A short introduction</label>
+          <textarea id={`${fid}-7`} name="bio" rows={4} defaultValue={initial.bio ?? ''}
             placeholder="Two or three sentences. What you have run, who you have supported, and what you are good at when nobody is watching." /></div>
         <p className="xs muted">Write it the way you would say it. Executives read this before anything else.</p>
       </div>
@@ -56,7 +57,7 @@ export default function ProfileEditor({ initial }: { initial: any }) {
       <div className="card tight">
         <p className="small" style={{ margin: 0 }}>
           <b>Your skills are set on their own page.</b> Twelve areas of work, each
-          broken down properly — that is what executives are matched against.
+          broken down properly. That is what executives are matched against.
         </p>
         <a className="btn sm ghost" href="/app/skills" style={{ marginTop: 14 }}>
           Open Your Skills
@@ -68,8 +69,8 @@ export default function ProfileEditor({ initial }: { initial: any }) {
       <div className="card" id="photo" style={{ scrollMarginTop: 90 }}>
         <div className="card-head"><h3>Photo</h3><span className="pill">Optional, but it helps</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
-          A clear photo of your face. A plain background and good light is all it takes —
-          it saves on its own, you do not need to press save below for this one.
+          A clear photo of your face. A plain background and good light is all it takes.
+          It saves on its own, so you do not need to press save below for this one.
         </p>
         <PhotoUpload initial={initial.photo_url} name={initial.full_name ?? ''} />
       </div>
@@ -79,8 +80,8 @@ export default function ProfileEditor({ initial }: { initial: any }) {
         <div className="card-head"><h3>Introduction video</h3><span className="pill">Optional, but it stands out</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
           Executives read a lot of profiles. Thirty seconds of you, in your own voice,
-          is the fastest way to become a person rather than a row — it saves on its own,
-          you do not need to press save below for this one.
+          is the fastest way to become a person rather than a row.
+          It saves on its own, so you do not need to press save below for this one.
         </p>
         <VideoUpload initial={initial.intro_video_url} name={initial.full_name ?? ''} />
       </div>

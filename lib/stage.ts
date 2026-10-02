@@ -58,5 +58,5 @@ export async function execInTour(clientId: string): Promise<boolean> {
   const stage = await executiveStage(clientId);
   if (stage.placed) return false;
   const dep = await depositGateFor(clientId);
-  return !dep || (dep.status !== 'paid' && dep.status !== 'waived');
+  return !dep || (dep.status !== 'paid' && dep.status !== 'waived' && dep.status !== 'processing');
 }

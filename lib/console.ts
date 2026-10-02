@@ -5,6 +5,7 @@
    looks at them, so the first screen is a list of what needs a person rather
    than a chart. */
 import { configured, supabaseServer } from './supabase/server';
+import { todayInPacific, monthStartPacific } from './money-public';
 
 export type Attention = {
   key: string;
@@ -34,16 +35,22 @@ export type LivePlacement = {
   started_on: string; days: number;
   rate_month_cents: number | null;
   csm_id: string | null;
+  tsm_id: string | null;
   lastCheckin: string | null; checkinFlagged: boolean;
   pulseFlagged: boolean; openTasks: number; overdueTasks: number;
   health: 'good' | 'watch' | 'poor';
 };
 
-const today = () => new Date().toISOString().slice(0, 10);
+/* Pacific, like every business date in Relève. */
+const today = () => todayInPacific();
 const daysBetween = (a: string, b: string) =>
   Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
 
-export async function consoleSnapshot(): Promise<{
+/* opts.mine narrows the live-placements table (and the client-request row)
+   to the placements this manager looks after as CSM or TSM. Everything else
+   on Today stays team-wide on purpose: an unpaid invoice or a broken email
+   needs whoever sees it first. */
+export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<{
   attention: Attention[]; vitals: Vitals; placements: LivePlacement[];
 }> {
   const vitals: Vitals = {
@@ -60,13 +67,13 @@ export async function consoleSnapshot(): Promise<{
   const [
     people, vetting, searches, matches, places, terms,
     invoices, checkins, pulses, timeOff, interviews, tasks, threads, decisions, offers,
-    applications, allInv, payouts, payoutDetails, mailHealth
+    applications, allInv, payouts, payoutDetails, mailHealth, requests
   ] = await Promise.all([
     sb.from('profiles').select('id, role, stage'),
     sb.from('vetting').select('talent_id, kind, state, expires_on'),
     sb.from('searches').select('id, client_id, stage, opened_at, first_candidate_on, guarantee_days, deposit_status, closed_at'),
     sb.from('matches').select('client_id, talent_id, released'),
-    sb.from('placements').select('id, client_id, talent_id, started_on, ended_on, csm_id, reviewed_on, review_due_on, client:client_id(full_name, org_name), talent:talent_id(full_name)'),
+    sb.from('placements').select('id, client_id, talent_id, started_on, ended_on, csm_id, tsm_id, reviewed_on, review_due_on, client:client_id(full_name, org_name), talent:talent_id(full_name)'),
     sb.from('placement_terms').select('placement_id, rate_month_cents'),
     sb.from('invoices').select('amount_cents, due_on, status'),
     sb.from('checkins').select('placement_id, week_ending, needs_attention'),
@@ -82,10 +89,13 @@ export async function consoleSnapshot(): Promise<{
     sb.from('talent_decisions').select('client_id, talent_id, state'),
     sb.from('offers').select('id, state, sent_on, placement_id'),
     sb.from('job_applications').select('id, state, created_at, call_state, call_at'),
-    sb.from('invoices').select('id, kind, period_start, status, sent_at'),
+    sb.from('invoices').select('id, kind, period_start, status, sent_at, placement_id'),
     sb.from('talent_payments').select('id, state, period_start'),
     sb.from('talent_payout').select('talent_id, confirmed_at'),
-    sb.from('email_health').select('failed_week, sent_week, last_success, last_failure').maybeSingle()
+    sb.from('email_health').select('failed_week, sent_week, last_success, last_failure').maybeSingle(),
+    /* Requests an executive made from their placement page (part39). A
+       database one migration behind answers with an error, read as none. */
+    sb.from('client_requests').select('id, placement_id, state').in('state', ['open', 'in_hand'])
   ]);
 
   /* One row, or nothing at all if the table has not been created yet — the
@@ -215,6 +225,7 @@ export async function consoleSnapshot(): Promise<{
       days: daysBetween(p.started_on, now),
       rate_month_cents: rate,
       csm_id: p.csm_id,
+      tsm_id: p.tsm_id ?? null,
       lastCheckin: last,
       checkinFlagged: flaggedCheckin.has(p.id),
       pulseFlagged: flaggedPulse.has(p.id),
@@ -225,6 +236,9 @@ export async function consoleSnapshot(): Promise<{
   }
   placements.sort((a, b) =>
     ({ poor: 0, watch: 1, good: 2 })[a.health] - ({ poor: 0, watch: 1, good: 2 })[b.health]);
+  const mineId = opts?.mine ?? null;
+  const shown = mineId ? placements.filter(p => p.csm_id === mineId || p.tsm_id === mineId) : placements;
+  const shownIds = new Set(shown.map(p => p.id));
 
   /* ---- the rest ---- */
   const soon = new Date(Date.now() + 14 * 86_400_000).toISOString();
@@ -273,14 +287,14 @@ export async function consoleSnapshot(): Promise<{
     attention.push({
       key: 'email_never', rank: 0, level: 'high', count: 1,
       what: 'email has never gone out successfully',
-      why: 'fix this first — invitations, receipts and interview confirmations all depend on it, and everything else on this list follows from here',
+      why: 'fix this first: invitations, receipts and interview confirmations all depend on it, and everything else on this list follows from here',
       href: '/console/team', cta: 'Test email now'
     });
   } else if (failedWeek > 0) {
     attention.push({
       key: 'email_failing', rank: 0, level: 'high', count: failedWeek,
       what: `${agree(failedWeek, 'email', 'emails')} bounced this week`,
-      why: 'each one is a message somebody is still waiting on — the log names who and what, so it is a quick fix',
+      why: 'each one is a message somebody is still waiting on; the log names who and what, so it is a quick fix',
       href: '/console/team', cta: 'See what failed'
     });
   }
@@ -292,9 +306,24 @@ export async function consoleSnapshot(): Promise<{
     href: '/console/care', cta: 'See the searches' });
 
   add({ key: 'suspendable', rank: 2, level: 'high', count: suspendable,
-    what: `${agree(suspendable, 'invoice has', 'invoices have')} gone unpaid two weeks or more`,
-    why: 'worth reaching out before more time passes — Money has the full history to work from',
-    href: '/console/money', cta: 'Open the money' });
+    what: `${agree(suspendable, 'invoice has', 'invoices have')} been open fourteen days or more`,
+    why: 'the placement pauses under the terms; a personal note now usually settles it the same day',
+    href: '/console/money', cta: 'Open Billing' });
+
+  /* Paused placements and disputed payments, read on their own so a database
+     one migration behind still shows everything else. */
+  const [{ count: pausedCount }, { count: disputedCount }] = await Promise.all([
+    sb.from('placements').select('id', { count: 'exact', head: true }).is('ended_on', null).not('suspended_at', 'is', null),
+    sb.from('invoices').select('id', { count: 'exact', head: true }).eq('status', 'disputed')
+  ]);
+  add({ key: 'paused', rank: 2.1, level: 'high', count: pausedCount ?? 0,
+    what: `${agree(pausedCount ?? 0, 'placement is', 'placements are')} paused for an open invoice`,
+    why: 'payroll for it is on hold; it resumes on its own the day the invoice is paid',
+    href: '/console/money', cta: 'See which' });
+  add({ key: 'disputed', rank: 2.3, level: 'high', count: disputedCount ?? 0,
+    what: `${agree(disputedCount ?? 0, 'payment is', 'payments are')} disputed with the bank`,
+    why: 'Stripe sets a deadline to respond; the signed agreement and the invoice document are the evidence',
+    href: '/console/money', cta: 'Open Billing' });
 
   /* A failed autopay charge used to read exactly like one nobody had tried
      to charge yet — the webhook already marks the invoice 'failed' and
@@ -305,7 +334,7 @@ export async function consoleSnapshot(): Promise<{
   const autopayFailed = ((invoices.data ?? []) as any[]).filter(i => i.status === 'failed').length;
   add({ key: 'autopay_failed', rank: 2.2, level: 'high', count: autopayFailed,
     what: `${agree(autopayFailed, 'autopay charge', 'autopay charges')} failed`,
-    why: 'the bank refused it — a note went to your email the moment it happened; reach out or retry before it reaches two weeks unpaid',
+    why: 'the client has a banner and a pay link already; a short personal note helps it land before day fourteen',
     href: '/console/money', cta: 'See what failed' });
 
   /* Split, because these live on two different pages and the old single row
@@ -320,7 +349,7 @@ export async function consoleSnapshot(): Promise<{
   const poorCheckinCount = flaggedCheckin.size;
   add({ key: 'poor_checkin', rank: 4, level: 'high', count: poorCheckinCount,
     what: `${agree(poorCheckinCount, 'check-in needs', 'check-ins need')} a closer look`,
-    why: 'they took the time to speak up — following up shows it mattered',
+    why: 'they took the time to speak up, and following up shows it mattered',
     href: '/console/checkins', cta: 'Read what they said' });
 
   const vettingCount = new Set(vettingPending).size;
@@ -379,19 +408,23 @@ export async function consoleSnapshot(): Promise<{
   const callDecideCount = apps.filter(a => a.call_state === 'held' && a.state !== 'invited' && a.state !== 'declined').length;
   add({ key: 'call_decide', rank: 8.6, level: 'medium', count: callDecideCount,
     what: `${agree(callDecideCount, 'person met you and is', 'people met you and are')} ready for your answer`,
-    why: 'they liked what they saw — a decision now keeps that excitement alive',
+    why: 'they liked what they saw, and a decision now keeps that excitement alive',
     href: '/console/applications', cta: 'Decide' });
 
-  /* Revenue collection began when somebody remembered to press a button. */
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  const thisPeriod = monthStart.toISOString().slice(0, 10);
-  const billedThisMonth = ((allInv.data ?? []) as any[])
-    .some(i => i.kind === 'retainer' && i.period_start === thisPeriod);
+  /* Revenue collection began when somebody remembered to press a button. The
+     daily run drafts this month on its own now; this lights only if it has
+     not, for a live placement with a rate (B7: it used to go quiet the moment
+     any one retainer existed for the month). */
+  const thisPeriod = monthStartPacific();
+  const billedThisMonth = new Set(((allInv.data ?? []) as any[])
+    .filter(i => i.kind === 'retainer' && i.period_start === thisPeriod).map(i => i.placement_id));
+  const unbilled = ((places.data ?? []) as any[]).filter(p =>
+    !p.ended_on && rateBy.get(p.id) != null && !billedThisMonth.has(p.id)
+    && String(p.started_on).slice(0, 7) <= thisPeriod.slice(0, 7)).length;
   add({ key: 'run_month', rank: 2.5, level: 'high',
-    count: billedThisMonth || placements.length === 0 ? 0 : 1,
-    what: 'this month is ready to be billed',
-    why: 'running it now keeps revenue flowing on schedule',
+    count: unbilled,
+    what: `${agree(unbilled, 'placement has', 'placements have')} no invoice drafted for this month yet`,
+    why: 'running the month now keeps revenue on schedule',
     href: '/console/money', cta: 'Run the month' });
 
   const drafted = ((allInv.data ?? []) as any[]).filter(i => i.status === 'draft').length;
@@ -404,7 +437,7 @@ export async function consoleSnapshot(): Promise<{
   const payDueCount = ((payouts.data ?? []) as any[]).filter(p => p.state === 'due').length;
   add({ key: 'pay_due', rank: 1.5, level: 'high', count: payDueCount,
     what: `${agree(payDueCount, 'person is', 'people are')} ready to be paid`,
-    why: 'this is somebody\'s rent — make it the first thing you clear today',
+    why: 'this is somebody\'s rent, so make it the first thing you clear today',
     href: '/console/money', cta: 'Pay them' });
 
   /* Compared live placements against every payout row there was — including
@@ -441,7 +474,8 @@ export async function consoleSnapshot(): Promise<{
 
   add({ key: 'deposit', rank: 10, level: 'medium', count: depositsDue,
     what: `${agree(depositsDue, 'search has', 'searches have')} an outstanding deposit`,
-    why: 'the deposit covers sourcing that has already started — worth a follow-up',
+    why: 'the deposit covers sourcing that has already started, so it is worth a friendly note'
+,
     href: '/console/money', cta: 'Follow up' });
 
   add({ key: 'manager', rank: 13, level: 'medium', count: noManager,
@@ -449,11 +483,21 @@ export async function consoleSnapshot(): Promise<{
     why: 'assigning one now means somebody is always looking out for this placement',
     href: '/console/placements', cta: 'Assign someone' });
 
+  /* An executive asked for something from their own placement page: a
+     replacement, a pause, a quarterly review. Each promises a reply within
+     one business day, so it sits high. */
+  const reqRows = ((requests as any)?.error ? [] : ((requests as any)?.data ?? [])) as any[];
+  const reqOpen = reqRows.filter(r => r.state === 'open' && (!mineId || shownIds.has(r.placement_id))).length;
+  add({ key: 'client_requests', rank: 2.8, level: 'high', count: reqOpen,
+    what: `${agree(reqOpen, 'executive has', 'executives have')} asked for something from their placement page`,
+    why: 'each one was promised a reply within one business day; Care has the request and its next step',
+    href: mineId ? '/console/care?mine=1' : '/console/care', cta: 'Answer them' });
+
   add({ key: 'unread', rank: 15, level: 'medium', count: unread,
     what: `${agree(unread, 'message is', 'messages are')} unread`,
     why: 'answering keeps the relationship personal',
     href: '/console/messages', cta: 'Open the inbox' });
 
   attention.sort((a, b) => a.rank - b.rank);
-  return { attention, vitals, placements };
+  return { attention, vitals, placements: shown };
 }

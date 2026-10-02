@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from '@/components/Toast';
 
@@ -11,6 +11,7 @@ type Person = { user_id: string; name: string; team_role: string };
 export default function ManagerPicker({ placementId, team, csm, tsm }: {
   placementId: string; team: Person[]; csm: string | null; tsm: string | null;
 }) {
+  const fid = useId();
   const router = useRouter();
   const [c, setC] = useState(csm ?? '');
   const [t, setT] = useState(tsm ?? '');
@@ -39,15 +40,15 @@ export default function ManagerPicker({ placementId, team, csm, tsm }: {
   return (
     <div className="grid-2" style={{ gap: 14 }}>
       <div className="ff">
-        <label>Client Success Manager</label>
-        <select value={c} disabled={busy}
+        <label htmlFor={`${fid}-1`}>Client Success Manager</label>
+        <select id={`${fid}-1`} value={c} disabled={busy}
           onChange={e => { setC(e.target.value); save(e.target.value, t); }}>
           {opts('client_success')}
         </select>
       </div>
       <div className="ff">
-        <label>Talent Success Manager</label>
-        <select value={t} disabled={busy}
+        <label htmlFor={`${fid}-2`}>Talent Success Manager</label>
+        <select id={`${fid}-2`} value={t} disabled={busy}
           onChange={e => { setT(e.target.value); save(c, e.target.value); }}>
           {opts('talent_success')}
         </select>

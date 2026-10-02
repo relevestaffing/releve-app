@@ -19,7 +19,7 @@ export async function POST(req: Request) {
 
   const b = await req.json().catch(() => ({}));
   if (b.version && b.version !== TERMS_VERSION)
-    return NextResponse.json({ error: 'Those terms are out of date — please reload.' }, { status: 409 });
+    return NextResponse.json({ error: 'Those terms are out of date. Please reload.' }, { status: 409 });
 
   /* An executive signs their name; talent tick, because they sign a separate
      agreement during vetting. Checked here rather than only in the browser —
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const onFile = String(me.full_name ?? '').trim().replace(/\s+/g, ' ');
     if (onFile && signed.toLowerCase() !== onFile.toLowerCase())
       return NextResponse.json({
-        error: `that does not match the name on the account (${onFile}) — sign as yourself, or ask us to correct the name first`
+        error: `that does not match the name on the account (${onFile}). Sign as yourself, or ask us to correct the name first`
       }, { status: 400 });
   }
 

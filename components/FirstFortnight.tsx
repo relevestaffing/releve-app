@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving } from '@/components/Toast';
 import { dueOn, type Step } from '@/lib/care-public';
+import { todayIn } from '@/lib/experience-public';
 
 const WHOSE: Record<string, string> = {
   client: 'Executive', talent: 'Talent', both: 'Both of you'
@@ -14,13 +15,16 @@ const WHOSE: Record<string, string> = {
    either direction: ticked early to look tidy, or never ticked at all with
    no one else able to catch it. Only the console ticks now; both sides
    still see exactly where the placement stands. */
-export default function FirstFortnight({ steps, startedOn, side }: {
+export default function FirstFortnight({ steps, startedOn, side, today: todayProp }: {
   steps: Step[]; startedOn: string; side: 'client' | 'talent' | 'admin';
+  /* "today" in the reader's timezone, from the server; without it the
+     business's own (Pacific), never UTC, which flips a day early in the US. */
+  today?: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const done = steps.filter(s => s.done).length;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayProp ?? todayIn('America/Los_Angeles');
 
   if (!steps.length) return null;
 

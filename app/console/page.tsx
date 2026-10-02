@@ -4,6 +4,7 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { consoleSnapshot } from '@/lib/console';
 import { money } from '@/lib/money-public';
 import Shell from '@/components/Shell';
+import { firstName } from '@/lib/words';
 
 /* Line icons at a single 1.25px stroke, matching MobileNav/QuickBar's. Kept
    local rather than pulled into QuickBar's icon set — that one is the
@@ -27,7 +28,7 @@ export const dynamic = 'force-dynamic';
 const day = (iso: string | null) => iso
   ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US',
       { day: 'numeric', month: 'short', timeZone: 'UTC' })
-  : '—';
+  : '–';
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
   good:  { label: 'On track', tone: 'good' },
@@ -38,13 +39,14 @@ const HEALTH: Record<string, { label: string; tone: string }> = {
 /* The first screen of the business. Ordered by what decays if nobody looks:
    what needs a person today, then the money, then the pipeline, then every
    live placement with its health on one line. */
-export default async function Console() {
+export default async function Console({ searchParams }: { searchParams: Promise<{ mine?: string }> }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
+  const mine = (await searchParams).mine === '1';
 
-  const { attention, vitals, placements } = await consoleSnapshot();
-  const first = (profile.full_name ?? '').trim().split(' ')[0];
+  const { attention, vitals, placements } = await consoleSnapshot({ mine: mine ? profile.id : null });
+  const first = firstName(profile.full_name, '');
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const urgent = attention.filter(a => a.level === 'high');
@@ -76,12 +78,12 @@ export default async function Console() {
         <Link className="qa-tile" href="/console/people">
           <QaIcon k="send" />
           <div><div className="qa-t">Send client onboarding</div>
-            <div className="qa-s">Discovery call done — open their search and email the deposit link.</div></div>
+            <div className="qa-s">Discovery call done: open their search and email the deposit link.</div></div>
         </Link>
         <Link className="qa-tile" href="/console/bench">
           <QaIcon k="send" />
           <div><div className="qa-t">Send talent onboarding</div>
-            <div className="qa-s">Sourced someone yourself — email their account and assessment link.</div></div>
+            <div className="qa-s">Sourced someone yourself: email their account and assessment link.</div></div>
         </Link>
         <Link className="qa-tile" href="/console/money#money-out">
           <QaIcon k="payroll" />
@@ -145,7 +147,7 @@ export default async function Console() {
               <li key={a.key} className={a.level}>
                 <span className="att-n">{a.count}</span>
                 <div className="att-body">
-                  <p className="att-line"><b>{a.what}</b> — {a.why}</p>
+                  <p className="att-line"><b>{a.what}</b>: {a.why}</p>
                 </div>
                 <Link className="btn sm solid" href={a.href}>{a.cta}</Link>
               </li>
@@ -191,7 +193,7 @@ export default async function Console() {
               {/* coverage at a glance: if fewer vetted people are ready than there are
                   open searches, the 14-day promise is at risk before day 11 ever warns */}
               <Link className={`money-stat ${vitals.searchesOpen > 0 && vitals.benchReady < vitals.searchesOpen ? 'alert' : ''}`} href="/console/bench">
-                <div className="n">{vitals.benchReady}</div><div className="k">Bench ready</div></Link>
+                <div className="n">{vitals.benchReady}</div><div className="k">Ready to place</div></Link>
               <Link className="money-stat" href="/console/matching"><div className="n">{vitals.candidatesOut}</div><div className="k">Candidates out</div></Link>
               <Link className="money-stat" href="/console/interviews"><div className="n">{vitals.interviewsUpcoming}</div><div className="k">Interviews, 14 days</div></Link>
             </div>
@@ -211,15 +213,22 @@ export default async function Console() {
 
         <div className="card overview-table">
           <div className="card-head">
-            <h3>Live placements</h3>
-            <Link className="btn sm ghost" href="/console/placements">All placements</Link>
+            <h3>{mine ? 'Your placements' : 'Live placements'}</h3>
+            <span className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+              <span className="row" role="group" aria-label="Whose placements" style={{ gap: 6 }}>
+                <Link className={`btn sm ${mine ? 'ghost' : 'solid'}`} href="/console" aria-current={!mine ? 'true' : undefined}>Everyone</Link>
+                <Link className={`btn sm ${mine ? 'solid' : 'ghost'}`} href="/console?mine=1" aria-current={mine ? 'true' : undefined}>Mine</Link>
+              </span>
+              <Link className="btn sm ghost" href="/console/placements">All placements</Link>
+            </span>
           </div>
 
           {!placements.length ? (
             <div className="empty"><span className="tick" />
               <p className="small">
-                Nobody is placed yet. When a search closes, place the pair from the
-                Placements page and they will appear here with their health.
+                {mine
+                  ? 'No live placements have you as their Client or Talent Success Manager yet. Assign yourself from a placement, or switch to Everyone.'
+                  : 'Nobody is placed yet. When a search closes, place the pair from the Placements page and they will appear here with their health.'}
               </p>
               <Link className="btn sm solid" href="/console/placements" style={{ marginTop: 14 }}>
                 Make a placement

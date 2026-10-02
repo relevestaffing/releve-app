@@ -28,7 +28,7 @@ export default async function TalentProfile() {
         <div className="empty-mark" aria-hidden="true" />
         <h3>Your profile starts with your {WORDS.signature}</h3>
         <p className="small">
-          Everything executives see about you is built on it — how you work, what you
+          Everything executives see about you is built on it: how you work, what you
           are like to work with, and which roles will suit you. It takes about twenty
           minutes and you can stop and come back at any point.
         </p>
@@ -68,7 +68,7 @@ export default async function TalentProfile() {
         </div>
         {self.bio
           ? <p className="small" style={{ maxWidth: 640 }}>{self.bio}</p>
-          : <p className="small muted">You have not written an introduction yet — it is the part executives read first.</p>}
+          : <p className="small muted">You have not written an introduction yet. It is the part executives read first.</p>}
         {self.intro_video_url && (
           <video src={self.intro_video_url} controls playsInline preload="metadata"
             style={{ width: '100%', maxWidth: 320, borderRadius: 8, background: 'var(--ink)', display: 'block', marginTop: 16 }} />

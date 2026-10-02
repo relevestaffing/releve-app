@@ -64,8 +64,8 @@ export default async function Bench() {
             <h3>The roster is empty</h3>
             <p className="small">
               Add talent with the button above, or let them apply through the Careers
-              page. Nobody appears here until they have completed their Talent
-              Signature — an unassessed profile cannot be matched against anyone.
+              page. Nobody appears here until they have completed their Talent Signature.
+              An unassessed profile cannot be matched against anyone.
             </p>
           </div>
         ) : (
@@ -103,7 +103,7 @@ export default async function Bench() {
           <summary>Show the raw control measures</summary>
           <div className="inner">
         <table className="data">
-          <thead><tr><th>Talent</th><th>Impression mgmt</th><th>Inconsistency</th><th>Extreme</th><th>Longest run</th><th>Median s/item</th><th>Flags</th></tr></thead>
+          <thead><tr><th>Talent</th><th>Impression mgmt</th><th>Inconsistency</th><th>Extreme</th><th>Longest run</th><th>Median s/item</th><th>Notes</th></tr></thead>
           <tbody>
             {bench.map(t => (
               <tr key={t.id}>
@@ -112,8 +112,8 @@ export default async function Bench() {
                 <td className="num">{t.validity.inconsistency}</td>
                 <td className="small">{t.validity.extreme}%</td>
                 <td className="small">{t.validity.straight}</td>
-                <td className="small">{t.validity.medSec?.toFixed(1) ?? '—'}</td>
-                <td className="small muted">{t.validity.flags.map(f => f.k).join(', ') || '—'}</td>
+                <td className="small">{t.validity.medSec?.toFixed(1) ?? '·'}</td>
+                <td className="small muted">{t.validity.flags.map(f => f.k).join(', ') || '·'}</td>
               </tr>
             ))}
           </tbody>
@@ -139,8 +139,8 @@ export default async function Bench() {
         <div className="card">
           <div className="card-head"><h3>Mid-onboarding, no Signature yet</h3><span className="pill warn"><span className="dot" />{unsigned.length}</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
-            Signed in and started, but haven't finished their Talent Signature — nothing to match
-            against yet, so they sit here rather than on the roster below. Worth a nudge if it's
+            Signed in and started, but haven't finished their Talent Signature.
+            There is nothing to match against yet, so they sit here rather than on the roster below. Worth a nudge if it's
             been a while.
           </p>
           <table className="data">
@@ -150,8 +150,8 @@ export default async function Bench() {
                 <tr key={t.id}>
                   <td><div className="row"><Portrait id={t.id} name={t.name} url={t.photo_url} />
                     <b>{t.name}</b></div></td>
-                  <td className="small">{t.role || '—'}</td>
-                  <td className="small muted">{t.loc || '—'}</td>
+                  <td className="small">{t.role || '·'}</td>
+                  <td className="small muted">{t.loc || '·'}</td>
                 </tr>
               ))}
             </tbody>
@@ -170,7 +170,7 @@ export default async function Bench() {
             <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th><th></th></tr></thead>
             <tbody>{pending.map((p: any) => (
               <tr key={p.id}><td><b>{p.full_name}</b></td><td className="small">{p.email}</td>
-                <td className="small">{p.headline ?? p.org_name ?? '—'}</td>
+                <td className="small">{p.headline ?? p.org_name ?? '·'}</td>
                 <td><span className="pill">{p.role}</span></td>
                 <td><DeletePerson id={p.id} name={p.full_name} pending /></td></tr>
             ))}</tbody>

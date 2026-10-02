@@ -50,7 +50,7 @@ export default function EmailCheck() {
               <div className="inner">
                 <ul className="plain">
                   {Object.entries(res.seen).map(([k, v]) => (
-                    <li key={k}><b>{k}</b> — {String(v)}</li>
+                    <li key={k}><b>{k}</b>: {String(v)}</li>
                   ))}
                 </ul>
                 <p className="xs muted">Names and whether a value exists. Never the values themselves.</p>

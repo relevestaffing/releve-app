@@ -103,7 +103,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'strategy', label: 'Content strategy', hint: 'Deciding what to post and why, not just filling a calendar' },
       { key: 'calendar_content', label: 'Running a content calendar', hint: 'Planning weeks ahead and keeping it fed' },
       { key: 'copy', label: 'Writing captions and hooks', hint: 'Copy that sounds like the brand and earns the scroll-stop' },
-      { key: 'shortform', label: 'Short-form video editing', hint: 'Reels, TikToks, Shorts — cutting, captions, sound' },
+      { key: 'shortform', label: 'Short-form video editing', hint: 'Reels, TikToks, Shorts: cutting, captions, sound' },
       { key: 'graphics', label: 'Graphics from a template', hint: 'Canva or Figma, on brand, without a designer' },
       { key: 'scheduling_tools', label: 'Scheduling tools', hint: 'Later, Buffer, Metricool, native schedulers' },
       { key: 'community', label: 'Community management', hint: 'Comments and DMs, including the difficult ones' },
@@ -136,7 +136,7 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'finance',
     name: 'Bookkeeping and finance',
-    blurb: 'The money admin — invoicing, expenses, reconciliation, reporting.',
+    blurb: 'The money admin: invoicing, expenses, reconciliation, reporting.',
     aka: ['Bookkeeper', 'Finance Assistant', 'Accounts Manager'],
     comps: [
       { key: 'ap', label: 'Accounts payable', hint: 'Bills in, approved, scheduled, paid on time' },
@@ -148,7 +148,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'forecast', label: 'Cash flow forecasting', hint: 'Knowing what the balance will be in six weeks' },
       { key: 'budget', label: 'Budget tracking', hint: 'Actual against plan, and flagging drift early' },
       { key: 'tax_prep', label: 'Tax and year-end prep', hint: 'Getting the books ready for the accountant' },
-      { key: 'accounting_sw', label: 'Accounting software', hint: 'Xero, QuickBooks, Wave — running it, not just entering into it' },
+      { key: 'accounting_sw', label: 'Accounting software', hint: 'Xero, QuickBooks, Wave: running it, not just entering into it' },
       { key: 'vendor', label: 'Vendor and subscription management', hint: 'What we pay for, whether we still need it' },
       { key: 'audit_trail', label: 'Documentation and audit trail', hint: 'Records a third party could follow' }
     ],
@@ -221,7 +221,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'demo_booking', label: 'Booking meetings', hint: 'Getting a qualified call in the diary' },
       { key: 'pipeline_report', label: 'Pipeline reporting', hint: 'What is where, what is stuck, what will close' },
       { key: 'contracts', label: 'Contract administration', hint: 'Sending, following up for a signature, filing' },
-      { key: 'crm_build', label: 'Configuring the CRM', hint: 'Building fields, stages, automations — not just using them' },
+      { key: 'crm_build', label: 'Configuring the CRM', hint: 'Building fields, stages, automations, not just using them' },
       { key: 'objections', label: 'Handling first objections', hint: 'Confident on the phone with a sceptical prospect' },
       { key: 'upsell', label: 'Spotting expansion', hint: 'Noticing when an account is ready for more' },
       { key: 'handover', label: 'Clean handover', hint: 'Passing a deal on with nothing lost' }
@@ -253,7 +253,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'coordinate', label: 'Coordinating other people', hint: 'Following up across departments without authority' },
       { key: 'sop', label: 'Writing process documentation', hint: 'A standard operating procedure (SOP) someone else can follow without asking' },
       { key: 'automate', label: 'Building automations', hint: 'Zapier, Make, native integrations' },
-      { key: 'tools_admin', label: 'Administering the tool stack', hint: 'Notion, Asana, ClickUp, Monday — setting them up' },
+      { key: 'tools_admin', label: 'Administering the tool stack', hint: 'Notion, Asana, ClickUp, Monday: setting them up' },
       { key: 'vendor_ops', label: 'Vendor management', hint: 'Selecting, briefing and holding suppliers to account' },
       { key: 'status', label: 'Status reporting', hint: 'A weekly update people actually read' },
       { key: 'risk', label: 'Spotting risk early', hint: 'Raising the problem while it is still small' },
@@ -287,7 +287,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'funnels', label: 'Funnels and landing pages', hint: 'Building a page and the sequence behind it' },
       { key: 'copy_marketing', label: 'Marketing copy', hint: 'Subject lines, landing pages, ad copy' },
       { key: 'launch', label: 'Running a launch', hint: 'A dated campaign with moving parts and a deadline' },
-      { key: 'ads', label: 'Paid advertising', hint: 'Meta, Google — building, monitoring, optimising' },
+      { key: 'ads', label: 'Paid advertising', hint: 'Meta, Google: building, monitoring, optimising' },
       { key: 'seo', label: 'SEO and blog', hint: 'Keywords, briefs, on-page, publishing' },
       { key: 'webinar', label: 'Webinars and events', hint: 'Promotion, registration, run of show, follow-up' },
       { key: 'analytics_mkt', label: 'Marketing analytics', hint: 'GA4, attribution, knowing what worked' },
@@ -319,7 +319,7 @@ export const DISCIPLINES: Discipline[] = [
     aka: ['Recruiting Coordinator', 'HR Assistant', 'People Ops'],
     comps: [
       { key: 'sourcing', label: 'Sourcing candidates', hint: 'Finding people, not just posting an advert' },
-      { key: 'screening', label: 'Screening applications', hint: 'Filtering to a shortlist against a brief' },
+      { key: 'screening', label: 'Screening applications', hint: 'Narrowing applicants down against a brief' },
       { key: 'interview_coord', label: 'Interview coordination', hint: 'Scheduling panels across diaries without friction' },
       { key: 'candidate_comms', label: 'Candidate communication', hint: 'Keeping people warm, including the rejections' },
       { key: 'onboarding_hr', label: 'Onboarding new starters', hint: 'Paperwork, accounts, first-week plan' },
@@ -444,9 +444,10 @@ export const DISCIPLINES: Discipline[] = [
     comps: [
       { key: 'saas_admin', label: 'SaaS administration', hint: 'Accounts, permissions, licences, offboarding' },
       { key: 'integrations', label: 'Integrations', hint: 'Making two systems talk without a developer' },
-      { key: 'zapier_deep', label: 'Automation platforms', hint: 'Zapier, Make, n8n — multi-step, with error handling' },
+      { key: 'zapier_deep', label: 'Automation platforms', hint: 'Zapier, Make, n8n: multi-step, with error handling' },
       { key: 'website_admin', label: 'Website maintenance', hint: 'Updates, plugins, uptime, small fixes' },
-      { key: 'ecommerce', label: 'E-commerce platforms', hint: 'Shopify, WooCommerce — products, orders, apps' },
+      { key: 'ecommerce', label: 'E-commerce platforms', hint: 'Shopify, WooCommerce: products, orders, apps'
+ },
       { key: 'data_migration', label: 'Data migration', hint: 'Moving from one system to another without loss' },
       { key: 'security_hygiene', label: 'Security hygiene', hint: 'Password managers, 2FA, access reviews' },
       { key: 'ai_tools', label: 'AI tooling', hint: 'Using it well and knowing when not to' },

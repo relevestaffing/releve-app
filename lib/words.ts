@@ -50,16 +50,16 @@ const asUTC = (iso: string) => new Date(iso.slice(0, 10) + 'T00:00:00Z');
     "Within six weeks" before now) so a bad value reads as unset rather than
     as the literal string "Invalid Date". */
 export function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return '–';
   const d = asUTC(iso);
-  if (Number.isNaN(d.getTime())) return '—';
+  if (Number.isNaN(d.getTime())) return '–';
   return d.toLocaleDateString('en-GB',
     { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
 /** 4 September — for dates inside the current year, where the year is noise. */
 export function fmtDay(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return '–';
   const d = asUTC(iso);
   const sameYear = d.getUTCFullYear() === new Date().getUTCFullYear();
   return d.toLocaleDateString('en-GB', sameYear
@@ -69,14 +69,14 @@ export function fmtDay(iso: string | null | undefined): string {
 
 /** September 2026 */
 export function fmtMonth(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return '–';
   return asUTC(iso).toLocaleDateString('en-GB',
     { month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
 /** 4 Sep, 14:30 — for timestamps, which are instants and stay local. */
 export function fmtWhen(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return '–';
   return new Date(iso).toLocaleString('en-GB',
     { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
@@ -91,7 +91,7 @@ export type Empty = { title: string; body: string; cta?: { label: string; href: 
 export const EMPTY: Record<string, Empty> = {
   shortlist: {
     title: 'Your candidate is being chosen',
-    body: 'Nobody has been put forward yet, and that is deliberate — we do not hand you a stack to sort through. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
+    body: 'Nobody has been put forward yet, and that is deliberate: we do not hand you a stack to sort through. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
     cta: { label: 'Ask where things stand', href: '/app/messages' }
   },
   interviewsClient: {
@@ -106,21 +106,21 @@ export const EMPTY: Record<string, Empty> = {
   },
   tasksClient: {
     title: 'Nothing to hand over yet',
-    body: 'This is where you assign work and watch it move, once someone is in the seat. There is nothing to add until your placement starts — which is deliberate: the first week goes better when the list is written with them, not before they arrive.',
+    body: 'This is where you assign work and watch it move, once someone is in the seat. There is nothing to add until your placement starts, which is deliberate: the first week goes better when the list is written with them, not before they arrive.',
     cta: { label: 'See where your search is', href: '/app/pipeline' }
   },
   tasksTalent: {
     title: 'Nothing on your list',
-    body: 'Work assigned to you appears here. You can also add your own — anything that arrived by email, a call or a note counts, and logging it is how your executive sees what you actually carry.'
+    body: 'Work assigned to you appears here. You can also add your own: anything that arrived by email, a call or a note counts, and logging it is how your executive sees what you actually carry.'
   },
   checkinUnplaced: {
     title: 'Check-ins start when you are placed',
-    body: 'Every Friday you will tell your Talent Success Manager how the week went — what you finished, what got stuck, and what you need. It takes two minutes and it is the main way we look after you.',
+    body: 'Every Friday you will tell your Talent Success Manager how the week went: what you finished, what got stuck, and what you need. It takes two minutes and it is the main way we look after you.',
     cta: { label: 'Finish getting set up', href: '/app' }
   },
   messages: {
     title: 'No messages yet',
-    body: 'This goes straight to your Success Manager — not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need. A person reads these, usually the same working day.'
+    body: 'This goes straight to your Success Manager, not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need. A person reads every one and replies within one business day, usually sooner.'
   },
   careClient: {
     title: 'Nothing here until someone starts',

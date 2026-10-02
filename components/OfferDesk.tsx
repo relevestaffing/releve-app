@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saving, toast } from '@/components/Toast';
@@ -25,6 +25,7 @@ async function post(body: any) {
 export default function OfferDesk({ offers, clients, talent }: {
   offers: Offer[]; clients: Person[]; talent: Person[];
 }) {
+  const fid = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -87,8 +88,8 @@ export default function OfferDesk({ offers, clients, talent }: {
         {!open ? (
           <p className="small muted">
             After the interviews, before the placement. Both sides see the role, the
-            start date and the terms — each sees only their own number — and answer
-            it in their own account. When both say yes, one button turns it into a
+            start date and
+            the terms (each sees only their own number) and answer it in their own account. When both say yes, one button turns it into a
             placement with the terms already agreed.
           </p>
         ) : (
@@ -103,37 +104,37 @@ export default function OfferDesk({ offers, clients, talent }: {
             </div>
 
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label>Role</label>
-                <input value={f.role_title} onChange={e => set('role_title', e.target.value)}
+              <div className="ff"><label htmlFor={`${fid}-1`}>Role</label>
+                <input id={`${fid}-1`} value={f.role_title} onChange={e => set('role_title', e.target.value)}
                   placeholder="Chief of Staff" /></div>
-              <div className="ff"><label>Start date</label>
-                <input type="date" value={f.starts_on} onChange={e => set('starts_on', e.target.value)} /></div>
+              <div className="ff"><label htmlFor={`${fid}-2`}>Start date</label>
+                <input id={`${fid}-2`} type="date" value={f.starts_on} onChange={e => set('starts_on', e.target.value)} /></div>
             </div>
 
-            <div className="ff"><label>Hours</label>
-              <input value={f.hours} onChange={e => set('hours', e.target.value)}
+            <div className="ff"><label htmlFor={`${fid}-3`}>Hours</label>
+              <input id={`${fid}-3`} value={f.hours} onChange={e => set('hours', e.target.value)}
                 placeholder="40 a week, four hours overlapping 8am Pacific" /></div>
 
-            <div className="ff"><label>What this role owns outright</label>
-              <textarea rows={2} value={f.scope} onChange={e => set('scope', e.target.value)}
+            <div className="ff"><label htmlFor={`${fid}-4`}>What this role owns outright</label>
+              <textarea id={`${fid}-4`} rows={2} value={f.scope} onChange={e => set('scope', e.target.value)}
                 placeholder="Inbox and calendar, board prep, running the weekly leadership meeting." /></div>
 
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label>The client pays (USD/mo)</label>
-                <input value={f.rate} inputMode="decimal" onChange={e => set('rate', e.target.value)}
+              <div className="ff"><label htmlFor={`${fid}-5`}>The client pays (USD/mo)</label>
+                <input id={`${fid}-5`} value={f.rate} inputMode="decimal" onChange={e => set('rate', e.target.value)}
                   placeholder="3500" />
                 {outside && <p className="xs muted" style={{ marginTop: 6 }}>
                   Outside the {money(RATE_MIN_CENTS)}–{money(RATE_MAX_CENTS)} band in your terms.
                 </p>}</div>
-              <div className="ff"><label>The talent is paid (USD/mo)</label>
-                <input value={f.pay} inputMode="decimal" onChange={e => set('pay', e.target.value)}
+              <div className="ff"><label htmlFor={`${fid}-6`}>The talent is paid (USD/mo)</label>
+                <input id={`${fid}-6`} value={f.pay} inputMode="decimal" onChange={e => set('pay', e.target.value)}
                   placeholder="1450" /></div>
             </div>
 
             {margin != null && margin > 0 && (
               <p className="xs muted" style={{ marginBottom: 16 }}>
-                Margin <b>{money(margin)}</b> a month. Neither side ever sees the other's figure —
-                the executive's offer and the talent's offer are separate views of this row.
+                Margin <b>{money(margin)}</b> a month. Neither side ever sees the other's figure.
+                The executive's offer and the talent's offer are separate views of this row.
               </p>
             )}
 
@@ -156,7 +157,7 @@ export default function OfferDesk({ offers, clients, talent }: {
             <h3>No offers yet</h3>
             <p className="small">
               When an executive has met someone and wants them, make the offer here
-              rather than over email — so the terms, the answers and the dates are
+              rather than over email, so the terms, the answers and the dates are
               all on the record.
             </p>
           </div>
@@ -192,7 +193,7 @@ export default function OfferDesk({ offers, clients, talent }: {
                             <>
                               <span className="xs muted">Place this pair?</span>
                               <button className="btn sm solid" disabled={busy}
-                                onClick={() => { setArmed(null); act(o.id, 'place', 'Placed — the terms carried across'); }}>
+                                onClick={() => { setArmed(null); act(o.id, 'place', 'Placed. The terms carried across'); }}>
                                 Confirm
                               </button>
                               <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Cancel</button>

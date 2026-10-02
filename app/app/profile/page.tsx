@@ -64,7 +64,7 @@ export default async function ExecProfile() {
           <div className="empty-mark" aria-hidden="true" />
           <h3>Your profile starts with your {WORDS.execSignature}</h3>
           <p className="small">
-            Every candidate is scored against it — it is how we tell who will actually
+            Every candidate is scored against it. It is how we tell who will actually
             suit you, not just who is available. Takes about twelve to sixteen minutes.
           </p>
           <a className="btn solid" href="/app/signature" style={{ marginTop: 20 }}>
@@ -96,7 +96,7 @@ export default async function ExecProfile() {
               <p className="small">{type.friction}</p>
               <div style={{ marginTop: 14 }}>
                 <Explain>
-                  Not a flaw — it is what your Client Success Manager weighs when deciding who to put in front of you.
+                  Not a flaw. It is what your Client Success Manager weighs when deciding who to put in front of you.
                 </Explain>
               </div>
             </div>

@@ -9,8 +9,12 @@ import { safeMessage } from '@/lib/errors';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'talent') return NextResponse.json({ error: 'talent only' }, { status: 403 });
-  const { taskId, response } = await req.json();
-  if (!taskId) return NextResponse.json({ error: 'missing task' }, { status: 400 });
+  const { taskId, response } = await req.json().catch(() => ({}));
+  if (typeof taskId !== 'string' || !taskId) return NextResponse.json({ error: 'missing task' }, { status: 400 });
+  if (response != null && typeof response !== 'string')
+    return NextResponse.json({ error: 'That answer could not be read.' }, { status: 400 });
+  if ((response ?? '').length > 20000)
+    return NextResponse.json({ error: 'That answer is over 20,000 characters. Please shorten it.' }, { status: 413 });
   try {
     await saveTaskResponse(taskId, String(response ?? ''));
     return NextResponse.json({ ok: true });

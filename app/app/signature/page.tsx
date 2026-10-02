@@ -78,7 +78,7 @@ export default async function SignaturePage({ searchParams }: {
           <div className="card-head"><h3>In detail</h3></div>
           <div style={{ marginBottom: 22, maxWidth: 640 }}>
             <Explain>
-              Six disposition traits, three measured facets each — eighteen points of resolution,
+              Six disposition traits, three measured facets each: eighteen points of resolution,
               not six. This is the granularity every match is actually scored on{
                 side === 'client' ? ', and it is the same depth your candidates are measured at.' : '.'}
             </Explain>

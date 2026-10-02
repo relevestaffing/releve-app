@@ -35,7 +35,7 @@ export default async function ConsoleWatchAttempt({ params }: { params: Promise<
             <div className="card-head"><h3>{i + 1}. {t.title}</h3></div>
             <p className="small muted" style={{ whiteSpace: 'pre-wrap', marginBottom: 14 }}>{t.prompt}</p>
             <div className="card" style={{ background: 'var(--paper)', boxShadow: 'none' }}>
-              <p className="small" style={{ whiteSpace: 'pre-wrap' }}>{t.response || '— left blank —'}</p>
+              <p className="small" style={{ whiteSpace: 'pre-wrap' }}>{t.response || 'Left blank'}</p>
             </div>
           </div>
         ))}

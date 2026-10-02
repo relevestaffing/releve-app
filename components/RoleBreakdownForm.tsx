@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
@@ -11,6 +11,7 @@ import {
    A generic form gets a generic answer, and a generic answer is the reason
    most agencies place the wrong person. */
 export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown | null }) {
+  const fid = useId();
   const router = useRouter();
   const [picked, setPicked] = useState<string[]>(initial?.disciplines ?? []);
   const [needs, setNeeds] = useState<Record<string, Need>>(initial?.needs ?? {});
@@ -34,7 +35,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
     const ok = await saving(() => fetch('/api/roles', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'role', data: draft })
-    }), done ? 'Role breakdown saved' : 'Saved — you can finish the rest later');
+    }), done ? 'Role breakdown saved' : 'Saved. You can finish the rest later');
     setBusy(false);
     /* Refreshing in place left the same editable form on screen after a
        successful save, so there was nothing to tell someone it had actually
@@ -55,7 +56,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
         </div>
         <p className="small muted" style={{ marginBottom: 20, maxWidth: 620 }}>
           Pick everything the role genuinely covers. Each one you choose opens a
-          set of questions specific to it — that is how we tell the difference
+          set of questions specific to it. That is how we tell the difference
           between someone who schedules posts and someone who runs a paid
           strategy. Put the most important one first.
         </p>
@@ -66,7 +67,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
             const order = picked.indexOf(d.key);
             return (
               <button key={d.key} type="button"
-                className={`disc ${on ? 'on' : ''}`} onClick={() => toggle(d.key)}>
+                className={`disc ${on ? 'on' : ''}`} aria-pressed={on} onClick={() => toggle(d.key)}>
                 {on && <span className="disc-n">{order + 1}</span>}
                 <b>{d.name}</b>
                 <span className="xs">{d.blurb}</span>
@@ -102,7 +103,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
             </div>
             <p className="small muted" style={{ marginBottom: 20 }}>
               Which of these does the role actually need? Be strict with
-              <b> must have</b> — we will not put anyone forward who cannot do those.
+              <b> must have</b>. We will not put anyone forward who cannot do those.
             </p>
 
             {d.comps.map(c => (
@@ -114,7 +115,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
                 <div className="pick-row">
                   {NEEDS.map(n => (
                     <button key={n.key} type="button"
-                      className={`pick ${needs[key(dk, c.key)] === n.key ? 'on' : ''}`}
+                      className={`pick ${needs[key(dk, c.key)] === n.key ? 'on' : ''}`} aria-pressed={needs[key(dk, c.key)] === n.key}
                       onClick={() => setNeeds({ ...needs, [key(dk, c.key)]: n.key })}>
                       <span>{n.label}</span>
                     </button>
@@ -128,19 +129,22 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
                 <div className="eyebrow" style={{ marginBottom: 14 }}>A little more about this</div>
                 {d.details.map(q => (
                   <div className="ff" key={q.key}>
-                    <label>{q.ask}</label>
+                    {q.kind === 'choice'
+                      ? <span className="label-like" id={`${fid}-${key(dk, q.key)}`}>{q.ask}</span>
+                      : <label htmlFor={`${fid}-${key(dk, q.key)}`}>{q.ask}</label>}
                     {q.kind === 'choice' ? (
-                      <div className="pick-row">
+                      <div className="pick-row" role="group" aria-labelledby={`${fid}-${key(dk, q.key)}`}>
                         {(q.options ?? []).map(o => (
                           <button key={o} type="button"
                             className={`pick wide ${details[key(dk, q.key)] === o ? 'on' : ''}`}
+                            aria-pressed={details[key(dk, q.key)] === o}
                             onClick={() => setDetails({ ...details, [key(dk, q.key)]: o })}>
-                            <span>{o}</span>
+                            <span>{o.replace(/\s+\u2014\s+/g, ', ')}</span>
                           </button>
                         ))}
                       </div>
                     ) : (
-                      <input value={details[key(dk, q.key)] ?? ''}
+                      <input id={`${fid}-${key(dk, q.key)}`} value={details[key(dk, q.key)] ?? ''}
                         placeholder={q.placeholder}
                         onChange={e => setDetails({ ...details, [key(dk, q.key)]: e.target.value })} />
                     )}
@@ -158,27 +162,27 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
           <div className="card-head"><h3>However the role is made up</h3></div>
 
           <div className="ff">
-            <label>The three or four things that matter most</label>
-            <textarea rows={3} value={priorities} onChange={e => setPriorities(e.target.value)}
+            <label htmlFor={`${fid}-1`}>The three or four things that matter most</label>
+            <textarea id={`${fid}-1`} rows={3} value={priorities} onChange={e => setPriorities(e.target.value)}
               placeholder="Inbox at zero by 9am. Board pack ready two days before. Nobody books over Thursday mornings." />
           </div>
 
           <div className="grid-2" style={{ gap: 14 }}>
             <div className="ff">
-              <label>Tools they must know on day one</label>
-              <input value={tools} onChange={e => setTools(e.target.value)}
+              <label htmlFor={`${fid}-2`}>Tools they must know on day one</label>
+              <input id={`${fid}-2`} value={tools} onChange={e => setTools(e.target.value)}
                 placeholder="Superhuman, Notion, Ramp, HubSpot" />
             </div>
             <div className="ff">
-              <label>Hours and overlap</label>
-              <input value={hours} onChange={e => setHours(e.target.value)}
+              <label htmlFor={`${fid}-3`}>Hours and overlap</label>
+              <input id={`${fid}-3`} value={hours} onChange={e => setHours(e.target.value)}
                 placeholder="40 a week, four hours overlapping 8am Pacific" />
             </div>
           </div>
 
           <div className="ff">
-            <label>What a good week looks like</label>
-            <textarea rows={2} value={success} onChange={e => setSuccess(e.target.value)}
+            <label htmlFor={`${fid}-4`}>What a good week looks like</label>
+            <textarea id={`${fid}-4`} rows={2} value={success} onChange={e => setSuccess(e.target.value)}
               placeholder="I didn't think about my calendar once, and Monday's follow-ups were all out by Tuesday." />
             <p className="xs muted" style={{ marginTop: 6 }}>
               This becomes the first thing we measure the placement against.
@@ -189,7 +193,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
             {busy ? 'Saving…' : done ? 'Save the role breakdown' : 'Save what I have so far'}
           </button>
           {!done && <p className="xs muted" style={{ marginTop: 12 }}>
-            Some competencies are still unanswered. You can come back — nothing is lost.
+            Some competencies are still unanswered. You can come back. Nothing is lost.
           </p>}
         </div>
       )}

@@ -24,7 +24,7 @@ export default function WaiveDeposit({ searchId, cents, status }: {
     const ok = await saving(() => fetch('/api/admin/money', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'deposit_status', search_id: searchId, status: 'waived' })
-    }), `${money(cents)} deposit waived — their search is open`);
+    }), `${money(cents)} deposit waived. Their search is open`);
     setBusy(false);
     if (ok) { setArmed(false); router.refresh(); }
   }

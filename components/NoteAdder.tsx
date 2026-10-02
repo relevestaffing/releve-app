@@ -31,11 +31,11 @@ export default function NoteAdder({ placementId }: { placementId: string }) {
   return (
     <form onSubmit={add}>
       <div className="ff">
-        <textarea name="body" rows={3} required
+        <textarea aria-label="Note" name="body" rows={3} required
           placeholder="What happened, what you did about it, what you are watching for." />
       </div>
       <div className="row" style={{ gap: 12 }}>
-        <select name="kind" defaultValue="note" style={{ maxWidth: 170 }}>
+        <select aria-label="Kind of note" name="kind" defaultValue="note" style={{ maxWidth: 170 }}>
           {KINDS.map(k => <option key={k.k} value={k.k}>{k.label}</option>)}
         </select>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Add to the file'}</button>

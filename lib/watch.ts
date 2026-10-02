@@ -91,9 +91,9 @@ export async function startWatchAttempt(talentId: string, discipline: string): P
     .in('status', ['in_progress', 'submitted'])
     .order('started_at', { ascending: false }).limit(1).maybeSingle();
   if (existing) {
-    const { data: scored } = await sb.from('taking_the_watch_scores')
-      .select('attempt_id').eq('attempt_id', (existing as any).id).maybeSingle();
-    if (!scored) return (existing as any).id as string;
+    const { data: scored } = await sb.from('my_watch_results')
+      .select('has_score').eq('attempt_id', (existing as any).id).maybeSingle();
+    if (!(scored as any)?.has_score) return (existing as any).id as string;
   }
 
   const { data: attempt, error } = await sb.from('taking_the_watch_attempts')
@@ -174,7 +174,7 @@ export async function submitWatchAttempt(attemptId: string) {
   const { data: after } = await sb.from('taking_the_watch_attempts')
     .select('status').eq('id', attemptId).maybeSingle();
   if (after?.status !== 'submitted')
-    throw new Error('That attempt could not be submitted — refresh the page and check its status before trying again.');
+    throw new Error('That attempt could not be submitted. Refresh the page and check its status before trying again.');
 }
 
 /* ---------- console side ---------- */

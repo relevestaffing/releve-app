@@ -146,7 +146,7 @@ export default async function ConsoleInterviews({ searchParams }: {
               <div className="small muted">
                 {b.role} · {b.slots.length
                   ? `${b.slots.length} times they and ${chosen?.full_name ?? 'the executive'} are both free`
-                  : 'no overlapping times — check both availabilities'}
+                  : 'no overlapping times, so check both availabilities'}
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default async function ConsoleInterviews({ searchParams }: {
           <p className="small muted">
             <b>Meeting links are being added by hand.</b> Zoom is not connected yet, so
             each booking is recorded without a link and somebody has to send one. Connecting
-            Zoom makes that automatic — the steps are in your notes.
+            Zoom makes that automatic. The steps are in your notes.
           </p>
         </div>
       )}

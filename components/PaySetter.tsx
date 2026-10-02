@@ -30,10 +30,10 @@ export default function PaySetter({ talentId, cents, compact = false }: {
       });
       const d = await r.json().catch(() => ({}));
       setBusy(false);
-      if (!r.ok) { toast.bad(d.error ? `Not saved — ${d.error}` : 'That did not save.'); return; }
+      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); return; }
       toast.saved(`We pay ${money(c)} a month`);
       setEditing(false); router.refresh();
-    } catch { setBusy(false); toast.bad('No connection — nothing was saved.'); }
+    } catch { setBusy(false); toast.bad('No connection, so nothing was saved.'); }
   }
 
   if (!editing) return (
@@ -48,7 +48,7 @@ export default function PaySetter({ talentId, cents, compact = false }: {
   return (
     <span className="rate-set">
       <span className="ff" style={{ margin: 0 }}>
-        <input value={text} inputMode="decimal" placeholder="1450" disabled={busy} autoFocus
+        <input aria-label="Monthly pay in US dollars" value={text} inputMode="decimal" placeholder="1450" disabled={busy} autoFocus
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }} />
       </span>
