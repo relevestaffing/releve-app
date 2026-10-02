@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
    ------------------------------------
    An executive paying every month used to see two counts and a ninety-day
    plan. This is the month in full: every task finished by name, the
-   highlights their talent chose to share, the hours they logged, any time
+   highlights their talent chose to share, any time
    away, what the executive said in their own pulse, and what is next. The
    same page the email on the 1st links to. */
 export default async function ReportPage({ searchParams }: {
@@ -32,7 +32,7 @@ export default async function ReportPage({ searchParams }: {
     <Shell profile={profile} active="/app/report" title="Your month" crumb="Once someone is working with you">
       <Empty of={{
         title: 'Your first month report is on its way',
-        body: 'Once someone starts, this page fills in as the month goes: the tasks finished, the highlights they share with you, their hours and what is coming next. A summary arrives by email on the first of each month.',
+        body: 'Once someone starts, this page fills in as the month goes: the tasks finished, the highlights they share with you and what is coming next. A summary arrives by email on the first of each month.',
         cta: { label: 'Ask your Client Success Manager', href: '/app/messages' }
       }} />
     </Shell>
@@ -55,7 +55,6 @@ export default async function ReportPage({ searchParams }: {
       <div className="stack">
         <div className="report-stats">
           <div><b>{r.completed.length}</b><span>Tasks completed</span></div>
-          <div><b>{r.hours ? r.hours : '–'}</b><span>Hours logged</span></div>
           <div><b>{r.daysLogged || '–'}</b><span>Days logged</span></div>
           <div><b>{r.open}</b><span>Still open</span></div>
         </div>

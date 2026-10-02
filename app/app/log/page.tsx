@@ -27,7 +27,7 @@ export default async function LogPage() {
       {!placements.length ? (
         <Empty of={{
           title: 'Your log starts with your placement',
-          body: 'Once you are placed, this is where you note what got done each day, your hours and anything in the way. You choose what your executive sees; the rest stays with Relève.',
+          body: 'Once you are placed, this is where you note what got done each day and anything in the way. You choose what your executive sees; the rest stays with Relève.',
           cta: { label: 'Back to your dashboard', href: '/app' }
         }} />
       ) : (
@@ -47,10 +47,10 @@ export default async function LogPage() {
                 {logs.slice(0, 14).map(l => (
                   <li key={l.id}>
                     <span>
-                      {l.done_text ? l.done_text.split('\n')[0].slice(0, 160) : <span className="muted">Hours only</span>}
+                      {l.done_text ? l.done_text.split('\n')[0].slice(0, 160) : <span className="muted">Noted</span>}
                       {l.share_highlight && l.highlight ? <span className="xs muted"> · highlight shared</span> : null}
                     </span>
-                    <span className="when">{fmtDate(l.log_date)}{l.hours != null ? ` · ${l.hours}h` : ''}</span>
+                    <span className="when">{fmtDate(l.log_date)}</span>
                   </li>
                 ))}
               </ul>

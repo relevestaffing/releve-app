@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   }
   const text = (v: unknown, max: number) => String(v ?? '').trim().slice(0, max) || null;
   const done = text(b.done_text, 4000);
-  if (!done && hours == null) return NextResponse.json({ error: 'Add what got done, or your hours.' }, { status: 400 });
+  if (!done) return NextResponse.json({ error: 'Add a line on what got done.' }, { status: 400 });
 
   try {
     await saveLog({

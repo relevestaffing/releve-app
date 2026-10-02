@@ -40,7 +40,7 @@ export const experienceEmails = {
     const subject = `Your month with ${o.talent}: ${o.month}`;
     const stats = [
       `${o.completed} task${o.completed === 1 ? '' : 's'} completed`,
-      o.hours > 0 ? `${o.hours} hours logged` : null
+      o.highlights.length ? `${o.highlights.length} highlight${o.highlights.length === 1 ? '' : 's'} shared` : null
     ].filter(Boolean).join(' · ');
     return {
       kind: 'monthlyReport',

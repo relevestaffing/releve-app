@@ -338,7 +338,7 @@ export async function monthReport(
     open: openRows.length,
     highlights: logRows.filter(r => r.highlight).map(r => ({ date: r.log_date, text: r.highlight })),
     hours: Math.round(logRows.reduce((s, r) => s + (Number(r.hours) || 0), 0) * 10) / 10,
-    daysLogged: logRows.filter(r => r.hours != null).length,
+    daysLogged: logRows.length,
     timeAway: ((off.data ?? []) as any[]).map(o => ({ from: o.starts_on, to: o.ends_on, state: o.state })),
     pulse: (pulse.data as any) ?? null,
     focus: focus.map(t => ({ id: t.id, title: t.title, due_on: t.due_on, priority: t.priority }))
