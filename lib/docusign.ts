@@ -53,6 +53,27 @@ export function docusignClientReady() {
 }
 export function docusignWebhookReady() { return Boolean(CONNECT_KEY); }
 
+/* The manual path's own shortcut — not DocuSign's API, just a link.
+   -------------------------------------------------------------
+   While docusignReady()/docusignClientReady() are false (the Free plan,
+   by choice — see the Relève Book), Sage still sends every agreement by
+   hand, in DocuSign's own web app. Until now that meant finding
+   docusign.com, signing in, finding Templates, finding the right one, and
+   clicking Use — every single time. These two env vars, once set to the
+   exact URL DocuSign puts in her address bar after she clicks Use on each
+   template, turn that into one click from the console straight to the
+   compose screen with the template and its roles already in. Nothing
+   here is a secret — it is a URL, same as any other link on the page —
+   so, unlike the credentials above, there's no reason this ever has to
+   be typed in by hand on her end rather than pasted in by us once she's
+   seen it. Until she has, or if DocuSign's URL for sending a template
+   genuinely has no stable form, this falls back to the plain DocuSign
+   sign-in, which still saves the trip to find docusign.com. */
+export function manualSendUrl(kind: 'talent' | 'client'): string {
+  const url = kind === 'talent' ? process.env.DOCUSIGN_TALENT_SEND_URL : process.env.DOCUSIGN_CLIENT_SEND_URL;
+  return url?.trim() || 'https://account.docusign.com/';
+}
+
 /* Sage's recipient details for the Company role, thrown as a clear error
    rather than silently sent with a blank email if she forgets the env
    var — DocuSign's own error for a missing recipient email is much less

@@ -10,10 +10,13 @@ import { getAvailability, getSelfProfile } from '@/lib/store';
 import { getPayout, listPayments } from '@/lib/payout';
 import { payoutReady, PAYOUT_METHODS, periodLabel } from '@/lib/payout-public';
 import { money, dayLabel } from '@/lib/money-public';
+import { talentSteps } from '@/lib/onboarding';
+import { watchStep } from '@/lib/setup';
 import Shell from '@/components/Shell';
 import { Radar, AxisBars, Portrait } from '@/components/Viz';
 import PaySetter from '@/components/PaySetter';
 import Explain from '@/components/Explain';
+import OnboardingStatus from '@/components/OnboardingStatus';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +56,26 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
   const agreement = vetting.find(v => String(v.kind) === 'agreement');
   const verified = identity?.state === 'verified' && agreement?.state === 'verified';
   const disciplines: string[] = skills?.disciplines ?? [];
+
+  /* Same step-builder their own checklist runs (lib/onboarding.ts), fed
+     from data this page already fetched above — so this never disagrees
+     with what they themselves see, and costs only the one extra query
+     (watchStep re-reads Taking The Watch, the one thing not already
+     fetched in the shape that function needs). */
+  const onboarding = talentSteps({
+    hasSignature: !!sig, hasAvailability: !!avail.timezone?.trim() && (avail.windows?.length ?? 0) > 0,
+    signatureInvalid: sig?.validity?.verdict === 'Invalid',
+    watch: await watchStep(id, skills),
+    hasIntroVideo: !!self.intro_video_url,
+    hasSkills: skillsComplete(skills),
+    hasProfile: !!self.bio,
+    hasPhoto: !!self.photo_url,
+    vettingDone: vetting.filter(v => v.state === 'verified' && (v.kind === 'identity' || v.kind === 'agreement')).length,
+    vettingTotal: 2,
+    vettingSent: vetting.filter(v => v.state === 'submitted').length,
+    hasIdentity: identity?.state === 'verified',
+    hasPayout: payoutReady(payout)
+  });
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);
   const stateWord = (v?: { state: string } | null) =>
     !v ? 'Not started' : v.state === 'verified' ? 'Verified' : v.state === 'submitted' ? 'Waiting on you' : v.state === 'rejected' ? 'Rejected' : v.state;
@@ -94,6 +117,8 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           <span className="xs muted">{self.photo_url ? 'Photo on file' : 'No photo yet'}</span>
         </div>
       </div>
+
+      <OnboardingStatus steps={onboarding} />
 
       <div className="grid-2">
         <div className="card">

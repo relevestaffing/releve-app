@@ -17,8 +17,8 @@ type State = 'not_started' | 'submitted' | 'verified' | 'rejected';
    likes, and files the signed PDF here once it comes back. Nothing about
    switching DocuSign on later changes this component — docusignOn alone
    decides which path shows. */
-export default function ClientAgreementAdmin({ clientId, state, docusignOn, rejectReason }: {
-  clientId: string; state: State; docusignOn?: boolean; rejectReason?: string | null;
+export default function ClientAgreementAdmin({ clientId, state, docusignOn, rejectReason, manualSendUrl }: {
+  clientId: string; state: State; docusignOn?: boolean; rejectReason?: string | null; manualSendUrl?: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -89,6 +89,11 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
       {state === 'rejected' && rejectReason && (
         <span className="xs muted" title={rejectReason}>Needs another go: </span>
       )}
+      {manualSendUrl && (
+        <a className="btn sm ghost" href={manualSendUrl} target="_blank" rel="noopener noreferrer">
+          Open DocuSign to send it →
+        </a>
+      )}
       <label className="xs muted" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
         Signed on
         <input type="date" value={signed} onChange={e => setSigned(e.target.value)}
@@ -97,7 +102,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
       <input aria-label="Signed Client Services Agreement" ref={input} type="file" accept="application/pdf" hidden
         onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
       <button className="btn sm ghost" disabled={busy || !signed} onClick={() => input.current?.click()}>
-        {busy ? 'Filing…' : 'Upload signed Client Services Agreement'}
+        {busy ? 'Filing…' : manualSendUrl ? 'Then upload the signed copy' : 'Upload signed Client Services Agreement'}
       </button>
     </div>
   );

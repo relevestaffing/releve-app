@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
-import { listClients, getSearch } from '@/lib/store';
+import { listClients, getSearch, getAvailability, getSelfProfile } from '@/lib/store';
+import { signatureOf } from '@/lib/data';
+import { getRoleBreakdown, roleComplete } from '@/lib/roles';
+import { clientSteps } from '@/lib/onboarding';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import OnboardingSender from '@/components/OnboardingSender';
@@ -9,11 +12,31 @@ import TableSearch from '@/components/TableSearch';
 import DeletePerson from '@/components/DeletePerson';
 import WaiveDeposit from '@/components/WaiveDeposit';
 import ClientAgreementAdmin from '@/components/ClientAgreementAdmin';
-import { docusignClientReady } from '@/lib/docusign';
+import OnboardingStatus from '@/components/OnboardingStatus';
+import { docusignClientReady, manualSendUrl } from '@/lib/docusign';
 import { getClientAgreements } from '@/lib/agreement';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
+
+/* The same four steps clientSteps() always has — their own checklist on
+   /app walks them through exactly these, in this order (lib/onboarding.ts).
+   Reading them here, per executive, is what backs the Onboarding chip on
+   each row below. */
+async function clientOnboarding(clientId: string) {
+  const [sig, avail, self, role] = await Promise.all([
+    signatureOf(clientId, 'client'),
+    getAvailability(clientId, ''),
+    getSelfProfile(clientId),
+    getRoleBreakdown(clientId)
+  ]);
+  return clientSteps({
+    hasSignature: !!sig,
+    hasAvailability: !!avail.timezone?.trim() && (avail.windows?.length ?? 0) > 0,
+    hasIntro: !!(self.bio && self.photo_url),
+    hasRole: roleComplete(role)
+  });
+}
 
 export default async function People() {
   const profile = await currentProfile();
@@ -23,7 +46,8 @@ export default async function People() {
   const clients = await listClients();
   const briefs = await Promise.all(clients.map(c => getSearch(c.key)));
   const agreements = await getClientAgreements(clients.map(c => c.key));
-  const rows = clients.map((c, i) => ({ client: c, brief: briefs[i] }));
+  const onboarding = await Promise.all(clients.map(c => clientOnboarding(c.key)));
+  const rows = clients.map((c, i) => ({ client: c, brief: briefs[i], steps: onboarding[i] }));
   const missing = rows.filter(r => !r.brief?.role_title).length;
   const docusignOn = docusignClientReady();
 
@@ -70,7 +94,7 @@ export default async function People() {
         )}
 
         <div id="exec-list">
-        {rows.map(({ client, brief }) => (
+        {rows.map(({ client, brief, steps }) => (
           <div className="client-row" key={client.key}>
             <div className="row between" style={{ gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
               <div>
@@ -90,7 +114,9 @@ export default async function People() {
                 )}
                 <ClientAgreementAdmin clientId={client.key} docusignOn={docusignOn}
                   state={(agreements[client.key]?.state ?? 'not_started')}
-                  rejectReason={agreements[client.key]?.reject_reason ?? null} />
+                  rejectReason={agreements[client.key]?.reject_reason ?? null}
+                  manualSendUrl={manualSendUrl('client')} />
+                <OnboardingStatus steps={steps} compact />
                 <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
                   <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}
                 </span>

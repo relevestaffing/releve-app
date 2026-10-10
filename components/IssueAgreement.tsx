@@ -8,8 +8,8 @@ import { todayInPacific } from '@/lib/money-public';
 type Person = { id: string; full_name: string | null; email: string; role: string };
 type Pending = { id: string; name: string; envelopeId: string };
 
-export default function IssueAgreement({ talent, docusignOn, pendingCountersign }: {
-  talent: Person[]; docusignOn?: boolean; pendingCountersign?: Pending[];
+export default function IssueAgreement({ talent, docusignOn, pendingCountersign, manualSendUrl }: {
+  talent: Person[]; docusignOn?: boolean; pendingCountersign?: Pending[]; manualSendUrl?: string;
 }) {
   const fid = useId();
   const router = useRouter();
@@ -88,12 +88,18 @@ export default function IssueAgreement({ talent, docusignOn, pendingCountersign 
             {busy ? 'Sending…' : 'Send via DocuSign'}
           </button>
         )}
+        {!docusignOn && manualSendUrl && (
+          <a className="btn solid" href={manualSendUrl} target="_blank" rel="noopener noreferrer">
+            Open DocuSign to send it →
+          </a>
+        )}
         <div>
           <input aria-label="Agreement file" ref={input} type="file" accept="application/pdf,image/*" hidden
             onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
-          <button className={docusignOn ? 'btn sm ghost' : 'btn solid'}
+          <button className={!docusignOn && manualSendUrl ? 'btn sm ghost' : docusignOn ? 'btn sm ghost' : 'btn solid'}
             disabled={busy || !who || (!docusignOn && !signed)} onClick={() => input.current?.click()}>
-            {busy ? 'Filing…' : docusignOn ? 'Or upload a signed copy you already have' : 'Upload the signed copy'}
+            {busy ? 'Filing…' : docusignOn ? 'Or upload a signed copy you already have'
+              : manualSendUrl ? 'Then upload the signed copy' : 'Upload the signed copy'}
           </button>
         </div>
       </div>
