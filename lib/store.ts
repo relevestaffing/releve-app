@@ -400,7 +400,15 @@ export async function deletePendingPerson(id: string) {
   if (!configured()) { seed(); mem.people = mem.people.filter((p: any) => p.id !== id); return; }
   const sb = await supabaseServer();
   const { error } = await sb.from('pending_people').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  /* Throw the error Supabase/Postgres gave us as-is, code and all — not a
+     plain Error wrapping only its message. The route's safeMessage() keys off
+     e.code to decide whether a message is safe to show (a guard message like
+     "nobody verifies their own paperwork") or schema-revealing (a raw
+     Postgres/PostgREST error), and a plain Error has no code, so it always
+     fell into the "safe to show" branch and leaked raw database text to the
+     console. Same reasoning as the 17 Sep audit that fixed the API routes;
+     this one call in lib/store.ts had been missed. */
+  if (error) throw error;
 }
 
 /** Remove someone's account entirely. profiles.id references auth.users on
