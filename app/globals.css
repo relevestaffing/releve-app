@@ -1,10 +1,15 @@
 
 :root{
   color-scheme: only light;
+  /* Neutrals are the website's, not the app's own. relevestaffing.com is
+     built on warm ivory (#FAF8F2 / #F3EFE6); the app had drifted to a cooler,
+     greyer pair (#FAFAF8 / #F0F2EE). Warm neutrals read as paper and linen,
+     cool ones read as software chrome — which is most of why the site looked
+     more expensive than the app it leads into. Matched 11 October 2026. */
   --fern:#35443A;
   --ink:#22302A;
-  --cream:#F0F2EE;
-  --paper:#FAFAF8;
+  --cream:#F3EFE6;
+  --paper:#FAF8F2;
   --white:#FFFFFF;
   --pale:#B0C4B2;
   --mist:#DDE5DC;
@@ -17,33 +22,44 @@
   --crit:#8C4A3F;
   --script:'WindSong',cursive;
   --sidebar:268px;
+  /* The website's own content width and reading measure. The app was running
+     1320px wide with no measure control at all, so sentences ran past 1000px
+     — the fastest way to look unconsidered. */
+  --maxw:1180px;
+  --measure:68ch;
   /* The empty-state mark — see .empty-mark below for what it is and why. */
   --fiddlehead:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23B0C4B2%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2016.5V10.6%22%2F%3E%3Cpath%20d%3D%22M10%2010.6C10%208%2012%206%2014.6%206.3%22%2F%3E%3Cpath%20d%3D%22M14.6%206.3c.75.3%201.05%201.15.65%201.85-.4.7-1.3.9-1.95.4-.5-.4-.55-1.1-.15-1.6%22%2F%3E%3C%2Fsvg%3E");
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:'Tenor Sans',sans-serif;color:var(--body);background:var(--paper);line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:'Tenor Sans',sans-serif;color:var(--body);background:var(--paper);line-height:1.7;font-size:17px;-webkit-font-smoothing:antialiased}
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit}
-h1,h2,h3,h4,.serif{font-family:'Marcellus',serif;font-weight:400;color:var(--fern);line-height:1.2;text-wrap:balance}
+h1,h2,h3,h4,.serif{font-family:'Marcellus',serif;font-weight:400;color:var(--fern);line-height:1.15;text-wrap:balance}
 ::selection{background:var(--pale);color:var(--fern)}
 
 /* ---------- primitives ---------- */
 .tick{display:inline-block;width:28px;height:6px;background:var(--fern);border-radius:4px;transform:rotate(18deg)}
 .eyebrow{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--sage)}
-.btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;font-size:12px;letter-spacing:.2em;text-transform:uppercase;padding:14px 28px;border:1px solid var(--fern);color:var(--fern);background:transparent;cursor:pointer;transition:all .3s}
+/* Sized to relevestaffing.com's own .btn (13px / .2em / 16px 34px). The
+   solid variant carries no shadow there — the app had added a coloured glow
+   under it, which is the single most dated thing a button can wear. */
+.btn{display:inline-flex;align-items:center;gap:9px;justify-content:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase;padding:16px 34px;border:1px solid var(--fern);color:var(--fern);background:transparent;cursor:pointer;transition:background .3s,color .3s,border-color .3s}
 .btn:hover{background:var(--fern);color:var(--cream)}
-.btn.solid{background:var(--fern);color:var(--cream);box-shadow:0 14px 32px -16px rgba(34,48,42,.45)}
+.btn.solid{background:var(--fern);color:var(--cream)}
 .btn.solid:hover{background:var(--ink)}
-.btn.sm{padding:9px 18px;font-size:11px;letter-spacing:.16em}
+.btn.sm{padding:11px 22px;font-size:12px;letter-spacing:.18em}
 .btn.on-dark{border-color:var(--cream);color:var(--cream)}
 .btn.on-dark:hover{background:var(--cream);color:var(--fern)}
-.btn.ghost{border-color:var(--line-strong);color:var(--sage)}
-.btn.ghost:hover{background:var(--mist);color:var(--fern)}
+/* Secondary actions step back. A console row legitimately carries four or
+   five of these, and at equal weight to the primary they all shout at once;
+   the ghost now sits on a faint rule and only firms up under the cursor. */
+.btn.ghost{border-color:var(--line);color:var(--sage);background:transparent}
+.btn.ghost:hover{border-color:var(--fern);color:var(--fern);background:transparent}
 .btn.danger{border-color:rgba(140,74,63,.4);color:var(--crit)}
 .btn.danger:hover{background:var(--crit);color:var(--cream);border-color:var(--crit)}
-.btn.solid.danger{background:var(--crit);color:var(--cream);border-color:var(--crit);box-shadow:0 14px 32px -16px rgba(140,74,63,.45)}
+.btn.solid.danger{background:var(--crit);color:var(--cream);border-color:var(--crit)}
 .btn.solid.danger:hover{background:#6f3a31}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .btn:disabled:hover{background:transparent;color:var(--fern)}
@@ -52,19 +68,48 @@ h1,h2,h3,h4,.serif{font-family:'Marcellus',serif;font-weight:400;color:var(--fer
    border, the same language as the website's .tier/.cell. A soft lift on
    hover (matching relevestaffing.com's .cell:hover exactly) gives every card
    the same quiet "it's alive" feeling the site's grids have. */
-.card{background:var(--white);border:1px solid var(--line);padding:28px 30px;box-shadow:0 26px 60px -44px rgba(34,48,42,.5);transition:transform .45s cubic-bezier(.22,.61,.36,1),box-shadow .45s}
-.card:hover{transform:translateY(-4px);box-shadow:0 24px 50px -30px rgba(34,48,42,.4)}
-.card.tight{padding:22px 24px}
+/* Flat, generous, and still. Three changes from what was here before, all
+   taken from relevestaffing.com:
+
+   1. No shadow at rest. The site gives a shadow to the *group* (.grid, .tiers)
+      and never to a lone panel; the app had one under every card, so the page
+      read as a pile of floating slabs.
+   2. No hover lift. The site lifts .cell and .tier — grouped, clickable
+      feature panels — and nothing else. Lifting every static info card on
+      hover is movement that means nothing.
+   3. The site's padding, near enough: .cell is 44px 38px. A console works a
+      little tighter than a marketing page, but nowhere near as tight as the
+      28px this was. */
+.card{background:var(--white);border:1px solid var(--line);padding:36px 34px}
+.card.tight{padding:24px 26px}
+
+/* A card inside a card stops being a card. Boxes nested two and three deep
+   were the clearest single tell that this was a template rather than a
+   designed product; one rule here retires all of them without touching a
+   page file. Dark panels and stat tiles keep their own surface. */
+.card .card:not(.dark):not(.stat){border:0;background:transparent;padding:0;box-shadow:none}
 .card.dark{background:var(--fern);border-color:transparent;color:#D9DDD4}
 .card.dark h2,.card.dark h3,.card.dark h4{color:var(--cream)}
-.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
-.card-head h3{font-size:22px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:26px}
+.card-head h3{font-size:23px}
 
-.pill{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--line-strong);border-radius:2px;color:var(--sage);background:var(--paper);white-space:nowrap}
-.pill.good{color:var(--good);border-color:rgba(78,122,92,.4);background:rgba(78,122,92,.07)}
-.pill.warn{color:var(--warn);border-color:rgba(154,123,63,.4);background:rgba(154,123,63,.07)}
-.pill.crit{color:var(--crit);border-color:rgba(140,74,63,.4);background:rgba(140,74,63,.07)}
-.pill.fern{color:var(--cream);background:var(--fern);border-color:var(--fern)}
+/* Status reads from the dot and the word, not from a tinted panel behind
+   them. The pastel fills were the washed-out, slightly medical look that
+   cheapened every header row; premium semantic colour is small, desaturated
+   and carried by a 6px dot. */
+/* A status is not an action, so it must not wear a button's clothes. With the
+   pastel fills gone, an outlined pill sat next to an outlined ghost button
+   and the two were indistinguishable — so the outline goes too. What is left
+   is the website's own label treatment (.range, .roman): letterspaced
+   uppercase in a semantic colour, carried by a 6px dot. Nothing to click,
+   and it reads that way at a glance. */
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:0;border:0;border-radius:0;color:var(--sage);background:transparent;white-space:nowrap}
+.pill.good{color:var(--good)}
+.pill.warn{color:var(--warn)}
+.pill.crit{color:var(--crit)}
+/* The one pill that is still a solid object — used where it marks a whole
+   row or card rather than labelling a field. */
+.pill.fern{padding:6px 14px;background:var(--fern);color:var(--cream);border:0}
 .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 
 .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
@@ -80,7 +125,7 @@ h1,h2,h3,h4,.serif{font-family:'Marcellus',serif;font-weight:400;color:var(--fer
 .grid-4:has(> .card.stat):not(:has(> .card:not(.stat))){
   gap:1px;background:var(--line);box-shadow:0 26px 60px -40px rgba(34,48,42,.4)
 }
-.stack{display:flex;flex-direction:column;gap:22px}
+.stack{display:flex;flex-direction:column;gap:32px}
 .row{display:flex;align-items:center;gap:14px}
 .row.between{justify-content:space-between}
 .muted{color:var(--sage)}
@@ -103,23 +148,31 @@ a.side-role:hover{opacity:.82}
 .side-role .eyebrow{color:var(--pale);margin-bottom:8px}
 .side-role .name{font-family:'Marcellus',serif;color:var(--cream);font-size:19px;line-height:1.3}
 nav.side-nav{display:flex;flex-direction:column;flex:1}
-nav.side-nav a{padding:13px 30px;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:#C4D0C5;border-left:2px solid transparent;transition:.25s;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
-nav.side-nav a:hover{color:var(--cream);background:rgba(240,242,238,.08)}
-nav.side-nav a.active{color:var(--cream);border-left-color:var(--pale);background:rgba(240,242,238,.13)}
-nav.side-nav .badge{font-size:10px;letter-spacing:.08em;background:var(--pale);color:var(--fern);padding:2px 7px;border-radius:9px}
+/* The site marks the current page with a pale hairline under the word and
+   nothing else. A sidebar wants that rail vertical rather than horizontal,
+   but the principle holds: the mark is a line, not a filled block. Dropping
+   the background wash is what stops the nav reading like a file browser. */
+nav.side-nav a{padding:13px 30px;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#C4D0C5;border-left:2px solid transparent;transition:color .25s,border-color .25s;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px}
+nav.side-nav a:hover{color:var(--cream)}
+nav.side-nav a.active{color:var(--cream);border-left-color:var(--pale)}
+nav.side-nav .badge{font-size:10px;letter-spacing:.08em;background:var(--pale);color:var(--fern);padding:2px 7px;border-radius:0}
 .side-foot{padding:22px 30px 0;border-top:1px solid rgba(240,242,238,.14);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:#93A394;cursor:pointer}
 .side-foot:hover{color:var(--cream)}
 
 main.main{background:var(--paper);min-width:0}
-.topbar{background:rgba(250,250,248,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:0 46px;height:78px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
-.topbar h1{font-size:28px}
-.topbar .crumb{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--sage);margin-bottom:2px}
+.topbar{background:rgba(250,248,242,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:0 46px;height:92px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+.topbar h1{font-size:clamp(28px,2.8vw,36px)}
+.topbar .crumb{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--sage);margin-bottom:5px}
 /* Same action, rendered twice by Shell for two different positions — see the comment in Shell.tsx. Desktop keeps it in the topbar; below 900px it moves under the mobile nav strip instead, see the 900px block below. */
 .mobile-action{display:none}
-.page-body{padding:38px 46px 90px;max-width:1320px}
-.section-title{display:flex;align-items:baseline;gap:14px;margin:6px 0 18px}
-.section-title h2{font-size:22px}
-.hr{height:1px;background:var(--line);margin:34px 0}
+/* Air is the main thing being bought here. The website gives every section
+   110px of vertical padding; a console cannot be that loose, but 38px top
+   and a 1320px measure was the opposite extreme — content ran edge to edge
+   with no breathing room anywhere. */
+.page-body{padding:54px 46px 120px;max-width:var(--maxw)}
+.section-title{display:flex;align-items:baseline;gap:14px;margin:6px 0 26px}
+.section-title h2{font-size:clamp(24px,2.4vw,30px)}
+.hr{height:1px;background:var(--line);margin:52px 0}
 
 /* ---------- entry / auth ---------- */
 .entry{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:70px 24px;text-align:center;
@@ -363,6 +416,12 @@ nav.side-nav a:hover::before,nav.side-nav a.active::before{transform:scaleY(1)}
 .demo-banner{background:var(--fern);color:var(--cream);text-align:center;padding:9px;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase}
 
 /* ---------- progressive disclosure ---------- */
+/* Any <details> in the app, not just details.more — the Onboarding chip on
+   each executive's row was still painting the browser's default ▶ triangle
+   next to it, which is the one piece of raw browser chrome on the page. */
+details > summary{list-style:none;cursor:pointer}
+details > summary::-webkit-details-marker{display:none}
+
 details.more{border-top:1px solid var(--line);margin-top:22px;padding-top:6px}
 details.more > summary{list-style:none;cursor:pointer;padding:14px 0 4px;font-size:11.5px;letter-spacing:.22em;
   text-transform:uppercase;color:var(--sage);display:flex;align-items:center;gap:10px;transition:color .25s}
@@ -386,16 +445,20 @@ details.more .inner{padding-top:18px;animation:riseSm .4s cubic-bezier(.22,.61,.
    an <ol> with real numbers, using the same serif number token the console's
    attention list uses, for one numbering language across the product. */
 .method{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:1px;
-  background:var(--line);border:1px solid var(--mist);border-radius:12px;overflow:hidden;
+  background:var(--line);border:1px solid var(--mist);border-radius:0;overflow:hidden;
   box-shadow:0 26px 60px -44px rgba(34,48,42,.4)}
-.method-step{display:flex;gap:18px;align-items:flex-start;background:var(--paper);padding:22px 24px}
-.method-n{flex:none;width:38px;height:38px;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:Marcellus,serif;font-size:18px;line-height:1;
-  background:var(--cream);color:var(--fern);border:1px solid var(--mist)}
+.method-step{display:flex;gap:28px;align-items:flex-start;background:var(--paper);padding:34px 36px}
+/* The website numbers its process steps with .step .num — a letterspaced
+   Marcellus numeral in sage, standing on its own. Boxing each number in a
+   filled, bordered square was the same instinct that boxed everything else,
+   and it turned an elegant sequence into a table of contents. */
+.method-n{flex:none;min-width:34px;
+  display:block;background:none;border:0;
+  font-family:Marcellus,serif;font-size:15px;letter-spacing:.24em;line-height:1.9;
+  color:var(--sage);font-variant-numeric:tabular-nums}
+.method-step p{max-width:var(--measure)}
 @media (max-width:820px){
-  .method-step{padding:18px;gap:14px}
-  .method-n{width:34px;height:34px;font-size:16px}
+  .method-step{padding:24px 20px;gap:18px}
 }
 
 /* ---------- what-to-delegate map on /app/delegate ----------
@@ -403,13 +466,13 @@ details.more .inner{padding-top:18px;animation:riseSm .4s cubic-bezier(.22,.61,.
    phone; each card is a bare panel in the same hairline-mosaic language as the
    stat strips, and the example tasks are quiet chips rather than another list. */
 .delegate-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;
-  background:var(--line);border:1px solid var(--mist);border-radius:12px;overflow:hidden;
+  background:var(--line);border:1px solid var(--mist);border-radius:0;overflow:hidden;
   box-shadow:0 26px 60px -44px rgba(34,48,42,.4);margin-bottom:26px}
 .delegate-card{border:none;border-radius:0;box-shadow:none;margin:0;padding:22px 24px}
 .delegate-card h3{font-family:Marcellus,serif}
 .deleg-tags{display:flex;flex-wrap:wrap;gap:6px}
 .deleg-tag{font-size:11.5px;color:var(--sage);background:var(--cream);
-  border:1px solid var(--mist);border-radius:999px;padding:4px 11px;line-height:1.3}
+  border:1px solid var(--mist);border-radius:0;padding:4px 11px;line-height:1.3}
 .deleg-tag.more{color:var(--muted);background:transparent;border-style:dashed}
 @media (max-width:760px){
   .delegate-grid{grid-template-columns:1fr}
@@ -632,10 +695,14 @@ details.more .inner{padding-top:18px;animation:riseSm .4s cubic-bezier(.22,.61,.
 /* ---- role brief ---- */
 .client-row{padding:20px 0;border-top:1px solid var(--line)}
 .client-row:first-of-type{border-top:0;padding-top:0}
-.brief-read{background:rgba(221,229,220,.22);border:1px solid var(--line);padding:18px 20px}
-.brief-facts{display:grid;grid-template-columns:88px 1fr;gap:8px 18px;margin-top:14px}
-.brief-facts dt{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);padding-top:2px}
-.brief-facts dd{font-size:14px;line-height:1.55;color:var(--fern)}
+/* The role brief sits inside the executive's row, which sits inside the
+   Executive accounts card — a third box, tinted, was two too many. It is
+   now set off the way the website sets off a block inside a section: a
+   hairline above it and room to breathe, no container of its own. */
+.brief-read{background:transparent;border:0;border-top:1px solid var(--line);padding:26px 0 4px;margin-top:22px}
+.brief-facts{display:grid;grid-template-columns:96px 1fr;gap:12px 24px;margin-top:20px}
+.brief-facts dt{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);padding-top:4px}
+.brief-facts dd{font-size:15.5px;line-height:1.6;color:var(--fern);max-width:var(--measure)}
 @media (max-width:640px){.brief-facts{grid-template-columns:1fr;gap:2px 0}
   .brief-facts dd{margin-bottom:10px}}
 
@@ -804,7 +871,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .inbox-list button.on{color:var(--ink);background:rgba(176,196,178,.14)}
 .inbox-list button:hover .clip{color:var(--ink)}
 .thread-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;
-  padding:0 6px;border-radius:9px;background:var(--fern);color:var(--cream);
+  padding:0 6px;border-radius:0;background:var(--fern);color:var(--cream);
   font-size:10.5px;font-weight:600;flex:none}
 .clip{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sage);margin-top:4px}
 @media (max-width:900px){.inbox{grid-template-columns:1fr}}
@@ -917,8 +984,8 @@ html,body{max-width:100%;overflow-x:hidden}
   /* One clean scrolling column. The heavy card shadows read as clutter at
      this size — a single hairline does the same job. */
   .page-body{padding:16px 14px calc(72px + env(safe-area-inset-bottom))}
-  .card{border-radius:10px;border:1px solid var(--line);margin-bottom:12px}
-  .card.dark{border-radius:10px}
+  .card{border-radius:0;border:1px solid var(--line);margin-bottom:12px}
+  .card.dark{border-radius:0}
   .card.tight{padding:16px 16px}
 
   /* Section headings stop being a wall of uppercase */
@@ -950,7 +1017,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .terms-tick{
   display:flex;gap:12px;align-items:flex-start;
   margin:26px 0 22px;padding:16px 18px;
-  background:var(--cream);border:1px solid var(--mist);border-radius:10px;
+  background:var(--cream);border:1px solid var(--mist);border-radius:0;
   text-align:left;cursor:pointer
 }
 .terms-tick input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--fern);cursor:pointer}
@@ -962,7 +1029,7 @@ html,body{max-width:100%;overflow-x:hidden}
    shadow rather than each tile carrying its own. Ported directly from
    relevestaffing.com's .grid/.cell pairing. */
 .money-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);box-shadow:0 26px 60px -40px rgba(34,48,42,.4);margin-bottom:26px}
-.money-stat{background:var(--cream);border:1px solid var(--mist);border-radius:10px;padding:16px 18px}
+.money-stat{background:var(--cream);border:1px solid var(--mist);border-radius:0;padding:16px 18px}
 .money-stat .n{font-family:Marcellus,serif;font-size:27px;color:var(--ink);line-height:1.1}
 .money-stat .k{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:7px}
 .money-stat.alert{box-shadow:inset 3px 0 0 var(--crit,#9c3b34)}
@@ -981,12 +1048,17 @@ html,body{max-width:100%;overflow-x:hidden}
 .qa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);box-shadow:0 26px 60px -40px rgba(34,48,42,.4);margin-bottom:26px}
 @media (max-width:900px){.qa-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.qa-grid{grid-template-columns:1fr}}
-.qa-tile{display:flex;align-items:flex-start;gap:13px;background:var(--cream);border:1px solid var(--mist);border-radius:10px;padding:18px 19px;color:inherit;text-decoration:none;transition:transform .3s cubic-bezier(.22,.61,.36,1),box-shadow .3s}
-.qa-tile:hover{transform:translateY(-3px);box-shadow:0 20px 40px -28px rgba(34,48,42,.45);color:inherit}
+/* This is relevestaffing.com's .cell, exactly: a flat panel on --paper, no
+   border and no radius of its own, separated from its neighbours only by the
+   1px of --line showing through the grid's gap. The tile used to carry a
+   border AND a 10px radius AND a fill, which broke the mosaic into six
+   rounded boxes sitting in a seventh. */
+.qa-tile{display:flex;align-items:flex-start;gap:15px;background:var(--paper);border:0;border-radius:0;padding:28px 26px;color:inherit;text-decoration:none;transition:transform .45s cubic-bezier(.22,.61,.36,1),box-shadow .45s}
+.qa-tile:hover{transform:translateY(-4px);box-shadow:0 24px 50px -30px rgba(34,48,42,.4);color:inherit;position:relative;z-index:2}
 .qa-tile:active{transform:translateY(-1px);transition-duration:.1s}
-.qa-tile svg{width:21px;height:21px;flex:none;color:var(--fern);margin-top:2px}
-.qa-tile .qa-t{font-family:'Marcellus',serif;font-size:15.5px;color:var(--ink);line-height:1.25}
-.qa-tile .qa-s{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45}
+.qa-tile svg{width:20px;height:20px;flex:none;color:var(--sage);margin-top:3px;stroke-width:1.25}
+.qa-tile .qa-t{font-family:'Marcellus',serif;font-size:17px;color:var(--fern);line-height:1.25}
+.qa-tile .qa-s{font-size:13px;color:var(--muted);margin-top:7px;line-height:1.55;max-width:34ch}
 .inv-num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .amount{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 .rate-set{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -1014,7 +1086,7 @@ html,body{max-width:100%;overflow-x:hidden}
 /* ---------- the monthly pulse ---------- */
 .pick-row{display:flex;gap:8px;flex-wrap:wrap}
 .pick{
-  flex:1;min-width:82px;padding:12px 10px;border-radius:9px;cursor:pointer;
+  flex:1;min-width:82px;padding:12px 10px;border-radius:0;cursor:pointer;
   background:var(--paper);border:1px solid var(--mist);color:var(--body);
   display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;
   transition:border-color .15s,background .15s,transform .15s
@@ -1057,11 +1129,11 @@ span.step-tick{cursor:default}
    feedback scores, because they are read the same way: at a glance, before
    anything below them gets attention. */
 .tally-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:4px 0 0}
-.tally-row>div{background:var(--cream);border:1px solid var(--mist);border-radius:9px;padding:13px 15px}
+.tally-row>div{background:var(--cream);border:1px solid var(--mist);border-radius:0;padding:13px 15px}
 .tally-row b{display:block;font-family:Marcellus,serif;font-weight:400;font-size:25px;color:var(--ink);font-variant-numeric:tabular-nums}
 .tally-row span{display:block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:5px}
 .fb-scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:16px 0}
-.fb-score{background:var(--cream);border:1px solid var(--mist);border-radius:9px;padding:13px 15px}
+.fb-score{background:var(--cream);border:1px solid var(--mist);border-radius:0;padding:13px 15px}
 .fb-score .n{font-family:Marcellus,serif;font-size:25px;color:var(--ink)}
 .fb-score .n small{font-size:14px;color:var(--muted)}
 .fb-score .k{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:5px}
@@ -1077,33 +1149,39 @@ span.step-tick{cursor:default}
   margin:30px 0 13px
 }
 .section-h:first-of-type{margin-top:0}
-.end-why{margin-top:12px;padding:13px 14px;background:var(--cream);border:1px solid var(--mist);border-radius:9px;text-align:right}
+.end-why{margin-top:12px;padding:13px 14px;background:var(--cream);border:1px solid var(--mist);border-radius:0;text-align:right}
 .client-picker{min-width:270px}
 .client-picker .ff{margin:0}
 @media (max-width:900px){ .client-picker{min-width:0;width:100%} }
 
 /* ---------- console: what needs a person ---------- */
-.attention{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+/* Six bordered, shadowed, separately-boxed rows inside an already-bordered
+   card was the heaviest thing on the Overview. The site's own list treatment
+   (.tier li) is a hairline between rows and nothing else — the rows are a
+   list, so they should look like a list. Urgency is a fern-to-crimson rule on
+   the left edge, not a pink wash behind the text. */
+.attention{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .attention li{
-  display:flex;align-items:center;gap:16px;
-  padding:16px 18px;border:1px solid var(--mist);border-radius:8px;
-  background:var(--paper);box-shadow:0 14px 30px -26px rgba(34,48,42,.32)
+  display:flex;align-items:center;gap:22px;
+  padding:22px 0;border:0;border-top:1px solid var(--line);
+  background:transparent;box-shadow:none
 }
+.attention li:first-child{border-top:0;padding-top:4px}
 .att-n{
-  flex:none;min-width:38px;height:38px;padding:0 8px;border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:Marcellus,serif;font-size:18px;line-height:1;
-  background:var(--white);color:var(--ink);border:1px solid var(--mist)
+  flex:none;min-width:34px;padding:0;border:0;border-radius:0;background:none;
+  display:flex;align-items:baseline;justify-content:flex-start;
+  font-family:Marcellus,serif;font-size:27px;line-height:1;color:var(--fern);
+  font-variant-numeric:tabular-nums
 }
-.attention li.high{border-color:rgba(140,74,63,.3);background:rgba(140,74,63,.045)}
-.attention li.high .att-n{background:rgba(140,74,63,.09);border-color:rgba(140,74,63,.32);color:var(--crit)}
+.attention li.high{border-top-color:rgba(140,74,63,.28)}
+.attention li.high .att-n{color:var(--crit)}
 .att-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
-.att-body b{font-weight:400;font-size:15px;color:var(--ink);line-height:1.45}
+.att-body b{font-weight:400;font-size:16px;color:var(--ink);line-height:1.45}
 /* One sentence, not a label plus a hidden footnote: the bold lead (what's
    true, from .att-body b above) runs straight into the plain-weight
    consequence in the same line, muted just enough to read as the second
    half of a thought rather than a separate caption. */
-.att-line{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
+.att-line{margin:0;font-size:16px;line-height:1.55;color:var(--muted);max-width:var(--measure)}
 .attention .btn{flex:none}
 
 @media (max-width:820px){
@@ -1179,7 +1257,7 @@ span.step-tick{cursor:default}
    a paragraph. No competitor in this category shows the client the working. */
 .rationale{
   margin:22px 0 4px;padding:24px 26px;
-  background:var(--cream);border:1px solid var(--mist);border-radius:12px
+  background:var(--cream);border:1px solid var(--mist);border-radius:0
 }
 .rationale .eyebrow{margin-bottom:14px}
 .rationale .verdict{margin:0 0 18px}
@@ -1214,7 +1292,11 @@ span.step-tick{cursor:default}
 
    A gap on the container covers every combination, including the ones added
    later. .stack keeps its own gap for the blocks nested inside it. */
-.page-body{ display:flex; flex-direction:column; gap:22px }
+.page-body{ display:flex; flex-direction:column; gap:32px }
+/* The page body is a flex column, so a bare button dropped straight into a
+   page stretched to the full content width — a 1180px solid fern bar reading
+   "SEND ONBOARDING EMAIL". A button should be the width of its own words. */
+.page-body > .btn, .stack > .btn{ align-self:flex-start }
 
 /* That gap does the spacing now, but a couple of blocks still carry their
    own margin from before it existed — a section label wants 30px above it
@@ -1372,7 +1454,7 @@ input:focus-visible,textarea:focus-visible{
 
 /* ---------- role coverage on the shortlist ---------- */
 .rolefit{margin:20px 0 4px;padding:22px 24px;background:var(--paper);
-  border:1px solid var(--mist);border-radius:12px}
+  border:1px solid var(--mist);border-radius:0}
 .fit-disc{padding:16px 0;border-top:1px solid var(--mist)}
 .fit-disc:first-of-type{border-top:none;padding-top:0}
 .fit-disc > .row b{font-family:Marcellus,serif;font-weight:400;color:var(--ink);font-size:16px}
@@ -1412,30 +1494,43 @@ input:focus-visible,textarea:focus-visible{
    through the grid's own gap. Same trick as relevestaffing.com's feature
    grid: flat tiles, a shared shadow on the container, and a tile that
    lifts free of its neighbors the moment you touch it. */
+/* On --paper, not --cream: the tile should read as the page showing through
+   the mosaic's hairline grid, the way .cell does on the website. Filling it
+   with the darker cream turned every KPI into a little green chip, which is
+   the dashboard-template look exactly. The figure also has room to be a
+   figure now — these are the numbers the whole page exists to report. */
 .card.stat,.money-stat{
-  background:var(--cream);
-  padding:18px 20px;box-shadow:none;
+  background:var(--paper);
+  padding:30px 28px;box-shadow:none;border:0;border-radius:0;
   transition:transform .45s cubic-bezier(.22,.61,.36,1),box-shadow .45s;
   position:relative
 }
 .card.stat:hover,.money-stat:hover{
-  transform:translateY(-4px);box-shadow:0 20px 40px -24px rgba(34,48,42,.4);z-index:2
+  transform:translateY(-4px);box-shadow:0 24px 50px -30px rgba(34,48,42,.4);z-index:2
+}
+/* Label above the figure, not below it. Reading "MONTHLY RUN RATE" and then
+   the number is how a report reads; number-then-caption is how a widget
+   reads. */
+.card.stat .eyebrow,.money-stat .k{
+  font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--sage);margin:0 0 14px;order:-1
 }
 .card.stat .score,.card.stat .mono-num,.money-stat .n{
-  font-family:Marcellus,serif;font-size:27px;color:var(--ink);line-height:1.1;
-  font-variant-numeric:tabular-nums
+  font-family:Marcellus,serif;font-size:clamp(30px,2.8vw,38px);color:var(--fern);line-height:1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em
 }
-.card.stat .eyebrow,.money-stat .k{
-  font-size:11px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--muted);margin-top:7px
-}
+.card.stat,.money-stat{display:flex;flex-direction:column}
 /* the small unit after a figure — "142 days", "4/5" — was never defined, so
    it rendered at the full 27px of the number beside it */
 .of,.score sup{font-size:14px;color:var(--sage);letter-spacing:.04em;font-family:'Tenor Sans',sans-serif}
 
-/* ---------- one radius, one padding ---------- */
+/* ---------- no radius anywhere ---------- */
+/* relevestaffing.com has not one rounded corner on it: every panel, button,
+   tier and cell is square. Rounded corners on an editorial serif brand are
+   the clearest borrowed-from-a-template signal there is, so the app's 10px
+   radius comes off everything it was on. */
 .money-stat,.fb-score,.pick,.disc,.att-n,.rationale,.rolefit,.terms-tick,
-.end-why,.empty-card,.client-picker select,.offer{border-radius:10px}
+.end-why,.empty-card,.client-picker select,.offer{border-radius:0}
 
 /* ---------- percentages outside a table were unstyled ---------- */
 .num{font-variant-numeric:tabular-nums;font-family:Marcellus,serif;
@@ -1445,7 +1540,7 @@ table.data td.num{font-size:inherit;font-family:inherit}
 /* ---------- errors all speak with one voice ---------- */
 .err,[data-err]{color:var(--crit);font-size:13.5px;margin-top:12px}
 .confirm-row{margin-top:24px;padding:18px 20px;background:var(--cream);
-  border:1px solid var(--mist);border-radius:10px}
+  border:1px solid var(--mist);border-radius:0}
 
 /* ---------- one empty state, not two ---------- */
 /* .empty (rotated tick + one line) and .empty-card (mark + heading + body)
@@ -1680,7 +1775,7 @@ details.more .inner{padding-top:6px}
   .scale{gap:8px}
   .scale button{
     padding:15px 16px;font-size:15px;gap:13px;
-    min-height:54px;border-radius:10px
+    min-height:54px;border-radius:0
   }
   .scale button:hover{transform:none}          /* no hover state on a touch screen */
   .scale button:active{transform:scale(.99)}
@@ -1705,7 +1800,7 @@ details.more .inner{padding-top:6px}
 .picker-chosen{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:12px 14px;background:var(--cream);
-  border:1px solid var(--mist);border-radius:10px
+  border:1px solid var(--mist);border-radius:0
 }
 .picker-chosen b{font-weight:400;color:var(--ink);font-size:15px}
 .picker-clear{
@@ -1716,7 +1811,7 @@ details.more .inner{padding-top:6px}
 .picker-list{
   position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:5px;
   max-height:290px;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  background:#fff;border:1px solid var(--mist);border-radius:10px;
+  background:#fff;border:1px solid var(--mist);border-radius:0;
   box-shadow:0 18px 40px -24px rgba(34,48,42,.5)
 }
 .picker-list button{
@@ -1873,18 +1968,18 @@ aside.side{
    was flat by comparison, which is what makes a page feel unfinished even
    once the big blocks look right. Same two-shadow idea, scaled down: a
    whisper of contact shadow at rest, a little more air on hover or focus. */
+/* Inset highlights on fields and drop shadows under outline buttons are both
+   borrowed depth — the website has neither. A field is a rule and a focus
+   colour; a button is a border that fills in. */
 .ff input,.ff select,.ff textarea{
-  box-shadow:inset 0 1px 2px rgba(34,48,42,.04);
-  transition:box-shadow .3s cubic-bezier(.22,.61,.36,1),border-color .3s
+  box-shadow:none;
+  transition:border-color .3s cubic-bezier(.22,.61,.36,1)
 }
 .ff input:focus,.ff select:focus,.ff textarea:focus{
-  border-color:var(--sage);
-  box-shadow:inset 0 1px 2px rgba(34,48,42,.04),0 10px 24px -18px rgba(34,48,42,.4)
+  border-color:var(--sage);box-shadow:none
 }
-.btn.ghost,.btn:not(.solid):not(.ghost):not(.on-dark){box-shadow:0 1px 2px rgba(34,48,42,.03)}
-.btn.ghost:hover,.btn:not(.solid):not(.ghost):not(.on-dark):hover{
-  box-shadow:0 10px 22px -16px rgba(34,48,42,.35)
-}
+.btn.ghost,.btn:not(.solid):not(.ghost):not(.on-dark){box-shadow:none}
+.btn.ghost:hover,.btn:not(.solid):not(.ghost):not(.on-dark):hover{box-shadow:none}
 .pill{box-shadow:0 1px 2px rgba(34,48,42,.03)}
 .slot{box-shadow:0 1px 2px rgba(34,48,42,.03);transition:box-shadow .25s,border-color .2s,background .2s,transform .2s}
 .slot:hover{box-shadow:0 10px 22px -16px rgba(34,48,42,.35)}
