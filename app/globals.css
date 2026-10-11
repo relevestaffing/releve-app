@@ -27,9 +27,37 @@
      — the fastest way to look unconsidered. */
   --maxw:1180px;
   --measure:68ch;
+  /* ---------- the display face ----------
+     Beonde Elegance (VinType) is intended to sit ABOVE Marcellus, on the few
+     largest moments only — page titles, the greeting, hero headlines. It is a
+     deluxe serif *display* face: it is built for 28px and up and goes strained
+     and hard to read at the 13–16px that card headings, stat labels and table
+     figures live at, so Marcellus keeps all of those and Tenor Sans keeps body.
+
+     Until the licensed file is in place this token resolves to Marcellus, so
+     everything renders exactly as it does today and nothing 404s. To switch it
+     on: drop the licensed woff2/woff into /public/fonts/, uncomment the
+     @font-face below, and put 'Beonde Elegance' at the front of this stack.
+     The website's own stylesheet needs the identical two changes on the same
+     day, or the app and the site stop matching — which is the whole reason
+     this design system exists. */
+  --display:'Marcellus',serif;
   /* The empty-state mark — see .empty-mark below for what it is and why. */
   --fiddlehead:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20stroke%3D%22%23B0C4B2%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%2016.5V10.6%22%2F%3E%3Cpath%20d%3D%22M10%2010.6C10%208%2012%206%2014.6%206.3%22%2F%3E%3Cpath%20d%3D%22M14.6%206.3c.75.3%201.05%201.15.65%201.85-.4.7-1.3.9-1.95.4-.5-.4-.55-1.1-.15-1.6%22%2F%3E%3C%2Fsvg%3E");
 }
+/* Beonde Elegance — commented out until the licensed files exist at these
+   paths. Self-hosted rather than loaded from a CDN: it is not on Google Fonts,
+   and same-origin files need no change to the app's content-security policy.
+   swap keeps the title readable in Marcellus while the file loads rather than
+   flashing invisible text.
+
+@font-face{
+  font-family:'Beonde Elegance';
+  src:url('/fonts/beonde-elegance.woff2') format('woff2'),
+      url('/fonts/beonde-elegance.woff') format('woff');
+  font-weight:400;font-style:normal;font-display:swap;
+}
+*/
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{font-family:'Tenor Sans',sans-serif;color:var(--body);background:var(--paper);line-height:1.7;font-size:17px;-webkit-font-smoothing:antialiased}
@@ -161,7 +189,7 @@ nav.side-nav .badge{font-size:10px;letter-spacing:.08em;background:var(--pale);c
 
 main.main{background:var(--paper);min-width:0}
 .topbar{background:rgba(250,248,242,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:0 46px;height:92px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
-.topbar h1{font-size:clamp(28px,2.8vw,36px)}
+.topbar h1{font-family:var(--display);font-size:clamp(28px,2.8vw,36px)}
 .topbar .crumb{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--sage);margin-bottom:5px}
 /* Same action, rendered twice by Shell for two different positions — see the comment in Shell.tsx. Desktop keeps it in the topbar; below 900px it moves under the mobile nav strip instead, see the 900px block below. */
 .mobile-action{display:none}
@@ -171,7 +199,7 @@ main.main{background:var(--paper);min-width:0}
    with no breathing room anywhere. */
 .page-body{padding:54px 46px 120px;max-width:var(--maxw)}
 .section-title{display:flex;align-items:baseline;gap:14px;margin:6px 0 26px}
-.section-title h2{font-size:clamp(24px,2.4vw,30px)}
+.section-title h2{font-family:var(--display);font-size:clamp(24px,2.4vw,30px)}
 .hr{height:1px;background:var(--line);margin:52px 0}
 
 /* ---------- entry / auth ---------- */
@@ -194,7 +222,10 @@ main.main{background:var(--paper);min-width:0}
 .progress-rail{height:2px;background:var(--line);margin:26px 0 44px;position:relative}
 .progress-rail span{position:absolute;left:0;top:0;height:100%;background:var(--fern);transition:width .45s cubic-bezier(.22,.61,.36,1)}
 .q-num{font-family:'Marcellus',serif;font-size:12px;letter-spacing:.28em;color:var(--sage);margin-bottom:16px}
-.q-text{font-family:'Marcellus',serif;font-size:clamp(22px,2.6vw,30px);color:var(--fern);line-height:1.35;margin-bottom:34px}
+/* The Signature question itself — the one piece of client-facing type a
+   candidate or executive stares at for twenty minutes, and large enough for
+   the display face to carry it. */
+.q-text{font-family:var(--display);font-size:clamp(22px,2.6vw,30px);color:var(--fern);line-height:1.35;margin-bottom:34px}
 .scale{display:grid;gap:10px}
 .scale button{display:flex;align-items:center;gap:16px;text-align:left;background:#fff;border:1px solid var(--line);padding:16px 22px;cursor:pointer;transition:.22s;font-size:15px;color:var(--body)}
 .scale button:hover{border-color:var(--sage);transform:translateX(4px)}
