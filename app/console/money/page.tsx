@@ -17,6 +17,7 @@ import { RunTheMonth } from '@/components/InvoiceControls';
 import DepositControl from '@/components/DepositControl';
 import type { DepositStatus } from '@/lib/money-public';
 import Explain from '@/components/Explain';
+import WiseBatch from '@/components/WiseBatch';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,6 +112,25 @@ export default async function ConsoleMoney() {
   const payoutBy: Record<string, any> = {};
   for (const p of duePayments) {
     if (!(p.talent_id in payoutBy)) payoutBy[p.talent_id] = await getPayout(p.talent_id);
+  }
+
+  /* Who can go in a Wise batch, and who cannot. Exactly the rules the batch
+     endpoint applies, so the count on the button and the rows in the file are
+     always the same set — and anyone left out is named under it rather than
+     discovered later when they ask where their money is. */
+  const wiseReady: typeof duePayments = [];
+  const wiseSkipped: { name: string; why: string }[] = [];
+  for (const p of duePayments) {
+    const po = payoutBy[p.talent_id];
+    const who = p.talent_name ?? 'Talent';
+    if (!po?.method) wiseSkipped.push({ name: who, why: 'no payout details on file' });
+    else if (po.method !== 'wise') wiseSkipped.push({ name: who, why: `paid by ${po.method}, not Wise` });
+    else if (!(po.detail ?? '').trim()) wiseSkipped.push({ name: who, why: 'no Wise email on file' });
+    else if (!(po.beneficiary ?? '').trim()) wiseSkipped.push({ name: who, why: 'no beneficiary name on file' });
+    else if ((po.currency || 'USD').toUpperCase() !== 'USD')
+      wiseSkipped.push({ name: who, why: `set up to be paid in ${(po.currency || '').toUpperCase()}, and this run is in US dollars` });
+    else if (!p.amount_cents || p.amount_cents <= 0) wiseSkipped.push({ name: who, why: 'nothing owed' });
+    else wiseReady.push(p);
   }
 
   const todayP = todayInPacific();
@@ -277,6 +297,7 @@ export default async function ConsoleMoney() {
                 a search through a bank statement. A first or final month is paid by the day.
               </Explain>
             </div>
+            <WiseBatch count={wiseReady.length} skipped={wiseSkipped} />
             {duePayments.map(p => (
               <div key={p.id} style={{ padding: '14px 0', borderBottom: '1px solid var(--line)' }}>
                 <PaymentRow p={p} payout={payoutBy[p.talent_id] ?? null} />
