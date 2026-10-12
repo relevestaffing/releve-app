@@ -87,15 +87,14 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
           {ZONES.map(z => <option key={z} value={z}>{z.replace(/_/g, ' ').replace('/', ': ')}</option>)}
         </select>
         <span className="xs muted">
-          Every time you are shown, and every slot offered to you, is worked out from this.
-          We guessed it from your device, so change it if that is wrong.
+          Detected from your device. Change it if that is wrong.
         </span>
       </div>
       <p className="small muted" style={{ marginBottom: 20 }}>
         {who === 'talent'
-          ? 'Set the hours you can genuinely take a call, in your own time. Executives only ever see the overlap with their own hours, converted to theirs.'
-          : 'Set the hours you are open to meeting candidates, in your own time. We only offer people slots inside these.'}
-        {' '}You set this once; it repeats every week.
+          ? 'The hours you can take a call. Executives see only the overlap with their own.'
+          : 'The hours you are open to meeting candidates. Nobody is offered a slot outside these.'}
+        {' '}Set once, repeats weekly.
       </p>
       <div className="avail-scroll">
       <div className="avail-grid">

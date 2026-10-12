@@ -28,10 +28,10 @@ export default async function DelegatePage() {
           <div className="eyebrow" style={{ marginBottom: 6 }}>
             {tour ? 'When you’re ready' : 'Ready to turn this into a role'}
           </div>
-          <div className="small" style={{ maxWidth: 560 }}>
+          <div className="small" style={{ maxWidth: 480 }}>
             {tour
-              ? 'You do not have to decide any of this yet. Once your search is open, the role brief walks you through it, one competency at a time, with the option to say “not needed” to anything that is not yours.'
-              : 'You do not have to choose everything, or get it perfect. Pick the areas that matter, and the role brief walks you through the rest, one competency at a time, with the option to say “not needed” to anything that is not yours.'}
+              ? 'Nothing to decide yet. The role brief walks you through it when your search opens.'
+              : 'Pick the areas that matter. The role brief walks you through the rest.'}
           </div>
         </div>
         <Link className="btn solid" href={tour ? '/app' : '/app/role'}>

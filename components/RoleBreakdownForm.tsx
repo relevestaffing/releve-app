@@ -54,11 +54,9 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
           <h3>What kind of work is this?</h3>
           {picked.length > 0 && <span className="pill">{picked.length} chosen</span>}
         </div>
-        <p className="small muted" style={{ marginBottom: 20, maxWidth: 620 }}>
-          Pick everything the role genuinely covers. Each one you choose opens a
-          set of questions specific to it. That is how we tell the difference
-          between someone who schedules posts and someone who runs a paid
-          strategy. Put the most important one first.
+        <p className="small muted" style={{ marginBottom: 20, maxWidth: 520 }}>
+          Everything the role covers, most important first. Each one opens
+          questions specific to it.
         </p>
 
         <div className="disc-grid">

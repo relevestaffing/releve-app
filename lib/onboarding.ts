@@ -90,17 +90,20 @@ export function clientSteps(o: {
   hasSignature: boolean; hasAvailability: boolean; hasIntro: boolean; hasRole?: boolean;
 }): Step[] {
   return [
+    /* Blurbs cut to one line each, 12 October 2026. A checklist is read at a
+       glance, not studied: if a line needs a second sentence to justify its
+       step, the step is not carrying its own weight. */
     { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: '15–20 min',
-      blurb: 'How you run your day. Every candidate is scored against it before you see a name. It saves as you go, so stop and come back whenever you like.',
+      blurb: 'How you run your day. Every candidate is scored against it. Saves as you go.',
       done: o.hasSignature, critical: true },
     { key: 'role', title: 'Break down the role', href: '/app/role', minutes: '10 min',
-      blurb: 'Say what the role is, then answer questions specific to it. The more exact you are, the closer the match lands.',
+      blurb: 'What the person will own. The more exact, the closer the match.',
       done: !!o.hasRole, critical: true },
     { key: 'availability', title: 'Set your interview hours', href: '/app/availability', minutes: '2 min',
-      blurb: 'When you are open to meeting candidates. We never offer anyone a slot outside these.',
+      blurb: 'Nobody is offered a slot outside these.',
       done: o.hasAvailability, critical: true },
     { key: 'intro', title: 'Add your photo and a short intro', href: '/app/profile', minutes: '3 min',
-      blurb: 'What a candidate reads before they meet you. It is the difference between someone who prepared and someone who did not.',
+      blurb: 'What a candidate reads before they meet you.',
       done: o.hasIntro }
   ];
 }

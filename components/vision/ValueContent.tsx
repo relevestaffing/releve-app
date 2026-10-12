@@ -15,10 +15,9 @@ export default function ValueContent({ retainerMonthlyCents, placed }: {
         <h2 style={{ fontSize: 30, color: 'var(--cream)', marginBottom: 14, maxWidth: 620 }}>
           $130,000 a year, or under $55,000 for the same hire.
         </h2>
-        <p className="small" style={{ color: 'var(--pale)', maxWidth: 640, margin: 0 }}>
-          A full-time executive assistant of this calibre costs six figures once you count
-          benefits, payroll and recruiting. Relève brings you the same standard, with
-          a qualified candidate within fourteen days of the search opening, for a fraction of it.
+        <p className="small" style={{ color: 'var(--pale)', maxWidth: 560, margin: 0 }}>
+          The same calibre of hire, once you count benefits, payroll and recruiting.
+          Without the overhead, and inside fourteen days.
         </p>
       </div>
 

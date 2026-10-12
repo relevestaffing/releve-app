@@ -8,17 +8,14 @@ export default function DelegateContent() {
     <>
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 12 }}>
-          Start here if the page feels blank
+          What to delegate
         </div>
-        <h2 style={{ fontSize: 28, color: 'var(--cream)', marginBottom: 14, maxWidth: 620 }}>
-          The hardest part of hiring is picturing what someone could take off your plate.
+        <h2 style={{ fontSize: 28, color: 'var(--cream)', marginBottom: 14, maxWidth: 560 }}>
+          Most executives hand over the calendar and stop there.
         </h2>
-        <p className="small" style={{ maxWidth: 640, color: 'var(--pale)' }}>
-          Most executives under-hire. They hand over the calendar and stop there, because the
-          rest never occurs to them until they are drowning in it. Below is the whole territory
-          a Relève placement can own, in the words we actually match on. Read it as a menu, not a
-          checklist: pick the few areas that would give you your week back, and the role brief
-          turns them into a real search.
+        <p className="small" style={{ maxWidth: 520, color: 'var(--pale)' }}>
+          Everything a Relève placement can own. Pick the few that would give you
+          your week back.
         </p>
       </div>
 
