@@ -34,6 +34,25 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
     if (ok) router.refresh();
   }
 
+  /* What was just saved, so the read view can render it straight away.
+     ---------------------------------------------------------------------
+     Two faults lived here and compounded into "I press Save, it lets me keep
+     editing, and it doesn't save".
+
+     1. `open` is seeded from `!initial?.role_title` through useState, which
+        React evaluates once at mount and never again. A successful save called
+        router.refresh() but nothing set `open` back to false, so the form sat
+        in edit mode forever — indistinguishable from a save that failed, even
+        though the row had been written correctly.
+     2. Flipping to the read view alone would not have fixed it: that view
+        renders from `initial`, the server prop, which still holds the pre-save
+        values until refresh() lands a moment later. The brief would flash
+        stale or blank, which reads as a failed save just as badly.
+
+     So the save keeps its own copy of what it sent, and the read view renders
+     from that until the server catches up. (12 October.) */
+  const [justSaved, setJustSaved] = useState<Record<string, any> | null>(null);
+
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true);
     const f = new FormData(e.currentTarget);
@@ -43,15 +62,24 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body) }), 'Brief saved');
     setBusy(false); setSaved(ok);
-    if (ok) router.refresh();
+    if (ok) {
+      const { client_key: _ck, pending: _pd, ...fields } = body;
+      setJustSaved(fields);
+      setOpen(false);
+      router.refresh();
+    }
   }
+
+  /* Server values, overlaid with anything saved in this session that the
+     server has not sent back yet. See the note on justSaved above. */
+  const view: any = { ...initial, ...(justSaved ?? {}) };
 
   if (!open) return (
     <div className="brief-read">
       <div className="row between" style={{ gap: 14, flexWrap: 'wrap' }}>
         <div>
-          <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)' }}>{initial.role_title}</b>
-          {initial.stage && <span className="pill" style={{ marginLeft: 10 }}>{initial.stage}</span>}
+          <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)' }}>{view.role_title}</b>
+          {view.stage && <span className="pill" style={{ marginLeft: 10 }}>{view.stage}</span>}
           <span className={`pill ${hiring ? 'good' : ''}`} style={{ marginLeft: 8 }}>
             <span className="dot" />{hiring ? 'Hiring' : 'Not hiring'}
           </span>
@@ -71,10 +99,10 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
           : `${firstName(name, 'The executive')} sees only the people already working with them. Open a search to put someone new in front of them.`}
       </p>
       <dl className="brief-facts">
-        {initial.scope && <><dt>Owns</dt><dd>{initial.scope}</dd></>}
-        {initial.hours && <><dt>Hours</dt><dd>{initial.hours}</dd></>}
-        {initial.tools && <><dt>Tools</dt><dd>{initial.tools}</dd></>}
-        {initial.target_at && <><dt>Start</dt><dd>{fmtDate(initial.target_at)}</dd></>}
+        {view.scope && <><dt>Owns</dt><dd>{view.scope}</dd></>}
+        {view.hours && <><dt>Hours</dt><dd>{view.hours}</dd></>}
+        {view.tools && <><dt>Tools</dt><dd>{view.tools}</dd></>}
+        {view.target_at && <><dt>Start</dt><dd>{fmtDate(view.target_at)}</dd></>}
       </dl>
     </div>
   );

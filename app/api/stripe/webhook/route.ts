@@ -201,11 +201,17 @@ export async function POST(req: Request) {
           }
         }
 
-        /* A search deposit opens the search, from here rather than the browser. */
+        /* A search deposit opens the search, from here rather than the browser —
+           and "opens" now includes starting the fourteen-day clock. opened_at
+           defaulted to the day the row was created (the day the brief was
+           saved), so the guarantee used to begin counting while sourcing was
+           still blocked on this very payment. See setDeposit() in lib/money.ts
+           for the full reasoning; both paths have to agree. */
         const searchId = obj.metadata?.search_id;
         if (searchId) {
           must(await sb.from('searches').update({
-            deposit_status: 'paid', deposit_paid_on: on, deposit_payment_intent: obj.id
+            deposit_status: 'paid', deposit_paid_on: on, deposit_payment_intent: obj.id,
+            opened_at: on
           }).eq('id', searchId).in('deposit_status', ['due', 'processing']), 'mark deposit paid');
         }
 

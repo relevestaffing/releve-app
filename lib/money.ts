@@ -63,12 +63,30 @@ export async function hasAccepted(userId: string, version: string): Promise<bool
 
 /* ---------- the deposit, which lives on the search ---------- */
 
+/* Settling the deposit is also what starts the fourteen-day clock.
+   -----------------------------------------------------------------
+   searches.opened_at defaults to the day the row is created, which is the day
+   Sage saves the role brief — but sourcing cannot begin until the deposit is
+   in, and the promise made to the executive is "within fourteen days of your
+   search opening", with "the day the deposit is in, sourcing begins" right
+   beside it. Leaving opened_at at the brief date meant every day spent waiting
+   to be paid was burned off the guarantee before any work could legally start,
+   and the console's day-11 warning fired against time Relève never had. The
+   clock now starts when the money settles, which is what both the copy and the
+   operation have always assumed. (Found in the 12 October onboarding audit.)
+
+   Waived counts the same as paid: a waived deposit opens the search on the day
+   it is waived. Moving back to 'due' deliberately leaves opened_at alone — an
+   accidental un-mark should not silently extend a promise already made. */
 export async function setDeposit(searchId: string, status: DepositStatus, paidOn?: string | null) {
   if (!configured()) return;
   const sb = await supabaseServer();
+  const settledOn = paidOn ?? todayInPacific();
+  const opensNow = status === 'paid' || status === 'waived';
   const { error } = await sb.from('searches').update({
     deposit_status: status,
-    deposit_paid_on: status === 'paid' ? (paidOn ?? todayInPacific()) : null
+    deposit_paid_on: status === 'paid' ? settledOn : null,
+    ...(opensNow ? { opened_at: settledOn } : {})
   }).eq('id', searchId);
   if (error) throw new Error(error.message);
 }

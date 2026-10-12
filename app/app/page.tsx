@@ -32,6 +32,7 @@ import { firstName } from '@/lib/words';
 import { docusignClientReady } from '@/lib/docusign';
 import { getClientAgreement } from '@/lib/agreement';
 import ClientAgreementCard from '@/components/ClientAgreementCard';
+import ClientAgreementStatus from '@/components/ClientAgreementStatus';
 import ManagerLine from '@/components/ManagerLine';
 import { primaryManager, viewerTimezone, todayIn } from '@/lib/experience';
 
@@ -274,9 +275,18 @@ export default async function AppHome() {
 
         {offer && <OfferCard offer={offer} side="client" />}
         {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
-        {docusignClientReady() && clientAgreement && clientAgreement.state !== 'verified' && (
-          <ClientAgreementCard state={clientAgreement.state} rejectReason={clientAgreement.reject_reason} />
-        )}
+        {/* With DocuSign on, the executive signs in place. With it off (Relève
+            is on the Free plan by choice) the contract for a $2,500+/month
+            engagement appeared nowhere in the product at all — sent by hand,
+            chased by hand, and invisible to the person who had to sign it.
+            The read-only status card closes that gap: no button, because
+            there is genuinely nothing to click, but the state is on the page
+            for both sides. (12 October onboarding audit.) */}
+        {docusignClientReady()
+          ? (clientAgreement && clientAgreement.state !== 'verified' && (
+              <ClientAgreementCard state={clientAgreement.state} rejectReason={clientAgreement.reject_reason} />
+            ))
+          : <ClientAgreementStatus state={(clientAgreement?.state ?? 'not_started') as any} />}
 
         {/* Side by side once there is a placement to work from — tasks as
            the main pane, attention and the team as a rail beside it, the

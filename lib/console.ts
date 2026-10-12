@@ -143,6 +143,26 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const depositsDue = (searches.data ?? [])
     .filter((s: any) => s.deposit_status === 'due' && s.stage !== 'On hold').length;
 
+  /* Executives who have signed in and have nothing they can do yet.
+     ---------------------------------------------------------------
+     A search only exists once the role brief is saved, and until it does the
+     executive's own account shows a holding screen promising their search
+     "within one business day". Nothing in this list said that promise was
+     outstanding, so the only thing keeping it was remembering — exactly the
+     silent dependency a first real client finds. Counts a client profile (one
+     exists only once they have signed in) with no search of any kind against
+     it and no live placement. (12 October onboarding audit.) */
+  const clientsWithSearch = new Set(
+    (searches.data ?? []).map((s: any) => s.client_id).filter(Boolean)
+  );
+  const clientsPlaced = new Set(
+    (places.data ?? []).filter((p: any) => !p.ended_on).map((p: any) => p.client_id)
+  );
+  const awaitingSearch = (people.data ?? [])
+    .filter((p: any) => p.role === 'client'
+      && !clientsWithSearch.has(p.id)
+      && !clientsPlaced.has(p.id)).length;
+
   /* ---- shortlists ---- */
   /* Whether an executive has answered lives in talent_decisions, not in
      matches.client_state — that column was designed for it and nothing has
@@ -471,6 +491,14 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
     what: `${agree(noRate, 'live placement has', 'live placements have')} no rate set`,
     why: 'setting it now makes sure this placement gets billed on schedule',
     href: '/console/money', cta: 'Set the rates' });
+
+  /* Ranked above the outstanding deposit: this executive cannot even be asked
+     for the deposit until the brief exists, and they were told one business
+     day. */
+  add({ key: 'awaiting_search', rank: 1.8, level: 'high', count: awaitingSearch,
+    what: `${agree(awaitingSearch, 'executive is', 'executives are')} waiting on their search to open`,
+    why: 'they have signed in and can do nothing until the role brief is written, and their account promised them one business day',
+    href: '/console/people', cta: 'Write the brief' });
 
   add({ key: 'deposit', rank: 10, level: 'medium', count: depositsDue,
     what: `${agree(depositsDue, 'search has', 'searches have')} an outstanding deposit`,

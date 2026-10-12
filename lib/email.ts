@@ -842,6 +842,30 @@ export const templates = Object.fromEntries(
   ])
 ) as Tagged<typeof rawTemplates>;
 
+/* The one nudge an executive gets during onboarding.
+   --------------------------------------------------
+   Every other nudge in this file is post-placement. An executive who paid the
+   deposit, opened their Signature and then got pulled back into their day was
+   chased by nothing at all — and the Signature is the gate on being matched,
+   so one stalled Signature quietly stops the whole search while the fourteen
+   days run. Sent once, a few days in, never again. (12 October audit.)
+
+   Short, and with no deadline in it: this person has already paid. The job is
+   to make coming back easy, not to apply pressure to someone who is owed
+   work. */
+export function signatureNudge(name: string): Message {
+  return {
+    kind: 'signatureNudge',
+    subject: 'Your Signature, whenever you have twenty minutes',
+    text: `${name},\n\nYour search is open and we are ready to source against it. The one thing we need from you is your Executive Signature.\n\nAbout twenty minutes, and it saves as you go, so you can stop and come back.\n\n${SITE}/app/signature\n\nRelève`,
+    html: shell('Your Signature, whenever you have twenty minutes',
+      p(`${name},`) +
+      p('Your search is open and we are ready to source against it. The one thing we need from you is your Executive Signature.') +
+      p('About twenty minutes, and it saves as you go.'),
+      { label: 'Take the Signature', href: `${SITE}/app/signature` })
+  };
+}
+
 /* The one message with no template, so the nudge for a monthly pulse can be
    written where it is sent. Kept here so every outbound message still passes
    through one file. */
