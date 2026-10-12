@@ -18,6 +18,13 @@ export default function PaySetter({ talentId, cents, compact = false }: {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(cents == null ? '' : String(cents / 100));
   const [busy, setBusy] = useState(false);
+  /* The amount just set, shown until the server round-trip lands. Without it
+     the read view renders the `cents` prop — so the instant after setting pay
+     for the first time, the "Not set" warning pill is still what shows, over
+     the figure that was just entered. Same fault and fix as RateSetter.
+     (12 October.) */
+  const [justSet, setJustSet] = useState<number | null>(null);
+  const shownCents = justSet ?? cents;
 
   async function save() {
     const c = toCents(text);
@@ -32,16 +39,16 @@ export default function PaySetter({ talentId, cents, compact = false }: {
       setBusy(false);
       if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); return; }
       toast.saved(`We pay ${money(c)} a month`);
-      setEditing(false); router.refresh();
+      setJustSet(c); setEditing(false); router.refresh();
     } catch { setBusy(false); toast.bad('No connection, so nothing was saved.'); }
   }
 
   if (!editing) return (
     <span className="rate-set" style={{ justifyContent: compact ? 'flex-end' : undefined }}>
-      {cents != null
-        ? <b className="amount">{money(cents)}</b>
+      {shownCents != null
+        ? <b className="amount">{money(shownCents)}</b>
         : <span className="pill warn" title="Payroll skips anyone with no pay on file">Not set</span>}
-      <button className="btn sm ghost" onClick={() => setEditing(true)}>{cents != null ? 'Change' : 'Set'}</button>
+      <button className="btn sm ghost" onClick={() => setEditing(true)}>{shownCents != null ? 'Change' : 'Set'}</button>
     </span>
   );
 

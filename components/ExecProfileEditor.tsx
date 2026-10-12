@@ -16,6 +16,17 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
+  /* What was just saved, so the read view shows it immediately.
+     ---------------------------------------------------------
+     This is the executive's own profile, so the stale-read fault matters
+     more here than anywhere: they type their name and title, press save, the
+     card closes — and renders `initial`, the server prop, which still holds
+     the old values until router.refresh() returns. On a first-time profile
+     those fields are empty, so the card they just filled in would show a
+     column of "·" for a beat. Same fault and fix as RoleBriefEditor and
+     RateSetter. (12 October.) */
+  const [justSaved, setJustSaved] = useState<Record<string, any> | null>(null);
+  const view: any = { ...initial, ...(justSaved ?? {}) };
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true);
@@ -26,7 +37,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
       method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
     }), 'Profile saved');
     setBusy(false);
-    if (ok) { router.refresh(); setEditing(false); }
+    if (ok) { setJustSaved(body); router.refresh(); setEditing(false); }
   }
 
   if (!editing) {
@@ -37,13 +48,13 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
           <button type="button" className="btn sm ghost" onClick={() => setEditing(true)}>Edit profile</button>
         </div>
         <dl className="brief-facts">
-          <dt>Name</dt><dd>{initial.full_name || '·'}</dd>
-          <dt>Title</dt><dd>{initial.headline || '·'}</dd>
-          <dt>Company</dt><dd>{initial.org_name || '·'}</dd>
-          <dt>Based in</dt><dd>{initial.location || '·'}</dd>
-          <dt>Timezone</dt><dd>{initial.timezone || '·'}</dd>
+          <dt>Name</dt><dd>{view.full_name || '·'}</dd>
+          <dt>Title</dt><dd>{view.headline || '·'}</dd>
+          <dt>Company</dt><dd>{view.org_name || '·'}</dd>
+          <dt>Based in</dt><dd>{view.location || '·'}</dd>
+          <dt>Timezone</dt><dd>{view.timezone || '·'}</dd>
         </dl>
-        {initial.bio && <p className="small muted" style={{ marginTop: 16, maxWidth: 620 }}>{initial.bio}</p>}
+        {view.bio && <p className="small muted" style={{ marginTop: 16, maxWidth: 'var(--measure)' }}>{view.bio}</p>}
       </div>
     );
   }

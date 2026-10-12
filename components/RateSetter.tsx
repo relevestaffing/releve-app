@@ -11,6 +11,15 @@ export default function RateSetter({ placementId, cents }: { placementId: string
   const [editing, setEditing] = useState(cents == null);
   const [text, setText] = useState(cents == null ? '' : String(cents / 100));
   const [busy, setBusy] = useState(false);
+  /* The amount just set, so the read view can show it before the server
+     round-trip lands. Closing the editor and rendering the `cents` prop
+     alone meant the moment after saving showed the OLD rate — or, setting a
+     rate for the first time, no rate at all — until router.refresh()
+     returned. A number that blinks to the wrong value the instant you save
+     it reads as a save that failed. Same fault as RoleBriefEditor's, same
+     fix. (12 October.) */
+  const [justSet, setJustSet] = useState<number | null>(null);
+  const shownCents = justSet ?? cents;
 
   async function save() {
     const c = toCents(text);
@@ -29,15 +38,15 @@ export default function RateSetter({ placementId, cents }: { placementId: string
       if (d.outsideQuotedBand)
         toast.ok(`Set to ${money(c)}, outside the ${money(RATE_MIN_CENTS)} to ${money(RATE_MAX_CENTS)} band`);
       else toast.saved(`Rate set to ${money(c)} a month`);
-      setEditing(false); router.refresh();
+      setJustSet(c); setEditing(false); router.refresh();
     } catch { setBusy(false); toast.bad('No connection. Nothing was saved.'); }
   }
 
   if (!editing) return (
     <span className="rate-set">
-      <b className="amount">{money(cents)}</b>
+      <b className="amount">{money(shownCents)}</b>
       <span className="xs muted">/mo</span>
-      {cents != null && !rateInRange(cents) && <span className="pill warn">Outside band</span>}
+      {shownCents != null && !rateInRange(shownCents) && <span className="pill warn">Outside band</span>}
       <button className="btn sm ghost" onClick={() => setEditing(true)}>Change</button>
     </span>
   );
