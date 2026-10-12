@@ -731,6 +731,19 @@ details.more .inner{padding-top:18px;animation:riseSm .4s cubic-bezier(.22,.61,.
    now set off the way the website sets off a block inside a section: a
    hairline above it and room to breathe, no container of its own. */
 .brief-read{background:transparent;border:0;border-top:1px solid var(--line);padding:26px 0 4px;margin-top:22px}
+
+/* The occasional actions on a directory row, behind one word. Reads as a
+   quiet label rather than a control until you want it — which is the whole
+   point: these are real actions, just not the daily one. */
+.row-more{margin-top:18px}
+.row-more > summary{
+  display:inline-flex;align-items:center;gap:7px;width:fit-content;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
+  cursor:pointer;transition:color .25s
+}
+.row-more > summary::after{content:"+";font-family:'Marcellus',serif;font-size:15px;line-height:1}
+.row-more[open] > summary::after{content:"–"}
+.row-more > summary:hover{color:var(--fern)}
 .brief-facts{display:grid;grid-template-columns:96px 1fr;gap:12px 24px;margin-top:20px}
 .brief-facts dt{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);padding-top:4px}
 .brief-facts dd{font-size:15.5px;line-height:1.6;color:var(--fern);max-width:var(--measure)}

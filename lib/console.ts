@@ -5,6 +5,7 @@
    looks at them, so the first screen is a list of what needs a person rather
    than a chart. */
 import { configured, supabaseServer } from './supabase/server';
+import { stripeMode } from './stripe';
 import { todayInPacific, monthStartPacific } from './money-public';
 
 export type Attention = {
@@ -303,6 +304,21 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
      the threat — no "chase", no "lose a client", nothing framed as a loss
      already underway. Still true, still worth doing today; just said the
      way a business that expects to win talks to itself. */
+  /* Money on the wrong rail outranks everything, because nothing about it
+     looks wrong until a real client's card quietly does not charge: Stripe
+     accepts the payment, Checkout succeeds, the webhook fires, the deposit
+     reads as paid, and no money moved. Ranked above even a dead mail server.
+     (12 October audit — this was the one open question that could not be
+     answered from outside the server.) */
+  if (stripeMode() === 'test') {
+    attention.push({
+      key: 'stripe_test_mode', rank: -1, level: 'high', count: 1,
+      what: 'Stripe is running on test keys, so no real card will be charged',
+      why: 'a deposit paid now would succeed on screen and move no money; swap STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET for their live values in Netlify before taking a payment',
+      href: '/console/money', cta: 'See the money'
+    });
+  }
+
   if (neverWorked) {
     attention.push({
       key: 'email_never', rank: 0, level: 'high', count: 1,

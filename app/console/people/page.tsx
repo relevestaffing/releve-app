@@ -103,10 +103,34 @@ export default async function People() {
                   {[client.org_name, client.email, client.timezone].filter(Boolean).join(' · ')}
                 </div>
               </div>
-              <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Status only. Every row used to carry five controls and two
+                  chips side by side, so nothing read as the thing to do and
+                  the page was a wall of identical outlined buttons. What is
+                  true about this person stays visible; what you might do to
+                  them moves below. (12 October.) */}
+              <div className="row" style={{ gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                <OnboardingStatus steps={steps} compact />
+                <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
+                  <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}
+                </span>
+              </div>
+            </div>
+
+            {/* The brief is the actual work on this page — it is what opens
+                the search — so it sits in the row proper rather than
+                competing with the admin plumbing. */}
+            <RoleBriefEditor clientKey={client.key} pending={!client.signed_in}
+              initial={brief ?? {}} name={client.full_name} />
+
+            {/* Everything occasional, behind one disclosure: the agreement,
+                waiving the deposit, removing the record. Each is a real
+                action and none of them is the daily one. */}
+            <details className="row-more">
+              <summary>More</summary>
+              <div className="row" style={{ gap: 12, alignItems: 'center', flexWrap: 'wrap', paddingTop: 16 }}>
                 {/* The search opens on the deposit; waiving it here opens the
-                    search without the $500, straight from the executive's row.
-                    Shown only while a search is actually open. */}
+                    search without the $500. Shown only while a search is
+                    actually open. */}
                 {brief && !brief.closed_at && (brief as any).id && (
                   <WaiveDeposit searchId={(brief as any).id}
                     cents={(brief as any).deposit_cents ?? 50000}
@@ -116,15 +140,9 @@ export default async function People() {
                   state={(agreements[client.key]?.state ?? 'not_started')}
                   rejectReason={agreements[client.key]?.reject_reason ?? null}
                   manualSendUrl={manualSendUrl('client')} />
-                <OnboardingStatus steps={steps} compact />
-                <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
-                  <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}
-                </span>
                 <DeletePerson id={client.key} name={client.full_name} pending={!client.signed_in} />
               </div>
-            </div>
-            <RoleBriefEditor clientKey={client.key} pending={!client.signed_in}
-              initial={brief ?? {}} name={client.full_name} />
+            </details>
           </div>
         ))}
         </div>

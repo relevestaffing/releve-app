@@ -33,9 +33,18 @@ export const viewport: Viewport = {
   viewportFit: 'cover'          // lets the safe-area insets in globals.css do their job
 };
 
+/* suppressHydrationWarning sits on <html> below for one specific, intended
+   reason: the inline script in <head> adds class="js" to that very element
+   before first paint, so by the time React hydrates, the DOM carries an
+   attribute the server never rendered. React reported this on every page in
+   the app — "a tree hydrated but some attributes of the server rendered HTML
+   didn't match" — noise that buried anything real in the console. The flag
+   covers this element's own attributes only, never its children, so a genuine
+   mismatch anywhere inside the app still surfaces. (12 October pre-launch
+   crawl: all 51 routes, this was the only thing it found.) */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Set before first paint. Every reveal in globals.css is gated on
             html.js, so a browser with scripting off — or a script that fails

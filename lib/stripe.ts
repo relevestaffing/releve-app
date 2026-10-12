@@ -19,6 +19,21 @@ export const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffi
 export function stripeReady() { return Boolean(KEY); }
 export function webhookReady() { return Boolean(WEBHOOK_SECRET); }
 
+/* Live keys, or test keys?
+   ------------------------
+   Raised by the 12 October audit and genuinely unanswerable from outside the
+   server: a test key and a live key are both "set", and the difference only
+   shows up the first time a real client's card quietly does not charge.
+   Stripe's own key prefixes settle it — sk_live_… against sk_test_… — so the
+   server reads the first eight characters and reports only the mode. The key
+   itself never leaves this file, and nobody has to open Netlify and squint at
+   a secret to find out which rail the money is on. */
+export type StripeMode = 'live' | 'test' | 'off';
+export function stripeMode(): StripeMode {
+  if (!KEY) return 'off';
+  return KEY.startsWith('sk_live_') || KEY.startsWith('rk_live_') ? 'live' : 'test';
+}
+
 /* Stripe takes nested data as bracketed form keys — payment_method_types[0],
    metadata[invoice_id] — so objects and arrays are flattened rather than sent
    as JSON. Getting this wrong fails quietly by ignoring the parameter, which
