@@ -265,6 +265,22 @@ table.data tbody tr:has(a){cursor:pointer}
 table.data tbody tr:has(a):hover{background:var(--cream)}
 table.data td.num{font-family:'Marcellus',serif;font-size:17px;color:var(--fern)}
 
+/* A ticked row on the tidy-up screen. Warm rather than loud: what is picked
+   should read at a glance without the table turning into a checkerboard
+   once half of it is chosen. (13 October.) */
+table.data tbody tr.picked{background:var(--cream)}
+table.data tbody tr.picked td{border-bottom-color:var(--line-strong)}
+/* The one place in the app with real checkboxes. Left at browser default
+   they are the blue of every form on the internet, which is the single
+   fastest way to make a page look like it was not designed. */
+table.data input[type=checkbox]{accent-color:var(--fern);width:17px;height:17px;cursor:pointer}
+
+/* The archived list reuses .plain for its dividers but not its bullet — a
+   dash in front of a person's name reads as a list of items rather than a
+   list of people. */
+.archived-list li{padding-left:0}
+.archived-list li::before{display:none}
+
 /* ---------- candidate cards ---------- */
 .match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
 .match-card{background:#fff;border:1px solid var(--line);padding:26px;cursor:pointer;transition:transform .4s cubic-bezier(.22,.61,.36,1),box-shadow .4s;box-shadow:0 22px 50px -44px rgba(34,48,42,.5)}

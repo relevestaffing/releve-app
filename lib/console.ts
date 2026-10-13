@@ -7,6 +7,7 @@
 import { configured, supabaseServer } from './supabase/server';
 import { stripeMode } from './stripe';
 import { todayInPacific, monthStartPacific } from './money-public';
+import { archivingIsLive } from './archive';
 
 export type Attention = {
   key: string;
@@ -64,13 +65,20 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
 
   const sb = await supabaseServer();
   const now = today();
+  const archivingOn = await archivingIsLive();
 
   const [
     people, vetting, searches, matches, places, terms,
     invoices, checkins, pulses, timeOff, interviews, tasks, threads, decisions, offers,
     applications, allInv, payouts, payoutDetails, mailHealth, requests
   ] = await Promise.all([
-    sb.from('profiles').select('id, role, stage'),
+    /* Archived people leave every count and every alert on this page. An
+       archive that still generated "waiting on you" rows would be a filing
+       cabinet, not an archive. Asked rather than assumed, so the Overview
+       still renders on a database where PART 40 has not been run. */
+    archivingOn
+      ? sb.from('profiles').select('id, role, stage').is('archived_at', null)
+      : sb.from('profiles').select('id, role, stage'),
     sb.from('vetting').select('talent_id, kind, state, expires_on'),
     sb.from('searches').select('id, client_id, stage, opened_at, first_candidate_on, guarantee_days, deposit_status, closed_at'),
     sb.from('matches').select('client_id, talent_id, released'),

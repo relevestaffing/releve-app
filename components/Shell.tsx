@@ -84,7 +84,11 @@ const NAV: Record<string, NavGroup[]> = {
       { href: '/console/people', label: 'Executives' },
       { href: '/console/bench', label: 'Talent' },
       { href: '/console/vetting', label: 'Verification' },
-      { href: '/console/watch', label: 'Taking The Watch' }
+      { href: '/console/watch', label: 'Taking The Watch' },
+      /* Archiving and removing people, in one place rather than a button at
+         the bottom of every row. Last in the group because it is occasional
+         work, not daily work. (13 October.) */
+      { href: '/console/cleanup', label: 'Tidy up' }
     ]},
     { group: 'Recruiting', items: [
       { href: '/console/postings', label: 'Postings' },

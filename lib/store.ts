@@ -5,6 +5,7 @@ import { configured, supabaseServer } from './supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { DEMO_BENCH, DEMO_EXEC } from './demo';
 import { DEFAULT_WINDOWS, type Availability, type Window } from './scheduling';
+import { removalBlockers, archivingIsLive } from './archive';
 
 export type InterviewStatus = 'Proposed' | 'Confirmed' | 'Declined' | 'Completed' | 'No-show' | 'Cancelled';
 export type Interview = {
@@ -270,8 +271,15 @@ export async function listClients(): Promise<ClientRow[]> {
     return [demo, ...added];
   }
   const sb = await supabaseServer();
+  /* Archived clients are out of the Directory. The talent side gets this for
+     free inside talent_directory; the client side has no view of its own, so
+     it is said here. Asked rather than assumed, so that this page still works
+     on a database where PART 40 has not been run yet. */
+  const archiving = await archivingIsLive();
+  const clientQ = sb.from('profiles').select('id, full_name, email, org_name, timezone')
+    .eq('role', 'client');
   const [{ data: profiles }, { data: pendingRows }] = await Promise.all([
-    sb.from('profiles').select('id, full_name, email, org_name, timezone').eq('role', 'client'),
+    archiving ? clientQ.is('archived_at', null) : clientQ,
     sb.from('pending_people').select('*').eq('role', 'client').is('claimed_by', null)
   ]);
   return [
@@ -435,24 +443,20 @@ export async function deleteAccount(id: string) {
 
   /* This is the one call that permanently destroys placement, invoice and
      payment history (see the comment above) — typing a name is friction, not
-     a safeguard. Refuse it outright while a live placement or an unpaid
-     invoice is still on this person's record, and say what to do instead.
-     (Admin-console audit, approved 17 Sep 2026.) */
+     a safeguard. Refuse it outright while a live placement, an unpaid
+     invoice, or money still owed to this person is on file, and say what to
+     do instead. (Admin-console audit, approved 17 Sep 2026; money owed added
+     13 Oct 2026, when building the cleanup screen made it plain that
+     deleting a talent mid-payroll erases the debt and the creditor in the
+     same call.)
+
+     The rules themselves live in the database, in removal_blocker(). Read
+     here and read again by the cleanup screen, so the sentence shown on
+     screen and the sentence this throws are literally the same sentence and
+     cannot drift apart. */
   {
-    const { count: livePlacements } = await admin.from('placements')
-      .select('id', { count: 'exact', head: true })
-      .or(`client_id.eq.${id},talent_id.eq.${id}`)
-      .is('ended_on', null);
-    if (livePlacements) {
-      throw new Error('This person has a live placement on file. End the placement first, then remove them.');
-    }
-    const { count: unpaidInvoices } = await admin.from('invoices')
-      .select('id', { count: 'exact', head: true })
-      .eq('client_id', id)
-      .in('status', ['draft', 'sent', 'failed']);
-    if (unpaidInvoices) {
-      throw new Error('This person has an unpaid invoice on file. Settle or void it first, then remove them.');
-    }
+    const blockers = await removalBlockers([id]);
+    if (blockers[id]) throw new Error(blockers[id]);
   }
 
   /* Deleting the auth user cascades every database row that references it.

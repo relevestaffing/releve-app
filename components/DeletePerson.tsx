@@ -7,7 +7,15 @@ import { saving } from './Toast';
    A record nobody has signed into yet (pending) has no history to lose, so
    one click removes it. A real account cascades away everything on file for
    that person the moment their auth user is deleted, so this makes the admin
-   type the person's own first name before that call goes out. */
+   type the person's own first name before that call goes out.
+
+   ARCHIVE SITS IN FRONT OF IT (13 October 2026). Most of the time the real
+   intent is "get this person off my list", not "destroy everything they
+   did", and until now the only button on offer did the second. So an
+   account gets Archive first, with Remove kept behind it — reversed from
+   how it read before, because the reversible action should be the easy one.
+   An unclaimed invitation has no account to archive, so it keeps the single
+   Remove it always had. */
 export default function DeletePerson({ id, name: rawName, pending }: {
   id: string; name: string | null; pending: boolean;
 }) {
@@ -30,8 +38,30 @@ export default function DeletePerson({ id, name: rawName, pending }: {
     if (ok) { setOpen(false); setTyped(''); router.refresh(); }
   }
 
+  async function archive() {
+    setBusy(true);
+    const ok = await saving(() => fetch('/api/admin/people', {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: 'archive', ids: [id] })
+    }), `${name} archived`);
+    setBusy(false);
+    if (ok) router.refresh();
+  }
+
   if (!open) return (
-    <button className="btn sm ghost danger" onClick={() => setOpen(true)}>Remove</button>
+    <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+      {!pending && (
+        <button className="btn sm ghost" disabled={busy} onClick={archive}>
+          {busy ? 'Archiving…' : 'Archive'}
+        </button>
+      )}
+      <button className="btn sm ghost danger" onClick={() => setOpen(true)}>Remove</button>
+      {!pending && (
+        <span className="xs muted">
+          Archiving keeps everything on file. Removing does not.
+        </span>
+      )}
+    </div>
   );
 
   return (
