@@ -60,7 +60,7 @@ export async function archivingIsLive(): Promise<boolean> {
 /* What stands in the way of permanently removing somebody.
    --------------------------------------------------------
    Three things, each of which makes a delete destroy something nobody meant
-   to destroy: a live placement, an unpaid invoice, and money still owed to
+   to destroy: a live placement, an invoice that is out and unpaid, and money still owed to
    them. That last one was missing until the cleanup screen made it plain
    that removing a talent mid-payroll erases the debt and the person it was
    owed to in the same call, and nothing in the app would ever mention it
@@ -74,7 +74,20 @@ export async function archivingIsLive(): Promise<boolean> {
    Reads every table once and groups in memory rather than asking per person,
    because the cleanup screen asks about everybody at once. Callers are
    already behind the admin guard; row level security would refuse these
-   reads to anyone else regardless. */
+   reads to anyone else regardless.
+
+   A DRAFT INVOICE DOES NOT BLOCK, and that correction cost an afternoon.
+   'draft' was in this list for a day, on the reasoning that anything not
+   paid is money outstanding. It isn't: a draft has never been sent, nobody
+   has seen it, and nothing is owed on it. Worse, it made a dead end — the
+   only way to clear a draft is to void it, voiding asks for a confirmation,
+   and the quick way to make that go away is to press Send first, which
+   emails an invoice to a real person to get rid of a test row. A guard that
+   pushes you toward sending a client an invoice you did not mean to send is
+   worse than no guard. So the bar is an invoice that actually left the
+   building: sent, or failed on its way. What a person has on file is still
+   shown beside their name, drafts included, and the removal confirmation
+   still names anyone carrying history. */
 export async function removalBlockers(ids: string[]): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   if (!ids.length || !configured()) return out;
@@ -82,7 +95,7 @@ export async function removalBlockers(ids: string[]): Promise<Record<string, str
 
   const [places, invs, pays] = await Promise.all([
     sb.from('placements').select('client_id, talent_id').is('ended_on', null),
-    sb.from('invoices').select('client_id').in('status', ['draft', 'sent', 'failed']),
+    sb.from('invoices').select('client_id').in('status', ['sent', 'failed']),
     sb.from('talent_payments').select('talent_id').neq('state', 'sent')
   ]);
 
@@ -96,7 +109,7 @@ export async function removalBlockers(ids: string[]): Promise<Record<string, str
 
   for (const id of ids) {
     if (live.has(id)) out[id] = 'Has a live placement. End it first.';
-    else if (owing.has(id)) out[id] = 'Has an unpaid invoice. Settle or void it first.';
+    else if (owing.has(id)) out[id] = 'Has an invoice out and unpaid. Settle or void it first.';
     else if (owed.has(id)) out[id] = 'Is still owed money. Pay or clear it first.';
   }
   return out;

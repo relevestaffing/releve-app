@@ -36,7 +36,7 @@ export default async function CleanupPage() {
           everything they did stays on file and can be put back. Removing is for rows
           with nothing worth keeping, like a test account or an invitation nobody took
           up. It erases the account and cannot be undone, so anyone with a placement,
-          an unpaid invoice or money still owed is held back until that is settled.
+          an invoice out and unpaid, or money still owed is held back until that is settled.
         </Explain>
       </div>
 
