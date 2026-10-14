@@ -1,3 +1,4 @@
+import { zoneLabel } from '@/lib/words';
 import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { listClients, getSearch, getAvailability, getSelfProfile } from '@/lib/store';
@@ -100,7 +101,7 @@ export default async function People() {
               <div>
                 <b>{client.full_name}</b>
                 <div className="small muted">
-                  {[client.org_name, client.email, client.timezone].filter(Boolean).join(' · ')}
+                  {[client.org_name, client.email, zoneLabel(client.timezone)].filter(Boolean).join(' · ')}
                 </div>
               </div>
               {/* Status only. Every row used to carry five controls and two

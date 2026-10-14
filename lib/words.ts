@@ -143,3 +143,32 @@ export function firstName(full: string | null | undefined, fallback = 'them'): s
   if (!n) return fallback;
   return n.split(/\s+/)[0];
 }
+
+
+/* A timezone a person can read.
+
+   The app stores IANA identifiers, which is right — they survive daylight
+   saving and policy changes that a fixed offset does not. But they were
+   being printed as-is, so an executive's account line read
+   "America/Los_Angeles" and the talent's own timezone picker offered
+   "Asia: Manila". That is a database value wearing a thin disguise.
+
+   What somebody actually needs when they are picking a meeting time is the
+   city and how far off it is from them: "Manila · GMT+8". The offset is
+   computed for today, so it follows daylight saving on its own. */
+export function zoneLabel(zone: string | null | undefined): string {
+  const z = (zone ?? '').trim();
+  if (!z) return '';
+  const city = z.split('/').pop()!.replace(/_/g, ' ');
+  if (z === 'UTC' || z === 'GMT') return 'UTC';
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: z, timeZoneName: 'shortOffset' })
+      .formatToParts(new Date());
+    const off = parts.find(p => p.type === 'timeZoneName')?.value ?? '';
+    return off ? `${city} · ${off.replace('GMT', 'GMT')}` : city;
+  } catch {
+    /* An identifier this runtime has never heard of still reads better as a
+       place than as a path. */
+    return city;
+  }
+}

@@ -85,7 +85,7 @@ export default async function Billing() {
         </div>
         <div className={`money-stat ${owed > 0 ? 'alert' : ''}`}>
           <div className="n">{money(owed)}</div>
-          <div className="k">{owed > 0 ? `Outstanding · ${open.length}` : 'Nothing outstanding'}</div>
+          <div className="k">{owed > 0 ? `Outstanding · ${open.length}` : 'Outstanding'}</div>
         </div>
         {clearing.length > 0 && (
           <div className="money-stat">

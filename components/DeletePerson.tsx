@@ -51,16 +51,18 @@ export default function DeletePerson({ id, name: rawName, pending }: {
   if (!open) return (
     <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
       {!pending && (
-        <button className="btn sm ghost" disabled={busy} onClick={archive}>
+        <button className="btn sm ghost" disabled={busy} onClick={archive}
+          title="Takes them off every list and keeps everything on file. Reversible.">
           {busy ? 'Archiving…' : 'Archive'}
         </button>
       )}
-      <button className="btn sm ghost danger" onClick={() => setOpen(true)}>Remove</button>
-      {!pending && (
-        <span className="xs muted">
-          Archiving keeps everything on file. Removing does not.
-        </span>
-      )}
+      {/* The sentence explaining the difference between these two used to be
+          printed beside every row, which on a roster of eight people meant
+          reading it eight times and gave each row 60px of dead height on a
+          phone. It is on the buttons themselves now, and said properly once
+          at the top of Tidy up. */}
+      <button className="btn sm ghost danger" onClick={() => setOpen(true)}
+        title="Erases the account and everything on file. Cannot be undone.">Remove</button>
     </div>
   );
 

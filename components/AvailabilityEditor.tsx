@@ -1,4 +1,5 @@
 'use client';
+import { zoneLabel } from '@/lib/words';
 import { useEffect, useState, useId } from 'react';
 import { WEEKDAYS, minutesToLabel, type Window } from '@/lib/scheduling';
 import { saving } from './Toast';
@@ -83,8 +84,8 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
       <div className="ff" style={{ maxWidth: 340 }}>
         <label htmlFor={`${fid}-1`}>Your timezone</label>
         <select id={`${fid}-1`} value={ZONES.includes(tz) ? tz : ''} onChange={e => { setTz(e.target.value); setSaved(false); }}>
-          {!ZONES.includes(tz) && <option value="">{tz.replace(/_/g, ' ')} (detected)</option>}
-          {ZONES.map(z => <option key={z} value={z}>{z.replace(/_/g, ' ').replace('/', ': ')}</option>)}
+          {!ZONES.includes(tz) && <option value="">{zoneLabel(tz)} (detected)</option>}
+          {ZONES.map(z => <option key={z} value={z}>{zoneLabel(z)}</option>)}
         </select>
         <span className="xs muted">
           Detected from your device. Change it if that is wrong.
@@ -131,7 +132,9 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
 
       <div className="row" style={{ marginTop: 22, gap: 14, flexWrap: 'wrap' }}>
         <button className="btn solid" disabled={busy} onClick={save}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save availability'}</button>
-        <span className="small muted">{windows.length ? `${windows.length} window${windows.length > 1 ? 's' : ''} set` : 'Nothing set. You will not be offered any interviews'}</span>
+        {/* "windows" is what the table calls them. What the person set is
+            blocks of time, so that is what the line says. */}
+        <span className="small muted">{windows.length ? `${windows.length} block${windows.length > 1 ? 's' : ''} of time set` : 'Nothing set. You will not be offered any interviews'}</span>
       </div>
     </div>
   );

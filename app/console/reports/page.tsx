@@ -151,7 +151,7 @@ export default async function Reports() {
         <div className="money-stat">
           <div className="n">{money(m.monthlyRunRateCents)}</div><div className="k">Monthly run rate</div></div>
         <div className="money-stat">
-          <div className="n">{money(m.monthlyRunRateCents * 12)}</div><div className="k">Annualised</div></div>
+          <div className="n">{money(m.monthlyRunRateCents * 12)}</div><div className="k">Annualized</div></div>
         <div className={`money-stat ${m.overdueCents ? 'alert' : ''}`}>
           <div className="n">{money(m.overdueCents)}</div><div className="k">Overdue</div></div>
         <div className="money-stat">

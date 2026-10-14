@@ -125,10 +125,11 @@ export default async function ConsoleTeam() {
           <p className="small" style={{
             marginBottom: 0, padding: '13px 17px', background: 'var(--cream)',
             borderLeft: '2px solid #8C4A3F' }}>
-            <b>No successful backup has ever reported in.</b> Either the daily job
-            isn&rsquo;t installed yet, or it hasn&rsquo;t run since this page started
-            watching for it. Run <code>./scripts/backup.sh</code> once by hand to check,
-            and see Still Open in the Book for the one-time <code>crontab</code> step.
+            <b>No successful backup has ever reported in.</b> Either the nightly
+            backup has not been switched on yet, or it has not run since this page
+            started watching for it. Nothing is lost either way, but until it reports
+            in, a bad day has no undo. Ask whoever set the app up to switch the
+            nightly backup on.
           </p>
         ) : (
           <p className="small muted" style={{ marginBottom: 0 }}>

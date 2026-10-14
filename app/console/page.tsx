@@ -68,7 +68,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
         <Link className="qa-tile" href="/console/calendar">
           <QaIcon k="calendar" />
           <div><div className="qa-t">Your calendar</div>
-            <div className="qa-s">Discovery calls, interviews and everything else on hello@.</div></div>
+            <div className="qa-s">Discovery calls, interviews and everything else on the Relève calendar.</div></div>
         </Link>
         <Link className="qa-tile" href="/console/matching">
           <QaIcon k="match" />
@@ -172,7 +172,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               </div>
               <div className="money-stat">
                 <div className="n">{money(vitals.runRateCents * 12)}</div>
-                <div className="k">Annualised</div>
+                <div className="k">Annualized</div>
               </div>
               <div className="money-stat">
                 <div className="n">{money(vitals.outstandingCents)}</div>

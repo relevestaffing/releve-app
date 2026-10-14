@@ -246,7 +246,7 @@ export const DISCIPLINES: Discipline[] = [
     key: 'ops',
     name: 'Operations and project management',
     blurb: 'Holding work together across people, and building the process.',
-    aka: ['Operations Manager', 'Project Manager', 'Programme Coordinator'],
+    aka: ['Operations Manager', 'Project Manager', 'Program Coordinator'],
     comps: [
       { key: 'plan', label: 'Planning a project', hint: 'Scope, milestones, owners, dependencies' },
       { key: 'track', label: 'Tracking to a deadline', hint: 'Knowing what is late before it is late' },

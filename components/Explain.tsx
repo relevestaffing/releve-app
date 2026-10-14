@@ -15,9 +15,16 @@ export default function Explain({ children, className = 'xs muted' }: {
   const [open, setOpen] = useState(false);
   return (
     <span className="explain">
+      {/* The trigger used to be the bare "?" disc and nothing else. Most of
+          the places it is used put it on a line of its own, where a lone
+          circle with no label reads as a stray control somebody forgot to
+          finish — three separate reviewers called it exactly that. The word
+          costs one line of markup and turns a mystery button into an offer. */}
       <button type="button" className="explain-q" aria-expanded={open}
-        aria-label={open ? 'Hide explanation' : 'Why?'}
-        onClick={() => setOpen(o => !o)}>?</button>
+        onClick={() => setOpen(o => !o)}>
+        <span className="explain-mark" aria-hidden="true">?</span>
+        <span className="explain-word">{open ? 'Hide' : 'Why'}</span>
+      </button>
       {open && <span className={`explain-note ${className}`}>{children}</span>}
     </span>
   );
