@@ -33,7 +33,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
     setBusy(kind);
     try {
       const res = await fetch('/api/vetting/docusign/sign', { method: 'POST' });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'Could not open that for signing.');
       window.location.href = out.url;
     } catch (e: any) {
@@ -50,7 +50,7 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
     if (expires) body.append('expires_on', expires);
     try {
       const res = await fetch('/api/vetting', { method: 'POST', body });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'That did not upload.');
       toast.saved('Sent to Relève');
       router.refresh();

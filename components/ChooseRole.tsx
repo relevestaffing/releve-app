@@ -22,7 +22,13 @@ export default function ChooseRole({ name }: { name?: string | null }) {
       });
       clearTimeout(timer);
       const out = await res.json().catch(() => ({}));
-      if (!res.ok) { setErr(out.error ?? `Something went wrong (${res.status}).`); setBusy(null); return; }
+      if (!res.ok) {
+        /* No status codes here. This is the first screen a new account ever
+           sees, and "Something went wrong (500)" tells them nothing they can
+           act on and everything about how little we thought about them. */
+        setErr(out.error ?? 'We could not set your account up just now. Try again, and write to hello@relevestaffing.com if it happens twice.');
+        setBusy(null); return;
+      }
       /* a full navigation, not just a refresh — the whole account changed shape */
       window.location.href = '/app';
     } catch (e: any) {
@@ -76,7 +82,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
           Pick the one that fits. If you choose wrong, your Relève contact can move you across.
           You just cannot switch yourself once the account is set up.
         </p>
-        {err && <p className="small" style={{ color: 'var(--rust, #8C4A3F)', marginTop: 14 }}>{err}</p>}
+        {err && <p className="small" style={{ color: 'var(--crit)', marginTop: 14 }}>{err}</p>}
       </div>
     </div>
   );

@@ -93,7 +93,7 @@ export async function requestTimeOff(a: {
   placement_id: string; starts_on: string; ends_on: string; reason?: string;
 }) {
   if (!configured()) return;
-  if (a.ends_on < a.starts_on) throw new Error('the last day cannot be before the first');
+  if (a.ends_on < a.starts_on) throw new Error('The last day cannot be before the first.');
   const sb = await supabaseServer();
   const { data, error } = await sb.from('time_off').insert({
     placement_id: a.placement_id, starts_on: a.starts_on, ends_on: a.ends_on,

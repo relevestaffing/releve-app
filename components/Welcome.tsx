@@ -14,7 +14,7 @@ const TALENT: Panel[] = [
       'Everything you do here is between you, us, and eventually one executive.'
     ] },
   { h: 'The part that matters',
-    lede: 'Most agencies match on a CV. We match on how you actually work, because that is what decides whether a placement lasts.',
+    lede: 'Most agencies match on a resume. We match on how you actually work, because that is what decides whether a placement lasts.',
     points: [
       'The Signature asks how you work and who you are under pressure, across eighteen facets.',
       'It takes twenty to twenty-five minutes. It saves as you go, so you can stop and come back.',
@@ -131,9 +131,9 @@ export default function Welcome({ role }: { role: 'client' | 'talent' }) {
       });
       /* Go through either way — a failed flag must not trap anyone on the
          tour — but say so, because they will see it again next time. */
-      if (!r.ok) toast.bad('Taking you through, though we could not save that you have seen this.');
+      if (!r.ok) toast.bad('Taking you through now. We could not save your place, so you may see this again.');
     } catch {
-      toast.bad('Taking you through, though we could not save that you have seen this.');
+      toast.bad('Taking you through now. We could not save your place, so you may see this again.');
     }
     router.push('/app');
     router.refresh();

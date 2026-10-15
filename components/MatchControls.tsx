@@ -54,7 +54,7 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
         <div className="ff">
           <label htmlFor={`${fid}-1`}>Why this person <span className="muted">(they read this)</span></label>
           <textarea id={`${fid}-1`} name="note" rows={3} defaultValue={note ?? ''}
-            placeholder="One or two sentences in your own words. What made you choose them for this role, and for this leader." />
+            placeholder="One or two sentences in your own words. What made you choose them for this role, and for this executive." />
         </div>
         <p className="xs muted" style={{ marginBottom: 12 }}>
           Optional, but it is the only place we tell them why in our own words.

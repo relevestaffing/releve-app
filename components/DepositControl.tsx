@@ -71,7 +71,8 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
             ? `Mark the ${money(cents)} deposit paid?`
             : `Waive the ${money(cents)} deposit? Its invoice is voided.`}</span>
           <button className="btn sm solid" disabled={busy}
-            onClick={() => { const p = pending; setPending(null); commit(p); }}>Confirm</button>
+            onClick={() => { const p = pending; setPending(null); commit(p); }}>
+            {pending === 'paid' ? 'Yes, mark it paid' : 'Yes, waive it'}</button>
           <button className="btn sm ghost" disabled={busy} onClick={() => setPending(null)}>Cancel</button>
         </>
       ) : (

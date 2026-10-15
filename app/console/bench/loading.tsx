@@ -13,7 +13,7 @@ export default function Loading() {
 
       <SkelCard titleWidth={160}>
         <SkelTable
-          cols={['Name', 'Role', 'Profile', 'Disposition', 'Validity', 'We pay', 'Stage', '']}
+          cols={['Name', 'Role', 'Profile', 'Disposition', 'Validity', 'What Relève pays', 'Stage', '']}
           rows={7}
           firstColAvatar
         />

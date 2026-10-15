@@ -146,7 +146,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
       /* the connection dropped mid-request (common on a phone in Manila or
          Bogotá); without this the optimistic change would stay on screen
          while the server never heard. */
-      toast.bad('Could not reach the server. Check your connection.');
+      toast.bad('No connection, so nothing was saved.');
       load();
       return false;
     }

@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             to load — renders the whole app visible rather than blank. */}
         <script dangerouslySetInnerHTML={{ __html:
           "var d=document.documentElement;d.classList.add('js');" +
-          "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},6000)"
+          "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},2200)"
         }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

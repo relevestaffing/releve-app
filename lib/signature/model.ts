@@ -98,7 +98,7 @@ const STYLE_CLIENT: [string, 1 | -1, string][] = [
   ['candor', 1,"I say exactly what isn't working, in plain words."],
   ['candor',-1,"I soften feedback so it lands gently."],
   ['candor', 1,"I'd rather be blunt now than have the same issue again next month."],
-  ['candor',-1,"If I can find a gentler route than criticising the work directly, I take it."],
+  ['candor',-1,"If I can find a gentler route than criticizing the work directly, I take it."],
   ['initiative', 1,"I expect the person supporting me to bring the problem and the solution together."],
   ['initiative',-1,"I want to be asked before anything goes out on my behalf."],
   ['initiative', 1,"If something isn't working, I'd rather it just get fixed than raised with me first."],

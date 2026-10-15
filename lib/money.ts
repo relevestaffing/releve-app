@@ -49,7 +49,7 @@ export async function recordAcceptance(args: {
      not there, the caller must hear about it now, not discover it when the
      gate reappears on the next page. */
   if (!(await hasAccepted(args.user_id, args.version)))
-    throw new Error('the acceptance did not save, please try again'
+    throw new Error('That acceptance did not save. Please try again.'
 );
 }
 

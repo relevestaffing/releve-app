@@ -12,6 +12,10 @@ export const dynamic = 'force-dynamic';
 export default async function TasksPage() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  /* Every other page under /app sends the team to the console. Without it
+     the line below reads any non-client as talent, so an admin opening this
+     page was handed the talent's own screen. */
+  if (profile.role === 'admin') redirect('/console');
   const side = profile.role === 'client' ? 'client' : 'talent';
   const [placements, tz] = await Promise.all([listPlacementsFor(profile.id), viewerTimezone(profile.id)]);
 

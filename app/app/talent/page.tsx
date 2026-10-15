@@ -71,7 +71,7 @@ export default async function TalentProfile() {
           : <p className="small muted">You have not written an introduction yet. It is the part executives read first.</p>}
         {self.intro_video_url && (
           <video src={self.intro_video_url} controls playsInline preload="metadata"
-            style={{ width: '100%', maxWidth: 320, borderRadius: 8, background: 'var(--ink)', display: 'block', marginTop: 16 }} />
+            style={{ width: '100%', maxWidth: 320, background: 'var(--ink)', display: 'block', marginTop: 16 }} />
         )}
         {shape ? (
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 18 }}>

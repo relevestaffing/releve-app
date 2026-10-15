@@ -50,7 +50,7 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
       const body = new FormData();
       body.append('photo', blob, 'photo.jpg');
       const res = await fetch('/api/photo', { method: 'POST', body });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'The upload did not go through.');
       setPreview(out.url);
       toast.saved('Photo updated');
@@ -97,7 +97,7 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
       <input aria-label="Choose a photo" ref={input} type="file" accept="image/*" hidden
         onChange={e => { take(e.target.files?.[0]); e.target.value = ''; }} />
 
-      {err && <p className="small" style={{ color: 'var(--rust, #8C4A3F)', marginTop: 10 }}>{err}</p>}
+      {err && <p className="small" style={{ color: 'var(--crit)', marginTop: 10 }}>{err}</p>}
     </div>
   );
 }

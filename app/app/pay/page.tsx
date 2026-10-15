@@ -103,7 +103,7 @@ export default async function PayPage() {
                   {placements.length > 1 && <td className="small">{(p.placement_id && forWhom.get(p.placement_id)) || '–'}</td>}
                   <td className="amount">{money(p.amount_cents)}</td>
                   <td className="small">{p.sent_on ? fmtDate(p.sent_on)
-                    : p.state === 'failed' ? <span className="pill crit"><span className="dot" />Failed. We are on it</span>
+                    : p.state === 'failed' ? <span className="pill warn"><span className="dot" />Being sent again</span>
                     : <span className="pill warn"><span className="dot" />Due</span>}</td>
                   <td className="xs muted">{p.reference ?? '–'}</td>
                 </tr>

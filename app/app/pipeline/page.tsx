@@ -107,7 +107,7 @@ export default async function Pipeline() {
               <div style={{ marginTop: 18 }}>
                 <div className="eyebrow" style={{ marginBottom: 10 }}>{first}, in their own words</div>
                 <video src={person.intro_video_url} controls playsInline preload="metadata"
-                  style={{ width: '100%', maxWidth: 420, borderRadius: 8, background: 'var(--ink)', display: 'block' }} />
+                  style={{ width: '100%', maxWidth: 420, background: 'var(--ink)', display: 'block' }} />
               </div>
             )}
 

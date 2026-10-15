@@ -3,7 +3,7 @@ import { configured, supabaseServer } from './supabase/server';
 import { adminClient as serviceClient, hasServiceKey, teamEmailsAdmin } from './supabase/admin';
 import { stripeCall, SITE } from './stripe';
 import { invoiceDeposit } from './money';
-import { money, todayInPacific, addDaysISO } from './money-public';
+import { money, todayInPacific, addDaysISO, INVOICE_STATUS } from './money-public';
 import type { Invoice } from './money-public';
 import { send } from './email';
 import { billingTemplates } from './email-billing';
@@ -379,7 +379,7 @@ export async function chargeInvoice(invoiceId: string): Promise<{ status: string
   if (row.amount_cents <= 0) throw new Error('There is nothing to collect on that invoice.');
   if (row.status === 'draft') throw new Error('Send the invoice first. A draft is never charged.');
   if (!['sent', 'failed'].includes(row.status))
-    throw new Error(`That invoice is already ${row.status}.`);
+    throw new Error(`That invoice is already marked ${INVOICE_STATUS.find(s => s.key === row.status)?.label.toLowerCase() ?? 'settled'}.`);
   if (row.checkout_expires_at && Date.parse(row.checkout_expires_at) > Date.now())
     throw new Error('The client has the payment page for this invoice open right now. Try again in half an hour.');
 

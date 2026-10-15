@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       const pl = inv.placement;
       if (!pl || pl.ended_on || pl.suspended_at) continue;
       const { data: paused, error: e3 } = await sb.from('placements')
-        .update({ suspended_at: new Date().toISOString(), suspended_reason: `Invoice ${inv.number ?? inv.id} unpaid 14 days` })
+        .update({ suspended_at: new Date().toISOString(), suspended_reason: `Invoice ${inv.number ?? 'on file'} has been open fourteen days.` })
         .eq('id', pl.id).is('suspended_at', null).is('ended_on', null).select('id');
       if (e3) { errors.push(`pause ${pl.id}: ${e3.message}`); continue; }
       if (!(paused ?? []).length) continue;

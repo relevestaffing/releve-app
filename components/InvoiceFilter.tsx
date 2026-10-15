@@ -44,7 +44,7 @@ export default function InvoiceFilter({ scope }: { scope: string }) {
         ))}
       </div>
       <div className="row" style={{ gap: 10 }}>
-        {shown === 0 && <span className="xs muted">Nothing here.</span>}
+        {shown === 0 && <span className="xs muted">No invoices match that filter.</span>}
         <div className="ff picker-inline" style={{ margin: 0 }}>
           <input value={q} onChange={e => setQ(e.target.value)}
             placeholder="Search by executive or number…" aria-label="Search invoices" />

@@ -166,7 +166,7 @@ export function docusignConsentUrl(): string {
 async function sendTwoSignerEnvelope(o: {
   templateId: string | undefined; name: string; email: string; clientUserId: string;
 }): Promise<string> {
-  if (!o.templateId) throw new DocuSignError('No DocuSign Template is configured for this agreement yet.');
+  if (!o.templateId) throw new DocuSignError('No DocuSign template is configured for this agreement yet.');
   const company = companySigner();
   const { token, accountId, baseUri } = await authenticate();
   const res = await fetch(`${baseUri}/v2.1/accounts/${accountId}/envelopes`, {

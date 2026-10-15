@@ -23,6 +23,10 @@ export const dynamic = 'force-dynamic';
 export default async function Interviews() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  /* Every other page under /app sends the team to the console. Without it
+     the line below reads any non-client as talent, so an admin opening this
+     page was handed the talent's own screen. */
+  if (profile.role === 'admin') redirect('/console/interviews');
   const isClient = profile.role === 'client';
   const mine = await listInterviews(isClient ? { clientId: profile.id } : { talentId: profile.id });
   /* No availability row yet: fall back to the timezone on their profile,

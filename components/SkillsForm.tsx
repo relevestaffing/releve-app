@@ -220,7 +220,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
           <div className="ff">
             <label htmlFor={`${fid}-1`}>What are you best at?</label>
             <textarea id={`${fid}-1`} rows={2} value={best} onChange={e => setBest(e.target.value)}
-              placeholder="Taking a messy inbox and a chaotic calendar and making both boring within a fortnight." />
+              placeholder="Taking a messy inbox and a chaotic calendar and making both boring within two weeks." />
           </div>
 
           <div className="ff">

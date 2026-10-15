@@ -8,7 +8,8 @@ const ICONS: Record<string, React.ReactNode> = {
   calendar:  <><rect x="3" y="5" width="14" height="12" rx="1.4" /><path d="M3 8.6h14M7 3.5v3M13 3.5v3" /></>,
   message:   <><path d="M3.5 5.5h13v9h-7l-4 3v-3h-2z" /></>,
   briefcase: <><rect x="3" y="6.5" width="14" height="10" rx="1.4" /><path d="M7.5 6.5V4.6h5v1.9M3 10.5h14" /></>,
-  chart:     <><path d="M3.5 16.5V9M8 16.5V4.5M12.5 16.5v-5M17 16.5V7.5" /></>
+  chart:     <><path d="M3.5 16.5V9M8 16.5V4.5M12.5 16.5v-5M17 16.5V7.5" /></>,
+  book:      <><path d="M4 4.5h4.4c1 0 1.6.5 1.6 1.4v9.6c0-.7-.6-1.1-1.6-1.1H4z" /><path d="M16 4.5h-4.4c-1 0-1.6.5-1.6 1.4v9.6c0-.7.6-1.1 1.6-1.1H16z" /></>
 };
 
 const Icon = ({ k }: { k: string }) => (
@@ -57,12 +58,28 @@ const CLIENT_PLACED = [
   { href: '/app/messages', label: 'Messages',   icon: 'message' }
 ];
 
-export default function QuickBar({ role, active, placedOnly = false, unread = 0 }: {
+/* An executive before the deposit sees the three vision screens and nothing
+   else in the sidebar. The quick bar has to agree with it: it was still
+   offering Candidate, which at that stage redirects to the Signature — a
+   screen the menu is deliberately holding back, reached by tapping a tab
+   that appears to go somewhere else. */
+const CLIENT_TOUR = [
+  { href: '/app',          label: 'Home',      icon: 'home' },
+  { href: '/app/how',      label: 'How it works', icon: 'book' },
+  { href: '/app/value',    label: 'The value', icon: 'chart' },
+  { href: '/app/messages', label: 'Messages',  icon: 'message' }
+];
+
+export default function QuickBar({ role, active, placedOnly = false, tour = false, unread = 0 }: {
   role: string; active: string; unread?: number;
   /* true for an executive with a placement and no open search */
   placedOnly?: boolean;
+  /* true for an executive who has not taken the deposit step yet */
+  tour?: boolean;
 }) {
-  const items = role === 'client' && placedOnly ? CLIENT_PLACED : (PRIMARY[role] ?? PRIMARY.talent);
+  const items = role === 'client'
+    ? (tour ? CLIENT_TOUR : placedOnly ? CLIENT_PLACED : PRIMARY.client)
+    : (PRIMARY[role] ?? PRIMARY.talent);
   return (
     <nav className="quickbar" aria-label="Quick actions">
       {items.map(p => (

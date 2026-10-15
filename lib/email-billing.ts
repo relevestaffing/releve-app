@@ -163,7 +163,7 @@ export const billingTemplates = {
   /* Disputes and refunds: to the team, the moment Stripe says so. */
   disputeTeam(o: { client: string; number: string; amount: string; state: 'opened' | 'won' | 'lost' | 'closed'; reason?: string | null }) {
     const head = o.state === 'opened' ? 'A payment is disputed'
-      : o.state === 'won' ? 'A dispute was decided in your favour'
+      : o.state === 'won' ? 'A dispute was decided in your favor'
       : o.state === 'lost' ? 'A dispute was decided for the client' : 'A dispute is closed';
     const next = o.state === 'opened'
       ? 'Respond in the Stripe dashboard with the signed agreement and the invoice. Stripe sets the deadline.'

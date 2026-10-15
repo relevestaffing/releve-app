@@ -119,7 +119,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
               {terms?.notice_given_on && <div className="xs muted" style={{ marginTop: 4 }}>
                 Notice given {day(terms.notice_given_on)}{terms.notice_ends_on ? `, billed through ${dayLabel(terms.notice_ends_on)}` : ''}
                 {terms.notice_reason ? `. ${noticeReasonLabel(terms.notice_reason)}` : ''}</div>}</dd>
-            <dt>Talent is paid</dt>
+            <dt>What Relève pays</dt>
             <dd><TalentPaySetter placementId={id} cents={terms?.talent_pay_cents ?? null}
               fallbackCents={terms?.roster_pay_cents ?? null} clientCents={terms?.rate_month_cents ?? null} /></dd>
             {terms?.suspended_at && <><dt>Paused</dt>

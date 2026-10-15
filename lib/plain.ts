@@ -17,7 +17,7 @@ const EXEC_LINES: Record<string, [string, string]> = {
   cadence:      ['You would rather not be interrupted.',              'You want contact: live, and often.'],
   candor:       ['You give correction carefully.',                    'You say what is not working, plainly.'],
   initiative:   ['You want to be asked before anything moves.',       'You want the small calls made without you.'],
-  structure:    ['You run on instinct more than process.',            'You want everything documented and systematised.'],
+  structure:    ['You run on instinct more than process.',            'You want everything documented and systematized.'],
   composure:    ['Your world is steady and rarely urgent.',           'Your world moves fast enough to rattle most people.'],
   warmth:       ['You keep the working relationship contained.',      'You want a real relationship, not a transaction.'],
   rigor:        ['You would rather have it done than perfect.',       'You hold a high standard and notice when it slips.'],

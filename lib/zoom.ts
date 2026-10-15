@@ -43,7 +43,13 @@ export async function createZoomMeeting(opts: {
       }
     })
   });
-  if (!r.ok) throw new Error(`Zoom could not create the meeting (${r.status}): ${await r.text()}`);
+  if (!r.ok) {
+    /* The provider's own body goes to the function log, where it is useful.
+       Whoever pressed the button gets a sentence they can act on instead of
+       a status code and a page of Zoom's JSON. */
+    console.error('[zoom] create', r.status, await r.text().catch(() => ''));
+    throw new Error('Zoom would not book that time. Try another slot, or book it in Zoom and paste the link in.');
+  }
   const d = await r.json();
   return { url: d.join_url, id: String(d.id), passcode: d.password };
 }
@@ -56,6 +62,7 @@ export async function cancelZoomMeeting(id: string) {
      really created) — not a failure worth surfacing. Anything else is a
      real failure and used to disappear here silently (admin-console audit). */
   if (!r.ok && r.status !== 404) {
-    throw new Error(`Zoom could not cancel meeting ${id} (${r.status}): ${await r.text().catch(() => '')}`);
+    console.error('[zoom] cancel', id, r.status, await r.text().catch(() => ''));
+    throw new Error('Zoom would not cancel that meeting. Cancel it in Zoom, and the time here is already clear.');
   }
 }

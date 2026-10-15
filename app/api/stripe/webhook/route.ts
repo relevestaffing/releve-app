@@ -5,7 +5,7 @@ import { send, templates } from '@/lib/email';
 import { billingTemplates } from '@/lib/email-billing';
 import { adminClient, liftSuspensionIfClear, tellTeam } from '@/lib/billing';
 import { hasServiceKey } from '@/lib/supabase/admin';
-import { money, todayInPacific } from '@/lib/money-public';
+import { money, todayInPacific, INVOICE_STATUS } from '@/lib/money-public';
 import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -27,8 +27,16 @@ type DB = SupabaseClient;
 
 const first = (s: unknown) => String(s ?? '').trim().split(/\s+/)[0] || 'there';
 
+/* An invoice's stored status is a column value ("void", "processing"); what
+   the team reads everywhere else is its label ("Void", "Clearing"). Alerts
+   say the same word as the screen the person will open next. */
+const statusWord = (k: string) =>
+  (INVOICE_STATUS.find(s => s.key === k)?.label ?? k).toLowerCase();
+
 function must<T extends { error: any }>(r: T, what: string): T {
-  if (r.error) throw new Error(`${what}: ${r.error.message ?? r.error}`);
+  /* r.error is an object when it has no message, and `${object}` renders as
+     "[object Object]" in the alert this ends up in. */
+  if (r.error) throw new Error(`${what}: ${r.error.message ?? 'the database refused the write'}`);
   return r;
 }
 
@@ -195,8 +203,8 @@ export async function POST(req: Request) {
                ledger cannot place. Say so the same minute. */
             summary = `unplaced payment on a ${inv.status} invoice`;
             await tellTeam(() => billingTemplates.moneyNeedsALook({
-              headline: inv.status === 'paid' ? 'An invoice was paid twice' : `A payment arrived on a ${inv.status} invoice`,
-              detail: `${who?.org_name ?? who?.full_name ?? 'A client'} paid ${money(obj.amount)} against invoice ${inv.number ?? id}, which is already ${inv.status}. Refund the extra payment from Billing, or apply it as the client prefers. Stripe payment ${obj.id}.`
+              headline: inv.status === 'paid' ? 'An invoice was paid twice' : `A payment arrived on an invoice marked ${statusWord(inv.status)}`,
+              detail: `${who?.org_name ?? who?.full_name ?? 'A client'} paid ${money(obj.amount)} against invoice ${inv.number ?? id}, which is already marked ${statusWord(inv.status)}. Refund the extra payment from Billing, or apply it as the client prefers. Stripe payment ${obj.id}.`
             }));
           }
         }

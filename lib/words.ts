@@ -45,7 +45,7 @@ export const WORDS = {
 
 const asUTC = (iso: string) => new Date(iso.slice(0, 10) + 'T00:00:00Z');
 
-/** 4 Sep 2026 — the default for anything dated. Guards against a value that
+/** Sep 4, 2026 — the default for anything dated. Guards against a value that
     isn't a real date (target_at, for instance, has carried free text like
     "Within six weeks" before now) so a bad value reads as unset rather than
     as the literal string "Invalid Date". */
@@ -53,16 +53,16 @@ export function fmtDate(iso: string | null | undefined): string {
   if (!iso) return '–';
   const d = asUTC(iso);
   if (Number.isNaN(d.getTime())) return '–';
-  return d.toLocaleDateString('en-GB',
+  return d.toLocaleDateString('en-US',
     { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
-/** 4 September — for dates inside the current year, where the year is noise. */
+/** September 4 — for dates inside the current year, where the year is noise. */
 export function fmtDay(iso: string | null | undefined): string {
   if (!iso) return '–';
   const d = asUTC(iso);
   const sameYear = d.getUTCFullYear() === new Date().getUTCFullYear();
-  return d.toLocaleDateString('en-GB', sameYear
+  return d.toLocaleDateString('en-US', sameYear
     ? { day: 'numeric', month: 'long', timeZone: 'UTC' }
     : { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
@@ -70,15 +70,27 @@ export function fmtDay(iso: string | null | undefined): string {
 /** September 2026 */
 export function fmtMonth(iso: string | null | undefined): string {
   if (!iso) return '–';
-  return asUTC(iso).toLocaleDateString('en-GB',
+  return asUTC(iso).toLocaleDateString('en-US',
     { month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
-/** 4 Sep, 14:30 — for timestamps, which are instants and stay local. */
+/* Sep 4, 2:30 pm — for timestamps, which are instants and stay local.
+   -------------------------------------------------------------------
+   One date format for the whole app. These four helpers were formatting in
+   en-GB while money-public.ts formatted in en-US, and both are used on the
+   same screens: the placement page printed "Notice given 14 Oct 2026, billed
+   through Oct 14, 2026" — two spellings of one date inside one sentence.
+   The clock goes with them: lib/scheduling.ts has always shown 12-hour
+   times, so a timestamp that read 14:30 was the only 24-hour clock in the
+   product. */
 export function fmtWhen(iso: string | null | undefined): string {
   if (!iso) return '–';
-  return new Date(iso).toLocaleString('en-GB',
-    { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString('en-US',
+    { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+    /* lower case, and an ordinary space before it: the rest of the app
+       writes "2:30 pm", and Intl hands back "2:30 PM" with a narrow
+       no-break space that copies into a search box as a mystery character. */
+    .replace(/[\s\u202f]*(AM|PM)/, (_m, x) => ' ' + x.toLowerCase());
 }
 
 

@@ -49,8 +49,8 @@ export default function PostingRow({ post, applicants }: { post: JobPost; applic
           {post.state === 'draft' && (confirmDelete
             ? <>
                 <span className="xs muted">Delete this draft?</span>
-                <button className="btn sm solid" disabled={busy} onClick={remove}>Yes</button>
-                <button className="btn sm ghost" onClick={() => setConfirmDelete(false)}>No</button>
+                <button className="btn sm solid" disabled={busy} onClick={remove}>Yes, delete it</button>
+                <button className="btn sm ghost" onClick={() => setConfirmDelete(false)}>Keep it</button>
               </>
             : <button className="btn sm ghost" disabled={busy}
                 onClick={() => setConfirmDelete(true)}>Delete</button>

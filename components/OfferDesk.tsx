@@ -150,7 +150,10 @@ export default function OfferDesk({ offers, clients, talent }: {
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>Offers</h3><span className="pill">{offers.length}</span></div>
+        {/* A bare number in this slot said nothing: every other card in the
+            console labels it ("8 on file", "0 running"). */}
+        <div className="card-head"><h3>Offers</h3>
+          <span className="pill">{offers.length} on file</span></div>
         {!offers.length ? (
           <div className="empty-card" style={{ padding: '30px 20px' }}>
             <div className="empty-mark" aria-hidden="true" />

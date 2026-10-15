@@ -55,6 +55,12 @@ export default function InvoiceDocument({ inv, actions }: {
           .side,.topbar,.menu-trigger,.nav-drawer-scrim,.demo-banner,.no-print{display:none!important}
           .shell{display:block!important;background:#fff!important;min-height:0!important}
           .main{padding:0!important;margin:0!important}
+          /* .main is reset above, but .page-body carries the page's own
+             padding and the reveal system's opacity — without both of these
+             an invoice prints indented, and a block the scroll reveal had
+             not reached yet prints blank. */
+          .page-body{padding:0!important;display:block!important}
+          .page-body > *,.rv,.in{opacity:1!important;transform:none!important}
           body *{visibility:hidden}
           .invoice-doc,.invoice-doc *{visibility:visible}
           .invoice-doc{box-shadow:none!important;border:none!important;max-width:none!important;padding:0!important;margin:0!important}

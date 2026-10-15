@@ -20,7 +20,7 @@ export async function openSignedLink(
 
   try {
     const url = await getUrl();
-    if (!url) throw new Error('no link');
+    if (!url) throw new Error('There is no link to open yet.');
     if (tab && !tab.closed) tab.location.href = url;
     else window.location.assign(url);           // pop-ups blocked entirely: same tab, still works
   } catch (e: any) {

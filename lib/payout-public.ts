@@ -83,6 +83,8 @@ export const TAX_COUNTRY_PROMPT = 'Which country are you tax resident in?';
 export const PAYMENT_STATE: { key: PaymentState; label: string; tone: string }[] = [
   { key: 'due',    label: 'Due',    tone: 'warn' },
   { key: 'sent',   label: 'Sent',   tone: 'good' },
+  /* The console still needs to see that a transfer failed; what the talent
+     is shown on /app/pay is the next step, not the failure. */
   { key: 'failed', label: 'Failed', tone: 'crit' }
 ];
 

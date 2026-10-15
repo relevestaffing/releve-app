@@ -20,7 +20,7 @@ export default function CountersignButton({ kind, id, label }: {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ kind, id })
       });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'Could not open that for signing.');
       window.location.href = out.url;
     } catch (e: any) {

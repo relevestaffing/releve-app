@@ -27,7 +27,7 @@ export default function ClientAgreementCard({ state, rejectReason }: {
     setBusy(true);
     try {
       const res = await fetch('/api/agreement/docusign/sign', { method: 'POST' });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'Could not open that for signing.');
       window.location.href = out.url;
     } catch (e: any) {

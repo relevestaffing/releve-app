@@ -30,7 +30,7 @@ export default function IssueAgreement({ talent, docusignOn, pendingCountersign,
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ talent_id: who })
       });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'DocuSign would not send that.');
       toast.saved('Sent. Filed automatically once it comes back signed by both sides');
       setWho('');
@@ -49,7 +49,7 @@ export default function IssueAgreement({ talent, docusignOn, pendingCountersign,
     body.append('signed_on', signed);
     try {
       const res = await fetch('/api/vetting', { method: 'POST', body });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'That did not upload.');
       toast.saved('Filed. They can read it in their account');
       setWho('');
@@ -108,7 +108,7 @@ export default function IssueAgreement({ talent, docusignOn, pendingCountersign,
           signature — the envelope will not complete, and the row will not
           reach 'verified', until she countersigns each of these. */}
       {docusignOn && pendingCountersign && pendingCountersign.length > 0 && (
-        <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--rule, #e5e5e5)' }}>
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--line)' }}>
           <h4 style={{ margin: '0 0 10px' }}>Waiting on your signature</h4>
           {pendingCountersign.map(p => (
             <div key={p.id} className="row between" style={{ alignItems: 'center', padding: '8px 0', flexWrap: 'wrap', gap: 10 }}>

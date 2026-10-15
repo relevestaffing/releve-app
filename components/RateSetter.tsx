@@ -32,7 +32,7 @@ export default function RateSetter({ placementId, cents }: { placementId: string
       });
       const d = await r.json().catch(() => ({}));
       setBusy(false);
-      if (!r.ok) { toast.bad(d.error ? `Not saved: ${d.error}` : 'That did not save.'); return; }
+      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); return; }
       /* Saved either way, but say so when it sits outside the quoted band —
          a number outside $2,500–$4,500 should be deliberate, not a typo. */
       if (d.outsideQuotedBand)

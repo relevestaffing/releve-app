@@ -201,7 +201,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <p style={{ maxWidth: 680, marginBottom: 14 }}>
         {side === 'talent'
           ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly. A flattering profile in the wrong role is a failed placement, and the controls will find it anyway.'
-          : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on (not a rougher version of it), plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
+          : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on, plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
         {data.total} screens, about {side === 'talent' ? 'twenty to twenty-five' : 'twelve to sixteen'} minutes.

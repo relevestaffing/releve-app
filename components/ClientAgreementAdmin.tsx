@@ -32,7 +32,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ client_id: clientId })
       });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'DocuSign would not send that.');
       toast.saved('Sent. They can sign from their own dashboard');
       router.refresh();
@@ -48,7 +48,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
     body.append('signed_on', signed);
     try {
       const res = await fetch('/api/agreement/upload', { method: 'POST', body });
-      const out = await res.json();
+      const out = await res.json().catch(() => ({} as any));
       if (!res.ok) throw new Error(out.error ?? 'That did not upload.');
       toast.saved('Filed as signed');
       router.refresh();

@@ -125,7 +125,7 @@ export default async function Billing() {
       <div className="card">
         <div className="card-head"><h3>Invoices</h3></div>
         {!invoices.length ? (
-          <p className="small muted">Nothing has been invoiced yet.</p>
+          <p className="small muted">Nothing has been invoiced yet. Your first invoice is issued on the first Monday after your placement starts.</p>
         ) : (
           <table className="data">
             <thead><tr>

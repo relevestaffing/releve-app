@@ -86,7 +86,7 @@ export default function DeletePerson({ id, name: rawName, pending }: {
         </>
       )}
       <button className="btn sm solid danger" disabled={busy || (!pending && typed.trim().toLowerCase() !== first)}
-        onClick={remove}>{busy ? 'Removing…' : 'Confirm'}</button>
+        onClick={remove}>{busy ? 'Removing…' : 'Yes, remove permanently'}</button>
       <button className="btn sm ghost" disabled={busy} onClick={() => { setOpen(false); setTyped(''); }}>Cancel</button>
     </div>
   );

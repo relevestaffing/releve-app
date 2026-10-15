@@ -12,7 +12,7 @@ const POLL_MS = 60_000;
    Starts from the count the server read for this page, then keeps itself
    current: on focus, every minute while visible, and the moment a thread
    reports it has been read (the 'releve:read' event from MessageThread). */
-export default function UnreadSync({ initial }: { initial: number; href?: string }) {
+export default function UnreadSync({ initial }: { initial: number }) {
   const [n, setN] = useState(initial);
 
   useEffect(() => { setN(initial); }, [initial]);

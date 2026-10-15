@@ -60,7 +60,7 @@ export default function TalentPaySetter({ placementId, cents, fallbackCents, cli
   return (
     <span className="rate-set">
       <span className="ff" style={{ margin: 0 }}>
-        <input aria-label="Talent pay per month in US dollars" value={text} inputMode="decimal" placeholder="1800" disabled={busy}
+        <input aria-label="Monthly pay in US dollars" value={text} inputMode="decimal" placeholder="1450" disabled={busy}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') save(); }} />
       </span>

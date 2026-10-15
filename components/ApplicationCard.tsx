@@ -33,7 +33,9 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id: app.id, ...body })
     }), word);
-    setBusy(false); setDeclining(false);
+    /* Both forms close, not just the decline one: recording how the call
+        went left its form sitting open over the refreshed card. */
+    setBusy(false); setDeclining(false); setResult(false);
     if (ok) router.refresh();
   }
 

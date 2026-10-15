@@ -71,12 +71,12 @@ export default function WatchAttemptForm({
         body: JSON.stringify({ attemptId })
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { toast.bad(d?.error ?? 'Could not submit.'); setSubmitting(false); setConfirming(false); return; }
+      if (!res.ok) { toast.bad(d?.error ?? 'That did not submit. Your answers are still here, so try again, or write to hello@relevestaffing.com.'); setSubmitting(false); setConfirming(false); return; }
       toast.saved('Submitted. Your Talent Success Manager will review it.');
       router.push('/app/watch');
       router.refresh();
     } catch {
-      toast.bad('Could not submit.');
+      toast.bad('That did not submit. Your answers are still here, so try again, or write to hello@relevestaffing.com.');
       setSubmitting(false);
       setConfirming(false);
     }

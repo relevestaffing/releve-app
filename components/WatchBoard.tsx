@@ -37,6 +37,13 @@ export default function WatchBoard({ items }: { items: Item[] }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) { toast.bad(data?.error ?? 'Could not start that.'); setBusy(null); return; }
+      if (!data?.attemptId) {
+        /* Without this an ok response that somehow carries no id sends the
+           person to /app/watch/undefined, which bounces straight back here
+           with the button still spinning and nothing said. */
+        toast.bad('That did not open. Try again, or write to hello@relevestaffing.com.');
+        setBusy(null); return;
+      }
       router.push(`/app/watch/${data.attemptId}`);
     } catch {
       toast.bad('Could not start that.');

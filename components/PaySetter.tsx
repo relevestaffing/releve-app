@@ -38,7 +38,7 @@ export default function PaySetter({ talentId, cents, compact = false }: {
       const d = await r.json().catch(() => ({}));
       setBusy(false);
       if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); return; }
-      toast.saved(`We pay ${money(c)} a month`);
+      toast.saved(`Relève pays ${money(c)} a month`);
       setJustSet(c); setEditing(false); router.refresh();
     } catch { setBusy(false); toast.bad('No connection, so nothing was saved.'); }
   }

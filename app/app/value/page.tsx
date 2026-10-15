@@ -40,7 +40,7 @@ export default async function ValuePage() {
   }
 
   return (
-    <Shell profile={profile} active="/app/value" title="The value, in plain terms"
+    <Shell profile={profile} active="/app/how" title="The value, in plain terms"
       crumb="What Relève replaces, and what it saves">
       <ValueContent retainerMonthlyCents={retainerMonthlyCents} placed={retainerMonthlyCents != null} />
     </Shell>

@@ -263,12 +263,13 @@ export default async function Shell({
   /* The mobile quick bar follows the same stage the sidebar does. */
   const clientStage = profile.role === 'client' ? await executiveStage(profile.id) : null;
   const placedOnly = !!clientStage && clientStage.placed && !clientStage.hiring;
+  const clientTour = profile.role === 'client' ? await execInTour(profile.id) : false;
   const home = HOME[profile.role] ?? '/app';
   const profileHref = PROFILE[profile.role];
   return (
     <>
       <Motion />
-      <UnreadSync initial={unread} href={messagesHref} />
+      <UnreadSync initial={unread} />
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
       <MobileNav role={profile.role} active={active} nav={nav}
         who={WHO[profile.role]}
@@ -327,7 +328,8 @@ export default async function Shell({
             {action && <div className="topbar-action">{action}</div>}
           </div>
           <div className="page-body">
-            <QuickBar role={profile.role} active={active} placedOnly={placedOnly} unread={unread} />
+            <QuickBar role={profile.role} active={active} placedOnly={placedOnly}
+              tour={clientTour} unread={unread} />
             {action && <div className="mobile-action">{action}</div>}
             {/* The grace banner, on every client page, so an open invoice is
                 seen well before the fourteen-day gate. */}

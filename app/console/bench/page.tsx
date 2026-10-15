@@ -70,7 +70,7 @@ export default async function Bench() {
           </div>
         ) : (
         <table className="data" id="bench-table">
-          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>We pay</th><th>Stage</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>What Relève pays</th><th>Stage</th><th></th></tr></thead>
           <tbody>
             {bench.map(t => (
               <tr key={t.id}>

@@ -57,7 +57,7 @@ export type TalentBrief = {
 export const BRIEF_FIELDS: { key: keyof Omit<TalentBrief, 'placement_id' | 'updated_at'>; label: string; hint: string }[] = [
   { key: 'tools',       label: 'Tools and accounts',      hint: 'The apps you use and which ones they will work in: email, calendar, documents, CRM.' },
   { key: 'access',      label: 'Access',                  hint: 'What they can open, and how access is shared. Never paste a password here; share it through your password manager.' },
-  { key: 'preferences', label: 'How you like things done', hint: 'Tone in your emails, how you want things summarised, what good looks like.' },
+  { key: 'preferences', label: 'How you like things done', hint: 'Tone in your emails, how you want things summarized, what good looks like.' },
   { key: 'rhythm',      label: 'When and how to reach you', hint: 'Best hours, the channel for urgent things, and what can wait for a daily note.' },
   { key: 'ask_first',   label: 'Always ask first',        hint: 'Anything they should never do without checking: payments, certain people, commitments.' }
 ];
@@ -82,7 +82,7 @@ export const REQUEST_KINDS: { key: RequestKind; label: string; ask: string; prom
     promise: 'Your Client Success Manager will call you within one business day to plan the handover. Nothing changes until you have spoken.',
     teamAction: 'Call the executive and open a replacement search' },
   { key: 'pause', label: 'Request a pause',
-    ask: 'Travelling, a quiet season, or a change at work. Tell us the dates you have in mind.',
+    ask: 'Traveling, a quiet season, or a change at work. Tell us the dates you have in mind.',
     promise: 'This is a request, not a change. Your Client Success Manager will confirm what a pause means for your schedule and billing before anything moves.',
     teamAction: 'Confirm the pause terms with the executive' }
 ];

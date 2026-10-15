@@ -95,7 +95,7 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
         <>
           {apps.length > 8 &&
             <TableSearch scope="candidates" rows=".card" groups="[data-group]"
-              placeholder="Search candidates by name, email or answer…" />}
+              placeholder="Search applicants by name, email or answer…" />}
           <div id="candidates">
             {APPLICATION_SECTIONS.map(sec => {
               const list = stage[sec.key];
