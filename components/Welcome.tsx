@@ -41,9 +41,9 @@ const CLIENT: Panel[] = [
   { h: 'Welcome to Relève',
     lede: 'This is your account. Everything about your search runs through here.',
     points: [
-      'We find, vet and manage world-class virtual staff, and match the working relationship, not just the role.',
-      'A qualified candidate within fourteen days, and a replacement if a hire does not work out.',
-      'Every placement comes with a Client Success Manager and a Talent Success Manager.'
+      'Every candidate is vetted on six fronts and matched to how you work before you meet them.',
+      'Prepared for your role before day one, in front of you within fourteen days, and replaced if the fit is not right.',
+      'A Client Success Manager handles your side. A Talent Success Manager handles theirs.'
     ] },
   { h: 'How this begins',
     lede: 'Three short screens, then the one step that starts everything.',

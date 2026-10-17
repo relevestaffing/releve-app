@@ -14,16 +14,16 @@ import { money, DEPOSIT_CENTS, RATE_MIN_CENTS, RATE_MAX_CENTS } from '@/lib/mone
    defending a thing nobody has attacked is the opposite of luxury. */
 
 const METHOD: { t: string; d: string }[] = [
-  { t: 'A conversation first',
-    d: 'Your manager learns what the seat is really for, and what went wrong last time.' },
+  { t: 'Your business, studied first',
+    d: 'Your Client Success Manager learns how you operate and builds the role around what you actually need.' },
   { t: 'Your Executive Signature',
     d: 'Twenty minutes measuring how you work. Every candidate is scored against it.' },
-  { t: 'One person, chosen by hand',
-    d: 'Sourced against your Signature, vetted by your manager, with the reasons written out.' },
-  { t: 'You meet them',
-    d: 'Your calendar, your terms, your decision. A good no sharpens the next match.' },
-  { t: 'The working relationship',
-    d: 'A shared board, a weekly check-in, and your manager alongside you throughout.' }
+  { t: 'Vetted on six fronts',
+    d: 'Tested against your role, background checked, scored against your Signature, with the reasons written out.' },
+  { t: 'Prepared, then presented',
+    d: 'Briefed on your tools and standards before you meet. Your calendar, your terms, your decision.' },
+  { t: 'Handled from there',
+    d: 'Your Client Success Manager and their Talent Success Manager carry the check-ins, coaching and cover.' }
 ];
 
 export default function HowContent() {
@@ -34,11 +34,11 @@ export default function HowContent() {
           The whole idea
         </div>
         <h2 style={{ fontSize: 30, color: 'var(--cream)', marginBottom: 14, maxWidth: 620 }}>
-          One person, matched to how you actually work.
+          Someone you can trust with it. Everything after, handled.
         </h2>
         <p className="small" style={{ maxWidth: 580, color: 'var(--pale)' }}>
-          Most staffing sends a stack of résumés and calls the sorting your job.
-          We send one person, vetted, within fourteen days.
+          One person, vetted on six fronts and matched to how you work, prepared
+          for your role and in front of you within fourteen days.
         </p>
       </div>
 
@@ -68,9 +68,12 @@ export default function HowContent() {
       <div className="card">
         <div className="card-head"><h3>Vetted before you meet them</h3></div>
         <ul className="plain">
-          <li>Identity verified against a government document.</li>
+          <li>Your business and role studied first.</li>
+          <li>Skills tested against the work you will hand over.</li>
+          <li>Scored against your Executive Signature.</li>
+          <li>Identity, right to work and background checked.</li>
           <li>NDA and contractor agreement signed.</li>
-          <li>Skills reviewed against your role by their manager.</li>
+          <li>Approved by name before they reach you.</li>
         </ul>
       </div>
 
@@ -98,8 +101,8 @@ export default function HowContent() {
         </div>
         <p className="small muted" style={{ marginTop: 4, maxWidth: 560 }}>
           The {money(DEPOSIT_CENTS)} opens your search and is credited in full against
-          your first month. The retainer begins when your placement does. No placement
-          fee, no contract.
+          your first month. The retainer begins when your placement does, and there is
+          no placement fee.
         </p>
       </div>
     </>

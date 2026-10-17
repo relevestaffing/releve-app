@@ -256,10 +256,10 @@ const rawTemplates = {
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nGood talking today. Running a growing business without the right person beside you means everything eventually lands on your desk: the calendar, the inbox, the fires only you have time for. Relève is not filling a task list; we are placing your right hand.\n\nYour deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nGood talking today. Our job now is to find someone you can trust with what you described: vetted on six fronts, matched to how you work, prepared for your role before day one, and fully managed after. You hand it over. We handle the rest.\n\nYour deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
-        p(`Good talking today. Running a growing business without the right person beside you means everything eventually lands on your desk: the calendar, the inbox, the fires only you have time for. Relève is not filling a task list; we are placing your right hand.`) +
+        p(`Good talking today. Our job now is to find someone you can trust with what you described: vetted on six fronts, matched to how you work, prepared for your role before day one, and fully managed after. You hand it over. We handle the rest.`) +
         p(`Your deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account.`) +
         steps.map(stepRow).join('') +
         `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">Your deposit is credited in full toward your first month once you are placed.</p>` +
@@ -555,10 +555,10 @@ const rawTemplates = {
      the app both promise this mail; for a long time nothing sent it. */
   candidateReady: (o: { name: string; candidate: string }) => ({
     subject: 'Your candidate is ready to meet',
-    text: `${o.name},\n\nWe have someone for you. ${o.candidate} has been vetted, matched against your Signature and the role you described, and briefed on how you work.\n\nRead the match in your account and tell us yes or no. That is all we need.\n\n${SITE}/app/pipeline\n\nRelève`,
+    text: `${o.name},\n\nWe have someone for you. ${o.candidate} has been vetted on six fronts, background checked, matched against your Signature and the role you described, and briefed on how you work.\n\nRead the match in your account and tell us yes or no. That is all we need.\n\n${SITE}/app/pipeline\n\nRelève`,
     html: shell('Your candidate is ready to meet',
       p(`${o.name},`) +
-      p(`We have someone for you. <b>${o.candidate}</b> has been vetted, matched against your Signature and the role you described, and briefed on how you work.`) +
+      p(`We have someone for you. <b>${o.candidate}</b> has been vetted on six fronts, background checked, matched against your Signature and the role you described, and briefed on how you work.`) +
       p('Read the match and tell us yes or no. That is all we need.'),
       { label: 'See your candidate', href: `${SITE}/app/pipeline` })
   }),

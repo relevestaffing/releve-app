@@ -58,8 +58,8 @@ export default function ChooseRole({ name }: { name?: string | null }) {
             <div className="eyebrow">I am hiring</div>
             <h3>Executive</h3>
             <p>
-              You need a right hand. We find, vet and manage the person, and match them to how you
-              actually work rather than to a job description.
+              You need a right hand you can trust. We vet them on six fronts, match them to how you
+              work, and handle everything after.
             </p>
             <p className="xs muted" style={{ marginTop: 10 }}>
               This starts with a short discovery call, not a sign-up form. Reach out and we will find a time.
