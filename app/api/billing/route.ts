@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     const { data: term } = await sb.from('my_placement_terms')
       .select('notice_given_on, notice_ends_on').eq('placement_id', placementId).maybeSingle();
     const endsIso = (term as any)?.notice_ends_on ?? null;
-    const endsOn = endsIso ? dayLabel(endsIso) : 'the end of next month';
+    const endsOn = endsIso ? dayLabel(endsIso) : 'the end of the current term';
     try {
       const pl = await getPlacement(placementId);
       const who = `${me.org_name ?? me.full_name ?? me.email}${pl ? ` (${pl.talent_name})` : ''}`;

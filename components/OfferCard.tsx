@@ -17,6 +17,7 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
   const [confirming, setConfirming] = useState<null | 'yes' | 'no'>(null);
   const mine = side === 'client' ? offer.client_answer : offer.talent_answer;
   const amount = side === 'client' ? offer.rate_month_cents : offer.talent_pay_cents;
+  const upfront = side === 'client' && offer.prepaid_total_cents != null;
   const other = side === 'client' ? offer.talent_name : (offer.org_name ?? offer.client_name);
 
   async function answer(a: 'yes' | 'no') {
@@ -61,8 +62,11 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
         {offer.hours && <><dt>Hours</dt><dd>{offer.hours}</dd></>}
         {offer.scope && <><dt>Owns</dt><dd>{offer.scope}</dd></>}
         <dt>{side === 'client' ? 'You pay' : 'You are paid'}</dt>
-        <dd><b>{money(amount)}</b> a month</dd>
-        <dt>Minimum</dt><dd>{offer.minimum_months} months, then month to month</dd>
+        <dd>{upfront
+          ? <><b>{money(offer.prepaid_total_cents)}</b> upfront, covering {offer.minimum_months} months</>
+          : <><b>{money(amount)}</b> a month</>}</dd>
+        {side === 'client' && offer.intro_discount_cents ? <><dt>eLIVate Club</dt><dd><b>{money(offer.intro_discount_cents)} off</b> each month for the first {offer.intro_discount_months} months</dd></> : null}
+        <dt>Minimum</dt><dd>{offer.minimum_months} months, then renews in three-month terms</dd>
       </dl>
 
       {offer.state === 'accepted' ? (
@@ -81,8 +85,9 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
             <div className="confirm-row">
               <p className="small" style={{ margin: '0 0 14px' }}>
                 {confirming === 'yes'
-                  ? <>Accept this offer? That is <b>{money(amount)} a month</b> for a
-                      minimum of {offer.minimum_months} months, starting {fmtDate(offer.starts_on)}.</>
+                  ? <>Accept this offer? That is {upfront
+                      ? <><b>{money(offer.prepaid_total_cents)} upfront</b> covering {offer.minimum_months} months</>
+                      : <><b>{money(amount)} a month</b> for a minimum of {offer.minimum_months} months</>}, starting {fmtDate(offer.starts_on)}.</>
                   : <>Decline this offer? We will come back to you either way, and we
                       keep looking for you.</>}
               </p>

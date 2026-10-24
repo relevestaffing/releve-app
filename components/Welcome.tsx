@@ -39,10 +39,10 @@ const TALENT: Panel[] = [
 
 const CLIENT: Panel[] = [
   { h: 'Welcome to Relève',
-    lede: 'This is your account. Everything about your search runs through here.',
+    lede: 'This is your account. Everything about your search runs through here, so the work that fills your week leaves your desk and your attention goes back to what grows the business.',
     points: [
       'Every candidate is vetted on six fronts and matched to how you work before you meet them.',
-      'Prepared for your role before day one, in front of you within fourteen days, and replaced if the fit is not right.',
+      'In front of you within fourteen days, trained for your role on Essential and Specialist plans, and replaced if the fit is not right.',
       'A Client Success Manager handles your side. A Talent Success Manager handles theirs.'
     ] },
   { h: 'How this begins',

@@ -9,7 +9,8 @@ export type OfferState =
 export type Offer = {
   id: string; client_id: string; talent_id: string;
   role_title: string; starts_on: string; hours: string | null; scope: string | null;
-  rate_month_cents: number | null; talent_pay_cents: number | null;
+  rate_month_cents: number | null; talent_pay_cents: number | null; prepaid_total_cents?: number | null;
+  intro_discount_cents?: number | null; intro_discount_months?: number | null;
   minimum_months: number; state: OfferState;
   client_answer: 'yes' | 'no' | null; talent_answer: 'yes' | 'no' | null;
   declined_by: string | null; decline_reason: string | null;

@@ -37,6 +37,12 @@ const WRAPPERS = ['.stack', '.grid-2', '.grid-3', '.grid-4', '.match-grid', '.ma
 const BLOCKS = [
   `.page-body > *${WRAPPERS.map(w => `:not(${w})`).join('')}`,
   ...WRAPPERS.map(w => `.page-body > ${w} > *`),
+  /* 19 Oct 2026: the parts inside a card rise in too as they scroll into
+     view, so a long card on a phone moves the way the website does instead
+     of arriving as one slab. Hidden only once this script is running
+     (html.rv-live in globals.css), so a page whose script never loads
+     shows everything. */
+  '.page-body .card > :not(.card-head)',
   '.rv'
 ].join(',');
 

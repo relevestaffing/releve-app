@@ -3,7 +3,7 @@ import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saving, toast } from '@/components/Toast';
-import { money, toCents, RATE_MIN_CENTS, RATE_MAX_CENTS } from '@/lib/money-public';
+import { money, toCents, RATE_MIN_CENTS, RATE_MAX_CENTS, PLANS, PART_TIME_TOTAL_CENTS, ELIVATE_DISCOUNT_CENTS, ELIVATE_DISCOUNT_MONTHS, type PlanKey } from '@/lib/money-public';
 import { fmtDate } from '@/lib/words';
 import { OFFER_STATE, type Offer } from '@/lib/offer-public';
 import PersonPicker from './PersonPicker';
@@ -35,10 +35,11 @@ export default function OfferDesk({ offers, clients, talent }: {
   const [armed, setArmed] = useState<{ id: string; action: string } | null>(null);
   const [f, setF] = useState({
     client_id: '', talent_id: '', role_title: '', starts_on: '',
-    hours: '', scope: '', rate: '', pay: ''
+    hours: '', scope: '', rate: '', pay: '', plan: 'essential', elivate: false
   });
 
   const set = (k: string, v: string) => setF({ ...f, [k]: v });
+  const elivateOk = f.plan === 'essential' || f.plan === 'specialist';
 
   async function create(send: boolean) {
     if (!f.client_id || !f.talent_id || !f.role_title || !f.starts_on) {
@@ -54,6 +55,10 @@ export default function OfferDesk({ offers, clients, talent }: {
     setBusy(true);
     const ok = await saving(() => post({
       action: 'make', ...f,
+      minimum_months: PLANS[f.plan as PlanKey].months,
+      prepaid_total_cents: f.plan === 'part_time_full' ? PART_TIME_TOTAL_CENTS : undefined,
+      intro_discount_cents: elivateOk && f.elivate ? ELIVATE_DISCOUNT_CENTS : undefined,
+      intro_discount_months: elivateOk && f.elivate ? ELIVATE_DISCOUNT_MONTHS : undefined,
       rate_month_cents: rate ?? undefined,
       talent_pay_cents: pay ?? undefined,
       send
@@ -61,7 +66,7 @@ export default function OfferDesk({ offers, clients, talent }: {
     setBusy(false);
     if (ok) {
       setOpen(false);
-      setF({ client_id: '', talent_id: '', role_title: '', starts_on: '', hours: '', scope: '', rate: '', pay: '' });
+      setF({ client_id: '', talent_id: '', role_title: '', starts_on: '', hours: '', scope: '', rate: '', pay: '', plan: 'essential', elivate: false });
       router.refresh();
     }
   }
@@ -110,6 +115,25 @@ export default function OfferDesk({ offers, clients, talent }: {
               <div className="ff"><label htmlFor={`${fid}-2`}>Start date</label>
                 <input id={`${fid}-2`} type="date" value={f.starts_on} onChange={e => set('starts_on', e.target.value)} /></div>
             </div>
+
+            <div className="ff"><label htmlFor={`${fid}-plan`}>Plan</label>
+              <select id={`${fid}-plan`} value={f.plan} onChange={e => {
+                const k = e.target.value as PlanKey;
+                const pl = PLANS[k];
+                setF({ ...f, plan: k, rate: String(pl.monthlyCents / 100),
+                  hours: pl.hoursPerWeek ? `Up to ${pl.hoursPerWeek} hours a week` : f.hours });
+              }}>
+                {(Object.keys(PLANS) as PlanKey[]).map(k => (
+                  <option key={k} value={k}>{PLANS[k].label}: {PLANS[k].blurb} ({PLANS[k].months}-month commitment)</option>
+                ))}
+              </select></div>
+
+            {elivateOk && (
+              <label className="row small" style={{ gap: 8, alignItems: 'center', margin: '-4px 0 14px' }}>
+                <input type="checkbox" checked={f.elivate} onChange={e => setF({ ...f, elivate: e.target.checked })} />
+                eLIVate Club member: {money(ELIVATE_DISCOUNT_CENTS)} off each month for the first {ELIVATE_DISCOUNT_MONTHS} months
+              </label>
+            )}
 
             <div className="ff"><label htmlFor={`${fid}-3`}>Hours</label>
               <input id={`${fid}-3`} value={f.hours} onChange={e => set('hours', e.target.value)}

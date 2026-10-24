@@ -46,7 +46,7 @@ export default function GiveNotice({ placementId, talentName, noticeGivenOn, not
         <span className="pill">{dayLabel(given)}</span>
       </div>
       <p className="small" style={{ marginBottom: 8, maxWidth: 620 }}>
-        Your placement with <b>{talentName}</b> runs to <b>{ends ? dayLabel(ends) : 'the end of next month'}</b>,
+        Your placement with <b>{talentName}</b> runs to <b>{ends ? dayLabel(ends) : 'the end of the current term'}</b>,
         and billing continues through that date. Your Client Success Manager will be in touch about a smooth
         handover.
       </p>

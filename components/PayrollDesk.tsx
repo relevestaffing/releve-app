@@ -46,11 +46,53 @@ export function RunPayroll({ month }: { month: string }) {
   );
 }
 
-export function PaymentRow({ p, payout }: { p: TalentPayment; payout: Payout | null }) {
+/* One-click payouts through PayPal and Wise (19 Oct 2026). The owner presses
+   Pay; nothing is ever sent on a timer. */
+async function sendNow(ids: string[]) {
+  const r = await fetch('/api/payout/send', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ action: 'send', ids })
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { toast.bad(d.error ?? 'Nothing was sent.'); return false; }
+  const res = (d.results ?? []) as { ok: boolean; message: string }[];
+  const good = res.filter(x => x.ok).length;
+  const bad = res.filter(x => !x.ok);
+  if (good) toast.saved(good === 1 ? res.find(x => x.ok)!.message : `${good} payments sent`);
+  if (bad.length) toast.bad(bad[0].message);
+  return true;
+}
+
+export function SendAllPay({ ids, providers }: { ids: string[]; providers: { paypal: boolean; wise: boolean } }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
+  if (!providers.paypal && !providers.wise) return null;
+  async function refresh() {
+    setBusy(true);
+    await fetch('/api/payout/send', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'refresh' }) }).catch(() => null);
+    setBusy(false); router.refresh();
+  }
+  return (
+    <span className="rate-set">
+      {ids.length > 0 && (armed
+        ? <><button className="btn sm solid" disabled={busy} onClick={async () => { setBusy(true); await sendNow(ids); setBusy(false); setArmed(false); router.refresh(); }}>
+              {busy ? 'Sending…' : `Yes, pay ${ids.length} now`}</button>
+            <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button></>
+        : <button className="btn sm solid" onClick={() => setArmed(true)}>Pay everyone due ({ids.length})</button>)}
+      <button className="btn sm ghost" disabled={busy} onClick={refresh}>Check payment status</button>
+    </span>
+  );
+}
+
+export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout: Payout | null; providers?: { paypal: boolean; wise: boolean } }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [marking, setMarking] = useState(false);
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);
+  const [armedPay, setArmedPay] = useState(false);
+  const canSend = Boolean(payout?.confirmed_at && (
+    (payout?.method === 'paypal' && providers?.paypal) || (payout?.method === 'wise' && providers?.wise)));
 
   /* Paperwork before payment, not during it: a W-9 for a US person (for the
      year-end 1099), a W-8BEN for anyone else. This does not block the
@@ -151,7 +193,13 @@ export function PaymentRow({ p, payout }: { p: TalentPayment; payout: Payout | n
                 <button className="btn sm ghost" onClick={() => setMarking(true)}>Try again</button></>
             : <>
                 {!payout && <span className="pill warn"><span className="dot" />No details</span>}
-                <button className="btn sm solid" disabled={busy} onClick={() => setMarking(true)}>
+                {canSend && (armedPay
+                  ? <><button className="btn sm solid" disabled={busy} onClick={async () => { setBusy(true); await sendNow([p.id]); setBusy(false); setArmedPay(false); router.refresh(); }}>
+                        {busy ? 'Sending…' : `Yes, send ${money(p.amount_cents, true)}`}</button>
+                      <button className="btn sm ghost" disabled={busy} onClick={() => setArmedPay(false)}>Cancel</button></>
+                  : <button className="btn sm solid" disabled={busy} onClick={() => setArmedPay(true)}>
+                      Pay via {method?.label}</button>)}
+                <button className={canSend ? 'btn sm ghost' : 'btn sm solid'} disabled={busy} onClick={() => setMarking(true)}>
                   Mark as sent
                 </button>
               </>}

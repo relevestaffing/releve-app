@@ -1333,10 +1333,11 @@ language plpgsql security definer set search_path = public as $$
 declare pl record; through date; d record; b_start date; b_end date; dim int; days int;
         new_sub int; credit int; excess int; prev_trust text;
 begin
-  select p.id, p.started_on, t.rate_month_cents into pl
+  select p.id, p.started_on, t.rate_month_cents, t.prepaid_total_cents into pl
     from placements p join placement_terms t on t.placement_id = p.id
    where p.id = p_placement;
   if not found or pl.rate_month_cents is null then return; end if;
+  if pl.prepaid_total_cents is not null then return; end if;  -- prepaid plans are one fixed invoice
   prev_trust := money_trust_on();
   through := placement_bill_through(p_placement);
 
@@ -1488,12 +1489,33 @@ begin
 
   for r in
     select pl.id, pl.client_id, pl.started_on, pl.created_at, pl.suspended_at,
-           t.rate_month_cents, placement_bill_through(pl.id) as through
+           t.rate_month_cents, t.prepaid_total_cents, t.minimum_months,
+           placement_bill_through(pl.id) as through
       from placements pl
       join placement_terms t on t.placement_id = pl.id
      where t.rate_month_cents is not null
        and pl.started_on <= (target + interval '1 month - 1 day')::date
   loop
+    -- Part-Time plan: one invoice upfront for the whole commitment, no
+    -- monthly retainers. (Renewal after the term is set by Relève.)
+    if r.prepaid_total_cents is not null then
+      if not exists (select 1 from invoices i where i.placement_id = r.id and i.kind = 'retainer') then
+        p_start := date_trunc('month', r.started_on)::date;
+        p_end   := ((r.started_on + make_interval(months => coalesce(r.minimum_months, 3)))::date - 1);
+        dim := p_end - r.started_on + 1;
+        insert into invoices (client_id, placement_id, kind, period_start, period_end,
+                              amount_cents, subtotal_cents, days_billed, days_in_period,
+                              service_from, service_to, issued_on, due_on, status, note)
+        values (r.client_id, r.id, 'retainer', p_start, p_end,
+                r.prepaid_total_cents, r.prepaid_total_cents, dim, dim,
+                r.started_on, p_end, r.started_on, r.started_on, 'draft',
+                'Part-Time plan, paid upfront for ' || coalesce(r.minimum_months, 3) || ' months')
+        on conflict do nothing;
+        get diagnostics rc = row_count;
+        made := made + rc;
+      end if;
+      continue;
+    end if;
     if exists (select 1 from invoices i where i.placement_id = r.id and i.kind = 'retainer') then
       first_m := target;
     else

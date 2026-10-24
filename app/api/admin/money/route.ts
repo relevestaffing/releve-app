@@ -98,7 +98,7 @@ export async function POST(req: Request) {
         const reason = NOTICE_REASONS.some(r => r.key === b.reason) ? String(b.reason) : null;
         const note = String(b.note ?? '').trim().slice(0, 1000) || null;
         const { givenOn, endsOn } = await giveNotice(placementId, { on, reason, note });
-        const endsLabel = endsOn ? dayLabel(endsOn) : 'the end of next month';
+        const endsLabel = endsOn ? dayLabel(endsOn) : 'the end of the current term';
         try {
           const pl = await getPlacement(placementId);
           if (pl) {

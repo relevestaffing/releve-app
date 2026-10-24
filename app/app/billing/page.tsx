@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { listInvoicesFor } from '@/lib/money';
 import {
-  money, dayLabel, monthLabel, daysOverdue, addDaysISO,
+  money, dayLabel, monthLabel, daysOverdue, addDaysISO, noticeEndsOn,
   MINIMUM_MONTHS, NOTICE_TERMS, minimumTermEnds
 } from '@/lib/money-public';
 import { PAYMENT_STATUS } from '@/lib/billing-public';
@@ -109,7 +109,7 @@ export default async function Billing() {
                   <div className="xs muted">
                     Started {dayLabel(p.started_on)} · {inTerm
                       ? `minimum term runs through ${dayLabel(minLast)}`
-                      : 'month to month'}
+                      : `renews in three-month terms, current term runs through ${dayLabel(noticeEndsOn(addDaysISO(today, -30), minEnds))}`}
                   </div>
                   {p.notice_given_on &&
                     <div className="xs muted">Notice given {dayLabel(p.notice_given_on)}

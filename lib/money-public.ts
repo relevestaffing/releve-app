@@ -5,12 +5,33 @@
 /* The effective date printed on the published documents. Bump this whenever
    the wording at relevestaffing.com/terms changes, so acceptances stay tied
    to the exact text the person actually saw. */
-export const TERMS_VERSION = '2026-09-01';
+export const TERMS_VERSION = '2026-10-19';
 
 export const DEPOSIT_CENTS = 50_000;          // $500, per the Terms, Section 5
-export const RATE_MIN_CENTS = 250_000;        // $2,500
+export const RATE_MIN_CENTS = 83_300;         // $833, the Part-Time plan's monthly installment
 export const RATE_MAX_CENTS = 450_000;        // $4,500
-export const MINIMUM_MONTHS = 3;
+export const MINIMUM_MONTHS = 6;              // Essential and Specialist; Part-Time is 3, see PLANS
+
+/* The plans (updated 19 Oct 2026). Essential and Specialist are unlimited
+   hours from a dedicated VA on a six-month commitment. Part-Time is capped at
+   15 hours a week on a three-month commitment, and comes two ways: $950 a
+   month, or $2,500 paid in full for the three months (one invoice per term,
+   placement_terms.prepaid_total_cents; monthlyCents there is only the monthly
+   equivalent used for margin and reports). */
+export type PlanKey = 'essential' | 'specialist' | 'part_time' | 'part_time_full';
+export const PLANS: Record<PlanKey, {
+  label: string; monthlyCents: number; months: number; hoursPerWeek: number | null; blurb: string;
+}> = {
+  essential:  { label: 'Essential',  monthlyCents: 250_000, months: 6, hoursPerWeek: null, blurb: 'Unlimited hours, non-specialized VA' },
+  specialist: { label: 'Specialist', monthlyCents: 450_000, months: 6, hoursPerWeek: null, blurb: 'Unlimited hours, specialized expert role' },
+  part_time:  { label: 'Starter',  monthlyCents: 95_000,  months: 3, hoursPerWeek: 15,   blurb: '$950 a month, up to 15 hours a week' },
+  part_time_full: { label: 'Starter, paid in full', monthlyCents: 83_333, months: 3, hoursPerWeek: 15, blurb: '$2,500 paid in full for three months, up to 15 hours a week' }
+};
+export const PART_TIME_TOTAL_CENTS = 250_000;
+/* eLIVate Club members: $500 off each month for the first three months, on
+   Essential and Specialist only (part42-elivate.sql applies it to invoices). */
+export const ELIVATE_DISCOUNT_CENTS = 50_000;
+export const ELIVATE_DISCOUNT_MONTHS = 3;
 export const NOTICE_DAYS = 30;
 
 /* The business runs on Pacific (hello@ is a Pacific mailbox). A bare
@@ -94,7 +115,7 @@ export const DEPOSIT_STATUS: { key: DepositStatus; label: string; tone: string }
    placement uses this, word for word, so the terms are never paraphrased
    into something they do not say. */
 export const NOTICE_TERMS =
-  "Thirty days' written notice, effective at the end of the following billing month. The three-month minimum always applies.";
+  "Thirty days' written notice before the current term ends. After the minimum (six months on Essential and Specialist, three on Starter) the placement renews in three-month terms.";
 
 /* Who issues the invoice. No street address, by decision. */
 export const INVOICE_ENTITY = {
@@ -202,17 +223,32 @@ export function minimumLastDay(startedOn: string, months = MINIMUM_MONTHS): stri
   return addDaysISO(minimumTermEnds(startedOn, months), -1);
 }
 
-/* Mirrors notice_end_date() in the database: the end of the month after the
-   one notice is given in, and never before the minimum's last day. The
-   database is the record; this is for saying it before it is recorded. */
+/* Postgres-style month addition: the day clamps to the end of a shorter
+   month (31 Jan + 1 month = 28 or 29 Feb), never rolls into the next. */
+export function addMonthsISO(iso: string, n: number): string {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1 + n, 1));
+  const last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+  t.setUTCDate(Math.min(d, last));
+  return t.toISOString().slice(0, 10);
+}
+
+/* Mirrors notice_end_date() in the database (PART 41): after the minimum the
+   placement renews in three-month terms, and notice must arrive thirty days
+   before a term ends, so it runs to the last day of the first term ending at
+   least thirty days out. The database is the record; this is for saying it
+   before it is recorded. Without the minimum's end it can only say thirty
+   days, which is a floor, never the real date. */
 export function noticeEndsOn(givenOn: string, minimumEndsExclusive?: string | null): string {
-  const d = new Date(givenOn.slice(0, 7) + '-01T00:00:00Z');
-  d.setUTCMonth(d.getUTCMonth() + 2);
-  d.setUTCDate(0);
-  const endOfFollowing = d.toISOString().slice(0, 10);
-  if (!minimumEndsExclusive) return endOfFollowing;
-  const minLast = addDaysISO(minimumEndsExclusive, -1);
-  return minLast > endOfFollowing ? minLast : endOfFollowing;
+  const floor = addDaysISO(givenOn, 30);
+  if (!minimumEndsExclusive) return floor;
+  let k = 0;
+  let end = minimumEndsExclusive;
+  while (addDaysISO(end, -1) < floor && k < 400) {
+    k += 1;
+    end = addMonthsISO(minimumEndsExclusive, 3 * k);
+  }
+  return addDaysISO(end, -1);
 }
 
 /* Positive means late. Invoices are due on receipt, so anything unpaid the

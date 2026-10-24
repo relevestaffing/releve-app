@@ -123,7 +123,7 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
                 </select>
                 <span className="xs muted">
                   Saying so settles the replacement guarantee, and the replacement carries only what was
-                  left of the original&rsquo;s three-month minimum, so the client never pays twice for one seat.
+                  left of the original&rsquo;s minimum commitment, so the client never pays twice for one seat.
                 </span>
               </div>
             )}

@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { allInvoices, moneySummary, isOwner } from '@/lib/money';
 import { listPayments, marginSummary, getPayout, unpaidPlacements } from '@/lib/payout';
-import { RunPayroll, PaymentRow } from '@/components/PayrollDesk';
+import { RunPayroll, PaymentRow, SendAllPay } from '@/components/PayrollDesk';
+import { payoutProviders } from '@/lib/payout-send';
 import { periodLabel } from '@/lib/payout-public';
 import {
   money, dayLabel, minimumTermEnds, addDaysISO, todayInPacific, monthStartPacific,
@@ -103,6 +104,7 @@ export default async function ConsoleMoney() {
   const margin = await marginSummary();
   const payments = await listPayments();
   const duePayments = payments.filter(p => p.state !== 'sent');
+  const providers = payoutProviders();
   /* Paid stays visible: the point of recording a payment is answering "was I
      paid for October?" six months later, which a list that forgets the moment
      something is marked sent cannot do. */
@@ -271,7 +273,13 @@ export default async function ConsoleMoney() {
       {/* ---------- money out ---------- */}
       <div className="row between" style={{ alignItems: 'center' }}>
         <h3 className="section-h" id="money-out" style={{ margin: 0 }}>Money out{duePayments.length > 0 && <span className="muted"> · {money(dueTotal)} owed</span>}</h3>
-        <RunPayroll month={thisMonth} />
+        <span className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <SendAllPay providers={providers} ids={duePayments.filter(p => {
+            const po = payoutBy[p.talent_id];
+            return po?.confirmed_at && ((po.method === 'paypal' && providers.paypal) || (po.method === 'wise' && providers.wise));
+          }).map(p => p.id)} />
+          <RunPayroll month={thisMonth} />
+        </span>
       </div>
       {unpaid.length > 0 && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
@@ -300,7 +308,7 @@ export default async function ConsoleMoney() {
             <WiseBatch count={wiseReady.length} skipped={wiseSkipped} />
             {duePayments.map(p => (
               <div key={p.id} style={{ padding: '14px 0', borderBottom: '1px solid var(--line)' }}>
-                <PaymentRow p={p} payout={payoutBy[p.talent_id] ?? null} />
+                <PaymentRow p={p} payout={payoutBy[p.talent_id] ?? null} providers={providers} />
               </div>
             ))}
           </>
@@ -341,7 +349,7 @@ export default async function ConsoleMoney() {
         <div className="card">
           <div className="card-head">
             <h3>Search deposits</h3>
-            <span className="xs muted">$500 once a search begins · non-refundable · marking paid or waived is the owner&rsquo;s</span>
+            <span className="xs muted">$500 once a search begins · refunded only if no candidate is presented · marking paid or waived is the owner&rsquo;s</span>
           </div>
           <table className="data">
             <thead><tr>

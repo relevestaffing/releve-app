@@ -68,7 +68,7 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
           <li>No payroll, benefits or HR to run. They are a virtual contractor, not headcount.</li>
           <li>A qualified candidate within fourteen days of your search opening, not months.</li>
           <li>Not the right fit? We replace them, and the replacement is covered. No bad hire to exit.</li>
-          <li>A three-month minimum, then month to month with thirty days&rsquo; notice. No severance, no sunk spend.</li>
+          <li>A fixed commitment (six months, or three on the Starter plan), then three-month terms you can end with thirty days&rsquo; notice. No severance, no sunk spend.</li>
         </ul>
       </div>
     </>

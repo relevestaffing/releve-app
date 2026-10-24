@@ -1,4 +1,4 @@
-import { money, DEPOSIT_CENTS, RATE_MIN_CENTS, RATE_MAX_CENTS } from '@/lib/money-public';
+import { money, DEPOSIT_CENTS, PLANS } from '@/lib/money-public';
 
 /* The body of "How Relève works", as a fragment so it renders the same whether
    it sits inside the page (in Shell) or as a step in the first-run tour. No
@@ -95,8 +95,8 @@ export default function HowContent() {
             <div className="k">To open your search</div>
           </div>
           <div className="money-stat">
-            <div className="n">{money(RATE_MIN_CENTS)}–{money(RATE_MAX_CENTS).replace('$', '')}</div>
-            <div className="k">Monthly retainer</div>
+            <div className="n">{money(PLANS.essential.monthlyCents)}–{money(PLANS.specialist.monthlyCents).replace('$', '')}</div>
+            <div className="k">Monthly, unlimited hours. Starter: $950 a month, or $2,500 paid in full for 3 months, 15 hrs/week</div>
           </div>
         </div>
         <p className="small muted" style={{ marginTop: 4, maxWidth: 560 }}>

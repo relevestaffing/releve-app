@@ -2359,3 +2359,303 @@ aside.side a:focus-visible,aside.side button:focus-visible,
   .picker-clear{min-height:44px}
   .unread-badge.side{margin-right:2px}
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   THE WEBSITE SYSTEM, CARRIED INTO THE APP (19 Oct 2026)
+   Sage: "I really love the styling of the website, I want to utilize it in
+   the entire app." These rules bring across what relevestaffing.com
+   settled on after 11 October, in one place so every screen moves at once:
+     1. Contrast rule: a card is never the colour of its ground. The work
+        area is warm cream, cards are white with a hairline and a soft
+        resting shadow (the site's .cell).
+     2. Page headers are the site's interior hero: deep fern, a hairline
+        inner frame, a fine grain, the label set between two rules, and a
+        quieter display headline. Desktop only; phones keep the compact
+        light header the drawer and quick bar are built around.
+     3. Dark panels are the site's "Why Relève" band: white-on-fern.
+     4. Phones get the same spacing pass the site got: wider gutters,
+        looser line spacing, more room inside every card.
+   ════════════════════════════════════════════════════════════════════ */
+:root{--ground:linear-gradient(180deg,#EFEADF 0%,#F4F0E7 45%,#EEE9DE 100%)}
+.shell{background:linear-gradient(90deg,#2C3931 0 var(--sidebar),#F2EEE4 var(--sidebar))}
+main.main{background:#F2EEE4}
+aside.side{background:linear-gradient(180deg,#26312A 0%,#35443A 42%,#3A4A3F 70%,#2C3931 100%)}
+
+/* 1. cards */
+.card{background:#FFFFFF;border:1px solid rgba(53,68,58,.09);box-shadow:0 26px 54px -38px rgba(34,48,42,.42)}
+.card .card:not(.dark):not(.stat){box-shadow:none}
+.card-head h3{letter-spacing:.005em}
+table.data{border:1px solid rgba(53,68,58,.09)}
+
+/* 3. dark panels */
+.card.dark{background:radial-gradient(70% 60% at 50% 30%, rgba(243,239,230,.08) 0%, rgba(243,239,230,0) 65%),linear-gradient(180deg,#1F2B25 0%,#2B382F 40%,#33423A 75%,#26322B 100%);color:rgba(255,255,255,.82);box-shadow:0 40px 90px -46px rgba(0,0,0,.6)}
+.card.dark h2,.card.dark h3,.card.dark h4{color:#FFFFFF}
+.card.dark .btn:not(.solid){border-color:rgba(255,255,255,.7);color:#FFFFFF}
+.card.dark .btn.solid{background:var(--cream);color:var(--fern);border-color:var(--cream)}
+
+/* section headings take the site's label-with-rule */
+.section-title h2{letter-spacing:.005em}
+.card > .eyebrow:first-child,.section-title .eyebrow{display:inline-flex;align-items:center;gap:14px}
+.card > .eyebrow:first-child::after,.section-title .eyebrow::after{content:"";width:28px;height:1px;background:var(--pale)}
+
+/* 2. the page header, desktop */
+@media (min-width:901px){
+  .topbar{position:relative;top:auto;height:auto;min-height:0;padding:58px 64px 52px;
+    background:radial-gradient(80% 70% at 50% 80%, rgba(243,239,230,.08) 0%, rgba(243,239,230,0) 62%),linear-gradient(180deg,#26312A 0%,#35443A 52%,#2E3C33 100%);
+    border-bottom:0;backdrop-filter:none;overflow:hidden;align-items:flex-end}
+  .topbar::before{content:"";position:absolute;inset:16px;border:1px solid rgba(243,239,230,.12);pointer-events:none}
+  .topbar::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.06;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .topbar > *{position:relative;z-index:1}
+  .topbar h1{color:var(--cream);font-size:clamp(30px,3vw,40px);letter-spacing:.01em}
+  .topbar .crumb{display:inline-flex;align-items:center;gap:16px;color:var(--pale);font-size:11px;letter-spacing:.38em;margin-bottom:16px}
+  .topbar .crumb:not(:empty)::after{content:"";width:34px;height:1px;background:rgba(176,196,178,.55)}
+  .topbar.scrolled{box-shadow:none}
+  .topbar .btn{border-color:rgba(243,239,230,.7);color:var(--cream);background:transparent}
+  .topbar .btn:not(:disabled):hover{background:var(--cream);color:var(--fern)}
+  .topbar .btn.solid{background:var(--cream);color:var(--fern);border-color:var(--cream)}
+  .topbar .btn.solid:not(:disabled):hover{background:var(--pale);border-color:var(--pale)}
+  .topbar .muted,.topbar .small{color:var(--pale)}
+  .page-body{padding:64px 64px 130px}
+  .stack{gap:36px}
+  .skel-topbar{background:linear-gradient(180deg,#26312A 0%,#35443A 52%,#2E3C33 100%)}
+}
+
+/* 4. phones: room to breathe */
+@media (max-width:900px){
+  .shell{background:#F2EEE4}
+  body{line-height:1.8}
+  .topbar{background:rgba(246,243,236,.94)}
+  .page-body{padding:0 24px calc(40px + env(safe-area-inset-bottom))}
+  .quickbar{margin:0 -24px 30px;background:rgba(246,243,236,.97)}
+  .stack{gap:26px}
+  .section-title{margin:12px 0 22px}
+}
+@media (max-width:640px){
+  .page-body{padding:22px 24px calc(84px + env(safe-area-inset-bottom))}
+  .card{margin-bottom:20px;padding:30px 24px;box-shadow:0 22px 46px -34px rgba(34,48,42,.4)}
+  .card.tight{padding:24px 22px}
+  .card-head{margin-bottom:22px}
+  .card-head h3{font-size:21px;line-height:1.3}
+  .card p,.card li{line-height:1.8}
+  .section-title h2{font-size:23px;line-height:1.3}
+  .eyebrow{font-size:10.5px;letter-spacing:.28em}
+  .grid-2,.grid-3,.grid-4{gap:18px}
+  .btn{white-space:nowrap;letter-spacing:.17em}
+  .row{flex-wrap:wrap}
+}
+
+/* contrast rule, continued: every surface that sits directly on the cream
+   ground is white. Inside a white card, the cream sub-panels stay cream,
+   which is the same contrast pairing the other way round. */
+.card.stat,.money-stat,.method-step,.qa-tile,.choose-card{background:#FFFFFF}
+.money-strip,.grid-2:has(> .card.stat):not(:has(> .card:not(.stat))),
+.grid-3:has(> .card.stat):not(:has(> .card:not(.stat))),
+.grid-4:has(> .card.stat):not(:has(> .card:not(.stat))){background:rgba(53,68,58,.1)}
+.firstrun,.firstrun-foot{background:#F2EEE4}
+.drawer,.modal{background:#FFFFFF}
+.skel-shell{background:#F2EEE4}
+
+/* scroll motion inside cards (19 Oct 2026): see BLOCKS in Motion.tsx */
+html.rv-live .page-body .card > :not(.card-head){
+  opacity:0;transform:translateY(14px);
+  transition:opacity .7s cubic-bezier(.22,.61,.36,1),transform .7s cubic-bezier(.22,.61,.36,1)
+}
+html.rv-live .page-body .card > .in{opacity:1;transform:none}
+html.rv-off .page-body .card > *{opacity:1!important;transform:none!important}
+@media (prefers-reduced-motion: reduce){
+  html.rv-live .page-body .card > :not(.card-head){opacity:1;transform:none;transition:none}
+}
+@media (max-width:640px){
+  html.js .page-body > *:not(.in),html.js .page-body > .stack > *:not(.in){transform:translateY(30px)}
+}
+
+/* ════ more white (Sage, 19 Oct 2026: "white expresses premium") ════
+   The work area moves from cream to a near-white ivory, the page header
+   becomes a white band with the fern hairline frame instead of a dark one,
+   and cards stay pure white, lifted off the ground by their hairline and
+   shadow. Fern is kept for the sidebar and the few statement panels, so
+   it reads as an accent rather than a surface. */
+.shell{background:linear-gradient(90deg,#2C3931 0 var(--sidebar),#F7F5F0 var(--sidebar))}
+main.main{background:#F7F5F0}
+.card{border-color:rgba(53,68,58,.08);box-shadow:0 1px 0 rgba(53,68,58,.03),0 30px 60px -40px rgba(34,48,42,.38)}
+.money-strip,.grid-2:has(> .card.stat):not(:has(> .card:not(.stat))),
+.grid-3:has(> .card.stat):not(:has(> .card:not(.stat))),
+.grid-4:has(> .card.stat):not(:has(> .card:not(.stat))){background:rgba(53,68,58,.08)}
+.firstrun,.firstrun-foot,.skel-shell{background:#F7F5F0}
+@media (min-width:901px){
+  .topbar{background:#FFFFFF;border-bottom:1px solid rgba(53,68,58,.08)}
+  .topbar::before{border-color:rgba(53,68,58,.12)}
+  .topbar::after{display:none}
+  .topbar h1{color:var(--fern)}
+  .topbar .crumb{color:var(--sage)}
+  .topbar .crumb:not(:empty)::after{background:var(--pale)}
+  .topbar .btn{border-color:var(--fern);color:var(--fern)}
+  .topbar .btn:not(:disabled):hover{background:var(--fern);color:var(--cream)}
+  .topbar .btn.solid{background:var(--fern);color:var(--cream);border-color:var(--fern)}
+  .topbar .btn.solid:not(:disabled):hover{background:var(--ink);border-color:var(--ink)}
+  .topbar .muted,.topbar .small{color:var(--sage)}
+  .skel-topbar{background:#FFFFFF}
+}
+@media (max-width:900px){
+  .shell{background:#F7F5F0}
+  .topbar{background:rgba(255,255,255,.96)}
+  .quickbar{background:rgba(255,255,255,.97)}
+}
+
+/* ════ luxury pass (19 Oct 2026) ════
+   Sage: "The website looks premium, the app still doesn't feel luxury."
+   What the site does that the app was not doing:
+     • It is a light page with dark accents, not a dark frame around a light
+       page. The fern sidebar was the single heaviest thing on every screen,
+       so it becomes the site's ivory header in vertical form: white, fern
+       type, a hairline edge, the fern logo.
+     • Display type is large and set with air. Headings, card titles and
+       figures all move up a step; labels move down and lighten.
+     • One calm column. Content sits in a narrower centred measure with
+       generous gaps, the way a site section does, instead of filling the
+       width like a dashboard.
+     • Fewer, quieter marks: thin labels, hairlines, no chips shouting. */
+.shell{background:linear-gradient(90deg,#FFFFFF 0 var(--sidebar),#F7F5F0 var(--sidebar))}
+aside.side{background:#FFFFFF;color:var(--body);border-right:1px solid rgba(53,68,58,.08)}
+.side-logo{padding:6px 34px 36px}
+.side-logo img{height:34px}
+.side-role{border-bottom:1px solid rgba(53,68,58,.08);padding:0 34px 28px;margin-bottom:26px}
+.side-role .eyebrow{color:var(--sage)}
+.side-role .name{color:var(--fern);font-size:20px}
+.side-role .small{color:var(--sage)!important}
+nav.side-nav a{color:#5B6B5E;padding:12px 34px;font-size:12px;letter-spacing:.24em}
+nav.side-nav a:hover{color:var(--fern)}
+nav.side-nav a.active{color:var(--fern);border-left-color:var(--fern);background:linear-gradient(90deg,rgba(53,68,58,.045),rgba(53,68,58,0))}
+nav.side-nav .badge{background:var(--fern);color:var(--cream)}
+.nav-group-label{color:#8E9C90;padding:0 34px 10px}
+.side-foot{border-top:1px solid rgba(53,68,58,.08);color:var(--sage)}
+.side-foot:hover{color:var(--fern)}
+.demo-switch{border-top:1px solid rgba(53,68,58,.08)}
+.demo-btn{border-color:rgba(53,68,58,.2);color:var(--sage)}
+.demo-btn:hover{border-color:var(--fern);color:var(--fern)}
+.demo-btn.on{background:var(--fern);border-color:var(--fern);color:var(--cream)}
+.demo-reset{color:var(--sage)}
+aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--fern)}
+.skel-side{background:#FFFFFF}
+
+@media (min-width:901px){
+  .topbar{padding:64px 72px 56px;border-bottom:1px solid rgba(53,68,58,.06)}
+  .topbar::before{inset:18px}
+  .topbar h1{font-size:clamp(34px,3.4vw,48px);line-height:1.12}
+  .topbar .crumb{margin-bottom:20px}
+  .page-body{padding:72px 72px 140px;max-width:1080px}
+  .stack{gap:44px}
+  .card{padding:48px 48px}
+  .card.tight{padding:34px 36px}
+  .card-head{margin-bottom:32px}
+  .card-head h3{font-size:27px}
+  .section-title{margin:18px 0 30px}
+  .section-title h2{font-size:clamp(28px,2.6vw,34px)}
+  .card.stat,.money-stat{padding:38px 34px}
+  .money-stat .n,.card.stat .score{font-size:36px}
+  .grid-2,.grid-3,.grid-4{gap:28px}
+}
+.card p{line-height:1.8}
+.eyebrow{color:#7D8B80}
+.explain-q{opacity:.75}
+.avatar{background:radial-gradient(circle at 50% 38%, #E7ECE6 0, #D3DCD2 70%);border-color:rgba(53,68,58,.12)}
+
+@media (max-width:900px){
+  .nav-drawer{background:#FFFFFF;color:var(--body)}
+  .nav-drawer-close{background:rgba(53,68,58,.06);color:var(--fern)}
+}
+
+/* ════ the two sections Sage named as the brand (19 Oct 2026) ════
+   "Why Relève Is Different" (white type on deep fern, a centred label set
+   between two rules, a large display headline) and the comparison panel
+   beneath it (a white panel resting on the fern, lifted by a long soft
+   shadow). Every desktop page now opens the same way: the white sidebar
+   reads as the site's ivory nav, the header is that fern band, and the
+   first cards rise up over the band's lower edge, so the page begins with
+   a white panel resting on fern exactly like the comparison. */
+@media (min-width:901px){
+  .topbar{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px;
+    padding:76px 72px 150px;border-bottom:0;
+    background:radial-gradient(70% 60% at 50% 30%, rgba(243,239,230,.08) 0%, rgba(243,239,230,0) 65%),linear-gradient(180deg,#1F2B25 0%,#2B382F 40%,#33423A 75%,#26322B 100%)}
+  .topbar::before{display:none}
+  .topbar::after{display:block;opacity:.05}
+  .topbar > div:first-child{display:flex;flex-direction:column;align-items:center}
+  .topbar .crumb{color:#FFFFFF;letter-spacing:.42em;font-size:11.5px;margin-bottom:24px}
+  .topbar .crumb:not(:empty)::before{content:"";width:38px;height:1px;background:rgba(255,255,255,.45)}
+  .topbar .crumb:not(:empty)::after{width:38px;background:rgba(255,255,255,.45)}
+  .topbar h1{color:#FFFFFF;font-size:clamp(38px,3.8vw,56px);line-height:1.12;max-width:900px}
+  .topbar .btn{border-color:rgba(255,255,255,.7);color:#FFFFFF;background:transparent}
+  .topbar .btn:not(:disabled):hover{background:var(--cream);color:var(--fern)}
+  .topbar .btn.solid{background:var(--cream);color:var(--fern);border-color:var(--cream)}
+  .topbar .btn.solid:not(:disabled):hover{background:var(--pale);border-color:var(--pale)}
+  .topbar .muted,.topbar .small{color:var(--pale)}
+  .topbar-action{display:flex;justify-content:center}
+  .page-body{margin:-96px auto 0;position:relative;z-index:2;padding-top:0}
+  .page-body > :first-child{box-shadow:0 40px 90px -46px rgba(0,0,0,.55)}
+  .page-body > .card,.page-body > .stack > .card{box-shadow:0 40px 90px -50px rgba(34,48,42,.5)}
+  .skel-topbar{background:linear-gradient(180deg,#1F2B25 0%,#2B382F 40%,#33423A 75%,#26322B 100%)}
+}
+@media (min-width:901px){ .topbar{z-index:1} .page-body{z-index:3} }
+
+/* ════ phones feel like a native app (Sage, 19 Oct 2026: "I really like the
+   current desktop version, but mobile needs to feel more like an app") ════
+   Desktop is untouched. On a phone: a large title that sits on the page like
+   an iOS large title, the quick bar becomes a floating tab bar at the bottom
+   of the screen (thumb reach, the way every premium app navigates), cards
+   become soft rounded sheets, and buttons and rows are sized for a thumb. */
+@media (max-width:640px){
+  body{background:#F2F0EA}
+  .shell,main.main{background:#F2F0EA}
+  .topbar{position:sticky;top:0;background:rgba(242,240,234,.94);backdrop-filter:saturate(1.4) blur(18px);-webkit-backdrop-filter:saturate(1.4) blur(18px);
+    border-bottom:1px solid transparent;padding:14px 20px 12px 64px;min-height:64px;transition:border-color .25s,background .25s}
+  .topbar.scrolled{border-bottom-color:rgba(53,68,58,.08);background:rgba(250,249,246,.92)}
+  .topbar .crumb{font-size:10.5px;letter-spacing:.2em;color:var(--sage);margin-bottom:2px}
+  .topbar h1{font-size:27px;line-height:1.15;letter-spacing:-.005em}
+  .menu-trigger{background:#FFFFFF;box-shadow:0 4px 14px -6px rgba(34,48,42,.35);width:38px;height:38px}
+
+  /* the floating tab bar */
+  .quickbar{position:fixed;top:auto;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+    width:min(92vw,420px);margin:0;z-index:60;display:flex;gap:4px;padding:7px;border-radius:999px;border:0;
+    background:rgba(34,48,42,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:0 22px 44px -18px rgba(0,0,0,.55)}
+  .quickbar a{border-radius:999px;border-bottom:0;padding:9px 4px 8px;color:#9FB0A2;gap:4px}
+  .quickbar .on{color:#FFFFFF;background:rgba(255,255,255,.13);border-bottom:0}
+  .quickbar span{font-size:10px;letter-spacing:.04em;text-transform:none}
+  .page-body{padding:10px 16px calc(118px + env(safe-area-inset-bottom))}
+
+  /* cards as soft sheets */
+  .card{border-radius:22px;border:0;padding:24px 22px;margin-bottom:14px;
+    box-shadow:0 1px 1px rgba(34,48,42,.04),0 18px 40px -30px rgba(34,48,42,.38)}
+  .card.tight{padding:20px 18px}
+  .card.dark{border-radius:24px}
+  .card .card:not(.dark):not(.stat){border-radius:0}
+  .card-head h3{font-size:20px}
+  .money-strip,.grid-2:has(> .card.stat):not(:has(> .card:not(.stat))),
+  .grid-3:has(> .card.stat):not(:has(> .card:not(.stat))),
+  .grid-4:has(> .card.stat):not(:has(> .card:not(.stat))){
+    background:transparent;gap:10px;box-shadow:none;grid-template-columns:1fr 1fr}
+  .card.stat,.money-stat{border-radius:18px;padding:18px 16px;box-shadow:0 14px 30px -24px rgba(34,48,42,.35)}
+  table.data{border-radius:18px;overflow:hidden;border:0}
+
+  /* thumb-sized controls */
+  .btn{border-radius:14px;min-height:46px;padding:13px 18px;letter-spacing:.12em}
+  .btn.sm{min-height:40px;border-radius:12px;padding:10px 14px}
+  .ff input,.ff select,.ff textarea{border-radius:12px;min-height:46px;font-size:16px}
+  .section-title{margin:18px 4px 12px}
+  .section-title h2{font-size:21px}
+  details.more > summary{min-height:44px;display:flex;align-items:center}
+
+  /* screens slide in like an app */
+  html.rv-live .page-body > *{transition-duration:.55s}
+}
+@media (max-width:640px){
+  /* the tab bar is chrome, not content: never part of the scroll reveal,
+     and centred without a transform so it stays fixed to the screen */
+  html.js .page-body > .quickbar,html.js .page-body .quickbar,.quickbar{opacity:1!important;transform:none!important;animation:none!important;transition:none!important}
+  .quickbar{left:0;right:0;margin:0 auto}
+}
+@media (max-width:640px){
+  /* overflow-x:hidden on html/body turns them into scroll containers and
+     breaks position:sticky; clip keeps the no-sideways-scroll without that */
+  html,body{overflow-x:clip!important;overflow-y:visible!important}
+}

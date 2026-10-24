@@ -47,7 +47,7 @@ export default function EndPlacement({
     const ok = await saving(() => fetch('/api/admin/money', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'withdraw_notice', placement_id: placementId })
-    }), 'Notice withdrawn. The placement continues month to month');
+    }), 'Notice withdrawn. The placement continues and renews in three-month terms');
     setBusy(false); setMode('idle');
     if (ok) router.refresh();
   }
@@ -72,7 +72,7 @@ export default function EndPlacement({
       {noticeGivenOn ? (
         <p className="small" style={{ marginBottom: 8, maxWidth: 620 }}>
           Notice given <b>{dayLabel(noticeGivenOn)}</b>. The placement runs and is billed to{' '}
-          <b>{endsOn ? dayLabel(endsOn) : 'the end of the following month'}</b>, then ends on its own.
+          <b>{endsOn ? dayLabel(endsOn) : 'the end of the current term'}</b>, then ends on its own.
           {noticeReason ? <> Reason: {noticeReasonLabel(noticeReason)}.</> : null}
         </p>
       ) : (
@@ -122,7 +122,7 @@ export default function EndPlacement({
 
       {mode === 'withdraw' && (
         <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-          <span className="small">Withdraw the notice? Billing continues month to month.</span>
+          <span className="small">Withdraw the notice? The placement continues and renews in three-month terms.</span>
           <button className="btn sm solid" disabled={busy} onClick={withdraw}>Yes, withdraw</button>
           <button className="btn sm ghost" disabled={busy} onClick={() => setMode('idle')}>Cancel</button>
         </div>

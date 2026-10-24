@@ -133,7 +133,7 @@ export default function InvoiceDocument({ inv, actions }: {
       <div style={{ marginTop: 26, paddingTop: 18, borderTop: '1px solid var(--line)' }}>
         <p className="xs muted" style={{ margin: 0, lineHeight: 1.7 }}>
           Invoices are dated the first Monday of each month and due on receipt. Placements carry a
-          three-month minimum term. {NOTICE_TERMS} Questions about this invoice: {INVOICE_ENTITY.email}.
+          minimum commitment (six months, or three on the Starter plan). {NOTICE_TERMS} Questions about this invoice: {INVOICE_ENTITY.email}.
         </p>
       </div>
 

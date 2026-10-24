@@ -46,7 +46,8 @@ export async function getOffer(id: string): Promise<Offer | null> {
 export async function makeOffer(o: {
   client_id: string; talent_id: string; role_title: string; starts_on: string;
   hours?: string; scope?: string;
-  rate_month_cents?: number; talent_pay_cents?: number; minimum_months?: number;
+  rate_month_cents?: number; talent_pay_cents?: number; minimum_months?: number; prepaid_total_cents?: number;
+  intro_discount_cents?: number; intro_discount_months?: number;
   send?: boolean;
 }) {
   if (!configured()) return null;
@@ -57,7 +58,10 @@ export async function makeOffer(o: {
     hours: o.hours?.trim() || null, scope: o.scope?.trim() || null,
     rate_month_cents: o.rate_month_cents ?? null,
     talent_pay_cents: o.talent_pay_cents ?? null,
-    minimum_months: o.minimum_months ?? 3,
+    minimum_months: o.minimum_months ?? 6,
+    prepaid_total_cents: o.prepaid_total_cents ?? null,
+    intro_discount_cents: o.intro_discount_cents ?? null,
+    intro_discount_months: o.intro_discount_months ?? null,
     state: o.send ? 'sent' : 'draft',
     sent_on: o.send ? new Date().toISOString().slice(0, 10) : null
   }).select().single();

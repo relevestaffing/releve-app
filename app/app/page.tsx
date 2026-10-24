@@ -276,7 +276,7 @@ export default async function AppHome() {
         {offer && <OfferCard offer={offer} side="client" />}
         {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
         {/* With DocuSign on, the executive signs in place. With it off (Relève
-            is on the Free plan by choice) the contract for a $2,500+/month
+            is on the Free plan by choice) the contract for a $2,500+/month (or $2,500 total on Part-Time)
             engagement appeared nowhere in the product at all — sent by hand,
             chased by hand, and invisible to the person who had to sign it.
             The read-only status card closes that gap: no button, because

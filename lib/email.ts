@@ -2,19 +2,27 @@
    OUTBOUND EMAIL
    Relève had no way to contact anyone. This is it.
 
-   Sends through Google Workspace SMTP with an app password, so there is
-   no third party and no extra bill. If the credentials are absent the
-   whole thing quietly does nothing — the app must never fall over
-   because an email could not go out.
+   Sends over SMTP. Since 23 October 2026 the intended route is Resend
+   (smtp.resend.com, user "resend", the API key as the password, sender
+   notify@relevestaffing.com): automated mail sits on its own sender and
+   reputation, apart from the hello@ mailbox people actually write from, and
+   Resend keeps the delivery logs Gmail never did. Google Workspace SMTP still
+   works as the fallback. If the credentials are absent the whole thing
+   quietly does nothing — the app must never fall over because an email
+   could not go out.
    ============================================================ */
 import nodemailer from 'nodemailer';
 import { APPLY_QUESTIONS } from './jobs-public';
 
 const HOST = process.env.SMTP_HOST ?? 'smtp.gmail.com';
 const PORT = Number(process.env.SMTP_PORT ?? 465);
-const USER = process.env.SMTP_USER;              // team@relevestaffing.com
-const PASS = process.env.SMTP_PASS;              // the Google app password
-const FROM = process.env.SMTP_FROM ?? (USER ? `Relève <${USER}>` : '');
+const USER = process.env.SMTP_USER;              // "resend" on Resend, hello@relevestaffing.com on Google
+const PASS = process.env.SMTP_PASS;              // the Resend API key, or the Google app password
+/* On Resend the login is the literal word "resend", which is not an address,
+   so the sender has to be named. notify@ is an alias of hello@, so a reply to
+   an automated email still reaches a person. */
+const FROM = process.env.SMTP_FROM
+  ?? (HOST.includes('resend') ? 'Relève <notify@relevestaffing.com>' : (USER ? `Relève <${USER}>` : ''));
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 
 /* Tried a personal sender name here once ("Sage Jackson, Relève <...>") —
@@ -256,11 +264,11 @@ const rawTemplates = {
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nGood talking today. Our job now is to find someone you can trust with what you described: vetted on six fronts, matched to how you work, prepared for your role before day one, and fully managed after. You hand it over. We handle the rest.\n\nYour deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.\n\nTo open the search, review the agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
-        p(`Good talking today. Our job now is to find someone you can trust with what you described: vetted on six fronts, matched to how you work, prepared for your role before day one, and fully managed after. You hand it over. We handle the rest.`) +
-        p(`Your deposit is what opens the search. Here's what's next: review the agreement, pay your ${amount} deposit, and set up your Relève account.`) +
+        p(`Lovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.`) +
+        p(`To open the search, review the agreement, pay your ${amount} deposit, and set up your Relève account.`) +
         steps.map(stepRow).join('') +
         `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you. Talk soon.</p>` +
@@ -769,13 +777,13 @@ const rawTemplates = {
   noticeGiven: (o: { name: string; who: string; endsOn: string; toTeam: boolean }) => ({
     subject: o.toTeam ? `Notice given: ${o.who}` : 'We have your notice',
     text: o.toTeam
-      ? `${o.who} has given notice. The placement runs to ${o.endsOn} and is billed through that date.\n\nThirty days' written notice, effective at the end of the following billing month. The three-month minimum always applies.\n\n${SITE}/console/placements\n\nRelève`
-      : `${o.name},\n\nWe have your notice. Your placement runs to ${o.endsOn}, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.\n\nThirty days' written notice, effective at the end of the following billing month. The three-month minimum always applies.\n\n${SITE}/app/care\n\nRelève`,
+      ? `${o.who} has given notice. The placement runs to ${o.endsOn} and is billed through that date.\n\nThirty days' written notice before the current term ends. After the minimum, placements renew in three-month terms.\n\n${SITE}/console/placements\n\nRelève`
+      : `${o.name},\n\nWe have your notice. Your placement runs to ${o.endsOn}, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.\n\nThirty days' written notice before the current term ends. After the minimum, placements renew in three-month terms.\n\n${SITE}/app/care\n\nRelève`,
     html: shell(o.toTeam ? 'Notice given' : 'We have your notice',
       (o.toTeam
         ? p(`<b>${esc(o.who)}</b> has given notice. The placement runs to <b>${esc(o.endsOn)}</b> and is billed through that date.`)
         : p(`${esc(o.name)},`) + p(`We have your notice. Your placement runs to <b>${esc(o.endsOn)}</b>, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.`))
-      + `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">Thirty days' written notice, effective at the end of the following billing month. The three-month minimum always applies.</p>`,
+      + `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">Thirty days' written notice before the current term ends. After the minimum, placements renew in three-month terms.</p>`,
       { label: o.toTeam ? 'Open Placements' : 'Open your placement', href: o.toTeam ? `${SITE}/console/placements` : `${SITE}/app/care` })
   }),
   placementEnded: (o: { name: string; withWhom: string; endedOn: string; side: 'client' | 'talent' }) => ({

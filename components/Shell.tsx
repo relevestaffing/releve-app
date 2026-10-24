@@ -266,6 +266,9 @@ export default async function Shell({
   const clientTour = profile.role === 'client' ? await execInTour(profile.id) : false;
   const home = HOME[profile.role] ?? '/app';
   const profileHref = PROFILE[profile.role];
+  /* Sage, 19 October: the console greets her by name, not the shared inbox. */
+  const shownName = profile.role === 'admin' && (!profile.full_name || profile.full_name.includes('@'))
+    ? 'Sage' : (profile.full_name ?? profile.email);
   return (
     <>
       <Motion />
@@ -273,23 +276,23 @@ export default async function Shell({
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
       <MobileNav role={profile.role} active={active} nav={nav}
         who={WHO[profile.role]}
-        name={profile.full_name ?? profile.email}
+        name={shownName}
         org={profile.org_name}
         profileHref={profileHref} unread={unread} messagesHref={messagesHref} />
       <div className="shell">
         <aside className="side">
-          <Link href={home} className="side-logo"><img src="/logo-white.png" alt="Relève" /></Link>
+          <Link href={home} className="side-logo"><img src="/logo-fern.png" alt="Relève" /></Link>
           {profileHref ? (
             <Link href={profileHref} className="side-role">
               <div className="eyebrow">{WHO[profile.role]}</div>
-              <div className="name">{profile.full_name ?? profile.email}
+              <div className="name">{shownName}
                 {profile.org_name && <><br /><span className="small" style={{ color: 'var(--pale)' }}>{profile.org_name}</span></>}
               </div>
             </Link>
           ) : (
             <div className="side-role">
               <div className="eyebrow">{WHO[profile.role]}</div>
-              <div className="name">{profile.full_name ?? profile.email}
+              <div className="name">{shownName}
                 {profile.org_name && <><br /><span className="small" style={{ color: 'var(--pale)' }}>{profile.org_name}</span></>}
               </div>
             </div>
