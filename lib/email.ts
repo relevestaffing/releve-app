@@ -243,34 +243,34 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Review the agreement', href: o.docsUrl ?? 'https://relevestaffing.com/terms', cta: 'Review agreement' },
+      { n: 1, label: 'Sign your client agreement', href: o.docsUrl ?? SITE, cta: 'Sign agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
     ];
-    const stepRow = (s: typeof steps[number]) => `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 14px;border:1px solid #E4E9E3;">
+    /* A plain numbered list on the white page: a hairline between steps, the
+       number in the serif, the action as a quiet text link beneath the label.
+       The boxed cards with a solid button each read as three competing ads;
+       this reads as a letter. */
+    const stepRow = (s: typeof steps[number], i: number) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4E9E3;${i === steps.length - 1 ? 'border-bottom:1px solid #E4E9E3;' : ''}">
         <tr>
-          <td style="width:44px;padding:20px 0 20px 20px;vertical-align:top;">
-            <div style="width:26px;height:26px;border-radius:50%;background:#35443A;color:#FFFFFF;font-family:Helvetica,Arial,sans-serif;font-size:13px;text-align:center;line-height:26px;">${s.n}</div>
-          </td>
-          <td style="padding:20px 20px 20px 14px;font-family:Helvetica,Arial,sans-serif;">
-            <div style="font-size:15.5px;color:#35443A;margin:0 0 12px;">${s.label}</div>
-            <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#35443A;border-radius:2px;">
-              <a href="${s.href}" style="display:inline-block;padding:10px 20px;color:#FFFFFF;text-decoration:none;font-size:12.5px;">${s.cta}</a>
-            </td></tr></table>
+          <td style="width:34px;padding:18px 0;vertical-align:top;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#7A8A7D;">${s.n}</td>
+          <td style="padding:18px 0;vertical-align:top;font-family:Helvetica,Arial,sans-serif;">
+            <div style="font-size:15.5px;color:#35443A;">${s.label}</div>
+            <div style="margin-top:5px;font-size:13.5px;"><a href="${s.href}" style="color:#35443A;text-decoration:underline;">${s.cta} &rarr;</a></div>
           </td>
         </tr>
       </table>`;
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.\n\nTo open the search, review the agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.\n\nTo open the search, sign the client agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
         p(`Lovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.`) +
-        p(`To open the search, review the agreement, pay your ${amount} deposit, and set up your Relève account.`) +
-        steps.map(stepRow).join('') +
-        `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">Your deposit is credited in full toward your first month once you are placed.</p>` +
+        p(`To open the search, sign the client agreement, pay your ${amount} deposit, and set up your Relève account.`) +
+        steps.map((st, i) => stepRow(st, i)).join('') +
+        `<p style="margin:20px 0 0;font-size:13px;color:#5F7163;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you. Talk soon.</p>` +
         `<p style="margin:14px 0 0;">Relève</p>`)
     };
