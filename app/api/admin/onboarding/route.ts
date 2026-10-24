@@ -41,11 +41,13 @@ export async function POST(req: Request) {
   const docsUrl = String(b.docs_url ?? '').trim() || undefined;
   if (!name) return NextResponse.json({ error: 'What is their name?' }, { status: 400 });
   if (!email || !email.includes('@')) return NextResponse.json({ error: 'That email does not look right.' }, { status: 400 });
-  /* Step one of the email is signing the client agreement, so the button
-     must open the real signing page. Without a link it would open nothing
-     useful, so this refuses rather than sending a dead first step. */
-  if (!docsUrl || !/^https?:\/\//i.test(docsUrl))
-    return NextResponse.json({ error: 'Paste the DocuSign link where they sign the client agreement. Step one of the email opens it.' }, { status: 400 });
+  /* Step one of the email is signing the client agreement. When Sage has
+     the signing link in hand it opens that; when she does not it opens
+     their own account, where the agreement's status is on the page. It is
+     deliberately NOT required: while DocuSign's API is off (the Free plan)
+     the envelope is composed by hand, so at the moment this form is filled
+     in, right after the discovery call, there is often no per-client link
+     to paste yet. Requiring one here would stop her sending anything. */
 
   if (!configured())
     return NextResponse.json({ ok: true, emailed: false, note: 'Preview mode. Nothing was sent.' });

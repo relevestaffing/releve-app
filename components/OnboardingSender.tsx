@@ -69,8 +69,8 @@ export default function OnboardingSender() {
           <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="name" required placeholder="Elena Marsh" /></div>
           <div className="ff"><label htmlFor={`${fid}-2`}>Email</label><input id={`${fid}-2`} name="email" type="email" required placeholder="elena@marshco.com" /></div>
         </div>
-        <div className="ff"><label htmlFor={`${fid}-3`}>Client agreement signing link</label>
-          <input id={`${fid}-3`} name="docs_url" type="url" required placeholder="Paste the DocuSign link where they sign the client agreement" /></div>
+        <div className="ff"><label htmlFor={`${fid}-3`}>Client agreement signing link (optional)</label>
+          <input id={`${fid}-3`} name="docs_url" type="url" placeholder="Paste the DocuSign signing link if you have it, or leave blank and send it separately" /></div>
         <button className="btn solid" disabled={busy}>{busy ? 'Sending…' : 'Send onboarding email'}</button>
         {err && <div className="err">{err}</div>}
       </form>
