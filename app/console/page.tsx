@@ -136,7 +136,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               </p>
             ) : (
               <p className="small">
-                Nothing is waiting on you. Every check-in is current, every invoice is
+                Nothing is waiting on you. Every end of week report is in, every invoice is
                 settled, and nobody is stuck.
               </p>
             )}
@@ -253,7 +253,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
                       </td>
                       <td>{p.talent_name}
                         <div className="xs muted">
-                          {p.days} days in seat · last check-in {day(p.lastCheckin)}
+                          {p.days} days in seat · last report {day(p.lastCheckin)}
                           {p.overdueTasks > 0 && ` · ${p.overdueTasks} to follow up on`}
                         </div>
                       </td>

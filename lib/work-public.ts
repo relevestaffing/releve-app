@@ -14,7 +14,7 @@ export const PRIORITIES: { key: Priority; label: string }[] = [
 export const ORIGINS: { key: Origin; label: string; hint: string }[] = [
   { key: 'meeting',   label: 'From a meeting',  hint: 'Came out of a call or a conversation' },
   { key: 'email',     label: 'From email',      hint: 'Landed in the inbox' },
-  { key: 'check_in',  label: 'From a check-in', hint: 'Raised in the weekly check-in' },
+  { key: 'check_in',  label: 'From a report', hint: 'Raised in an end of week report' },
   { key: 'recurring', label: 'Recurring',       hint: 'Happens every week or month' },
   { key: 'self',      label: 'Self-directed',   hint: 'Spotted it and picked it up' }
 ];

@@ -126,8 +126,8 @@ export const EMPTY: Record<string, Empty> = {
     body: 'Work assigned to you appears here. You can also add your own: anything that arrived by email, a call or a note counts, and logging it is how your executive sees what you actually carry.'
   },
   checkinUnplaced: {
-    title: 'Check-ins start when you are placed',
-    body: 'Every Friday you will tell your Talent Success Manager how the week went: what you finished, what got stuck, and what you need. It takes two minutes and it is the main way we look after you.',
+    title: 'Your end of week report starts when you are placed',
+    body: 'Every Friday you will send your Talent Success Manager your hours, what you accomplished, a win from the week and any concerns. It takes two minutes and it is the main way we look after you.',
     cta: { label: 'Finish getting set up', href: '/app' }
   },
   messages: {
