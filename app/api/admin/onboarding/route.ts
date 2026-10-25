@@ -62,12 +62,15 @@ export async function POST(req: Request) {
     let clientId: string | null = null;
     let pendingId: string | null = null;
 
-    const { data: profile } = await sb.from('profiles').select('id').ilike('email', email).maybeSingle();
+    /* eq on the lowercased address, not ilike: in ilike an underscore or a
+       percent sign in the typed address is a wildcard, and j_doe@ would
+       match jadoe@ and send the deposit link to the wrong account. */
+    const { data: profile } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
     if (profile) clientId = (profile as any).id;
 
     if (!clientId) {
       const { data: pending } = await sb.from('pending_people')
-        .select('id').ilike('email', email).is('claimed_by', null).maybeSingle();
+        .select('id').eq('email', email).is('claimed_by', null).maybeSingle();
       if (pending) pendingId = (pending as any).id;
     }
 

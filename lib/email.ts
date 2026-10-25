@@ -243,7 +243,7 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Sign your client agreement', href: o.docsUrl ?? SITE, cta: 'Sign agreement' },
+      { n: 1, label: 'Sign your Client Services Agreement', href: o.docsUrl ?? SITE, cta: 'Sign agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
     ];
@@ -264,11 +264,11 @@ const rawTemplates = {
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.\n\nTo open the search, sign the client agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.\n\nTo open the search, sign the Client Services Agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
         p(`Lovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.`) +
-        p(`To open the search, sign the client agreement, pay your ${amount} deposit, and set up your Relève account.`) +
+        p(`To open the search, sign the Client Services Agreement, pay your ${amount} deposit, and set up your Relève account.`) +
         steps.map((st, i) => stepRow(st, i)).join('') +
         `<p style="margin:20px 0 0;font-size:13px;color:#5F7163;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you. Talk soon.</p>` +
@@ -282,12 +282,12 @@ const rawTemplates = {
      the one page that shows the rest. */
   signinTrouble: (o: { email?: string | null; where: string; detail?: string | null }) => ({
     subject: 'Someone could not sign in',
-    text: `Someone could not sign in${o.email ? `: ${o.email}` : ''}.\n\nWhere it stopped: ${o.where}.\n${o.detail ? `What the server said: ${o.detail}\n` : ''}\nThey were told their account could not be set up, so they are waiting on someone. The sign-in log on the Team page has every attempt.\n\n${SITE}/console/team\n\nRelève`,
+    text: `Someone could not sign in${o.email ? `: ${o.email}` : ''}.\n\nWhere it stopped: ${o.where}.\n${o.detail ? `What the server said: ${o.detail}\n` : ''}\nThey were told their account could not be set up, so they are waiting on someone. The sign-in log, under The business then Team, has every attempt.\n\n${SITE}/console/team\n\nRelève`,
     html: shell('Someone could not sign in',
       p(`Someone could not sign in${o.email ? `, <b>${esc(o.email)}</b>` : ''}.`) +
       p(`Where it stopped: <b>${esc(o.where)}</b>.`) +
       (o.detail ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;">${esc(o.detail)}</p>` : '') +
-      p('They were told their account could not be set up, so they are waiting on someone. The sign-in log on the Team page has every attempt.'),
+      p('They were told their account could not be set up, so they are waiting on someone. The sign-in log, under The business then Team, has every attempt.'),
       { label: 'Open the sign-in log', href: `${SITE}/console/team` })
   }),
 
@@ -349,7 +349,7 @@ const rawTemplates = {
     html: shell('You are verified',
       p(`${name},`) +
       p('Everything checks out. You are cleared, and you can now be matched to an executive.') +
-      p('Nothing you sent is ever shown to a client. They see that you are verified, never the documents.'),
+      p('Nothing you sent is ever shown to an executive. They see that you are verified, never the documents.'),
       { label: 'Open your account', href: SITE })
   }),
 
@@ -694,15 +694,15 @@ const rawTemplates = {
       ? `Both sides said yes: ${o.role}`
       : `${o.who} said ${o.answer === 'yes' ? 'yes' : 'no'} to the offer: ${o.role}`,
     text: o.both
-      ? `Both sides have accepted the offer for ${o.role}. Make the placement from Offers. That opens their shared task list, the 30/60/90 plan and the weekly check-ins.\n\n${SITE}/console/offers\n\nRelève`
-      : `${o.who} (${o.side}) said ${o.answer === 'yes' ? 'yes' : 'no'} to the offer for ${o.role}.${o.reason ? `\n\nReason: ${o.reason}` : ''}\n\n${o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Offers.'}\n\n${SITE}/console/offers\n\nRelève`,
+      ? `Both sides have accepted the offer for ${o.role}. Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end-of-week reports.\n\n${SITE}/console/offers\n\nRelève`
+      : `${o.who} (${o.side}) said ${o.answer === 'yes' ? 'yes' : 'no'} to the offer for ${o.role}.${o.reason ? `\n\nReason: ${o.reason}` : ''}\n\n${o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.'}\n\n${SITE}/console/offers\n\nRelève`,
     html: shell(o.both ? 'Both sides said yes' : `${o.who} said ${o.answer}`,
       (o.both
         ? p(`Both sides have accepted the offer for <b>${o.role}</b>.`) +
-          p('Make the placement from Offers. That opens their shared task list, the 30/60/90 plan and the weekly check-ins.')
+          p('Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end-of-week reports.')
         : p(`<b>${o.who}</b> (${o.side}) said <b>${o.answer}</b> to the offer for <b>${o.role}</b>.`) +
           (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #9A7B3F;">${o.reason}</p>` : '') +
-          p(o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Offers.')),
+          p(o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.')),
       { label: 'Open Offers', href: `${SITE}/console/offers` })
   }),
 

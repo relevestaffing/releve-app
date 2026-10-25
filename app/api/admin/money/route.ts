@@ -17,7 +17,7 @@ import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
 
-const OWNER_ONLY = 'Only the owner can do that. Ask her, or have her change your access on the Team page.';
+const OWNER_ONLY = 'Only the owner can do that. Ask her, or have her change your access under The business, Team.';
 
 /* One invoice, mailed and marked: shared by the single-row status picker and
    the bulk sender, so "what sending means" only has to be right once.

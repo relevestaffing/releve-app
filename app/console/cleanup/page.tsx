@@ -26,7 +26,7 @@ export default async function CleanupPage() {
     : [[], []];
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/cleanup"
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
       title="Tidy up" crumb="Archive or remove people">
 
 

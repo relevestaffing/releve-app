@@ -115,7 +115,7 @@ export default function Cleanup({ rows, archived }: {
                     <td>
                       <b>{r.name || <span className="muted">No name</span>}</b>
                       <div className="xs muted">
-                        {[r.org, r.email].filter(Boolean).join(' · ') || '—'}
+                        {[r.org, r.email].filter(Boolean).join(' · ') || 'Nothing on file'}
                       </div>
                     </td>
                     <td className="small">

@@ -140,9 +140,8 @@ export default async function ConsoleTeam() {
             borderLeft: '2px solid #8C4A3F' }}>
             <b>No successful backup has ever reported in.</b> Either the nightly
             backup has not been switched on yet, or it has not run since this page
-            started watching for it. Nothing is lost either way, but until it reports
-            in, a bad day has no undo. Ask whoever set the app up to switch the
-            nightly backup on.
+            started watching for it. Nothing is lost either way. Switch the nightly backup on and every
+            day from then on can be restored.
           </p>
         ) : (
           <p className="small muted" style={{ marginBottom: 0 }}>
@@ -170,7 +169,7 @@ export default async function ConsoleTeam() {
         )}
         <p className="small muted" style={{ marginBottom: 18 }}>
           {failed.length > 0
-            ? `${failed.length} of the last ${mail.length} were refused. Each one is somebody who was told something and never heard it.`
+            ? `${failed.length} of the last ${mail.length} were refused. Each row names who and what, so it can be sent again.`
             : 'One row per attempt, successful or not. This is the only evidence that email works.'}
         </p>
         {!mail.length ? (
@@ -227,11 +226,11 @@ export default async function ConsoleTeam() {
               {signins.map((s, i) => (
                 <tr key={i}>
                   <td className="xs">{when(s.at)}</td>
-                  <td className="xs">{s.email ?? 'Not known yet'}</td>
-                  <td className="xs">
+                  <td><div className="xs">{s.email ?? 'Not known yet'}</div></td>
+                  <td><div className="xs">
                     {signinStageLabel(s.stage)}
                     {s.detail && <><br /><span className="muted">{s.detail}</span></>}
-                  </td>
+                  </div></td>
                 </tr>
               ))}
             </tbody>

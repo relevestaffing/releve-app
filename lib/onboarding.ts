@@ -93,7 +93,7 @@ export function clientSteps(o: {
     /* Blurbs cut to one line each, 12 October 2026. A checklist is read at a
        glance, not studied: if a line needs a second sentence to justify its
        step, the step is not carrying its own weight. */
-    { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: '15–20 min',
+    { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: 'about 15 min',
       blurb: 'How you run your day. Every candidate is scored against it. Saves as you go.',
       done: o.hasSignature, critical: true },
     { key: 'role', title: 'Break down the role', href: '/app/role', minutes: '10 min',

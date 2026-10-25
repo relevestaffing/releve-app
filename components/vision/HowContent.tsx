@@ -17,7 +17,7 @@ const METHOD: { t: string; d: string }[] = [
   { t: 'Your business, studied first',
     d: 'Your Client Success Manager learns how you operate and builds the role around what you actually need.' },
   { t: 'Your Executive Signature',
-    d: 'Twenty minutes measuring how you work. Every candidate is scored against it.' },
+    d: 'About fifteen minutes measuring how you work. Every candidate is scored against it.' },
   { t: 'Vetted on six fronts',
     d: 'Tested against your role, background checked, scored against your Signature, with the reasons written out.' },
   { t: 'Prepared, then presented',
@@ -73,7 +73,7 @@ export default function HowContent() {
           <li>Scored against your Executive Signature.</li>
           <li>Identity, right to work and background checked.</li>
           <li>NDA and contractor agreement signed.</li>
-          <li>Approved by name before they reach you.</li>
+          <li>Personally reviewed by our team before you see them.</li>
         </ul>
       </div>
 

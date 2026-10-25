@@ -211,10 +211,14 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   /* ---- placements, and how each one is actually doing ---- */
   const lastCheckinBy = new Map<string, string>();
   const flaggedCheckin = new Set<string>();
+  const threeWeeksAgo = new Date(Date.now() - 21 * 86400000).toISOString().slice(0, 10);
   for (const c of (checkins.data ?? []) as any[]) {
     const prev = lastCheckinBy.get(c.placement_id);
     if (!prev || c.week_ending > prev) lastCheckinBy.set(c.placement_id, c.week_ending);
-    if (c.needs_attention) flaggedCheckin.add(c.placement_id);
+    /* Only a concern from the last three weeks counts. Before, every concern
+       ever written stayed on the Today list for good, which teaches anyone
+       to stop reading the row. */
+    if (c.needs_attention && c.week_ending >= threeWeeksAgo) flaggedCheckin.add(c.placement_id);
   }
   const flaggedPulse = new Set<string>(
     ((pulses.data ?? []) as any[]).filter(p => p.needs_attention).map(p => p.placement_id));

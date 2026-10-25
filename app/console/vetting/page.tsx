@@ -18,7 +18,7 @@ export default async function ConsoleVetting() {
   ]);
   const talent = people.filter(p => p.role === 'talent');
   return (
-    <Shell profile={profile} active="/console/vetting" title="Verification"
+    <Shell profile={profile} active="/console/directory" title="Verification"
       crumb="Documents waiting on a decision">
       <IssueAgreement talent={talent} docusignOn={docusignReady()} pendingCountersign={pendingCountersign}
         manualSendUrl={manualSendUrl('talent')} />

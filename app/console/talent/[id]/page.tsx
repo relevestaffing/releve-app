@@ -84,7 +84,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     !v ? '' : v.state === 'verified' ? 'good' : v.state === 'rejected' ? 'crit' : 'warn';
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench"
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
       title={name}
       crumb={[self.headline, self.location].filter(Boolean).join(' · ') || 'Talent file'}
       action={<Link className="btn sm ghost" href="/console/bench">← Talent Roster</Link>}>

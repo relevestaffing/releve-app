@@ -46,7 +46,7 @@ export default function DecisionControls({ talentId, name, decision }: {
       <form onSubmit={submit} className="decide-form">
         <p className="small" style={{ marginBottom: 14 }}>
           {yes
-            ? <>You are approving <b>{name}</b>. We will arrange the introduction and come back to you with a time.</>
+            ? <>You are approving <b>{name}</b>. Pick a time that suits you from Interviews, or we will arrange it for you.</>
             : <>You are declining <b>{name}</b>. We will put the next candidate forward.</>}
         </p>
         <div className="ff">

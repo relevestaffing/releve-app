@@ -196,8 +196,11 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
 async function talentNav(profile: Profile): Promise<NavGroup[]> {
   const placed = (await listPlacementsFor(profile.id)).length > 0;
   if (placed) return NAV.talent;
+  /* Before a placement there is no daily log, no end-of-week report and no
+     pay, so those three entries wait until there is. Tasks and messages stay,
+     since Relève writes to people on the roster too. */
   return NAV.talent.map(g => g.group === 'Your placement'
-    ? { ...g, items: g.items.filter(i => !['/app/log', '/app/brief'].includes(i.href)) }
+    ? { ...g, items: g.items.filter(i => !['/app/log', '/app/brief', '/app/checkin', '/app/pay'].includes(i.href)) }
     : g);
 }
 

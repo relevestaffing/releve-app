@@ -37,7 +37,7 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
   const sources = [...bySource.entries()].sort((a, b) => b[1] - a[1]);
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/postings"
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting"
       title={post.title}
       crumb={apps.length ? `${apps.length} ${apps.length === 1 ? 'candidate' : 'candidates'} so far` : 'No candidates yet'}
       action={<Link className="btn sm ghost" href="/console/postings">← All postings</Link>}>

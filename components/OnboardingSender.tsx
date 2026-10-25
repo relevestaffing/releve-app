@@ -41,7 +41,7 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
     /* emailed:false in real mode means the mail host refused — not preview
        mode. The record stands either way; the words have to say which. */
     if (d.emailed === false && d.note) toast.saved(`${firstName(name)} added. Nothing was emailed in preview mode`);
-    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check Email on the Team page and resend`);
+    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check Email under The business, Team, and resend`);
     else toast.saved(`Onboarding sent to ${firstName(name)}`);
     if (d.warning) toast.ok(d.warning);
     (e.target as HTMLFormElement).reset();

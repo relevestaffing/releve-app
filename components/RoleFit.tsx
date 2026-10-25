@@ -4,8 +4,8 @@ import {
 } from '@/lib/roles-public';
 import { firstName } from '@/lib/words';
 
-const TONE = { strong: 'good', covered: 'good', thin: 'warn', missing: 'crit' } as const;
-const WORD = { strong: 'Strong', covered: 'Covered', thin: 'Thin', missing: 'Not done it' } as const;
+const TONE = { strong: 'good', covered: 'good', thin: 'warn', missing: 'warn' } as const;
+const WORD = { strong: 'Strong', covered: 'Covered', thin: 'Lighter', missing: 'To discuss' } as const;
 
 /* Can this person do the job — discipline by discipline, competency by
    competency. The Signature answers whether two people will get on; this
@@ -24,7 +24,7 @@ export default function RoleFit({ role, skills, name }: {
     <div className="rolefit">
       <div className="row between" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
         <div className="eyebrow">Can they do the work</div>
-        <span className={`pill ${score! >= 80 ? 'good' : score! >= 60 ? 'warn' : 'crit'}`}>
+        <span className={`pill ${score! >= 80 ? 'good' : 'warn'}`}>
           {score}% of what you asked for
         </span>
       </div>
@@ -43,7 +43,7 @@ export default function RoleFit({ role, skills, name }: {
             <b>{f.name}</b>
             <div className="row" style={{ gap: 8 }}>
               {f.years != null && f.years > 0 && <span className="xs muted">{f.years} years</span>}
-              <span className={`pill ${f.score >= 80 ? 'good' : f.score >= 60 ? 'warn' : 'crit'}`}>
+              <span className={`pill ${f.score >= 80 ? 'good' : 'warn'}`}>
                 {f.score}%
               </span>
             </div>

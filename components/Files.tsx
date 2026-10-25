@@ -29,8 +29,8 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
     router.refresh();
   }
 
+  const [removing, setRemoving] = useState<string | null>(null);
   async function remove(doc: Doc) {
-    if (!confirm(`Remove ${doc.label || doc.name}? This cannot be undone.`)) return;
     setBusy(true);
     const r = await fetch('/api/admin/documents', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: doc.id }) }).catch(() => null);
     setBusy(false);
@@ -48,7 +48,7 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
         ? <p className="small muted" style={{ marginBottom: 16 }}>Nothing on file yet.</p>
         : (
           <table className="data" style={{ boxShadow: 'none', marginBottom: 16 }}>
-            <thead><tr><th>File</th><th>Added</th><th /></tr></thead>
+            <thead><tr><th>File</th><th>Added</th><th aria-label="Actions" /></tr></thead>
             <tbody>
               {docs.map(d => (
                 <tr key={d.id}>
@@ -59,7 +59,14 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
                   </td>
                   <td className="small muted">{when(d.uploaded_at)}</td>
                   <td style={{ textAlign: 'right' }}>
-                    <button className="btn sm ghost" disabled={busy} onClick={() => remove(d)}>Remove</button></td>
+                    {removing === d.id ? (
+                      <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
+                        <button className="btn sm" disabled={busy} onClick={() => { setRemoving(null); remove(d); }}>Yes, remove</button>
+                        <button className="btn sm ghost" onClick={() => setRemoving(null)}>Keep</button>
+                      </span>
+                    ) : (
+                      <button className="btn sm ghost" disabled={busy} onClick={() => setRemoving(d.id)}>Remove</button>
+                    )}</td>
                 </tr>
               ))}
             </tbody>

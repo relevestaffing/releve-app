@@ -23,14 +23,24 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
     },
     submitted: {
       head: 'Agreement signed',
-      body: 'Received. Relève countersigns, and your copy is filed here once it is complete.'
+      body: 'Received. Relève countersigns, and it is filed with us once it is complete.'
     },
     rejected: {
       head: 'Your agreement needs another look',
       body: 'Your Client Success Manager is in touch about it.'
     }
   };
-  if (state === 'verified') return null;
+  if (state === 'verified') return (
+    <div className="card">
+      <div className="card-head">
+        <h3>Your Client Services Agreement</h3>
+        <span className="pill good"><span className="dot" />Signed and filed</span>
+      </div>
+      <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>
+        Countersigned by Relève and on file. Your Client Success Manager can send you a copy any time.
+      </p>
+    </div>
+  );
   const { head, body } = copy[state];
 
   return (

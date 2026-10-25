@@ -29,6 +29,7 @@ export default function DailyLogForm({ placementId, executive, today, logs }: {
       body: JSON.stringify({
         placement_id: placementId, log_date: day,
         done_text: f.get('done_text'), blockers: f.get('blockers'),
+        hours: String(f.get('hours') ?? '').trim(),
         highlight: f.get('highlight'), share_highlight: share
       })
     }), existing ? 'Log updated' : 'Logged');
@@ -46,6 +47,11 @@ export default function DailyLogForm({ placementId, executive, today, logs }: {
         <label htmlFor={`lg-day-${placementId}`}>Day</label>
         <input id={`lg-day-${placementId}`} type="date" value={day} max={today} min={addDays(today, -30)}
           onChange={e => { setDay(e.target.value || today); setShare(false); }} />
+      </div>
+      <div className="ff" style={{ maxWidth: 200 }}>
+        <label htmlFor={`lg-hours-${placementId}`}>Hours today</label>
+        <input id={`lg-hours-${placementId}`} name="hours" type="number" inputMode="decimal"
+          min="0" max="24" step="0.25" defaultValue={existing?.hours ?? ''} placeholder="8" />
       </div>
       <div className="ff">
         <label htmlFor={`lg-done-${placementId}`}>What got done</label>

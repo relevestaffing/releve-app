@@ -33,7 +33,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
       window.location.href = '/app';
     } catch (e: any) {
       setErr(e?.name === 'AbortError'
-        ? 'That took too long. Check the app is still running, then try again.'
+        ? 'That took too long. Please try again.'
         : 'Could not reach the server. Check your connection and try again.');
       setBusy(null);
     }

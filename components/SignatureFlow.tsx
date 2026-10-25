@@ -204,7 +204,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
           : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on, plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
-        {data.total} screens, about {side === 'talent' ? 'twenty to twenty-five' : 'twelve to sixteen'} minutes.
+        {data.total} screens, about {side === 'talent' ? 'twenty' : 'fifteen'} minutesutes.
       </p>
       {/* Answering everything and stopping on the Conditions screen — the
           likeliest place to stop, since it is the only one with typing — used
@@ -404,8 +404,8 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
       )}
 
       <div className="card">
-        <div className="card-head"><h3>Scored and saved</h3>
-          <span className="pill">{result.saved ? 'Stored to your account' : 'Demo, not stored'}</span></div>
+        <div className="card-head"><h3>Your Signature</h3>
+          <span className="pill good"><span className="dot" />{result.saved ? 'Saved' : 'Preview'}</span></div>
 
       {result.validity.verdict !== 'Valid' && (
         <div className="card" style={{ marginTop: 20 }}>
@@ -439,7 +439,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
           )}
         </div>
       )}
-        <p className="small">Your Signature has been scored on the server and every match in your account has been recalculated.</p>
+        <p className="small">This is now what every candidate is matched against.</p>
         {/* Thirteen to twenty minutes of work used to end at an underlined
             phrase inside a sentence, with no mention of what came next. */}
         <div className="row" style={{ gap: 12, marginTop: 20, flexWrap: 'wrap' }}>

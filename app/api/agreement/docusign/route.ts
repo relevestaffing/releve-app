@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
   if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
   if (!docusignClientReady())
-    return NextResponse.json({ error: 'DocuSign is not switched on for the client agreement yet.' }, { status: 503 });
+    return NextResponse.json({ error: 'Signing is not switched on for the Client Services Agreement yet.' }, { status: 503 });
 
   const b = await req.json().catch(() => ({}));
   const clientId = String(b.client_id ?? '');

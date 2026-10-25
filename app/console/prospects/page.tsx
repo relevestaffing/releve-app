@@ -17,8 +17,9 @@ export default async function Prospects() {
   const now = Date.now();
   const upcoming = all.filter(p => p.stage === 'booked' && p.call_at && new Date(p.call_at).getTime() >= now);
   const open = all.filter(p => !['won', 'lost'].includes(p.stage) && !upcoming.includes(p));
-  const recent = all.filter(p => ['won', 'lost'].includes(p.stage))
-    .filter(p => now - new Date(p.updated_at).getTime() < 60 * 86400000);
+  const decidedAll = all.filter(p => ['won', 'lost'].includes(p.stage));
+  const recent = decidedAll.filter(p => now - new Date(p.updated_at).getTime() < 60 * 86400000);
+  const older = decidedAll.filter(p => !recent.includes(p));
   const won = all.filter(p => p.stage === 'won').length;
   const decided = won + all.filter(p => p.stage === 'lost').length;
 
@@ -53,6 +54,12 @@ export default async function Prospects() {
           <div className="card-head"><h3>Decided, last 60 days</h3><span className="pill">{recent.length}</span></div>
           {recent.map(p => <ProspectRow key={p.id} p={p} />)}
         </div>
+      )}
+      {older.length > 0 && (
+        <details className="card more">
+          <summary>Earlier · {older.length}</summary>
+          <div className="inner">{older.map(p => <ProspectRow key={p.id} p={p} />)}</div>
+        </details>
       )}
     </Shell>
   );

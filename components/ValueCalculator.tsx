@@ -18,11 +18,18 @@ const RELEVE_CEILING = 55_000; // annual — "under" this, set to the role
 export default function ValueCalculator({ retainerMonthlyCents, placed }: {
   retainerMonthlyCents: number | null; placed: boolean;
 }) {
-  const fullOngoing = CA_EA_SALARY * (1 + BENEFITS_LOAD);      // 130,000
-  const fullFirstYear = fullOngoing + CA_EA_SALARY * RECRUITING_FEE; // 150,000
-
   const hasRetainer = placed && retainerMonthlyCents != null;
   const releveYear = hasRetainer ? (retainerMonthlyCents! / 100) * 12 : RELEVE_CEILING;
+
+  /* A Starter placement is fifteen hours a week. Comparing that with a
+     full-time salary would be a number a sophisticated buyer discounts on
+     sight, and then discounts the rest of the page with it. Scale the
+     comparison to the hours actually bought. */
+  const starter = hasRetainer && releveYear < 20_000;
+  const fraction = starter ? 15 / 40 : 1;
+  const who = starter ? 'Part-time' : 'Full-time';
+  const fullOngoing = CA_EA_SALARY * fraction * (1 + BENEFITS_LOAD);
+  const fullFirstYear = fullOngoing + CA_EA_SALARY * fraction * RECRUITING_FEE;
   const releveFigure = hasRetainer ? fmt(releveYear) : 'Under $55,000';
   const over = hasRetainer ? '' : 'over ';
   const ongoingSave = fullOngoing - releveYear;     // ~75,000
@@ -39,11 +46,11 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
         <div className="money-strip">
           <div className="money-stat">
             <div className="n">{fmt(fullFirstYear)}</div>
-            <div className="k">Full-time · first year</div>
+            <div className="k">{who} · first year</div>
           </div>
           <div className="money-stat">
             <div className="n">{fmt(fullOngoing)}</div>
-            <div className="k">Full-time · ongoing</div>
+            <div className="k">{who} · ongoing</div>
           </div>
           <div className="money-stat" style={{ boxShadow: 'inset 3px 0 0 var(--fern)' }}>
             <div className="n" style={{ color: 'var(--fern)' }}>{releveFigure}</div>
@@ -57,7 +64,7 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
           <b>{fmt(ongoingSave)}</b> less every year after.
         </p>
         <p className="xs muted" style={{ marginTop: 10 }}>
-          Full-time figures include benefits, payroll and the one-time fee to recruit them.
+          {who} figures include benefits, payroll and the one-time fee to recruit them{starter ? ', scaled to fifteen hours a week' : ''}.
         </p>
       </div>
 

@@ -78,7 +78,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
           <div className="score">{daysIn}<span className="of"> days</span></div></div>
         <div className="card stat"><div className="eyebrow">Open tasks</div>
           <div className="score">{open.length}</div></div>
-        <div className="card stat"><div className="eyebrow">Check-ins filed</div>
+        <div className="card stat"><div className="eyebrow">End of week filed</div>
           <div className="score">{mine.length}</div></div>
         <div className="card stat"><div className="eyebrow">Alerts</div>
           <div className="score">{alerts.filter(a => a.level === 'high').length}</div></div>
@@ -90,7 +90,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
             {alerts.length ? `${alerts.length}` : <><span className="dot" />Clear</>}</span></div>
         {alerts.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nothing is off. Check-ins are current, tasks are moving.</p></div>
+            <p className="small">Nothing is off. End of week are current, tasks are moving.</p></div>
         ) : (
           <ul className="alert-list">
             {alerts.map((a, i) => (

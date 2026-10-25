@@ -14,7 +14,10 @@ export async function GET(req: Request) {
   const doc = await getDocument(id);
   if (!doc) return NextResponse.json({ error: 'no such file' }, { status: 404 });
   const sb = await supabaseServer();
-  const { data, error } = await sb.storage.from('documents').createSignedUrl(doc.file_path, 60, { download: doc.name });
+  /* PDFs and images open in the tab; Word files cannot, so those download. */
+  const inline = doc.mime === 'application/pdf' || doc.mime.startsWith('image/');
+  const { data, error } = await sb.storage.from('documents')
+    .createSignedUrl(doc.file_path, 60, inline ? undefined : { download: doc.name });
   if (error || !data?.signedUrl) return NextResponse.json({ error: 'no such file' }, { status: 404 });
   return NextResponse.redirect(data.signedUrl, { status: 302, headers: { 'cache-control': 'private, no-store' } });
 }

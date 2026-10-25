@@ -91,7 +91,7 @@ export function ProspectRow({ p }: { p: Prospect }) {
     const ok = await saving(() => fetch('/api/admin/prospects', {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id: p.id, stage, note, ...extra })
-    }), stageLabel(stage));
+    }), stage === p.stage ? 'Saved' : stageLabel(stage));
     setBusy(false);
     if (ok) { setLosing(false); router.refresh(); }
   }
@@ -126,7 +126,7 @@ export function ProspectRow({ p }: { p: Prospect }) {
             {!losing
               ? <button className="btn sm ghost" disabled={busy} onClick={() => setLosing(true)}>Passed</button>
               : <form className="row" style={{ gap: 8 }} onSubmit={e => { e.preventDefault(); move('lost', { lost_reason: new FormData(e.currentTarget).get('why') }); }}>
-                  <input name="why" placeholder="Why, in a few words" style={{ maxWidth: 260 }} />
+                  <input name="why" aria-label="Why they passed" placeholder="Why, in a few words" style={{ maxWidth: 260, minHeight: 44 }} />
                   <button className="btn sm" disabled={busy}>Mark passed</button>
                   <button type="button" className="btn sm ghost" onClick={() => setLosing(false)}>Keep</button>
                 </form>}
@@ -134,7 +134,7 @@ export function ProspectRow({ p }: { p: Prospect }) {
         </>
       )}
       {p.stage === 'lost' && p.lost_reason && <p className="small muted" style={{ marginTop: 8 }}>{p.lost_reason}</p>}
-      {p.stage === 'won' && <p className="small muted" style={{ marginTop: 8 }}>Onboarding sent. They are in the Executives tab now{p.pending_id ? '' : ', under their email'}.</p>}
+      {p.stage === 'won' && <p className="small muted" style={{ marginTop: 8 }}>Onboarding sent. They are in the Executives tab now.</p>}
       {p.note && done && <p className="small" style={{ marginTop: 8 }}>{p.note}</p>}
       <span className="xs muted" style={{ display: 'block', marginTop: 6 }}>{firstName(p.full_name)} · {PROSPECT_SOURCES.find(s => s.key === p.source)?.label}</span>
     </div>

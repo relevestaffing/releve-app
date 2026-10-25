@@ -14,6 +14,11 @@ import Shell from '@/components/Shell';
 
 export const dynamic = 'force-dynamic';
 
+const AGREEMENT_WORDS: Record<string, string> = {
+  not_started: 'Not started', submitted: 'Signed, with Relève to countersign',
+  verified: 'Signed and filed', rejected: 'Needs another look'
+};
+
 /* The executive's record (Sage, 25 October 2026).
    ----------------------------------------------
    A talent has had a full file at /console/talent/[id] for weeks: their
@@ -77,11 +82,11 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
           <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
             <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}</span></div>
         <dl className="kv">
-          <dt>Company</dt><dd>{client.org_name || '·'}</dd>
+          <dt>Company</dt><dd>{client.org_name || <span className="muted">Not given</span>}</dd>
           <dt>Email</dt><dd>{client.email}</dd>
-          <dt>Timezone</dt><dd>{zoneLabel(avail?.timezone || client.timezone) || '·'}</dd>
+          <dt>Timezone</dt><dd>{zoneLabel(avail?.timezone || client.timezone) || <span className="muted">Not given</span>}</dd>
           <dt>Signature</dt><dd>{type ? type.n : 'Not completed yet'}</dd>
-          <dt>Agreement</dt><dd>{agreement?.state ? label(agreement.state) || agreement.state : 'Not started'}</dd>
+          <dt>Agreement</dt><dd>{AGREEMENT_WORDS[agreement?.state ?? 'not_started'] ?? 'Not started'}</dd>
           <dt>Open role</dt><dd>{brief?.role_title || 'No brief written yet'}</dd>
         </dl>
         {self?.bio && <p className="small" style={{ marginTop: 14 }}>{self.bio}</p>}
@@ -95,7 +100,7 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
             <p className="small">Nobody placed yet.</p></div>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Talent</th><th>Started</th><th>Status</th><th /></tr></thead>
+            <thead><tr><th>Talent</th><th>Started</th><th>Status</th><th aria-label="Actions" /></tr></thead>
             <tbody>
               {mine.map(p => (
                 <tr key={p.id}>

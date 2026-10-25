@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { safeMessage } from '@/lib/errors';
 import { noteSigninTrouble } from '@/lib/signin-watch';
 import { cookies } from 'next/headers';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
     .eq('id', me.id);
   if (error) {
     console.error('[role] update failed:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: safeMessage(error) }, { status: 400 });
   }
 
   /* read it back, so a silently-ignored update surfaces instead of looping */

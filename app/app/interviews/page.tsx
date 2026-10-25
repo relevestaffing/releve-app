@@ -63,8 +63,13 @@ export default async function Interviews() {
     /* Released, and not declined — a candidate the executive already said
        no to stayed bookable here, against the promise that they are never
        told. */
-    const declined = new Set((await listDecisions(profile.id)).filter(d => d.state === 'passed').map(d => d.talent_id));
-    const released = (await listMatches(profile.id)).filter(m => m.released && !declined.has(m.talent_id)).map(m => m.talent_id);
+    /* Bookable means the executive has said yes. A candidate still in front
+       of them for a decision is not a person to put on a calendar yet, and
+       one they passed on must never appear here at all. */
+    const decisions = await listDecisions(profile.id);
+    const declined = new Set(decisions.filter(d => d.state === 'passed').map(d => d.talent_id));
+    const approved = new Set(decisions.filter(d => d.state === 'shortlisted' || d.state === 'interviewing').map(d => d.talent_id));
+    const released = (await listMatches(profile.id)).filter(m => m.released && !declined.has(m.talent_id) && approved.has(m.talent_id)).map(m => m.talent_id);
     const bench = await getBench();
     const busy = await bookedSlots(profile.id);
     const from = new Date();
@@ -133,7 +138,7 @@ export default async function Interviews() {
 
       <div className="card">
         <div className="card-head"><h3>Scheduled</h3>
-          <span className="pill">{mine.length} total</span></div>
+          <span className="pill">{mine.filter(i => !['cancelled', 'declined'].includes(String(i.status))).length} upcoming or held</span></div>
         {mine.length === 0
           ? <Empty of={isClient ? EMPTY.interviewsClient : EMPTY.interviewsTalent} />
           : (
@@ -163,8 +168,8 @@ export default async function Interviews() {
 
       {isClient && bookable.length > 0 && (
         <>
-          <div className="section-title"><h2>Book someone in</h2>
-            <span className="small muted">Times shown are yours; they see theirs</span></div>
+          <div className="section-title"><h2>Meet the person you approved</h2>
+            <span className="small muted">Times are shown in your timezone</span></div>
           {bookable.map(b => (
             <div className="card" key={b.id}>
               <div className="row between" style={{ flexWrap: 'wrap', gap: 16, marginBottom: 18 }}>

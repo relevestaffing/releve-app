@@ -61,7 +61,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
           <div className="n">{waiting.length}</div><div className="k">Time off to decide</div>
         </div>
         <div className={`money-stat ${watch.length ? 'alert' : ''}`}>
-          <div className="n">{watch.length}</div><div className="k">Guarantee at risk</div>
+          <div className="n">{watch.length}</div><div className="k">Searches to fill by day 14</div>
         </div>
         <div className={`money-stat ${openRequests.length ? 'alert' : ''}`}>
           <div className="n">{openRequests.length}</div><div className="k">Requests to answer</div>

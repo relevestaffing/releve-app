@@ -27,7 +27,8 @@ export async function removeDocument(id: string) {
   const sb = await supabaseServer();
   const doc = await getDocument(id);
   if (!doc) return;
-  await sb.storage.from('documents').remove([doc.file_path]);
+  const { error: gone } = await sb.storage.from('documents').remove([doc.file_path]);
+  if (gone) throw new Error(gone.message);
   const { error } = await sb.from('documents').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }

@@ -1,13 +1,16 @@
 import DepositGate from '@/components/DepositGate';
 import { money } from '@/lib/money-public';
+import ManagerLine from '@/components/ManagerLine';
+import type { Manager } from '@/lib/experience-public';
 
 /* The executive's dashboard before the deposit is in. One action opens the
    search; if no search is open yet, it says what happens next and when. A
    deposit already paid by bank shows as clearing, never as asked for again.
    A placed executive never lands here. */
-export default function ExecOnboarding({ deposit, stripeOn }: {
+export default function ExecOnboarding({ deposit, stripeOn, manager }: {
   deposit: { cents: number; status: 'due' | 'processing' | 'paid' | 'waived' } | null;
   stripeOn: boolean;
+  manager?: Manager | null;
 }) {
   if (deposit?.status === 'processing') return (
     <div className="card">
@@ -27,14 +30,24 @@ export default function ExecOnboarding({ deposit, stripeOn }: {
     </div>
   );
 
-  if (deposit) return <DepositGate cents={deposit.cents} stripeOn={stripeOn} />;
+  if (deposit) return (
+    <>
+      <DepositGate cents={deposit.cents} stripeOn={stripeOn} />
+      {manager && (
+        <div className="card">
+          <div className="card-head"><h3>Who looks after you</h3></div>
+          <ManagerLine manager={manager} />
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="card">
       <div className="card-head"><h3>Your search is being prepared</h3></div>
+      {manager && <div style={{ marginBottom: 16 }}><ManagerLine manager={manager} /></div>}
       <p className="small" style={{ marginBottom: 14, maxWidth: 560 }}>
-        Your Client Success Manager is setting up your search from our conversation. Here is what
-        happens next.
+        Your search is being set up from our conversation. Here is what happens next.
       </p>
       <ol className="plain" style={{ maxWidth: 560, marginBottom: 14 }}>
         <li><b>Within one business day.</b> Your search opens here, with your $500 deposit link.</li>

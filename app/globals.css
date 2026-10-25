@@ -2556,7 +2556,7 @@ aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--f
   .grid-2,.grid-3,.grid-4{gap:28px}
 }
 .card p{line-height:1.8}
-.eyebrow{color:#7D8B80}
+.eyebrow{color:var(--sage)}
 .explain-q{opacity:.75}
 .avatar{background:radial-gradient(circle at 50% 38%, #E7ECE6 0, #D3DCD2 70%);border-color:rgba(53,68,58,.12)}
 
@@ -2691,4 +2691,19 @@ aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--f
   .kv dt{padding:12px 0 0;border-top:1px solid var(--mist)}
   .kv dd{padding:2px 0 12px;border-top:none}
   .kv dd:first-of-type{border-top:none}
+}
+
+
+/* ── Phone fixes from the 25 Oct review ─────────────────────────────── */
+/* Tab strips wrap instead of clipping, and each tab is a real tap target. */
+.tabs a,.tabs button{transition:color .25s,border-color .25s}
+@media(max-width:640px){
+  .tabs{flex-wrap:wrap;gap:4px 18px;margin-bottom:18px}
+  .tabs a,.tabs button{letter-spacing:.14em;padding:10px 0 12px;min-height:var(--tap,44px);display:inline-flex;align-items:flex-end}
+  /* A card header that carries a close button keeps it top-right. */
+  .card-head:has(> .x-btn){flex-direction:row;justify-content:space-between;align-items:center}
+  /* Every data table scrolls in its own box, however it is wrapped. */
+  .card table.data{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.data td.xs,table.data td.small{white-space:normal}
+  .btn.sm{min-height:var(--tap,44px)}
 }

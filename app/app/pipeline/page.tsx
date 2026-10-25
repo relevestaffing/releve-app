@@ -11,7 +11,7 @@ import { listDecisions } from '@/lib/work';
 import RoleFit from '@/components/RoleFit';
 import { getRoleBreakdown, skillsFor } from '@/lib/roles';
 import { listMatches } from '@/lib/store';
-import { firstName } from '@/lib/words';
+import { firstName, zoneLabel } from '@/lib/words';
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -94,7 +94,18 @@ export default async function Pipeline() {
                 <Portrait id={person.id} name={person.name} cls="lg" url={person.photo_url} />
                 <div>
                   <h3>{person.name}</h3>
-                  <div className="small muted">{person.role} · {person.yrs} years · {person.loc} ({person.tz})</div>
+                  <div className="small muted">
+                    {[person.role, person.yrs ? `${person.yrs} years` : null, person.loc, zoneLabel(person.tz)].filter(Boolean).join(' · ')}
+                  </div>
+                  {/* Nobody reaches this card unverified: the database refuses the
+                      release until identity and the agreement are confirmed, and
+                      a person at Relève approved them by hand. Saying so here is
+                      what turns the six-front promise into something you can see. */}
+                  <div className="row" style={{ gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                    <span className="pill good"><span className="dot" />Identity verified</span>
+                    <span className="pill good"><span className="dot" />Agreement signed</span>
+                    <span className="pill good"><span className="dot" />Reviewed by Relève</span>
+                  </div>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>

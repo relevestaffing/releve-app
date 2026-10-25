@@ -19,7 +19,7 @@ export default async function ConsoleWatchAttempt({ params }: { params: Promise<
   const name = DISCIPLINE[attempt.discipline]?.name ?? attempt.discipline;
 
   return (
-    <Shell profile={profile} active="/console/watch" title="Taking The Watch"
+    <Shell profile={profile} active="/console/directory" title="Taking The Watch"
       crumb={`${attempt.talentName} · ${name}`}>
       <div className="card tight">
         <div className="row between small muted" style={{ flexWrap: 'wrap', gap: 8 }}>

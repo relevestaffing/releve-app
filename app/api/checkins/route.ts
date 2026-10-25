@@ -25,17 +25,19 @@ export async function POST(req: Request) {
       talent_id: me.id,
       week_ending: b.week_ending || weekEnding(),
       shipped: b.shipped, blocked: b.blocked,
-      hours: b.hours == null || b.hours === '' ? null : Number(b.hours),
+      hours: b.hours == null || b.hours === '' ? null
+           : Number.isFinite(Number(b.hours)) ? Math.max(0, Math.min(168, Number(b.hours))) : null,
       win: b.win,
-      /* No longer asked for. Kept so an older client that still sends them
-         does not lose what it sent. */
-      rapport: b.rapport ? Number(b.rapport) : null,
-      workload: b.workload, note: b.note
+      /* No longer asked for. Written only when sent, so a report filed from
+         the four-field form leaves an older rating on the row untouched. */
+      rapport: b.rapport === undefined ? undefined : (b.rapport ? Number(b.rapport) : null),
+      workload: b.workload === undefined ? undefined : b.workload,
+      note: b.note === undefined ? undefined : b.note
     });
     /* The trigger decides what counts as a flag; mirror it here so the
        alert goes out at the same moment the row is written. */
     const blocked = String(b.blocked ?? '').trim();
-    const flagged = Boolean(blocked) || Number(b.rating ?? b.rapport ?? 5) <= 2 || b.workload === 'heavy';
+    const flagged = Boolean(blocked) || Number(b.rapport ?? 5) <= 2 || b.workload === 'heavy';
     if (flagged) {
       const why = blocked ? `Concern raised: ${blocked}`
         : b.workload === 'heavy' ? 'Reported the workload as unsustainable'

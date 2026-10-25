@@ -15,7 +15,7 @@ export default async function ConsoleWatch() {
   const queue = await watchReviewQueue();
 
   return (
-    <Shell profile={profile} active="/console/watch" title="Taking The Watch"
+    <Shell profile={profile} active="/console/directory" title="Taking The Watch"
       crumb="Submitted, waiting on a decision">
       {queue.length === 0 ? (
         <div className="card"><div className="empty"><span className="tick" />

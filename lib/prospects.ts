@@ -4,6 +4,22 @@ import type { Prospect, ProspectStage, ProspectSource } from './prospects-public
 
 const OWN = /@relevestaffing\.com$/i;
 
+/* Calendly writes "Discovery Call between Elena Marsh and Sage Jackson",
+   or "30 Minute Meeting between Sage Jackson and Elena Marsh"; some tools
+   write "Call with Elena Marsh". Take the side that is not Relève, and fall
+   back to the address when the title gives nothing usable. */
+function nameFromTitle(title: string, email: string): string {
+  const notUs = (n: string) => n && n.length < 60 && !/sage|rel[eè]ve/i.test(n);
+  const between = title.match(/between\s+(.+?)\s+(?:and|&)\s+(.+?)(?:\s*[:(\-]|$)/i);
+  if (between) {
+    const pick = [between[1], between[2]].map(s => s.trim()).find(notUs);
+    if (pick) return pick;
+  }
+  const withm = title.match(/(?:with|for)\s+(.+?)(?:\s*[:(\-]|$)/i);
+  if (withm && notUs(withm[1].trim())) return withm[1].trim();
+  return email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export async function listProspects(): Promise<Prospect[]> {
   if (!configured()) return [];
   const sb = await supabaseServer();
@@ -56,7 +72,7 @@ export async function markProspectWon(email: string, pendingId: string | null) {
     const sb = await supabaseServer();
     await sb.from('prospects')
       .update({ stage: 'won', pending_id: pendingId })
-      .ilike('email', email.trim()).not('stage', 'in', '("won","lost")');
+      .eq('email', email.trim().toLowerCase()).not('stage', 'in', '("won","lost")');
   } catch { /* never worth failing the send over */ }
 }
 
@@ -70,19 +86,33 @@ export async function importProspectsFromCalendar(): Promise<{ added: number; sk
   if (!calendarConfigured()) return { added: 0, skipped: 0, reason: 'The calendar is not connected.' };
   const events = await upcomingCalendarEvents(45);
   const sb = await supabaseServer();
+
+  /* Who is already known, so a kick-off with a client, a screening call
+     with an applicant or a review with placed talent never becomes a
+     prospect. One read each, not one per event. */
+  const known = new Set<string>();
+  const [{ data: prof }, { data: pend }, { data: apps }, { data: pros }] = await Promise.all([
+    sb.from('profiles').select('email'),
+    sb.from('pending_people').select('email'),
+    sb.from('job_applications').select('email'),
+    sb.from('prospects').select('email')
+  ]);
+  for (const rows of [prof, pend, apps, pros])
+    for (const r of (rows ?? []) as any[]) if (r.email) known.add(String(r.email).toLowerCase());
+
   let added = 0, skipped = 0;
   for (const e of events) {
-    const outside = e.attendees.filter(a => !OWN.test(a));
+    const outside = e.attendees.filter(a => !OWN.test(a)).map(a => a.toLowerCase());
     if (!outside.length || e.allDay) { skipped++; continue; }
-    const email = outside[0].toLowerCase();
-    const m = e.title.match(/(?:call|meeting|intro(?:duction)?)[:\s-]+(.+?)\s+(?:and|&|with|x)\s+/i);
-    const guess = m?.[1]?.trim();
-    const full_name = guess && guess.length < 60 ? guess : email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const email = outside.find(a => !known.has(a));
+    if (!email) { skipped++; continue; }
+    const full_name = nameFromTitle(e.title, email);
     const { error } = await sb.from('prospects').insert({
       full_name, email, source: 'calendly', call_at: e.start,
       calendar_event_id: e.id, stage: 'booked'
     });
-    if (error) { skipped++; continue; }   // already imported, or already a prospect
+    if (error) { skipped++; continue; }   // this event was imported before
+    known.add(email);
     added++;
   }
   return { added, skipped };

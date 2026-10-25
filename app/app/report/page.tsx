@@ -55,7 +55,7 @@ export default async function ReportPage({ searchParams }: {
       <div className="stack">
         <div className="report-stats">
           <div><b>{r.completed.length}</b><span>Tasks completed</span></div>
-          <div><b>{r.daysLogged || '–'}</b><span>Days logged</span></div>
+          <div><b>{r.hours ? `${r.hours}h` : '–'}</b><span>Hours, {r.daysLogged} {r.daysLogged === 1 ? 'day' : 'days'} logged</span></div>
           <div><b>{r.open}</b><span>Still open</span></div>
         </div>
 

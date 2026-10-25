@@ -165,12 +165,13 @@ export default async function AppHome() {
   /* An ACH deposit in 'processing' has been paid from the client's side; it
      only waits on the bank, so it does not hold them in the tour. */
   const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived' || deposit?.status === 'processing';
+  const manager = await primaryManager(profile);
   if (side === 'client' && !stage.placed && !depositSettled) {
     return (
       <Shell profile={profile} active="/app"
         title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
         crumb={profile.org_name ?? 'Executive'}>
-        <ExecOnboarding deposit={deposit} stripeOn={stripeReady()} />
+        <ExecOnboarding deposit={deposit} stripeOn={stripeReady()} manager={manager} />
       </Shell>
     );
   }
@@ -213,7 +214,6 @@ export default async function AppHome() {
      what the relationship needs today: what is waiting on you, what your
      talent is working on, and a fast way to reach them. The talent side is
      unchanged below — this split only applies to the client dashboard. */
-  const manager = await primaryManager(profile);
 
   if (side === 'client') {
     /* Waiting on the executive means a candidate is in front of them with no
@@ -241,7 +241,7 @@ export default async function AppHome() {
                 ? 'Thank you for telling us why that one was not right. It is exactly how the next match gets sharper. The next candidate is being chosen now.'
                 : 'Your Signature is done and the search is open. We put one person forward by hand rather than sending you a directory: a qualified candidate within fourteen days.'}
             </p>
-            {manager && <ManagerLine manager={manager} />}
+            {manager && !stage.placed && <ManagerLine manager={manager} />}
             <div className="row" style={{ gap: 10, marginTop: 16 }}>
               <Link className="btn sm solid" href="/app/messages?tab=sm">
                 Message {manager?.id ? manager.name.split(' ')[0] : 'Relève'}
@@ -254,7 +254,7 @@ export default async function AppHome() {
               <Portrait id={current.person.id} name={current.person.name} cls="lg" url={current.person.photo_url} />
               <div>
                 <h4 style={{ fontSize: 20 }}>{current.person.name}</h4>
-                <div className="small muted">{current.person.role} · {current.person.yrs} years · {current.person.loc}</div>
+                <div className="small muted">{[current.person.role, current.person.yrs ? `${current.person.yrs} years` : null, current.person.loc].filter(Boolean).join(' · ')}</div>
               </div>
             </div>
             <p className="verdict">{fitSentence(current.match, firstName(current.person.name))}</p>
@@ -422,8 +422,10 @@ export default async function AppHome() {
           <div>
             <div className="eyebrow" style={{ marginBottom: 6 }}>Where you are</div>
             <div className="small">
-              Your profile is complete and visible to matched executives. We will be
-              in touch when a role fits.
+              Your profile is complete and on the roster. When a role fits how you
+              work, your Talent Success Manager writes to you here and by email, usually
+              with an introduction already in mind. Keep your availability current, and
+              reply to any message the same day.
             </div>
           </div>
           <Link className="btn solid" href="/app/talent">See your profile</Link>

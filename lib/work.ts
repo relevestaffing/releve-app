@@ -125,19 +125,23 @@ export async function saveCheckin(row: {
   hours?: number | null; win?: string | null;
 }) {
   const sb = await supabaseServer();
-  const { error } = await sb.from('checkins').upsert({
+  /* Only the fields the form sent are written, so re-saving the week from
+     the four-field report never wipes a private note or an older rating
+     that is still on the row. */
+  const patch: Record<string, unknown> = {
     placement_id: row.placement_id,
     talent_id: row.talent_id,
     week_ending: row.week_ending,
-    shipped: row.shipped || null,
-    blocked: row.blocked || null,
-    rapport: row.rapport ?? null,
-    workload: row.workload || null,
-    note: row.note || null,
-    hours: row.hours ?? null,
-    win: row.win || null,
     submitted_at: new Date().toISOString()
-  }, { onConflict: 'placement_id,week_ending' });
+  };
+  if (row.shipped !== undefined)  patch.shipped  = row.shipped || null;
+  if (row.blocked !== undefined)  patch.blocked  = row.blocked || null;
+  if (row.rapport !== undefined)  patch.rapport  = row.rapport ?? null;
+  if (row.workload !== undefined) patch.workload = row.workload || null;
+  if (row.note !== undefined)     patch.note     = row.note || null;
+  if (row.hours !== undefined)    patch.hours    = row.hours ?? null;
+  if (row.win !== undefined)      patch.win      = row.win || null;
+  const { error } = await sb.from('checkins').upsert(patch, { onConflict: 'placement_id,week_ending' });
   if (error) throw new Error(error.message);
 }
 

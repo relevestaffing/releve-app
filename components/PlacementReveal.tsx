@@ -68,7 +68,7 @@ export default function PlacementReveal({
 
       <div className="rv-content">
         <div className="rv-eyebrow">YOUR PLACEMENT HAS ARRIVED</div>
-        <h1 className="rv-h1">Consider it handled!</h1>
+        <h1 className="rv-h1">Consider it handled.</h1>
 
         <div className="rv-card">
           <div className="rv-row">

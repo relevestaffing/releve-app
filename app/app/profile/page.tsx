@@ -65,7 +65,7 @@ export default async function ExecProfile() {
           <h3>Your profile starts with your {WORDS.execSignature}</h3>
           <p className="small">
             Every candidate is scored against it. It is how we tell who will actually
-            suit you, not just who is available. Takes about twelve to sixteen minutes.
+            suit you, not just who is available. Takes about fifteen minutes.
           </p>
           <a className="btn solid" href="/app/signature" style={{ marginTop: 20 }}>
             Take the {WORDS.execSignature}

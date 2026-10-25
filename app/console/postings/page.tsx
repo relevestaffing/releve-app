@@ -5,6 +5,7 @@ import PostingRow from '@/components/PostingRow';
 import NewPosting from '@/components/NewPosting';
 import ConsoleTabs from '@/components/ConsoleTabs';
 import { listPostings, listApplications } from '@/lib/jobs';
+import { applicationStages } from '@/lib/jobs-public';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ export default async function Postings() {
   for (const a of apps) if (a.post_id) count[a.post_id] = (count[a.post_id] ?? 0) + 1;
 
   const open = posts.filter(p => p.state === 'open');
+  const waiting = (() => { const s = applicationStages(apps); return s.unread.length + s.toBook.length + s.toRecord.length + s.decide.length; })();
   const drafts = posts.filter(p => p.state === 'draft');
   const closed = posts.filter(p => p.state === 'closed');
 
@@ -27,7 +29,7 @@ export default async function Postings() {
       title="Recruiting" crumb="Roles you are openly recruiting for"
       action={<NewPosting />}>
       <ConsoleTabs active="/console/postings" items={[
-        { href: '/console/applications', label: 'Applications' },
+        { href: '/console/applications', label: 'Applications', count: waiting },
         { href: '/console/interviews', label: 'Interviews' },
         { href: '/console/postings', label: 'Postings', count: open.length }
       ]} />

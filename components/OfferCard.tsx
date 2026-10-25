@@ -71,7 +71,7 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
 
       {offer.state === 'accepted' ? (
         <p className="small" style={{ marginTop: 20 }}>
-          <b>Both sides have accepted.</b> Relève will confirm the start and set everything up.
+          <b>Both sides have accepted.</b> Relève confirms the start date within one business day and sets everything up.
         </p>
       ) : mine ? (
         <p className="small muted" style={{ marginTop: 20 }}>

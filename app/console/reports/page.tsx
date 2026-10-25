@@ -77,8 +77,9 @@ async function counts(): Promise<Counts> {
     if (i.status === 'Completed') c.interviewsCompleted++;
   }
 
+  const since = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
   const { count } = await sb.from('checkins')
-    .select('id', { count: 'exact', head: true }).eq('needs_attention', true);
+    .select('id', { count: 'exact', head: true }).eq('needs_attention', true).gte('week_ending', since);
   c.checkinsFlagged = count ?? 0;
   return c;
 }
@@ -241,7 +242,7 @@ export default async function Reports() {
           <div className="n">{c.talent ? Math.round((c.vetted / c.talent) * 100) : 0}%</div>
           <div className="k">Releasable</div></div>
         <div className={`money-stat ${c.checkinsFlagged ? 'alert' : ''}`}>
-          <div className="n">{c.checkinsFlagged}</div><div className="k">Check-ins to review</div></div>
+          <div className="n">{c.checkinsFlagged}</div><div className="k">End of week to review</div></div>
       </div>
 
       <h3 className="section-h">Placements</h3>
@@ -277,7 +278,7 @@ export default async function Reports() {
             : exp.clientsPaying === 1
               ? <>Everything currently rests on one client{exp.topName ? <>: <b>{exp.topName}</b></> : ''}. Normal this early, and the number to watch: the second and third placements are what turn a single thread into a business.</>
               : exp.topShare != null && exp.topShare >= 33
-                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. That is past the line where one notice is a real hole. Worth having a second search in flight before you would feel it.</>
+                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. Worth having a second search in flight now, so the base widens.</>
                 : <>No single client is more than a third of the run rate. The base is spread enough that one departure is a dip, not a crisis. Keep it here as you grow.</>}
         </p>
       </div>

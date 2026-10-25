@@ -18,7 +18,7 @@ const TALENT: Panel[] = [
     points: [
       'The Signature asks how you work and who you are under pressure, across eighteen facets.',
       'It takes twenty to twenty-five minutes. It saves as you go, so you can stop and come back.',
-      'There is no right answer. A flattering profile in the wrong role is a failed placement, for you more than anyone.'
+      'There is no right answer. An honest profile is what puts you in a role that lasts.'
     ],
     note: 'Executives never see your pay, and never see how you rank against other candidates.' },
   { h: 'What happens next',
@@ -42,7 +42,7 @@ const CLIENT: Panel[] = [
     lede: 'This is your account. Everything about your search runs through here, so the work that fills your week leaves your desk and your attention goes back to what grows the business.',
     points: [
       'Every candidate is vetted on six fronts and matched to how you work before you meet them.',
-      'In front of you within fourteen days, trained for your role on Essential and Specialist plans, and replaced if the fit is not right.',
+      'In front of you within fourteen days, prepared for your role on Essential and Specialist plans, and replaced if the fit is not right.',
       'A Client Success Manager handles your side. A Talent Success Manager handles theirs.'
     ] },
   { h: 'How this begins',
@@ -56,7 +56,7 @@ const CLIENT: Panel[] = [
   { h: 'Once your search is open',
     lede: 'Then the part only you can give us: how you actually work.',
     points: [
-      'Build your Executive Signature: fifteen to twenty minutes, saved as you go. Every candidate is scored against it before their name reaches you.',
+      'Build your Executive Signature: about fifteen minutes, saved as you go. Every candidate is scored against it before their name reaches you.',
       'Break down the role: what the person will own, and what they must be good at.',
       'Set the hours you are open to meeting candidates. We never offer anyone a slot outside them.'
     ],

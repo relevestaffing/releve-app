@@ -33,7 +33,7 @@ export default async function Applications() {
       <ConsoleTabs active="/console/applications" items={[
         { href: '/console/applications', label: 'Applications', count: yours },
         { href: '/console/interviews', label: 'Interviews' },
-        { href: '/console/postings', label: 'Postings' }
+        { href: '/console/postings', label: 'Postings', count: posts.filter(p => p.state === 'open').length }
       ]} />
 
       {apps.length === 0 ? (
