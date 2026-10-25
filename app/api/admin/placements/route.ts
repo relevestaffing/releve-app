@@ -9,6 +9,7 @@ import { toCents, rateInRange, todayInPacific } from '@/lib/money-public';
 import { ENDED_REASONS } from '@/lib/care-public';
 import { configured, supabaseServer } from '@/lib/supabase/server';
 import { safeMessage } from '@/lib/errors';
+import { carryOverToReplacement } from '@/lib/experience';
 
 export async function POST(req: Request) {
   const me = await currentProfile();
@@ -48,6 +49,13 @@ export async function POST(req: Request) {
   try {
     const id = await createPlacement(client_id, talent_id, started_on, replaces_id ?? null);
     if (cents != null && id) await setPlacementRate(id, cents);
+    /* A replacement inherits the executive's briefing and the open work, so
+       the new person does not start from nothing. Never worth failing the
+       placement over. */
+    if (replaces_id && id) {
+      try { await carryOverToReplacement(String(replaces_id), id, me.id); }
+      catch (e) { console.error('[placements] carry-over:', e); }
+    }
 
     /* Both sides are told, and pointed at the two-week plan that has just
        been generated for them. Nine onboarding steps used to appear in an

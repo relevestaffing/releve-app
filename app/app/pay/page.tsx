@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation';
+import { watchEarningsFor } from '@/lib/watch';
+import { DISCIPLINE } from '@/lib/disciplines';
 import { currentProfile } from '@/lib/supabase/server';
 import Shell from '@/components/Shell';
 import PayoutForm from '@/components/PayoutForm';
@@ -17,8 +19,9 @@ export default async function PayPage() {
   if (!profile) redirect('/');
   if (profile.role !== 'talent') redirect('/app');
 
-  const [payout, payments, placements] = await Promise.all([
-    getPayout(profile.id), listPayments(profile.id), listPlacementsFor(profile.id)
+  const [payout, payments, placements, watchPay] = await Promise.all([
+    getPayout(profile.id), listPayments(profile.id), listPlacementsFor(profile.id),
+    watchEarningsFor(profile.id).catch(() => [])
   ]);
   /* Which executive each rate (and each payment) belongs to. Two placements
      used to show two bare numbers with nothing to tell them apart. */
@@ -84,6 +87,29 @@ export default async function PayPage() {
       )}
 
       <PayoutForm initial={payout} />
+
+      {watchPay.length > 0 && (
+        <div className="card">
+          <div className="card-head"><h3>Taking The Watch</h3>
+            <span className="pill">{money(watchPay.reduce((n, w) => n + w.cents, 0))}</span></div>
+          <p className="small muted" style={{ marginBottom: 14 }}>
+            Paid at $6 an hour for the time you spent, {placements.length ? 'with your first month' : 'by Relève once it is scored'}.
+          </p>
+          <table className="data" style={{ boxShadow: 'none' }}>
+            <thead><tr><th>Discipline</th><th>Submitted</th><th>Hours</th><th style={{ textAlign: 'right' }}>Amount</th></tr></thead>
+            <tbody>
+              {watchPay.map(w => (
+                <tr key={w.attemptId}>
+                  <td>{DISCIPLINE[w.discipline]?.name ?? w.discipline}</td>
+                  <td className="small muted">{fmtDate(w.submittedAt)}</td>
+                  <td className="small">{w.hours}h</td>
+                  <td className="amount">{money(w.cents)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-head"><h3>Your payments</h3></div>

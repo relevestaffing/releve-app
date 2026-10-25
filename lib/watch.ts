@@ -264,3 +264,27 @@ export async function scoreWatchAttempt(attemptId: string, reviewerId: string, p
   }, { onConflict: 'attempt_id' });
   if (error) throw new Error(error.message);
 }
+
+/* What the Watch has earned (25 October 2026). The Watch is paid at $6 an
+   hour for the time actually spent, up to the limit, and until now that
+   promise appeared on the Watch page and nowhere on the pay page. One row
+   per submitted attempt. Relève pays it with the talent's first month, or
+   on its own if they are not placed; the pay page says which. */
+export const WATCH_RATE_CENTS = 600;
+
+export type WatchEarning = { attemptId: string; discipline: string; submittedAt: string; hours: number; cents: number };
+
+export async function watchEarningsFor(talentId: string): Promise<WatchEarning[]> {
+  if (!configured()) return [];
+  const sb = await supabaseServer();
+  const { data } = await sb.from('taking_the_watch_attempts')
+    .select('id, discipline, started_at, submitted_at, time_limit_minutes')
+    .eq('talent_id', talentId).not('submitted_at', 'is', null)
+    .order('submitted_at', { ascending: false });
+  return ((data ?? []) as any[]).map(a => {
+    const spent = (new Date(a.submitted_at).getTime() - new Date(a.started_at).getTime()) / 60000;
+    const minutes = Math.max(15, Math.min(Number(a.time_limit_minutes) || 180, spent));
+    const hours = Math.round(minutes / 60 * 4) / 4;
+    return { attemptId: a.id, discipline: a.discipline, submittedAt: a.submitted_at, hours, cents: Math.round(hours * WATCH_RATE_CENTS) };
+  });
+}

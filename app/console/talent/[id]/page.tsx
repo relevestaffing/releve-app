@@ -14,6 +14,7 @@ import { payoutReady, PAYOUT_METHODS, periodLabel } from '@/lib/payout-public';
 import { money, dayLabel } from '@/lib/money-public';
 import { talentSteps } from '@/lib/onboarding';
 import { watchStep } from '@/lib/setup';
+import { watchEarningsFor } from '@/lib/watch';
 import Shell from '@/components/Shell';
 import { Radar, AxisBars, Portrait } from '@/components/Viz';
 import PaySetter from '@/components/PaySetter';
@@ -38,7 +39,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
   if (!self || !self.full_name && configured()) redirect('/console/bench');
   const name = self.full_name ?? 'Talent';
 
-  const [sig, skills, vetting, avail, pay, payout, payments, placements, watch, decisions] = await Promise.all([
+  const [sig, skills, vetting, avail, pay, payout, payments, placements, watch, decisions, watchPay] = await Promise.all([
     signatureOf(id, 'talent'),
     getSkills(id),
     listVetting(id),
@@ -48,7 +49,8 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     listPayments(id),
     placementsOf(id),
     watchOf(id),
-    decisionsAbout(id)
+    decisionsAbout(id),
+    watchEarningsFor(id).catch(() => [] as Awaited<ReturnType<typeof watchEarningsFor>>)
   ]);
 
   const type = sig ? archetype(sig.scores, 'talent') : null;
@@ -105,6 +107,11 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
               {disciplines.length > 0 && (
                 <span className={`pill ${watch.every(w => w.cleared) && watch.length === disciplines.length ? 'good' : 'warn'}`}>
                   Watch {watch.filter(w => w.cleared).length}/{disciplines.length} cleared
+                </span>
+              )}
+              {watchPay.length > 0 && (
+                <span className="pill" title="Taking The Watch, paid at $6 an hour for the time spent">
+                  Watch pay {money(watchPay.reduce((n, w) => n + w.cents, 0))}
                 </span>
               )}
               <span className="pill">{self.years_exp != null ? `${self.years_exp} yrs` : 'Years not set'}{self.english ? ` · ${self.english}` : ''}</span>

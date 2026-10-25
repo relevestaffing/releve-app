@@ -30,7 +30,7 @@ export default async function Postings() {
       action={<NewPosting />}>
       <ConsoleTabs active="/console/postings" items={[
         { href: '/console/applications', label: 'Applications', count: waiting },
-        { href: '/console/interviews', label: 'Interviews' },
+        { href: '/console/interviews', label: 'Introductions' },
         { href: '/console/postings', label: 'Postings', count: open.length }
       ]} />
 

@@ -259,6 +259,43 @@ export async function saveBrief(placementId: string, by: string, patch: Partial<
   if (!data) throw new Error('Only the executive on this placement, or Relève, can change the briefing.');
 }
 
+/* When a talent is replaced, the executive should not start from nothing
+   (25 October 2026). The briefing they wrote (tools, access, preferences,
+   rhythm, what to ask first) and every task still open move to the new
+   placement, so the replacement opens their account already knowing how
+   this executive works and what is waiting. The old placement keeps its
+   own copies: it is history, and history stays where it happened. */
+export async function carryOverToReplacement(fromPlacementId: string, toPlacementId: string, by: string): Promise<{ brief: boolean; tasks: number }> {
+  if (!configured()) return { brief: false, tasks: 0 };
+  const sb = await supabaseServer();
+  let brief = false, tasks = 0;
+
+  const { data: b } = await sb.from('talent_briefs').select('*').eq('placement_id', fromPlacementId).maybeSingle();
+  if (b) {
+    const { error } = await sb.from('talent_briefs').upsert({
+      placement_id: toPlacementId,
+      tools: (b as any).tools, access: (b as any).access, preferences: (b as any).preferences,
+      rhythm: (b as any).rhythm, ask_first: (b as any).ask_first,
+      updated_at: new Date().toISOString(), updated_by: by
+    }, { onConflict: 'placement_id' });
+    brief = !error;
+  }
+
+  const { data: open } = await sb.from('tasks').select('*')
+    .eq('placement_id', fromPlacementId).eq('done', false);
+  for (const t of (open ?? []) as any[]) {
+    const { error } = await sb.from('tasks').insert({
+      placement_id: toPlacementId, title: t.title, detail: t.detail, priority: t.priority,
+      due_on: t.due_on, due_time: t.due_time ?? null, repeat_weekly: !!t.repeat_weekly,
+      series_id: t.repeat_weekly ? crypto.randomUUID() : null,
+      origin: t.origin, origin_note: t.origin_note ? `${t.origin_note} (carried over)` : 'Carried over from the previous placement',
+      created_by: t.created_by, status: t.status ?? 'todo'
+    });
+    if (!error) tasks++;
+  }
+  return { brief, tasks };
+}
+
 /* ---------- client requests ---------- */
 
 export async function myRequests(clientId: string): Promise<ClientRequest[]> {

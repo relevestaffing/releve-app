@@ -23,7 +23,32 @@ export type Task = {
   id: string; placement_id: string; title: string; detail: string | null;
   priority: Priority; due_on: string | null; origin: Origin; origin_note: string | null;
   created_by: string; done: boolean; done_at: string | null; done_by?: string | null; created_at: string;
+  due_time?: string | null; repeat_weekly?: boolean; series_id?: string | null;
 };
+
+/* A link that opens Google Calendar with the task already filled in. No
+   permission is needed, which is the point: the calendar connection Relève
+   holds can only read free/busy, and asking every person to re-authorise
+   with write access, plus a Google review of the app, is not worth one
+   click saved. A weekly task carries the repeat rule with it. */
+export function googleCalendarLink(t: { title: string; detail?: string | null; due_on: string | null; due_time?: string | null; repeat_weekly?: boolean }): string | null {
+  if (!t.due_on) return null;
+  const d = t.due_on.replace(/-/g, '');
+  let dates: string;
+  if (t.due_time) {
+    const [h, m] = t.due_time.split(':').map(Number);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const endH = (h + 1) % 24;
+    dates = `${d}T${pad(h)}${pad(m)}00/${d}T${pad(endH)}${pad(m)}00`;
+  } else {
+    const next = new Date(t.due_on + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 1);
+    dates = `${d}/${next.toISOString().slice(0, 10).replace(/-/g, '')}`;
+  }
+  const q = new URLSearchParams({ action: 'TEMPLATE', text: t.title, dates });
+  if (t.detail) q.set('details', t.detail);
+  if (t.repeat_weekly) q.set('recur', 'RRULE:FREQ=WEEKLY');
+  return `https://calendar.google.com/calendar/render?${q.toString()}`;
+}
 export type Placement = {
   id: string; client_id: string; talent_id: string; started_on: string;
   client_name: string; talent_name: string; org_name: string | null;

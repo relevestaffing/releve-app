@@ -61,14 +61,22 @@ export async function createTask(row: {
   placement_id: string; title: string; detail?: string | null;
   priority?: Priority; due_on?: string | null; origin?: Origin;
   origin_note?: string | null; created_by: string;
+  due_time?: string | null; repeat_weekly?: boolean; series_id?: string | null;
 }) {
   const sb = await supabaseServer();
+  const repeat = Boolean(row.repeat_weekly);
+  /* A weekly task is the first of its series, so the series carries its id. */
+  const id = crypto.randomUUID();
   const { data, error } = await sb.from('tasks').insert({
+    id,
     placement_id: row.placement_id,
     title: row.title,
     detail: row.detail || null,
     priority: row.priority ?? 'normal',
     due_on: row.due_on || null,
+    due_time: row.due_time || null,
+    repeat_weekly: repeat,
+    series_id: repeat ? (row.series_id ?? id) : null,
     origin: row.origin ?? 'self',
     origin_note: row.origin_note || null,
     created_by: row.created_by
@@ -77,20 +85,48 @@ export async function createTask(row: {
   return data as Task;
 }
 
+/* Finishing a weekly task creates next week's, once. The next one is due
+   seven days after this one; a task finished early still comes back on its
+   usual day, which is what "every week" means to the person who set it. */
+export async function spawnNextOccurrence(done: Task) {
+  if (!done.repeat_weekly || !done.series_id) return;
+  const sb = await supabaseServer();
+  const { count } = await sb.from('tasks').select('id', { count: 'exact', head: true })
+    .eq('series_id', done.series_id).eq('done', false);
+  if ((count ?? 0) > 0) return;
+  const base = done.due_on ?? new Date().toISOString().slice(0, 10);
+  const next = new Date(base + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 7);
+  await createTask({
+    placement_id: done.placement_id, title: done.title, detail: done.detail,
+    priority: done.priority, due_on: next.toISOString().slice(0, 10), due_time: done.due_time ?? null,
+    origin: done.origin, origin_note: done.origin_note, created_by: done.created_by,
+    repeat_weekly: true, series_id: done.series_id
+  });
+}
+
 export async function updateTask(id: string, patch: Partial<Task>, byUser: string) {
   const sb = await supabaseServer();
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  (['title', 'detail', 'priority', 'due_on', 'origin', 'origin_note'] as const)
+  (['title', 'detail', 'priority', 'due_on', 'origin', 'origin_note', 'due_time', 'repeat_weekly'] as const)
     .forEach(k => { if (k in patch) body[k] = (patch as any)[k]; });
+  if (body.due_time === '') body.due_time = null;
+  /* Turning repeat on for a task that had no series starts one. */
+  if (patch.repeat_weekly === true) {
+    const { data: cur } = await sb.from('tasks').select('series_id').eq('id', id).maybeSingle();
+    if (!(cur as any)?.series_id) body.series_id = id;
+  }
   if ('done' in patch) {
     body.done = patch.done;
     body.done_at = patch.done ? new Date().toISOString() : null;
     body.done_by = patch.done ? byUser : null;
   }
   const { data, error } = await sb.from('tasks').update(body).eq('id', id)
-    .select('id, placement_id, title, done, done_by, created_by').maybeSingle();
+    .select('*').maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error('That task could not be changed. It may not be on a placement you are part of.');
+  if (patch.done === true) {
+    try { await spawnNextOccurrence(data as Task); } catch (e) { console.error('[tasks] next occurrence:', e); }
+  }
   return data as { id: string; placement_id: string; title: string; done: boolean; done_by: string | null; created_by: string } | null;
 }
 

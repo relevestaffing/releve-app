@@ -17,3 +17,7 @@ out
 *.log
 .deploy-key/
 backups/
+
+# scratch
+_attic/
+supabase/.temp/

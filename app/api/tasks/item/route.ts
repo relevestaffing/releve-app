@@ -17,7 +17,7 @@ export async function PATCH(req: Request) {
   const id = typeof b.id === 'string' ? b.id : '';
   if (!id) return NextResponse.json({ error: 'which task?' }, { status: 400 });
 
-  const allowed = ['title', 'detail', 'priority', 'due_on', 'status', 'done'] as const;
+  const allowed = ['title', 'detail', 'priority', 'due_on', 'status', 'done', 'due_time', 'repeat_weekly'] as const;
   const patch: Record<string, unknown> = {};
   for (const k of allowed) if (k in b) patch[k] = b[k];
   if (!Object.keys(patch).length) return NextResponse.json({ error: 'nothing to change' }, { status: 400 });

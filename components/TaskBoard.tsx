@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { ORIGINS, PRIORITIES, type Priority, type Task } from '@/lib/work-public';
+import { ORIGINS, PRIORITIES, googleCalendarLink, type Priority, type Task } from '@/lib/work-public';
 import {
   TASK_STATUSES, addDays, dayIn, daysFrom, statusLabel, todayIn,
   type TaskComment, type TaskStatus
@@ -119,6 +119,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
         placement_id: placementId,
         title: f.get('title'), detail: f.get('detail'),
         priority: f.get('priority'), due_on: f.get('due_on'),
+        due_time: f.get('due_time') || null, repeat_weekly: f.get('repeat_weekly') === 'on',
         origin: f.get('origin'), origin_note: f.get('origin_note')
       })
     }), side === 'client' ? 'Task assigned' : 'Task added');
@@ -276,6 +277,14 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
               <div className="ff"><label htmlFor={`tf-due-${placementId}`}>Due</label>
                 <input id={`tf-due-${placementId}`} type="date" name="due_on" min={today} /></div>
             </div>
+            <div className="grid-2" style={{ gap: 14 }}>
+              <div className="ff"><label htmlFor={`tf-time-${placementId}`}>At a time <span className="muted">(optional)</span></label>
+                <input id={`tf-time-${placementId}`} type="time" name="due_time" step="900" /></div>
+              <label className="log-share" style={{ alignSelf: 'end', marginBottom: 14 }}>
+                <input type="checkbox" name="repeat_weekly" />
+                <span>Repeats every week. Finishing it brings next week&rsquo;s back on the list.</span>
+              </label>
+            </div>
             {/* "Where did this come from" is a talent-side question: it is how they
                log a request that reached them by call, email or a check-in. */}
             {side !== 'client' && (
@@ -355,7 +364,8 @@ function TaskRow({
     const f = new FormData(e.currentTarget);
     const ok = await onEdit({
       title: f.get('title'), detail: f.get('detail'),
-      priority: f.get('priority'), due_on: f.get('due_on')
+      priority: f.get('priority'), due_on: f.get('due_on'),
+      due_time: f.get('due_time') || null, repeat_weekly: f.get('repeat_weekly') === 'on'
     });
     if (ok) setEditing(false);
   }
@@ -370,7 +380,11 @@ function TaskRow({
         </div>
         {t.detail && !editing && <p className="small muted task-detail">{t.detail}</p>}
         <div className="task-meta xs">
-          {due && <span className={`due ${due.tone}`}>{due.text}</span>}
+          {due && <span className={`due ${due.tone}`}>{due.text}{t.due_time ? ` · ${String(t.due_time).slice(0, 5)}` : ''}</span>}
+          {t.repeat_weekly && <span className="pill" style={{ fontSize: 10 }}>Weekly</span>}
+          {!t.done && googleCalendarLink(t) && (
+            <a className="muted" href={googleCalendarLink(t)!} target="_blank" rel="noopener">Add to Google Calendar</a>
+          )}
           {(origin && (origin.key !== 'self' || t.origin_note)) && (
             <span className="muted">{origin.label}{t.origin_note ? ` · ${t.origin_note}` : ''}</span>
           )}
@@ -418,6 +432,14 @@ function TaskRow({
                 <label className="xs muted" htmlFor={`edue-${t.id}`}>Due</label>
                 <input id={`edue-${t.id}`} type="date" name="due_on" defaultValue={t.due_on ?? ''} />
               </div>
+              <div>
+                <label className="xs muted" htmlFor={`etime-${t.id}`}>At a time</label>
+                <input id={`etime-${t.id}`} type="time" name="due_time" step="900" defaultValue={(t.due_time ?? '').slice(0, 5)} />
+              </div>
+              <label className="log-share" style={{ alignSelf: 'end' }}>
+                <input type="checkbox" name="repeat_weekly" defaultChecked={!!t.repeat_weekly} />
+                <span>Repeats every week</span>
+              </label>
             </div>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
               <button className="btn sm solid">Save</button>

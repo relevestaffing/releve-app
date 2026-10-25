@@ -5,6 +5,7 @@
    security and the guard trigger in part39-experience.sql decide. */
 import { configured, supabaseServer } from './supabase/server';
 import type { Priority, Task } from './work-public';
+import { spawnNextOccurrence } from './work';
 import type { TaskComment, TaskStatus } from './experience-public';
 
 export type TaskRow = Task & { status: TaskStatus; updated_at?: string };
@@ -29,7 +30,7 @@ export async function getTask(id: string): Promise<TaskRow | null> {
     that silence into an error the person sees. */
 export async function updateTaskChecked(id: string, patch: {
   title?: unknown; detail?: unknown; priority?: unknown; due_on?: unknown;
-  status?: unknown; done?: unknown;
+  status?: unknown; done?: unknown; due_time?: unknown; repeat_weekly?: unknown;
 }, byUser: string): Promise<TaskRow> {
   const sb = await supabaseServer();
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -48,6 +49,18 @@ export async function updateTaskChecked(id: string, patch: {
     const d = String(patch.due_on ?? '').trim();
     if (d && !/^\d{4}-\d{2}-\d{2}$/.test(d)) throw new Error('That date is not a date.');
     body.due_on = d || null;
+  }
+  if ('due_time' in patch) {
+    const t = String(patch.due_time ?? '').trim();
+    if (t && !/^\d{2}:\d{2}(:\d{2})?$/.test(t)) throw new Error('That time is not a time.');
+    body.due_time = t || null;
+  }
+  if ('repeat_weekly' in patch) {
+    body.repeat_weekly = !!patch.repeat_weekly;
+    if (body.repeat_weekly) {
+      const { data: cur } = await sb.from('tasks').select('series_id').eq('id', id).maybeSingle();
+      if (!(cur as any)?.series_id) body.series_id = id;
+    }
   }
 
   let done: boolean | undefined;
@@ -68,6 +81,9 @@ export async function updateTaskChecked(id: string, patch: {
   const { data, error } = await sb.from('tasks').update(body).eq('id', id).select('*').maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error('That task could not be changed. It may not be on a placement you are part of.');
+  if (done) {
+    try { await spawnNextOccurrence(data as Task); } catch (e) { console.error('[tasks] next occurrence:', e); }
+  }
   return data as TaskRow;
 }
 

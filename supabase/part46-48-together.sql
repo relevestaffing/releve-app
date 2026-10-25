@@ -139,3 +139,14 @@ create policy "team uploads documents" on storage.objects for insert
 drop policy if exists "team removes documents" on storage.objects;
 create policy "team removes documents" on storage.objects for delete
   using (bucket_id = 'documents' and is_admin());
+
+
+-- ===== PART 49: task schedule and weekly repeat =====
+alter table tasks add column if not exists due_time      time;
+alter table tasks add column if not exists repeat_weekly boolean not null default false;
+alter table tasks add column if not exists series_id     uuid;
+create index if not exists tasks_series on tasks (series_id) where series_id is not null;
+
+comment on column tasks.due_time      is 'Optional time on the due date, in the viewer''s own timezone.';
+comment on column tasks.repeat_weekly is 'Finishing this task creates next week''s, in the same series.';
+comment on column tasks.series_id     is 'Every occurrence of a weekly task shares one id; the first occurrence''s own id.';

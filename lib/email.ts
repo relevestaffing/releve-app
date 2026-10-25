@@ -291,6 +291,38 @@ const rawTemplates = {
       { label: 'Open the sign-in log', href: `${SITE}/console/team` })
   }),
 
+  /* The executive's week, every Monday (25 October 2026). Hours, what got
+     done, the win, and anything the talent chose to share. Concerns are not
+     here: the form promised they go to Relève, and they do. Short on
+     purpose; it is read on a phone between two other things. */
+  weeklyDigest: (o: {
+    name: string; talent: string; week: string; hours: number | null;
+    accomplished: string | null; win: string | null;
+    highlights: { date: string; text: string }[];
+  }) => {
+    const first = o.talent.split(' ')[0];
+    const ending = new Date(o.week + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const lines: string[] = [];
+    if (o.hours != null) lines.push(`Hours: ${o.hours}`);
+    if (o.accomplished) lines.push(`Done this week:\n${o.accomplished}`);
+    if (o.win) lines.push(`A win: ${o.win}`);
+    for (const h of o.highlights) lines.push(`${h.date}: ${h.text}`);
+    return {
+      subject: `${first}'s week, ending ${ending}`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nHere is ${first}'s week in one place.\n\n${lines.join('\n\n')}\n\nAnything you want more of, or less of, tell your Client Success Manager and it is handled.\n\n${SITE}/app/report\n\nRelève`,
+      html: shell(`${esc(first)}'s week`,
+        p(`${o.name ? esc(o.name) + ',' : 'Hello,'}`) +
+        p(`Here is ${esc(first)}'s week, ending ${ending}, in one place.`) +
+        (o.hours != null ? `<p style="margin:0 0 15px;"><b>${o.hours} hours</b></p>` : '') +
+        (o.accomplished ? `<p style="margin:0 0 6px;color:#5F7163;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Done this week</p><p style="margin:0 0 15px;white-space:pre-wrap;">${esc(o.accomplished)}</p>` : '') +
+        (o.win ? `<p style="margin:0 0 6px;color:#5F7163;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">A win</p><p style="margin:0 0 15px;">${esc(o.win)}</p>` : '') +
+        (o.highlights.length ? `<p style="margin:0 0 6px;color:#5F7163;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Shared with you</p>` +
+          o.highlights.map(h => `<p style="margin:0 0 10px;"><span style="color:#5F7163;">${esc(h.date)}</span> &nbsp;${esc(h.text)}</p>`).join('') : '') +
+        p('Anything you want more of, or less of, tell your Client Success Manager and it is handled.'),
+        { label: 'See the full month', href: `${SITE}/app/report` })
+    };
+  },
+
   /* The moment a profile first exists — not sent by anyone from the console,
      it fires itself the instant someone's first sign-in creates their row.
      Two things belong in it and nothing else: that it worked, and how to put

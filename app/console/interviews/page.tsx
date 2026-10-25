@@ -89,7 +89,7 @@ export default async function ConsoleInterviews({ searchParams }: {
         {zoomConfigured() ? 'Zoom connected' : 'Zoom not connected'}</span>}>
       <ConsoleTabs active="/console/interviews" items={[
         { href: '/console/applications', label: 'Applications' },
-        { href: '/console/interviews', label: 'Interviews' },
+        { href: '/console/interviews', label: 'Introductions' },
         { href: '/console/postings', label: 'Postings' }
       ]} />
 
