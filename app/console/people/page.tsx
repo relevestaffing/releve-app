@@ -6,7 +6,7 @@ import { signatureOf } from '@/lib/data';
 import { getRoleBreakdown, roleComplete } from '@/lib/roles';
 import { clientSteps } from '@/lib/onboarding';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
+import DirectoryTabs from '@/components/DirectoryTabs';
 import OnboardingSender from '@/components/OnboardingSender';
 import RoleBriefEditor from '@/components/RoleBriefEditor';
 import TableSearch from '@/components/TableSearch';
@@ -53,44 +53,24 @@ export default async function People() {
   const docusignOn = docusignClientReady();
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/people" title="Executives" crumb="Accounts and open roles">
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Executives">
+      <DirectoryTabs active="executives" />
       <OnboardingSender />
-
-      {missing > 0 && (
-        <div className="card" style={{ borderColor: 'var(--pale)' }}>
-          <div className="card-head"><h3>No role brief yet</h3>
-            <span className="pill warn"><span className="dot" />{missing}</span></div>
-          <Explain>
-            The Signature tells you how someone works. The brief tells you what the job is.
-            Matching runs without it, but nobody on your team can sanity-check a candidate against a role that was never written down.
-          </Explain>
-        </div>
-      )}
 
       <div className="card">
         <div className="card-head"><h3>Executive accounts</h3>
           <div className="row" style={{ gap: 10 }}>
             {clients.length > 5 &&
               <TableSearch scope="exec-list" rows=".client-row" placeholder="Search executives…" />}
+            {missing > 0 && <span className="pill warn"><span className="dot" />{missing} without a brief</span>}
             <span className="pill">{clients.length} on file</span>
           </div></div>
-        <div style={{ marginBottom: 20 }}>
-          <Explain>
-            Send the onboarding email right after the discovery call and the record is made for you,
-            with no separate add step. They can sign in any time with the email on file, no password.
-            The role brief is yours to fill in from the intro call; clients are never asked to write their own.
-          </Explain>
-        </div>
 
         {rows.length === 0 && (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
             <h3>No executives yet</h3>
-            <p className="small">
-              Send the onboarding email above once you have had the discovery call. It opens their
-              search, and they can sign in any time with the email you put on file.
-              There is no invitation to wait on and no password to set.
-            </p>
+            <p className="small">Send the onboarding email above after a discovery call.</p>
           </div>
         )}
 

@@ -2659,3 +2659,23 @@ aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--f
      breaks position:sticky; clip keeps the no-sideways-scroll without that */
   html,body{overflow-x:clip!important;overflow-y:visible!important}
 }
+
+/* ── Directory tabs (25 Oct 2026) ────────────────────────────────────
+   .tabs already existed for buttons; the Directory switches page rather
+   than state, so it needs the same look on a link. */
+.tabs a{display:inline-block;background:none;border:none;padding:0 0 14px;
+  font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
+  text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.25s}
+.tabs a:hover{color:var(--fern)}
+.tabs a.on{color:var(--fern);border-bottom-color:var(--fern)}
+
+.dir-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.dir-head .tabs{flex:1 1 auto}
+.dir-aside{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:28px}
+@media(max-width:700px){
+  .dir-head{align-items:stretch}
+  .dir-head .tabs{gap:22px;margin-bottom:18px}
+  .dir-aside{margin-bottom:18px}
+}
+.tabs .tab-n{display:inline-block;margin-left:7px;font-size:10px;letter-spacing:.06em;
+  padding:1px 6px;border-radius:9px;background:var(--mist);color:var(--fern);vertical-align:1px}

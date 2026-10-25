@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { moneySummary, moneyReports, money, monthLabel } from '@/lib/money';
 import { calibration } from '@/lib/care';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
 
 export const dynamic = 'force-dynamic';
 
@@ -143,8 +143,14 @@ export default async function Reports() {
     : null;
 
   return (
-    <Shell profile={profile} active="/console/reports" title="Reports"
-      crumb="How the business is actually doing">
+    <Shell profile={profile} active="/console/business" title="The business"
+      crumb="Reports, how it is actually doing">
+      <ConsoleTabs active="/console/reports" items={[
+        { href: '/console/reports', label: 'Reports' },
+        { href: '/console/signals', label: 'Match accuracy' },
+        { href: '/console/calendar', label: 'Calendar' },
+        { href: '/console/team', label: 'Team' }
+      ]} />
 
       <h3 className="section-h">Money</h3>
       <div className="money-strip">
@@ -185,12 +191,6 @@ export default async function Reports() {
             ))}
           </tbody>
         </table>
-        <div style={{ marginTop: 12 }}>
-          <Explain>
-            Collected is money that actually landed, by the date Stripe or the owner marked it paid. Contracted MRR
-            is what live placements were billing at each month end, at today&rsquo;s rates (the pale bar).
-          </Explain>
-        </div>
       </div>
 
       <h3 className="section-h">Owed to Relève</h3>
@@ -204,12 +204,6 @@ export default async function Reports() {
         <div className={`money-stat ${r.aging.d30plus ? 'alert' : ''}`}><div className="n">{money(r.aging.d30plus)}</div>
           <div className="k">Over 30 days · {r.aging.d30plusCount}</div></div>
       </div>
-      {owed > 0 && (
-        <div style={{ margin: '-8px 0 20px' }}>
-          <Explain>Sent and unpaid invoices only, by days past their due date in Pacific time. Drafts are not owed yet.</Explain>
-        </div>
-      )}
-
       {r.us1099.length > 0 && (
         <div className="card">
           <div className="card-head"><h3>Form 1099-NEC this year</h3><span className="xs muted">US persons paid $600 or more</span></div>
@@ -292,13 +286,6 @@ export default async function Reports() {
         <div className="card-head">
           <h3>Is the assessment right?</h3>
           <span className="xs muted">Six-month calibration</span>
-        </div>
-        <div style={{ marginBottom: 16, maxWidth: 640 }}>
-          <Explain>
-            What the engine predicted, against what actually happened. If it runs
-            consistently high it is promising more than it delivers; consistently
-            low and you are turning down people you should be placing.
-          </Explain>
         </div>
         {!cal.length ? (
           <p className="small muted">

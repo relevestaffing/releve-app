@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { currentProfile } from '@/lib/supabase/server';
 import { allDecisions, allFeedback } from '@/lib/work';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
 import { fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
@@ -32,8 +32,14 @@ export default async function Signals() {
   const noes = feedback.filter(f => f.proceed === 'no').length;
 
   return (
-    <Shell profile={profile} active="/console/signals" title="Match Accuracy"
-      crumb="How well the matches are landing">
+    <Shell profile={profile} active="/console/business" title="The business"
+      crumb="Match accuracy, how well the matches are landing">
+      <ConsoleTabs active="/console/signals" items={[
+        { href: '/console/reports', label: 'Reports' },
+        { href: '/console/signals', label: 'Match accuracy' },
+        { href: '/console/calendar', label: 'Calendar' },
+        { href: '/console/team', label: 'Team' }
+      ]} />
 
       <div className="card tight">
         <p className="small" style={{ margin: 0, maxWidth: 660 }}>
@@ -57,10 +63,6 @@ export default async function Signals() {
 
       {decisions.length < 8 && (
         <div className="card">
-          <Explain>
-            These numbers only start meaning something after a few dozen decisions.
-            Until then, read the individual reasons rather than the percentages.
-          </Explain>
         </div>
       )}
 

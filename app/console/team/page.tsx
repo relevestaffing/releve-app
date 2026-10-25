@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { signinStageLabel } from '@/lib/signin-public';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { auditTrail, TEAM_ROLES } from '@/lib/care';
 import type { TeamRole } from '@/lib/care-public';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
 import EmailCheck from '@/components/EmailCheck';
 import RolePicker from '@/components/RolePicker';
 import TeamMemberRemove from '@/components/TeamMemberRemove';
@@ -115,8 +115,14 @@ export default async function ConsoleTeam() {
     backupAge == null ? 'crit' : backupAge > 2 ? 'crit' : backupAge > 1.25 ? 'warn' : 'good';
 
   return (
-    <Shell profile={profile} active="/console/team" title="Team"
-      crumb="Who can do what, and what has been done">
+    <Shell profile={profile} active="/console/business" title="The business"
+      crumb="Team, who can do what">
+      <ConsoleTabs active="/console/team" items={[
+        { href: '/console/reports', label: 'Reports' },
+        { href: '/console/signals', label: 'Match accuracy' },
+        { href: '/console/calendar', label: 'Calendar' },
+        { href: '/console/team', label: 'Team' }
+      ]} />
 
       <EmailCheck />
 
@@ -194,13 +200,6 @@ export default async function ConsoleTeam() {
             </tbody>
           </table>
         )}
-        <div style={{ marginTop: 16 }}>
-          <Explain>
-            &ldquo;Accepted&rdquo; means the mail host took it, not that it reached an
-            inbox. If something is accepted here and still missing, that is
-            deliverability rather than configuration. Check spam first.
-          </Explain>
-        </div>
       </div>
 
       {/* PART 45. The twin of the email log above, and added for the same
@@ -242,13 +241,6 @@ export default async function ConsoleTeam() {
 
       <div className="card">
         <div className="card-head"><h3>The Relève team</h3></div>
-        <div style={{ marginBottom: 18 }}>
-          <Explain>
-            Everyone here can see client and talent records. The role decides who
-            manages the team itself, and only an owner can change it. Relève always
-            keeps at least one owner.
-          </Explain>
-        </div>
         {!team.length ? <p className="small muted">Just you so far.</p> : (
           <table className="data">
             <thead><tr><th>Name</th><th>Email</th><th>Role</th>{owner && <th aria-label="Actions" />}</tr></thead>
@@ -316,13 +308,6 @@ export default async function ConsoleTeam() {
         <div className="card-head">
           <h3>What has been done</h3>
           <span className="xs muted">Newest first</span>
-        </div>
-        <div style={{ marginBottom: 18 }}>
-          <Explain>
-            Releases, verifications and invoices, with who did them. This log is
-            append-only: nothing here can be edited or removed through the app,
-            including by an owner.
-          </Explain>
         </div>
         {!log.length ? (
           <p className="small muted">Nothing recorded yet. It starts filling the moment anyone acts.</p>

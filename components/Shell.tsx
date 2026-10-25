@@ -75,41 +75,29 @@ const NAV: Record<string, NavGroup[]> = {
     { items: [{ href: '/app/messages', label: 'Messages' }] }
   ],
 
+  /* Nineteen entries in six groups became eight (Sage, 25 October 2026:
+     "it needs to be very straightforward, very clean cut"). The rule used
+     to pick them: one entry per job she actually does, named for the job
+     rather than for the table behind it. Everything that used to have its
+     own entry still exists, as a tab, a column or a row action on the page
+     that owns that job. The order follows the business: who we have, how we
+     find more, how we pair them, how it is going, what it earns.
+
+     The old routes all still resolve, so nothing anyone bookmarked breaks. */
   admin: [
     { items: [
       { href: '/console', label: 'Overview' },
-      { href: '/console/calendar', label: 'Calendar' }
-    ] },
-    { group: 'Directory', items: [
-      { href: '/console/people', label: 'Executives' },
-      { href: '/console/bench', label: 'Talent' },
-      { href: '/console/vetting', label: 'Verification' },
-      { href: '/console/watch', label: 'Taking The Watch' },
-      /* Archiving and removing people, in one place rather than a button at
-         the bottom of every row. Last in the group because it is occasional
-         work, not daily work. (13 October.) */
-      { href: '/console/cleanup', label: 'Tidy up' }
-    ]},
-    { group: 'Recruiting', items: [
-      { href: '/console/postings', label: 'Postings' },
-      { href: '/console/applications', label: 'Applications' }
-    ]},
-    { group: 'Placing', items: [
+      { href: '/console/directory', label: 'Directory' },
+      { href: '/console/recruiting', label: 'Recruiting' },
       { href: '/console/matching', label: 'Matching' },
-      { href: '/console/interviews', label: 'Interviews' },
-      { href: '/console/offers', label: 'Offers' }
-    ]},
-    { group: 'Running', items: [
       { href: '/console/placements', label: 'Placements' },
-      { href: '/console/care', label: 'Care' },
-      { href: '/console/checkins', label: 'Check-ins' },
-      { href: '/console/money', label: 'Billing' }
-    ]},
-    { group: 'The business', items: [
-      { href: '/console/reports', label: 'Reports' },
-      { href: '/console/signals', label: 'Match Accuracy' },
-      { href: '/console/team', label: 'Team' },
+      { href: '/console/money', label: 'Billing' },
       { href: '/console/messages', label: 'Messages' }
+    ] },
+    /* Looked at monthly, not daily, so it sits apart rather than competing
+       with the seven above. */
+    { items: [
+      { href: '/console/business', label: 'The business' }
     ]}
   ]
 };

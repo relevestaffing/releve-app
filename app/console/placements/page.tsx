@@ -6,6 +6,7 @@ import { replacementsOwed } from '@/lib/care';
 import { mineFor } from '@/lib/experience';
 import Shell from '@/components/Shell';
 import PlacementMaker from '@/components/PlacementMaker';
+import ConsoleTabs from '@/components/ConsoleTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,11 @@ export default async function ConsolePlacements({ searchParams }: { searchParams
           <Link className={`btn sm ${mine ? 'solid' : 'ghost'}`} href={`${base}${join}mine=1`} aria-current={mine ? 'true' : undefined}>Mine</Link>
         </span>
       }>
+      <ConsoleTabs active="/console/placements" items={[
+        { href: '/console/placements', label: 'Placements' },
+        { href: '/console/checkins', label: 'End of week' },
+        { href: '/console/care', label: 'Care' }
+      ]} />
       <PlacementMaker people={people} placements={placements}
         owed={owed}
         initialReplaces={replace ?? ''} />

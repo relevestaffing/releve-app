@@ -6,6 +6,7 @@ import TableSearch from '@/components/TableSearch';
 import { listApplications, listPostings } from '@/lib/jobs';
 import { applicationStages, APPLICATION_SECTIONS } from '@/lib/jobs-public';
 import Link from 'next/link';
+import ConsoleTabs from '@/components/ConsoleTabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,33 +28,24 @@ export default async function Applications() {
   const yours = stage.unread.length + stage.toBook.length + stage.toRecord.length + stage.decide.length;
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/applications"
-      title="Applications" crumb={yours ? `${yours} waiting on you` : 'Everyone who applied'}>
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting"
+      title="Recruiting" crumb={yours ? `${yours} waiting on you` : 'Everyone who applied'}>
+      <ConsoleTabs active="/console/applications" items={[
+        { href: '/console/applications', label: 'Applications', count: yours },
+        { href: '/console/postings', label: 'Postings' }
+      ]} />
 
       {apps.length === 0 ? (
         <div className="card empty-card">
           <div className="empty-mark" aria-hidden="true" />
           <h3>Nobody has applied yet</h3>
-          <p className="small">
-            Applications land here the moment someone fills in the form on a live
-            posting, with their answers, their resume and the role they came from,
-            so you are never re-typing a person out of an inbox.
-          </p>
+          <p className="small">Applications land here from live postings, with answers and resume.</p>
           <Link className="btn sm ghost" href="/console/postings" style={{ marginTop: 18 }}>
             Write a role
           </Link>
         </div>
       ) : (
         <>
-          <div className="card tight">
-            <p className="small" style={{ margin: 0 }}>
-              <b>Read it, talk to them, then decide.</b> Booking a call emails them a time
-              and a joining link, in their own timezone. Nobody reaches the platform (an account,
-              the assessment, the roster) until that call has happened.
-              Declining is silent, so you write to them in your own words when you are ready.
-            </p>
-          </div>
-
           {apps.length > 8 &&
             <TableSearch scope="apps" rows=".card" groups="[data-group]"
               placeholder="Search applicants by name, email or answer…" />}

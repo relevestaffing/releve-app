@@ -3,7 +3,7 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { signatureOf, rankBench, archetype } from '@/lib/data';
 import { L1, L2 } from '@/lib/signature/model';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { Radar } from '@/components/Viz';
 import MatchControls from '@/components/MatchControls';
 import { listMatches } from '@/lib/store';
@@ -43,6 +43,11 @@ export default async function Matching({ searchParams }: {
   if (!clients.length) return (
     <Shell profile={profile} active="/console/matching" title="Matching"
       crumb="Nobody to match yet">
+      <ConsoleTabs active="/console/matching" items={[
+        { href: '/console/matching', label: 'Matching' },
+        { href: '/console/interviews', label: 'Interviews' },
+        { href: '/console/offers', label: 'Offers' }
+      ]} />
       <div className="card tight">
         <p className="small">
           There are no executives on the books yet. Add one and complete their
@@ -61,15 +66,15 @@ export default async function Matching({ searchParams }: {
     <Shell profile={profile} active="/console/matching" title="Matching"
       crumb={chosen?.org_name ?? chosen?.full_name ?? 'Choose an executive'}
       action={picker}>
+      <ConsoleTabs active="/console/matching" items={[
+        { href: '/console/matching', label: 'Matching' },
+        { href: '/console/interviews', label: 'Interviews' },
+        { href: '/console/offers', label: 'Offers' }
+      ]} />
       <div className="card tight">
         <p className="small">
           <b>{chosen?.full_name ?? 'This executive'} has not completed their
-          Executive Signature yet.</b> Nothing can be ranked against them until they do.
-          The whole match is built on it.
-        </p>
-        <p className="small muted" style={{ marginTop: 10 }}>
-          They complete it from their own account. Nudge them from Messages if
-          it has been a while.
+          Executive Signature yet.</b> Nothing can be ranked until they do.
         </p>
       </div>
     </Shell>
@@ -115,19 +120,11 @@ export default async function Matching({ searchParams }: {
       crumb={chosen?.org_name ? `${chosen.org_name} · ${chosen.full_name}` : (chosen?.full_name ?? 'Rank and approve')}
       action={picker}>
 
-      <div className="card tight">
-        <p className="small" style={{ margin: 0 }}>
-          Ranking the roster against <b>{chosen?.full_name}</b>{chosen?.org_name ? ` at ${chosen.org_name}` : ''},
-          whose Signature reads as <b>{type.n}</b>. Release <b>one person at a time</b>.
-          Their account shows a single candidate to approve or decline, and anyone
-          released behind that person stays invisible until it is their turn.
-          {role
-            ? <> The role is <b>{roleShape(role)}</b>, and the Role column scores each
-                 candidate against exactly what they asked for.</>
-            : <> <b>They have not broken the role down yet</b>, so the Role column is empty.
-                 Fit here is personality only, not capability.</>}
-        </p>
-      </div>
+      <ConsoleTabs active="/console/matching" items={[
+        { href: '/console/matching', label: 'Matching' },
+        { href: '/console/interviews', label: 'Interviews' },
+        { href: '/console/offers', label: 'Offers' }
+      ]} />
 
       {queued > 0 && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
@@ -180,12 +177,9 @@ export default async function Matching({ searchParams }: {
           <div className="card-head"><h3>Ranked roster</h3>
             <div className="row" style={{ gap: 8 }}><span className="pill">{ranked.length} available</span>
               <span className="pill good"><span className="dot" />{releasedCount} approved &amp; sent</span></div></div>
-          <div style={{ margin: '0 0 14px' }}>
-            <Explain>
-              Matching someone here changes nothing they can see. Nobody is sent until you
-              approve it by name in the panel, and the executive is emailed the moment you do.
-            </Explain>
-          </div>
+          <p className="small muted" style={{ margin: '0 0 14px' }}>
+            One at a time. Nobody is sent until you approve them here.
+          </p>
           <table className="data" style={{ boxShadow: 'none' }}>
             <thead><tr><th>Talent</th><th>Fit</th><th>Role</th><th>Ready</th><th>Style / Disp.</th><th>Confidence</th><th>Weakest axis</th><th>Status</th><th style={{textAlign:'right'}}>Match control</th></tr></thead>
             <tbody>

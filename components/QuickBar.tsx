@@ -40,11 +40,13 @@ const PRIMARY: Record<string, { href: string; label: string; icon: string }[]> =
     { href: '/app/care',       label: 'Placement',  icon: 'briefcase' },
     { href: '/app/messages',   label: 'Messages',   icon: 'message' }
   ],
+  /* Messages has its own badge in the topbar on every screen, so the four
+     thumb-sized tabs go to the four she opens on a phone. */
   admin: [
     { href: '/console',            label: 'Overview',   icon: 'home' },
-    { href: '/console/money',      label: 'Billing',    icon: 'chart' },
+    { href: '/console/directory',  label: 'Directory',  icon: 'people' },
     { href: '/console/placements', label: 'Placed',     icon: 'briefcase' },
-    { href: '/console/messages',   label: 'Messages',   icon: 'message' }
+    { href: '/console/money',      label: 'Billing',    icon: 'chart' }
   ]
 };
 

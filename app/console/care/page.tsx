@@ -5,7 +5,7 @@ import {
   upcomingTimeOff, GOING, WORKLOADS, TIME_OFF_STATE, nights
 } from '@/lib/care';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { TimeOffDecider, OutcomeForm } from '@/components/CareControls';
 import { fmtDate } from '@/lib/words';
 import Link from 'next/link';
@@ -39,14 +39,19 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
   const openRequests = requests.filter(r => r.state === 'open');
 
   return (
-    <Shell profile={profile} active="/console/care" title="Care"
-      crumb={mine ? 'Your placements, and what needs you today' : 'What needs a person today'}
+    <Shell profile={profile} active="/console/placements" title="Placements"
+      crumb={mine ? 'Care, your placements' : 'Care, what needs a person today'}
       action={
         <span className="row" role="group" aria-label="Whose placements" style={{ gap: 6 }}>
           <Link className={`btn sm ${mine ? 'ghost' : 'solid'}`} href="/console/care">Everyone</Link>
           <Link className={`btn sm ${mine ? 'solid' : 'ghost'}`} href="/console/care?mine=1">Mine</Link>
         </span>
       }>
+      <ConsoleTabs active="/console/care" items={[
+        { href: '/console/placements', label: 'Placements' },
+        { href: '/console/checkins', label: 'End of week' },
+        { href: '/console/care', label: 'Care' }
+      ]} />
 
       <div className="money-strip">
         <div className={`money-stat ${flagged.length ? 'alert' : ''}`}>
@@ -72,12 +77,6 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
         {watch.length > 0 && (
           <div className="card">
             <div className="card-head"><h3>The 14-day promise</h3></div>
-            <div style={{ marginBottom: 16 }}>
-              <Explain>
-                Searches with nobody put forward yet, at or near the fourteen days
-                promised. A candidate sent today keeps the promise.
-              </Explain>
-            </div>
             {watch.map((w: any) => (
               <div key={w.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
                 <div><b className="small">{w.org_name ?? w.client_name}</b>
@@ -93,12 +92,6 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
         {owed.length > 0 && (
           <div className="card">
             <div className="card-head"><h3>Replacements owed</h3></div>
-            <div style={{ marginBottom: 16 }}>
-              <Explain>
-                These ended in a way your guarantee covers, and no replacement has
-                been placed yet.
-              </Explain>
-            </div>
             {owed.map((r: any) => (
               <div key={r.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
                 <div><b className="small">{r.client_name}</b>
@@ -171,13 +164,8 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
         </div>
 
         <div className="card">
-          <div className="card-head"><h3>Six-month reviews due</h3></div>
-          <div style={{ marginBottom: 16 }}>
-            <Explain>
-              This is the only thing that teaches the matching engine anything. Skip
-              it and every future match stays as good as the first one was.
-            </Explain>
-          </div>
+          <div className="card-head"><h3>Six-month reviews due</h3>
+            <span className="pill">Teaches the matching</span></div>
           {!due.length ? <p className="small muted">Nothing due.</p> : due.map((d: any) => (
             <div key={d.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
               <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>

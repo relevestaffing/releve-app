@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { getBench, archetype, dispositionLine } from '@/lib/data';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
+import DirectoryTabs from '@/components/DirectoryTabs';
 import { Portrait } from '@/components/Viz';
 import AddPerson from '@/components/AddPerson';
 import TalentOnboardingSender from '@/components/TalentOnboardingSender';
@@ -41,15 +41,8 @@ export default async function Bench() {
   const unbookable = bench.filter(t => !bookable.has(t.id));
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/bench" title="Talent" crumb="Everyone we can put forward">
-      <div className="card tight">
-        <p className="small" style={{ margin: 0, maxWidth: 660 }}>
-          Everyone Relève can put forward: assessed, verified, and not currently
-          placed. A person joins the roster once their Talent Signature is done,
-          and leaves it when they take a seat.
-        </p>
-      </div>
-
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Talent">
+      <DirectoryTabs active="talent" />
       <TalentOnboardingSender />
 
       <div className="card">
@@ -62,11 +55,7 @@ export default async function Bench() {
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
             <h3>The roster is empty</h3>
-            <p className="small">
-              Add talent with the button above, or let them apply through the Careers
-              page. Nobody appears here until they have completed their Talent Signature.
-              An unassessed profile cannot be matched against anyone.
-            </p>
+            <p className="small">Add someone above, or let them apply through Careers.</p>
           </div>
         ) : (
         <table className="data" id="bench-table">
@@ -94,11 +83,6 @@ export default async function Bench() {
       {bench.length > 0 && (
       <div className="card">
         <div className="card-head"><h3>Validity detail</h3><span className="pill">Internal only</span></div>
-        <div style={{ marginBottom: 8 }}>
-          <Explain>
-            Clients see a verified badge and confidence bands. These numbers stay here.
-          </Explain>
-        </div>
         <details className="more">
           <summary>Show the raw control measures</summary>
           <div className="inner">
@@ -127,8 +111,7 @@ export default async function Bench() {
           <div className="card-head"><h3>Assessed but not bookable</h3>
             <span className="pill crit"><span className="dot" />{unbookable.length}</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
-            These profiles are complete but have no availability set, so no executive can book them.
-            Nudge them to their Availability page before releasing them to a client.
+            Complete, but no availability set, so nobody can book them.
           </p>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {unbookable.map(t => <span className="pill warn" key={t.id}>{t.name}</span>)}
@@ -139,9 +122,7 @@ export default async function Bench() {
         <div className="card">
           <div className="card-head"><h3>Mid-onboarding, no Signature yet</h3><span className="pill warn"><span className="dot" />{unsigned.length}</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
-            Signed in and started, but haven't finished their Talent Signature.
-            There is nothing to match against yet, so they sit here rather than on the roster below. Worth a nudge if it's
-            been a while.
+            Started, Signature not finished, so there is nothing to match against yet.
           </p>
           <table className="data">
             <thead><tr><th>Name</th><th>Role</th><th>Location</th></tr></thead>
@@ -161,11 +142,6 @@ export default async function Bench() {
       {pending.length > 0 && (
         <div className="card">
           <div className="card-head"><h3>Added, not yet signed in</h3><span className="pill warn"><span className="dot" />{pending.length}</span></div>
-          <div style={{ marginBottom: 16 }}>
-            <Explain>
-              These records attach themselves the first time each person signs in with the email on file.
-            </Explain>
-          </div>
           <table className="data">
             <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th><th></th></tr></thead>
             <tbody>{pending.map((p: any) => (

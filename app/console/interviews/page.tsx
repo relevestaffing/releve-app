@@ -8,6 +8,7 @@ import InterviewStatus from '@/components/InterviewStatus';
 import BookInterview from '@/components/BookInterview';
 import ClientSwitcher from '@/components/ClientSwitcher';
 import TableSearch from '@/components/TableSearch';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { Stat } from '@/components/Viz';
 import { listPeople } from '@/lib/work';
 import { getBench } from '@/lib/data';
@@ -82,10 +83,15 @@ export default async function ConsoleInterviews({ searchParams }: {
   }
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/interviews" title="Interviews"
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/matching" title="Matching"
       crumb={upcoming.length ? `${upcoming.length} coming up` : 'Every account'}
       action={<span className={`pill ${zoomConfigured() ? 'good' : 'warn'}`}><span className="dot" />
         {zoomConfigured() ? 'Zoom connected' : 'Zoom not connected'}</span>}>
+      <ConsoleTabs active="/console/interviews" items={[
+        { href: '/console/matching', label: 'Matching' },
+        { href: '/console/interviews', label: 'Interviews' },
+        { href: '/console/offers', label: 'Offers' }
+      ]} />
 
       <div className="grid-4">
         <Stat label="Coming up" value={upcoming.length} sub="Not yet held" />

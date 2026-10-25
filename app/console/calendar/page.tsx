@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { currentProfile } from '@/lib/supabase/server';
 import { calendarConfigured, upcomingCalendarEvents, type CalendarEvent } from '@/lib/calendar';
 import { attendeeTimezones } from '@/lib/store';
@@ -60,8 +61,14 @@ export default async function ConsoleCalendar() {
   const attendeeTz = await attendeeTimezones(events.flatMap(e => e.attendees));
 
   return (
-    <Shell profile={profile} active="/console/calendar" title="Calendar"
-      crumb="hello@relevestaffing.com, next 30 days">
+    <Shell profile={profile} active="/console/business" title="The business"
+      crumb="Calendar, the next 30 days">
+      <ConsoleTabs active="/console/calendar" items={[
+        { href: '/console/reports', label: 'Reports' },
+        { href: '/console/signals', label: 'Match accuracy' },
+        { href: '/console/calendar', label: 'Calendar' },
+        { href: '/console/team', label: 'Team' }
+      ]} />
 
       {!configured ? (
         <div className="card">

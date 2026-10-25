@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { allPlacements, listCheckins, weekEnding } from '@/lib/work';
 import Shell from '@/components/Shell';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { fmtDay, fmtDate } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
@@ -19,8 +20,13 @@ export default async function ConsoleCheckins() {
   const attention = checkins.filter(c => c.needs_attention);
 
   return (
-    <Shell profile={profile} active="/console/checkins" title="Check-ins"
-      crumb={`Week ending ${fmtDay(week)}`}>
+    <Shell profile={profile} active="/console/placements" title="Placements"
+      crumb={`End of week, week ending ${fmtDay(week)}`}>
+      <ConsoleTabs active="/console/checkins" items={[
+        { href: '/console/placements', label: 'Placements' },
+        { href: '/console/checkins', label: 'End of week' },
+        { href: '/console/care', label: 'Care' }
+      ]} />
 
       <div className="grid-3">
         <div className="card stat"><div className="eyebrow">In this week</div>

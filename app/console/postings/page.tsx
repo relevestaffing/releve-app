@@ -3,6 +3,7 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import Shell from '@/components/Shell';
 import PostingRow from '@/components/PostingRow';
 import NewPosting from '@/components/NewPosting';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import { listPostings, listApplications } from '@/lib/jobs';
 
 export const dynamic = 'force-dynamic';
@@ -22,28 +23,19 @@ export default async function Postings() {
   const closed = posts.filter(p => p.state === 'closed');
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/postings"
-      title="Postings" crumb="Roles you are openly recruiting for"
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting"
+      title="Recruiting" crumb="Roles you are openly recruiting for"
       action={<NewPosting />}>
-
-      <div className="card tight">
-        <p className="small" style={{ margin: 0 }}>
-          A role you publish here appears on the careers page at relevestaffing.com
-          within a minute, with no file to edit and nothing to redeploy. Close it and it
-          comes off the site, while the applications it already brought in stay where
-          they are.
-        </p>
-      </div>
+      <ConsoleTabs active="/console/postings" items={[
+        { href: '/console/applications', label: 'Applications' },
+        { href: '/console/postings', label: 'Postings', count: open.length }
+      ]} />
 
       {posts.length === 0 && (
         <div className="card empty-card">
           <div className="empty-mark" aria-hidden="true" />
           <h3>No roles posted yet</h3>
-          <p className="small">
-            Write one and it goes on the careers page the moment you publish it. Until
-            then, the page shows the general application form as it does today,
-            so there is no broken state while you think about the wording.
-          </p>
+          <p className="small">Publish one and it is on the careers page within a minute.</p>
         </div>
       )}
 

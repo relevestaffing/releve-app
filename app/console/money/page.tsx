@@ -17,7 +17,6 @@ import RateSetter from '@/components/RateSetter';
 import { RunTheMonth } from '@/components/InvoiceControls';
 import DepositControl from '@/components/DepositControl';
 import type { DepositStatus } from '@/lib/money-public';
-import Explain from '@/components/Explain';
 import WiseBatch from '@/components/WiseBatch';
 
 export const dynamic = 'force-dynamic';
@@ -197,13 +196,9 @@ export default async function ConsoleMoney() {
         </div>
       </div>
       {margin.counted < margin.total && (
-        <div style={{ margin: '-8px 0 20px' }}>
-          <Explain>
-            Those three figures cover {margin.counted} of {margin.total} live placements.
-            The rest are missing either a client rate or a talent rate, so they are left out
-            rather than quietly counted as free.
-          </Explain>
-        </div>
+        <p className="small muted" style={{ margin: '-8px 0 20px' }}>
+          Covers {margin.counted} of {margin.total} live placements. The rest are missing a rate.
+        </p>
       )}
 
       {unsigned.length > 0 && (
@@ -261,13 +256,9 @@ export default async function ConsoleMoney() {
         </div>
       </div>
       {sum.draftCount > 0 && (
-        <div style={{ margin: '-8px 0 20px' }}>
-          <Explain>
-            {money(sum.draftCents)} is drafted and has not been sent to anybody. Drafts are
-            not counted as owed, because nobody has been asked for them yet. Choose <b>Send</b>
-            and the client is emailed it, with a pay link; autopay collects it if they have a payment method on file.
-          </Explain>
-        </div>
+        <p className="small muted" style={{ margin: '-8px 0 20px' }}>
+          {money(sum.draftCents)} drafted, not sent, so not counted as owed.
+        </p>
       )}
 
       {/* ---------- money out ---------- */}
@@ -298,13 +289,6 @@ export default async function ConsoleMoney() {
           </p>
         ) : (
           <>
-            <div style={{ marginBottom: 16 }}>
-              <Explain>
-                Relève sends this money itself, in US dollars. The app records what was owed, what was
-                sent, any fee and what landed, so a question in six months has an answer rather than
-                a search through a bank statement. A first or final month is paid by the day.
-              </Explain>
-            </div>
             <WiseBatch count={wiseReady.length} skipped={wiseSkipped} />
             {duePayments.map(p => (
               <div key={p.id} style={{ padding: '14px 0', borderBottom: '1px solid var(--line)' }}>
@@ -372,12 +356,6 @@ export default async function ConsoleMoney() {
               ))}
             </tbody>
           </table>
-          <div style={{ marginTop: 14 }}>
-            <Explain>
-              The deposit is credited against the client&rsquo;s first monthly invoice. Any amount it does
-              not cover carries to the next one, and voiding an invoice gives the credit back.
-            </Explain>
-          </div>
         </div>
       )}
 
@@ -418,12 +396,6 @@ export default async function ConsoleMoney() {
             </tbody>
           </table>
         )}
-        <div style={{ marginTop: 14 }}>
-          <Explain>
-            This is what the client pays Relève. What the talent is paid is set on each
-            placement file and never appears on anything a client can open. {NOTICE_TERMS}
-          </Explain>
-        </div>
       </div>
 
       <div className="card">
@@ -435,13 +407,6 @@ export default async function ConsoleMoney() {
         ) : (
           <InvoiceTable invoices={invoices} stripeOn={stripeReady()} methods={Object.fromEntries(methods)} owner={owner} />
         )}
-        <div style={{ marginTop: 14, maxWidth: 640 }}>
-          <Explain>
-            {stripeReady()
-              ? <>Charging submits a bank debit against the mandate that executive set up. It does not mark anything paid: bank transfers take a few days, and Stripe telling us the money landed is the only thing that moves an invoice to paid. A debit can also fail after being accepted, which is why <b>Failed</b> exists and puts it back on this list with the reason. Marking paid or void by hand, changing an amount and refunds are the owner&rsquo;s.</>
-              : <>Payments are not switched on yet. These are records: you collect however you already do, and the owner marks them paid when the money lands.</>}
-          </Explain>
-        </div>
       </div>
     </Shell>
   );

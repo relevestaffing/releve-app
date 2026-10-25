@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { currentProfile } from '@/lib/supabase/server';
 import { alertsFor, getPlacement, listCheckins, listNotes, listTasks, weekEnding } from '@/lib/work';
 import { listInterviews } from '@/lib/store';
+import { listLogs } from '@/lib/experience';
 import Shell from '@/components/Shell';
 import NoteAdder from '@/components/NoteAdder';
 import FeedbackWriter from '@/components/FeedbackWriter';
@@ -35,7 +36,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
   if (!p) redirect('/console/placements');
 
   const week = weekEnding();
-  const [tasks, checkins, notes, interviews, steps, feedback, pulse, off] = await Promise.all([
+  const [tasks, checkins, notes, interviews, steps, feedback, pulse, off, allLogs] = await Promise.all([
     listTasks(id),
     listCheckins({ talentId: p.talent_id, limit: 20 }),
     listNotes(id),
@@ -44,12 +45,19 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
     feedbackFor(p.talent_id),
     pulseFor(id),
     timeOffFor(id),
+    /* The end-of-day report. Talent have been filing these since the
+       experience layer went in and nothing in the console ever read them,
+       so the one daily signal about how the work is actually going was
+       visible to everybody except the person running the business.
+       (Sage, 25 October 2026.) */
+    listLogs(p.talent_id, 30).catch(() => []),
   ]);
   const team = await teamRoles();
   const terms = await termsFor(id);
   const mine = checkins.filter(c => c.placement_id === id);
   const alerts = alertsFor({ tasks, checkins: mine, startedOn: p.started_on, thisWeek: week });
   const open = tasks.filter(t => !t.done);
+  const logs = allLogs.filter(l => l.placement_id === id);
   const daysIn = Math.floor((Date.now() - new Date(p.started_on + 'T00:00:00').getTime()) / 86400000);
 
   return (
@@ -151,7 +159,29 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>Check-in history</h3></div>
+        <div className="card-head"><h3>End of day</h3>
+          <span className="pill">{logs.length ? `Last ${logs.length}` : 'None yet'}</span></div>
+        {logs.length === 0 ? (
+          <div className="empty"><span className="tick" />
+            <p className="small">Nothing filed yet. They write these from their own account.</p></div>
+        ) : logs.map(l => (
+          <div key={l.id} className="checkin">
+            <div className="row between" style={{ marginBottom: 6 }}>
+              <b>{day(l.log_date)}</b>
+              {l.hours != null && <span className="xs muted">{l.hours}h</span>}
+            </div>
+            {l.done_text && <p className="small">{l.done_text}</p>}
+            {l.blockers && <p className="small"><span className="muted">In the way: </span>{l.blockers}</p>}
+            {l.highlight && (
+              <p className="small"><span className="muted">Highlight: </span>{l.highlight}
+                {l.share_highlight && <span className="muted"> · shared with the executive</span>}</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        <div className="card-head"><h3>End of week</h3></div>
         {mine.length === 0 ? (
           <div className="empty"><span className="tick" /><p className="small">Nothing filed yet.</p></div>
         ) : mine.map(c => (

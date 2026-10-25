@@ -15,7 +15,6 @@ import { watchStep } from '@/lib/setup';
 import Shell from '@/components/Shell';
 import { Radar, AxisBars, Portrait } from '@/components/Viz';
 import PaySetter from '@/components/PaySetter';
-import Explain from '@/components/Explain';
 import OnboardingStatus from '@/components/OnboardingStatus';
 
 export const dynamic = 'force-dynamic';
@@ -138,13 +137,6 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
                   <ul className="plain">{lines.map(l => <li key={l} className="small">{l}</li>)}</ul>
                 </>
               )}
-              {sig.validity?.flags?.length ? (
-                <div style={{ marginTop: 12 }}>
-                  <Explain>
-                    {sig.validity.flags.map((f: any) => `${f.k}: ${f.v}. ${f.d}`).join(' ')}
-                  </Explain>
-                </div>
-              ) : null}
             </>
           )}
         </div>

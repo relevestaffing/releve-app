@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { cleanupRows, listArchived, archivingIsLive } from '@/lib/archive';
 import Shell from '@/components/Shell';
-import Explain from '@/components/Explain';
 import Cleanup from '@/components/Cleanup';
 
 /* always read live data — never serve a cached copy of someone's account */
@@ -30,15 +29,6 @@ export default async function CleanupPage() {
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/cleanup"
       title="Tidy up" crumb="Archive or remove people">
 
-      <div style={{ marginBottom: 22 }}>
-        <Explain>
-          Archiving is the everyday one: they come off every list, count and alert, and
-          everything they did stays on file and can be put back. Removing is for rows
-          with nothing worth keeping, like a test account or an invitation nobody took
-          up. It erases the account and cannot be undone, so anyone with a placement,
-          an invoice out and unpaid, or money still owed is held back until that is settled.
-        </Explain>
-      </div>
 
       {!configured() && (
         <div className="card tight" style={{ marginBottom: 22 }}>
