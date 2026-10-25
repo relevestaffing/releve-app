@@ -83,14 +83,14 @@ export default async function ConsoleInterviews({ searchParams }: {
   }
 
   return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/matching" title="Matching"
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting" title="Recruiting"
       crumb={upcoming.length ? `${upcoming.length} coming up` : 'Every account'}
       action={<span className={`pill ${zoomConfigured() ? 'good' : 'warn'}`}><span className="dot" />
         {zoomConfigured() ? 'Zoom connected' : 'Zoom not connected'}</span>}>
       <ConsoleTabs active="/console/interviews" items={[
-        { href: '/console/matching', label: 'Matching' },
+        { href: '/console/applications', label: 'Applications' },
         { href: '/console/interviews', label: 'Interviews' },
-        { href: '/console/offers', label: 'Offers' }
+        { href: '/console/postings', label: 'Postings' }
       ]} />
 
       <div className="grid-4">

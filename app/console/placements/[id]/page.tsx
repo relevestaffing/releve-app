@@ -188,10 +188,11 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
           <div key={c.id} className={`checkin ${c.needs_attention ? 'flagged' : ''}`}>
             <div className="row between" style={{ marginBottom: 6 }}>
               <b>{day(c.week_ending)}</b>
-              <span className="xs muted">rapport {c.rapport ?? '–'}/5 · workload {c.workload ?? '–'}</span>
+              {c.hours != null && <span className="xs muted">{c.hours}h</span>}
             </div>
-            {c.shipped && <p className="small"><span className="muted">Shipped: </span>{c.shipped}</p>}
-            {c.blocked && <p className="small"><span className="muted">Blocked: </span>{c.blocked}</p>}
+            {c.shipped && <p className="small"><span className="muted">Accomplished: </span>{c.shipped}</p>}
+            {c.win && <p className="small"><span className="muted">Win: </span>{c.win}</p>}
+            {c.blocked && <p className="small"><span className="muted">Concerns: </span>{c.blocked}</p>}
             {c.note && <p className="small"><span className="muted">Private: </span>{c.note}</p>}
           </div>
         ))}

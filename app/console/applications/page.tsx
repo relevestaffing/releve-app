@@ -32,6 +32,7 @@ export default async function Applications() {
       title="Recruiting" crumb={yours ? `${yours} waiting on you` : 'Everyone who applied'}>
       <ConsoleTabs active="/console/applications" items={[
         { href: '/console/applications', label: 'Applications', count: yours },
+        { href: '/console/interviews', label: 'Interviews' },
         { href: '/console/postings', label: 'Postings' }
       ]} />
 

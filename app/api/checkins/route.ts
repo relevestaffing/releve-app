@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  if (me.role !== 'talent') return NextResponse.json({ error: 'check-ins are filed by talent' }, { status: 403 });
+  if (me.role !== 'talent') return NextResponse.json({ error: 'the end-of-week report is filed by talent' }, { status: 403 });
   const b = await req.json();
   if (!b.placement_id) return NextResponse.json({ error: 'which placement?' }, { status: 400 });
   try {
@@ -25,6 +25,10 @@ export async function POST(req: Request) {
       talent_id: me.id,
       week_ending: b.week_ending || weekEnding(),
       shipped: b.shipped, blocked: b.blocked,
+      hours: b.hours == null || b.hours === '' ? null : Number(b.hours),
+      win: b.win,
+      /* No longer asked for. Kept so an older client that still sends them
+         does not lose what it sent. */
       rapport: b.rapport ? Number(b.rapport) : null,
       workload: b.workload, note: b.note
     });
@@ -33,7 +37,7 @@ export async function POST(req: Request) {
     const blocked = String(b.blocked ?? '').trim();
     const flagged = Boolean(blocked) || Number(b.rating ?? b.rapport ?? 5) <= 2 || b.workload === 'heavy';
     if (flagged) {
-      const why = blocked ? `Blocked: ${blocked}`
+      const why = blocked ? `Concern raised: ${blocked}`
         : b.workload === 'heavy' ? 'Reported the workload as unsustainable'
         : 'Rated the working relationship 2 or below';
       for (const addr of await teamEmails()) {

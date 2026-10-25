@@ -19,7 +19,6 @@ export default async function ConsoleOffers() {
       crumb="Between the interview and the placement">
       <ConsoleTabs active="/console/offers" items={[
         { href: '/console/matching', label: 'Matching' },
-        { href: '/console/interviews', label: 'Interviews' },
         { href: '/console/offers', label: 'Offers' }
       ]} />
       <div className="stack">

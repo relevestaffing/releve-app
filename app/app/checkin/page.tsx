@@ -18,7 +18,7 @@ export default async function CheckinPage() {
   const past = await listCheckins({ talentId: profile.id, limit: 12 });
 
   return (
-    <Shell profile={profile} active="/app/checkin" title="Weekly check-in"
+    <Shell profile={profile} active="/app/checkin" title="End of week report"
       crumb={`Every Friday, to ${WORDS.tsmShort}`}>
       {placements.length === 0 ? (
         <Empty of={EMPTY.checkinUnplaced} />

@@ -122,6 +122,7 @@ export async function saveCheckin(row: {
   placement_id: string; talent_id: string; week_ending: string;
   shipped?: string | null; blocked?: string | null; rapport?: number | null;
   workload?: string | null; note?: string | null;
+  hours?: number | null; win?: string | null;
 }) {
   const sb = await supabaseServer();
   const { error } = await sb.from('checkins').upsert({
@@ -133,6 +134,8 @@ export async function saveCheckin(row: {
     rapport: row.rapport ?? null,
     workload: row.workload || null,
     note: row.note || null,
+    hours: row.hours ?? null,
+    win: row.win || null,
     submitted_at: new Date().toISOString()
   }, { onConflict: 'placement_id,week_ending' });
   if (error) throw new Error(error.message);

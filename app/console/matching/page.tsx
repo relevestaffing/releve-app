@@ -45,7 +45,6 @@ export default async function Matching({ searchParams }: {
       crumb="Nobody to match yet">
       <ConsoleTabs active="/console/matching" items={[
         { href: '/console/matching', label: 'Matching' },
-        { href: '/console/interviews', label: 'Interviews' },
         { href: '/console/offers', label: 'Offers' }
       ]} />
       <div className="card tight">
@@ -68,7 +67,6 @@ export default async function Matching({ searchParams }: {
       action={picker}>
       <ConsoleTabs active="/console/matching" items={[
         { href: '/console/matching', label: 'Matching' },
-        { href: '/console/interviews', label: 'Interviews' },
         { href: '/console/offers', label: 'Offers' }
       ]} />
       <div className="card tight">
@@ -122,7 +120,6 @@ export default async function Matching({ searchParams }: {
 
       <ConsoleTabs active="/console/matching" items={[
         { href: '/console/matching', label: 'Matching' },
-        { href: '/console/interviews', label: 'Interviews' },
         { href: '/console/offers', label: 'Offers' }
       ]} />
 

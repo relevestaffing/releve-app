@@ -334,13 +334,13 @@ const rawTemplates = {
   }),
 
   checkinNudge: (name: string) => ({
-    subject: 'Your week, in two minutes',
-    text: `${name},\n\nIt is Friday. Your weekly check-in takes about two minutes: what got done, what is in the way, and how the working relationship feels.\n\n${SITE}/app/checkin\n\nThis goes to us, never to the executive. Say what is actually true. It is the only way we can help.\n\nRelève`,
-    html: shell('How was your week?',
+    subject: 'Your end-of-week report',
+    text: `${name},\n\nIt is Friday. Four things, about two minutes: your hours, the tasks you accomplished, a win from the week, and any concerns.\n\n${SITE}/app/checkin\n\nThis goes to us, never to the executive. Say what is actually true. It is the only way we can help.\n\nRelève`,
+    html: shell('Your end-of-week report',
       p(`${name},`) +
-      p('Two minutes: what got done, what is in the way, and how the working relationship feels.') +
+      p('Four things, about two minutes: your hours, the tasks you accomplished, a win from the week, and any concerns.') +
       p('<b>This comes to us, never to the executive.</b> Say what is actually true. It is the only way we can be useful to you.'),
-      { label: 'File your check-in', href: `${SITE}/app/checkin` })
+      { label: 'File your report', href: `${SITE}/app/checkin` })
   }),
 
   vettingVerified: (name: string) => ({

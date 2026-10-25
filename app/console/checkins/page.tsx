@@ -29,9 +29,9 @@ export default async function ConsoleCheckins() {
       ]} />
 
       <div className="grid-3">
-        <div className="card stat"><div className="eyebrow">In this week</div>
+        <div className="card stat"><div className="eyebrow">Filed this week</div>
           <div className="score">{thisWeek.length}<span className="of">/{placements.length}</span></div></div>
-        <div className="card stat"><div className="eyebrow">Needs attention</div>
+        <div className="card stat"><div className="eyebrow">With a concern</div>
           <div className="score">{attention.filter(c => c.week_ending === week).length}</div></div>
         <div className="card stat"><div className="eyebrow">Still to come</div>
           <div className="score">{missing.length}</div></div>
@@ -62,12 +62,13 @@ export default async function ConsoleCheckins() {
               <div className="row between" style={{ marginBottom: 8 }}>
                 <b>{p?.talent_name ?? 'Talent'}</b>
                 <span className="xs muted">
-                  with {p?.client_name ?? '·'} · rapport {c.rapport ?? '·'}/5 · {c.workload ?? '·'}
-                  {c.needs_attention && <span className="pill crit" style={{ marginLeft: 10 }}>Attention</span>}
+                  with {p?.client_name ?? '·'}{c.hours != null ? ` · ${c.hours}h` : ''}
+                  {c.needs_attention && <span className="pill crit" style={{ marginLeft: 10 }}>Needs a look</span>}
                 </span>
               </div>
-              {c.shipped && <p className="small"><span className="muted">Shipped: </span>{c.shipped}</p>}
-              {c.blocked && <p className="small"><span className="muted">Blocked: </span>{c.blocked}</p>}
+              {c.shipped && <p className="small"><span className="muted">Accomplished: </span>{c.shipped}</p>}
+              {c.win && <p className="small"><span className="muted">Win: </span>{c.win}</p>}
+              {c.blocked && <p className="small"><span className="muted">Concerns: </span>{c.blocked}</p>}
               {c.note && <p className="small"><span className="muted">Private: </span>{c.note}</p>}
             </div>
           );

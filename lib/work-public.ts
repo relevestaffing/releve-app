@@ -31,6 +31,7 @@ export type Placement = {
 export type Checkin = {
   id: string; placement_id: string; talent_id: string; week_ending: string;
   shipped: string | null; blocked: string | null; rapport: number | null;
+  hours: number | null; win: string | null;
   workload: 'light' | 'right' | 'heavy' | null; note: string | null;
   needs_attention: boolean; submitted_at: string;
 };

@@ -69,7 +69,7 @@ const NAV: Record<string, NavGroup[]> = {
       { href: '/app/tasks', label: 'Tasks' },
       { href: '/app/log', label: 'Daily Log' },
       { href: '/app/brief', label: 'Your Briefing' },
-      { href: '/app/checkin', label: 'Weekly Check-in' },
+      { href: '/app/checkin', label: 'End of Week Report' },
       { href: '/app/pay', label: 'Your Pay' }
     ]},
     { items: [{ href: '/app/messages', label: 'Messages' }] }

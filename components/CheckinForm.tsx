@@ -5,31 +5,43 @@ import type { Checkin, Placement } from '@/lib/work-public';
 import { saving } from './Toast';
 import { firstName } from '@/lib/words';
 
+/* The end-of-week report (Sage, 25 October 2026).
+   ----------------------------------------------
+   This replaced the weekly check-in, which asked how the week felt: a
+   1-to-5 score on the working relationship and a pick between light, right
+   and heavy. Those measured a mood. What Relève needs on a Friday is what
+   the week actually contained, so the four questions are now hours, tasks,
+   a win, and anything concerning them. The concern is what raises a hand,
+   and a win is worth asking for on its own: it is the thing most likely to
+   go unsaid and the thing an executive most wants to hear. */
 export default function CheckinForm({ placement, week, existing }: {
   placement: Placement; week: string; existing: Checkin | null;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [rapport, setRapport] = useState<number>(existing?.rapport ?? 4);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     setBusy(true);
+    const raw = String(f.get('hours') ?? '').trim();
     const ok = await saving(() => fetch('/api/checkins', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         placement_id: placement.id, week_ending: week,
-        shipped: f.get('shipped'), blocked: f.get('blocked'),
-        rapport, workload: f.get('workload'), note: f.get('note')
+        hours: raw === '' ? null : Number(raw),
+        shipped: f.get('shipped'),
+        win: f.get('win'),
+        blocked: f.get('blocked')
       })
-    }), existing ? 'Check-in updated' : 'Check-in sent to Relève');
+    }), existing ? 'Report updated' : 'Report sent to Relève');
     setBusy(false);
     if (ok) router.refresh();
   }
 
   const friday = new Date(week + 'T00:00:00')
     .toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+  const id = (k: string) => `eow-${k}-${placement.id}`;
 
   return (
     <form onSubmit={submit}>
@@ -42,40 +54,28 @@ export default function CheckinForm({ placement, week, existing }: {
         </div>
         <p className="small muted" style={{ marginBottom: 22 }}>
           This goes to your Talent Success Manager at Relève, not to {firstName(placement.client_name)}.
-          Say what is actually true; that is the only way we can help. Your day-to-day notes and the
-          highlights you share with {firstName(placement.client_name)} live in your <a href="/app/log">daily log</a>.
         </p>
 
-        <div className="ff"><label htmlFor={`ci-shipped-${placement.id}`}>What got done this week</label>
-          <textarea id={`ci-shipped-${placement.id}`} name="shipped" rows={3} defaultValue={existing?.shipped ?? ''}
-            placeholder="The board pack, the inbox back to zero, the new supplier onboarded." /></div>
-
-        <div className="ff"><label htmlFor={`ci-blocked-${placement.id}`}>What is in the way</label>
-          <textarea id={`ci-blocked-${placement.id}`} name="blocked" rows={3} defaultValue={existing?.blocked ?? ''}
-            placeholder="Anything you are waiting on, unclear about, or stuck behind. Leave empty if nothing." /></div>
-
-        <div className="ff"><span className="label-like" id={`ci-rap-${placement.id}`}>How the working relationship feels</span>
-          <div className="rapport" role="group" aria-labelledby={`ci-rap-${placement.id}`}>
-            {[1, 2, 3, 4, 5].map(n => (
-              <button type="button" key={n} className={rapport === n ? 'on' : ''}
-                onClick={() => setRapport(n)} aria-label={`${n} out of 5`} aria-pressed={rapport === n}>{n}</button>
-            ))}
-            <span className="xs muted">{['', 'Difficult', 'Strained', 'Fine', 'Good', 'Excellent'][rapport]}</span>
-          </div>
+        <div className="ff" style={{ maxWidth: 220 }}>
+          <label htmlFor={id('hours')}>Hours worked this week</label>
+          <input id={id('hours')} name="hours" type="number" min="0" max="168" step="0.5"
+            inputMode="decimal" defaultValue={existing?.hours ?? ''} placeholder="40" />
         </div>
 
-        <div className="ff" style={{ maxWidth: 320 }}><label htmlFor={`ci-load-${placement.id}`}>Workload</label>
-          <select id={`ci-load-${placement.id}`} name="workload" defaultValue={existing?.workload ?? 'right'}>
-            <option value="light">Lighter than I could take</option>
-            <option value="right">About right</option>
-            <option value="heavy">Heavier than is sustainable</option>
-          </select></div>
+        <div className="ff"><label htmlFor={id('shipped')}>Tasks accomplished</label>
+          <textarea id={id('shipped')} name="shipped" rows={4} defaultValue={existing?.shipped ?? ''}
+            placeholder="The board pack, the inbox back to zero, the new supplier onboarded." /></div>
 
-        <div className="ff"><label htmlFor={`ci-note-${placement.id}`}>Anything else for Relève <span className="muted">(private)</span></label>
-          <textarea id={`ci-note-${placement.id}`} name="note" rows={2} defaultValue={existing?.note ?? ''} /></div>
+        <div className="ff"><label htmlFor={id('win')}>A win from the week</label>
+          <textarea id={id('win')} name="win" rows={2} defaultValue={existing?.win ?? ''}
+            placeholder="One thing that went well, however small." /></div>
+
+        <div className="ff"><label htmlFor={id('blocked')}>Any concerns</label>
+          <textarea id={id('blocked')} name="blocked" rows={3} defaultValue={existing?.blocked ?? ''}
+            placeholder="Anything you are waiting on, unclear about, or worried about. Leave empty if there are none." /></div>
 
         <button className="btn solid" disabled={busy}>
-          {busy ? 'Sending…' : existing ? 'Update this week' : 'Send check-in'}
+          {busy ? 'Sending…' : existing ? 'Update this week' : 'Send the report'}
         </button>
       </div>
     </form>
