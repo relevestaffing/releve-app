@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import Files from '@/components/Files';
+import { listDocuments } from '@/lib/documents';
 import { redirect, notFound } from 'next/navigation';
 import { currentProfile } from '@/lib/supabase/server';
 import { listClients, getSearch, getSelfProfile, getAvailability } from '@/lib/store';
@@ -31,14 +33,15 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
 
   /* Nothing here is worth failing the page over: a record that shows the
      account with one empty card beats a record that will not open. */
-  const [brief, sig, self, avail, invoices, places, agreement] = await Promise.all([
+  const [brief, sig, self, avail, invoices, places, agreement, docs] = await Promise.all([
     getSearch(id).catch(() => null),
     signatureOf(id, 'client').catch(() => null),
     getSelfProfile(id).catch(() => ({} as any)),
     getAvailability(id, '').catch(() => ({ timezone: null, windows: [] } as any)),
     listInvoicesFor(id).catch(() => []),
     listAllPlacements().catch(() => []),
-    getClientAgreement(id).catch(() => null)
+    getClientAgreement(id).catch(() => null),
+    listDocuments('person', id).catch(() => [])
   ]);
 
   const mine = places.filter(p => p.client_id === id);
@@ -108,6 +111,8 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
           </table>
         )}
       </div>
+
+      <Files kind="person" ownerId={id} docs={docs} />
 
       <div className="card">
         <div className="card-head"><h3>Invoices</h3>

@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import Files from '@/components/Files';
+import { listDocuments } from '@/lib/documents';
 import { redirect } from 'next/navigation';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { signatureOf, archetype, dispositionLine } from '@/lib/data';
@@ -225,6 +227,8 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           </div>
         )}
       </div>
+
+      <Files kind="person" ownerId={id} docs={await listDocuments('person', id).catch(() => [])} />
 
       <div className="grid-2">
         <div className="card">

@@ -2,22 +2,26 @@ import Link from 'next/link';
 import ConsoleTabs from './ConsoleTabs';
 import { vettingQueue } from '@/lib/work';
 import { watchReviewQueue } from '@/lib/watch';
+import { listProspects } from '@/lib/prospects';
 
 /* Executives and Talent are the Directory. Verification and Taking The Watch
    are not directories at all, they are queues that fill up and wait on a
    decision, so they appear here only while something is in them and nowhere
    at all while they are empty. Tidy up is occasional and sits on the end. */
-export default async function DirectoryTabs({ active }: { active: 'executives' | 'talent' }) {
+export default async function DirectoryTabs({ active }: { active: 'prospects' | 'executives' | 'talent' }) {
   /* A queue that cannot be read must not take the Directory down with it. */
-  const [vet, watch] = await Promise.all([
+  const [vet, watch, prospects] = await Promise.all([
     vettingQueue().catch(() => [] as unknown[]),
-    watchReviewQueue().catch(() => [] as unknown[])
+    watchReviewQueue().catch(() => [] as unknown[]),
+    listProspects().catch(() => [])
   ]);
+  const live = prospects.filter(p => !['won', 'lost'].includes(p.stage)).length;
 
   return (
     <ConsoleTabs
-      active={active === 'executives' ? '/console/people' : '/console/bench'}
+      active={active === 'prospects' ? '/console/prospects' : active === 'executives' ? '/console/people' : '/console/bench'}
       items={[
+        { href: '/console/prospects', label: 'Prospects', count: live },
         { href: '/console/people', label: 'Executives' },
         { href: '/console/bench', label: 'Talent' }
       ]}

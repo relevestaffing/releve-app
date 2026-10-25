@@ -40,7 +40,9 @@ async function clientOnboarding(clientId: string) {
   });
 }
 
-export default async function People() {
+export default async function People({ searchParams }: { searchParams: Promise<{ onboard?: string; name?: string }> }) {
+  const q = await searchParams;
+  const prefill = q.onboard ? { email: q.onboard, name: q.name ?? '' } : null;
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
@@ -56,7 +58,7 @@ export default async function People() {
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Executives">
       <DirectoryTabs active="executives" />
-      <OnboardingSender />
+      <OnboardingSender prefill={prefill} />
 
       <div className="card">
         <div className="card-head"><h3>Executive accounts</h3>

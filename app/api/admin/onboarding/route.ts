@@ -5,6 +5,7 @@ import { SITE } from '@/lib/stripe';
 import { depositLinkReady, signDepositLink } from '@/lib/deposit-link';
 import { safeMessage } from '@/lib/errors';
 import { firstName } from '@/lib/words';
+import { markProspectWon } from '@/lib/prospects';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,6 +107,8 @@ export async function POST(req: Request) {
       searchId = (made as any).id;
       cents = (made as any).deposit_cents ?? 50_000;
     }
+
+    await markProspectWon(email, pendingId);
 
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app/billing`;
     const sent = await send(email, templates.depositReady({

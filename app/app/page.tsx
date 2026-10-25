@@ -213,7 +213,7 @@ export default async function AppHome() {
      what the relationship needs today: what is waiting on you, what your
      talent is working on, and a fast way to reach them. The talent side is
      unchanged below — this split only applies to the client dashboard. */
-  const manager = stage.placed || side === 'talent' ? await primaryManager(profile) : null;
+  const manager = await primaryManager(profile);
 
   if (side === 'client') {
     /* Waiting on the executive means a candidate is in front of them with no
@@ -235,13 +235,18 @@ export default async function AppHome() {
           <div className="empty"><span className="tick" />
             <p className="small">Nothing waiting on you right now.</p></div>
         ) : !current ? (
-          <div className="row between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
-            <p className="small" style={{ margin: 0, maxWidth: 520 }}>
+          <div>
+            <p className="small" style={{ margin: '0 0 16px', maxWidth: 520 }}>
               {declinedAll
-                ? 'Thank you for telling us why that one was not right. It is exactly how the next match gets sharper. Your Client Success Manager is choosing the next candidate now.'
-                : 'Your Signature is done, and your Client Success Manager is working the search now. We put one person forward by hand rather than sending you a directory: a qualified candidate within fourteen days of the search opening.'}
+                ? 'Thank you for telling us why that one was not right. It is exactly how the next match gets sharper. The next candidate is being chosen now.'
+                : 'Your Signature is done and the search is open. We put one person forward by hand rather than sending you a directory: a qualified candidate within fourteen days.'}
             </p>
-            <Link className="btn sm solid" href="/app/messages?tab=sm">Message your manager</Link>
+            {manager && <ManagerLine manager={manager} />}
+            <div className="row" style={{ gap: 10, marginTop: 16 }}>
+              <Link className="btn sm solid" href="/app/messages?tab=sm">
+                Message {manager?.id ? manager.name.split(' ')[0] : 'Relève'}
+              </Link>
+            </div>
           </div>
         ) : (
           <>
@@ -402,7 +407,7 @@ export default async function AppHome() {
         </div>
       )}
 
-      {placements.length > 0 && manager && (
+      {manager && (
         <div className="card">
           <div className="card-head"><h3>Your Talent Success Manager</h3></div>
           <ManagerLine manager={manager} />

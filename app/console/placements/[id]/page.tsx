@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation';
+import Files from '@/components/Files';
+import { listDocuments } from '@/lib/documents';
 import Link from 'next/link';
 import { currentProfile } from '@/lib/supabase/server';
 import { alertsFor, getPlacement, listCheckins, listNotes, listTasks, weekEnding } from '@/lib/work';
@@ -252,6 +254,8 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
         minimumEnds={terms?.minimum_ends ?? null} startedOn={p.started_on} />
 
       <FirstFortnight steps={steps} startedOn={p.started_on} side="admin" today={todayIn('America/Los_Angeles')} />
+
+      <Files kind="placement" ownerId={id} docs={await listDocuments('placement', id).catch(() => [])} />
 
       <div className="card">
         <div className="card-head"><h3>Your file</h3><span className="pill">{notes.length}</span></div>

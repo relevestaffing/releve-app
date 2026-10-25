@@ -55,8 +55,30 @@ export async function myManagers(profile: Profile): Promise<Manager[]> {
   } catch { return []; }
 }
 
+/** Before a placement exists nobody is assigned, and the screen used to say
+    "The Relève team". A person who has just paid a deposit and is waiting
+    deserves a name and a face, so the owner stands in: in the first months
+    that is Sage for everyone, which is also the truth. Service role, because
+    a client's session cannot read a team member's row. (25 October 2026.) */
+export async function ownerAsManager(side: 'client' | 'talent'): Promise<Manager | null> {
+  const sv = serviceClient();
+  if (!sv) return null;
+  try {
+    const { data: o } = await sv.from('team_roles').select('user_id')
+      .eq('team_role', 'owner').order('added_at', { ascending: true }).limit(1).maybeSingle();
+    const id = (o as any)?.user_id as string | undefined;
+    if (!id) return null;
+    const { data: p } = await sv.from('profiles').select('full_name, photo_url').eq('id', id).maybeSingle();
+    const name = String((p as any)?.full_name ?? '').trim();
+    if (!name || name.includes('@')) return null;
+    return { placement_id: null, id, name, title: titleFor(side),
+             photo: (p as any)?.photo_url ? `/api/manager-photo?u=${id}` : null };
+  } catch { return null; }
+}
+
 /** One manager to name on a screen that is not about a specific placement
-    (the Messages page, the dashboard): the first assigned one, or the team. */
+    (the Messages page, the dashboard): the first assigned one, then the
+    owner, then the team. */
 export async function primaryManager(profile: Profile, placementId?: string | null): Promise<Manager> {
   const side = profile.role === 'client' ? 'client' : 'talent';
   const all = await myManagers(profile);
@@ -64,7 +86,7 @@ export async function primaryManager(profile: Profile, placementId?: string | nu
     const hit = all.find(m => m.placement_id === placementId);
     if (hit) return hit;
   }
-  return all[0] ?? fallbackManager(side, placementId ?? null);
+  return all[0] ?? (await ownerAsManager(side)) ?? fallbackManager(side, placementId ?? null);
 }
 
 /** Who should hear that this person wrote in: their assigned manager(s),

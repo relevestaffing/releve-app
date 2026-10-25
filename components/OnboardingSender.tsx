@@ -10,10 +10,10 @@ import { firstName } from '@/lib/words';
    them the deposit link along with the account link, in one motion. The
    role brief and everything else can be filled in afterwards, from their
    row below; nothing here waits on it. */
-export default function OnboardingSender() {
+export default function OnboardingSender({ prefill }: { prefill?: { name: string; email: string } | null } = {}) {
   const fid = useId();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(prefill));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -66,8 +66,8 @@ export default function OnboardingSender() {
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>
-          <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="name" required placeholder="Elena Marsh" /></div>
-          <div className="ff"><label htmlFor={`${fid}-2`}>Email</label><input id={`${fid}-2`} name="email" type="email" required placeholder="elena@marshco.com" /></div>
+          <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="name" required placeholder="Elena Marsh" defaultValue={prefill?.name ?? ''} /></div>
+          <div className="ff"><label htmlFor={`${fid}-2`}>Email</label><input id={`${fid}-2`} name="email" type="email" required placeholder="elena@marshco.com" defaultValue={prefill?.email ?? ''} /></div>
         </div>
         <div className="ff"><label htmlFor={`${fid}-3`}>Client agreement signing link (optional)</label>
           <input id={`${fid}-3`} name="docs_url" type="url" placeholder="Paste the DocuSign signing link if you have it, or leave blank and send it separately" /></div>

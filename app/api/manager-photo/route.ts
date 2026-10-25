@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
-import { myManagers, serviceClient } from '@/lib/experience';
+import { ownerAsManager, myManagers, serviceClient } from '@/lib/experience';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +25,9 @@ export async function GET(req: Request) {
     sb = await supabaseServer();
   } else {
     const mine = await myManagers(me);
-    if (!mine.some(m => m.id === who)) return NextResponse.json({ error: 'no such photo' }, { status: 404 });
+    const owner = mine.some(m => m.id === who) ? null : await ownerAsManager(me.role === 'client' ? 'client' : 'talent');
+    if (!mine.some(m => m.id === who) && owner?.id !== who)
+      return NextResponse.json({ error: 'no such photo' }, { status: 404 });
     sb = serviceClient();
   }
   if (!sb) return NextResponse.json({ error: 'no such photo' }, { status: 404 });
