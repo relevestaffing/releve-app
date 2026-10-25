@@ -172,7 +172,7 @@ export default async function ConsoleMoney() {
 
   return (
     <Shell profile={profile} active="/console/money" title="Billing"
-      crumb="Deposits, rates and invoices"
+      crumb="What comes in, what goes out"
       action={<RunTheMonth month={thisMonth} previous={lastMonth} />}>
 
       {/* Gross, cost, net. The first two were on separate pages and the third
@@ -204,10 +204,8 @@ export default async function ConsoleMoney() {
       {unsigned.length > 0 && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>{unsigned.length === 1 ? 'One live placement is' : `${unsigned.length} live placements are`} billing without a signed
-            Client Services Agreement:</b>{' '}
+            <b>Billing without a signed agreement:</b>{' '}
             {unsigned.map((p, i) => <span key={p.id}>{i ? ', ' : ''}{p.org_name ?? p.client_name}</span>)}.
-            Send it from Executives before the next invoice goes out.
           </p>
         </div>
       )}
@@ -216,21 +214,19 @@ export default async function ConsoleMoney() {
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn)' }}>
           {paused.length > 0 && (
             <p className="small" style={{ margin: '0 0 6px' }}>
-              <b>{paused.length} placement{paused.length === 1 ? ' is' : 's are'} paused</b> for an invoice open fourteen days:{' '}
+              <b>Paused, invoice open fourteen days:</b>{' '}
               {paused.map((p, i) => <span key={p.id}>{i ? ', ' : ''}<Link href={`/console/placements/${p.id}`}>{p.org_name ?? p.client_name}</Link></span>)}.
-              Payroll for {paused.length === 1 ? 'it is' : 'them is'} not created while paused, and each resumes on its own the day the invoice is paid.
+              Each resumes the day its invoice is paid.
             </p>
           )}
           {sum.failedCount > 0 && (
             <p className="small" style={{ margin: '0 0 6px' }}>
-              <b>{sum.failedCount} payment{sum.failedCount === 1 ? '' : 's'} did not go through.</b> The client has a banner and an email
-              with a pay link; a retry from the table below also works once they have fixed it.
+              <b>{sum.failedCount} payment{sum.failedCount === 1 ? '' : 's'} did not go through.</b> They have been emailed a pay link.
             </p>
           )}
           {sum.disputedCount > 0 && (
             <p className="small" style={{ margin: 0 }}>
-              <b>{sum.disputedCount} payment{sum.disputedCount === 1 ? ' is' : 's are'} disputed.</b> Respond in the Stripe dashboard
-              with the signed agreement and the invoice document.
+              <b>{sum.disputedCount} payment{sum.disputedCount === 1 ? ' is' : 's are'} disputed.</b> Respond in Stripe.
             </p>
           )}
         </div>
@@ -238,10 +234,6 @@ export default async function ConsoleMoney() {
 
       <h3 className="section-h">Money in</h3>
       <div className="money-strip">
-        <div className="money-stat">
-          <div className="n">{money(sum.monthlyRunRateCents)}</div>
-          <div className="k">Monthly run rate</div>
-        </div>
         <div className="money-stat">
           <div className="n">{money(sum.outstandingCents)}</div>
           <div className="k">Asked for · {sum.unpaidCount}</div>

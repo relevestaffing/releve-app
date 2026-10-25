@@ -1,4 +1,5 @@
 import { zoneLabel } from '@/lib/words';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { listClients, getSearch, getAvailability, getSelfProfile } from '@/lib/store';
@@ -79,7 +80,9 @@ export default async function People() {
           <div className="client-row" key={client.key}>
             <div className="row between" style={{ gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
               <div>
-                <b>{client.full_name}</b>
+                {client.signed_in
+                  ? <Link href={`/console/executive/${client.key}`}><b>{client.full_name}</b></Link>
+                  : <b>{client.full_name}</b>}
                 <div className="small muted">
                   {[client.org_name, client.email, zoneLabel(client.timezone)].filter(Boolean).join(' · ')}
                 </div>
