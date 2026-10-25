@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { configured } from '@/lib/supabase/server';
 import { saveCalendar } from '@/lib/store';
 import { send, templates } from '@/lib/email';
+import { noteSigninTrouble } from '@/lib/signin-watch';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,10 @@ export async function GET(request: NextRequest) {
   );
 
   const { data: session, error } = await sb.auth.exchangeCodeForSession(code);
-  if (error) return fail(error.message);
+  if (error) {
+    await noteSigninTrouble({ stage: 'exchange', detail: error.message });
+    return fail(error.message);
+  }
 
   const { data: { user } } = await sb.auth.getUser();
   if (user) {
@@ -64,7 +68,7 @@ export async function GET(request: NextRequest) {
          session and sends them back to /app — a loop with no way out. Better
          to say so once than to bounce someone forever. */
       if (made) {
-        console.error('[auth] could not create the profile row:', made.message);
+        await noteSigninTrouble({ email: user.email, stage: 'profile_create', detail: made.message });
         return fail('Your account could not be set up. Please try again, or write to hello@relevestaffing.com.');
       }
 

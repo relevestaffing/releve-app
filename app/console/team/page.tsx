@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { signinStageLabel } from '@/lib/signin-public';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { auditTrail, TEAM_ROLES } from '@/lib/care';
 import type { TeamRole } from '@/lib/care-public';
@@ -86,20 +87,26 @@ export default async function ConsoleTeam() {
      so a page said "Sent" whether or not anything left the building. */
   let mail: { kind: string; to_addr: string; subject: string; ok: boolean;
               detail: string | null; sent_at: string }[] = [];
+  let signins: { email: string | null; stage: string; detail: string | null; at: string }[] = [];
   let mailEverWorked = false;
   let backup: { last_success: string | null; last_failure: string | null; failed_week: number } | null = null;
   if (configured()) {
     const sb = await supabaseServer();
-    const [{ data: rows }, { data: health }, { data: backupHealth }] = await Promise.all([
+    const [{ data: rows }, { data: health }, { data: backupHealth }, { data: signinRows }] = await Promise.all([
       sb.from('email_log')
         .select('kind, to_addr, subject, ok, detail, sent_at')
         .order('sent_at', { ascending: false }).limit(60),
       sb.from('email_health').select('last_success').maybeSingle(),
-      sb.from('backup_health').select('last_success, last_failure, failed_week').maybeSingle()
+      sb.from('backup_health').select('last_success, last_failure, failed_week').maybeSingle(),
+      /* PART 45. Errors here read as an empty list: a database one migration
+         behind must not take the whole Team page down with it. */
+      sb.from('signin_failures').select('email, stage, detail, at')
+        .order('at', { ascending: false }).limit(40)
     ]);
     mail = (rows ?? []) as typeof mail;
     mailEverWorked = Boolean((health as any)?.last_success);
     backup = (backupHealth as any) ?? null;
+    signins = (signinRows ?? []) as typeof signins;
   }
   const failed = mail.filter(m => !m.ok);
   const backupAge = backup?.last_success
@@ -194,6 +201,43 @@ export default async function ConsoleTeam() {
             deliverability rather than configuration. Check spam first.
           </Explain>
         </div>
+      </div>
+
+      {/* PART 45. The twin of the email log above, and added for the same
+          reason: in October a sign-in refused every invited executive for
+          eleven days and nothing anywhere said so. */}
+      <div className="card">
+        <div className="card-head">
+          <h3>Sign-ins that did not go through</h3>
+          <span className={`pill ${signins.length ? 'warn' : 'good'}`}>
+            {signins.length ? `${signins.length} to look at` : <><span className="dot" />All clear</>}
+          </span>
+        </div>
+        {!signins.length ? (
+          <div className="empty"><span className="tick" />
+            <p className="small">
+              Everyone who has tried to sign in has got in. Anybody who cannot
+              lands here the moment it happens, and the team is emailed once an
+              hour at most.
+            </p>
+          </div>
+        ) : (
+          <table className="data">
+            <thead><tr><th>When</th><th>Who</th><th>Where it stopped</th></tr></thead>
+            <tbody>
+              {signins.map((s, i) => (
+                <tr key={i}>
+                  <td className="xs">{when(s.at)}</td>
+                  <td className="xs">{s.email ?? 'Not known yet'}</td>
+                  <td className="xs">
+                    {signinStageLabel(s.stage)}
+                    {s.detail && <><br /><span className="muted">{s.detail}</span></>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <div className="card">

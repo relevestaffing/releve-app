@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { noteSigninTrouble } from '@/lib/signin-watch';
 import { cookies } from 'next/headers';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
 import { saveSelfProfile, getSelfProfile } from '@/lib/store';
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
        their side for the first time should never see a schema-migration
        instruction; that is a note for whoever operates the console, not
        something they can act on. */
-    console.error('[role] update was ignored. Is PART 7 of schema.sql applied?');
+    await noteSigninTrouble({ email: me.email, stage: 'role_set', detail: 'the role update was accepted and then ignored; check that PART 7 of schema.sql is applied' });
     return NextResponse.json(
       { error: 'Your account could not be set up. Please try again, or write to hello@relevestaffing.com.' },
       { status: 500 });

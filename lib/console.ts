@@ -70,7 +70,7 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const [
     people, vetting, searches, matches, places, terms,
     invoices, checkins, pulses, timeOff, interviews, tasks, threads, decisions, offers,
-    applications, allInv, payouts, payoutDetails, mailHealth, requests
+    applications, allInv, payouts, payoutDetails, mailHealth, requests, signinHealth
   ] = await Promise.all([
     /* Archived people leave every count and every alert on this page. An
        archive that still generated "waiting on you" rows would be a filing
@@ -104,12 +104,16 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
     sb.from('email_health').select('failed_week, sent_week, last_success, last_failure').maybeSingle(),
     /* Requests an executive made from their placement page (part39). A
        database one migration behind answers with an error, read as none. */
-    sb.from('client_requests').select('id, placement_id, state').in('state', ['open', 'in_hand'])
+    sb.from('client_requests').select('id, placement_id, state').in('state', ['open', 'in_hand']),
+    /* PART 45. Same shape as email_health, and the same tolerance: a database
+       one migration behind answers with an error, read as nothing to report. */
+    sb.from('signin_health').select('failed_week, last_failure').maybeSingle()
   ]);
 
   /* One row, or nothing at all if the table has not been created yet — the
      console must still render against a database that is one migration behind. */
   const mail = (mailHealth as any)?.data ?? null;
+  const signin = (signinHealth as any)?.data ?? null;
 
   /* ---- people ---- */
   const placedTalent = new Set<string>();
@@ -342,6 +346,16 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
       href: '/console/team', cta: 'See what failed'
     });
   }
+
+  /* Rank 0 as well, and for the same reason as the mail rows above: somebody
+     who cannot sign in cannot read anything else the platform might send
+     them, so this is the one failure that hides every other signal. It sat
+     unseen for eleven days in October before anyone noticed. */
+  const signinWeek = Number(signin?.failed_week ?? 0);
+  add({ key: 'signin_failing', rank: 0, level: 'high', count: signinWeek,
+    what: `${agree(signinWeek, 'sign-in did not go through', 'sign-ins did not go through')} this week`,
+    why: 'the log names the address and where it stopped, so you can get them in and tell them it is sorted',
+    href: '/console/team', cta: 'See the sign-ins' });
 
   const guaranteeCount = guaranteeAtRisk.length;
   add({ key: 'guarantee', rank: 1, level: 'high', count: guaranteeCount,

@@ -276,6 +276,21 @@ const rawTemplates = {
     };
   },
 
+  /* Nobody watches the sign-in screen, so this is the only thing that tells
+     the team an invitation did not land. One an hour at most, see
+     lib/signin-watch.ts. Written toward the fix: who, where it stopped, and
+     the one page that shows the rest. */
+  signinTrouble: (o: { email?: string | null; where: string; detail?: string | null }) => ({
+    subject: 'Someone could not sign in',
+    text: `Someone could not sign in${o.email ? `: ${o.email}` : ''}.\n\nWhere it stopped: ${o.where}.\n${o.detail ? `What the server said: ${o.detail}\n` : ''}\nThey were told their account could not be set up, so they are waiting on someone. The sign-in log on the Team page has every attempt.\n\n${SITE}/console/team\n\nRelève`,
+    html: shell('Someone could not sign in',
+      p(`Someone could not sign in${o.email ? `, <b>${esc(o.email)}</b>` : ''}.`) +
+      p(`Where it stopped: <b>${esc(o.where)}</b>.`) +
+      (o.detail ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;">${esc(o.detail)}</p>` : '') +
+      p('They were told their account could not be set up, so they are waiting on someone. The sign-in log on the Team page has every attempt.'),
+      { label: 'Open the sign-in log', href: `${SITE}/console/team` })
+  }),
+
   /* The moment a profile first exists — not sent by anyone from the console,
      it fires itself the instant someone's first sign-in creates their row.
      Two things belong in it and nothing else: that it worked, and how to put
