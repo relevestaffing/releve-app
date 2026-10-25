@@ -7,6 +7,8 @@ import ConsoleTabs from '@/components/ConsoleTabs';
 import { listPostings, listApplications } from '@/lib/jobs';
 import { applicationStages } from '@/lib/jobs-public';
 
+export const metadata = { title: 'Postings' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Postings() {
@@ -26,7 +28,7 @@ export default async function Postings() {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting"
-      title="Recruiting" crumb="Roles you are openly recruiting for"
+      title="Recruiting" crumb="Postings"
       action={<NewPosting />}>
       <ConsoleTabs active="/console/postings" items={[
         { href: '/console/applications', label: 'Applications', count: waiting },

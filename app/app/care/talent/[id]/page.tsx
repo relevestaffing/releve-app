@@ -7,6 +7,8 @@ import { getSkills, DISCIPLINE, compsOf, PROFS } from '@/lib/roles';
 import Shell from '@/components/Shell';
 import { Portrait } from '@/components/Viz';
 
+export const metadata = { title: 'Your placement' };
+
 export const dynamic = 'force-dynamic';
 
 /* The talent behind the placement, for the executive who hired them.

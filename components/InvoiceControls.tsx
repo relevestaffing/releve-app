@@ -15,9 +15,10 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
   const router = useRouter();
   const [value, setValue] = useState<InvoiceStatus>(inv.status);
   const [busy, setBusy] = useState(false);
-  /* Paid and void are the two that matter and the two that are awkward to
-     undo. On a phone this control is a spinning wheel next to a scroll
-     gesture, so those two now ask first. Draft and sent still fire straight. */
+  /* Paid and void are awkward to undo, and sent emails the executive and
+     collects from their bank when a mandate is on file. On a phone this
+     control is a spinning wheel next to a scroll gesture, so all three ask
+     first. Only draft fires straight. */
   const [ask, setAsk] = useState<InvoiceStatus | null>(null);
   const tone = INVOICE_STATUS.find(s => s.key === value)?.tone ?? '';
 
@@ -29,26 +30,37 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
     </span>
   );
 
+  const who = inv.org_name ?? inv.client_name ?? 'the executive';
+
   async function apply(next: InvoiceStatus) {
     const prev = value;
     setValue(next); setBusy(true); setAsk(null);
     const ok = await saving(
       () => post({ action: 'invoice_status', id: inv.id, status: next }),
-      next === 'paid' ? `${money(inv.amount_cents)} marked paid` : next === 'sent' ? 'Sent to the client' : `Marked ${next}`
+      next === 'paid' ? `${money(inv.amount_cents)} marked paid`
+        : next === 'sent' ? `Invoice emailed to ${who}` : `Marked ${next}`
     );
     setBusy(false);
     if (ok) router.refresh(); else setValue(prev);
   }
 
+  const sentSentence = inv.number
+    ? `Email invoice ${inv.number} for ${money(inv.amount_cents)} to ${who} and collect it from their bank if a mandate is on file?`
+    : `Email this ${money(inv.amount_cents)} invoice to ${who} and collect it from their bank if a mandate is on file?`;
+
   if (ask) return (
     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
       <span className="xs">
         {ask === 'paid'
-          ? `${money(inv.amount_cents)} from ${inv.org_name ?? inv.client_name ?? 'them'}, received outside Stripe?`
-          : 'Void this invoice? Nothing will be owed on it.'}
+          ? `${money(inv.amount_cents)} from ${who}, received outside Stripe?`
+          : ask === 'sent'
+            ? sentSentence
+            : 'Void this invoice? Nothing will be owed on it.'}
       </span>
-      <button className="btn sm solid" disabled={busy} onClick={() => apply(ask)}>Yes</button>
-      <button className="btn sm ghost" onClick={() => setAsk(null)}>No</button>
+      <button className="btn sm solid" disabled={busy} onClick={() => apply(ask)}>
+        {busy ? 'Working…' : ask === 'sent' ? 'Yes, send it' : ask === 'paid' ? 'Yes, mark paid' : 'Yes, void it'}
+      </button>
+      <button className="btn sm ghost" disabled={busy} onClick={() => setAsk(null)}>Keep it</button>
     </div>
   );
 
@@ -57,7 +69,7 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
       style={{ padding: '5px 10px', cursor: 'pointer' }}
       onChange={e => {
         const next = e.target.value as InvoiceStatus;
-        if (next === 'paid' || next === 'void') { setAsk(next); return; }
+        if (next === 'paid' || next === 'void' || next === 'sent') { setAsk(next); return; }
         apply(next);
       }}>
       {INVOICE_STATUS.filter(s => MANUAL_STATUSES.includes(s.key)).map(s =>

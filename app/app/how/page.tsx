@@ -4,6 +4,8 @@ import { currentProfile } from '@/lib/supabase/server';
 import Shell from '@/components/Shell';
 import HowContent from '@/components/vision/HowContent';
 
+export const metadata = { title: 'How Relève works' };
+
 export const dynamic = 'force-dynamic';
 
 /* How Relève works, in full — the page an executive can revisit any time.

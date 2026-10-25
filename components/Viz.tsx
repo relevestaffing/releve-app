@@ -96,12 +96,15 @@ export function FacetBars({ items }: {
   );
 }
 
+/* The same tile as every hand-written `.card.stat` — one KPI component, not
+   three visual languages for one job. The sub-line sits under the figure;
+   the figure itself stays on the tile's floor (see .card.stat .score). */
 export function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
-    <div className="card tight">
-      <div className="eyebrow" style={{ marginBottom: 12 }}>{label}</div>
-      <div className="mono-num">{value}</div>
-      {sub && <div className="small muted" style={{ marginTop: 8 }}>{sub}</div>}
+    <div className="card stat">
+      <div className="eyebrow">{label}</div>
+      <div className="score">{value}</div>
+      {sub && <div className="xs muted" style={{ marginTop: 10 }}>{sub}</div>}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useId } from 'react';
 import { toast } from '@/components/Toast';
+import { zoneLabel, ZONES } from '@/lib/words';
 
 /* Add talent by hand to the roster. Executives come in through the console's
    onboarding sender instead, so this is talent-only — the old client branch was
@@ -33,8 +34,13 @@ export default function AddPerson() {
       const why = d.error ?? 'Could not save.';
       setErr(why); toast.bad(`Not saved. ${why}`); return;
     }
-    toast.saved(`${body.full_name} added`);
-    setMsg(`${body.full_name} added. They join their record the first time they sign in with ${body.email}.`);
+    if (d.emailed === false) {
+      toast.bad(`${body.full_name} added, but the welcome email did not send. Tell them to sign in with ${body.email}.`);
+      setMsg(`${body.full_name} added. The welcome email did not send, so tell them yourself to sign in with ${body.email}. Their record attaches itself the first time they do.`);
+    } else {
+      toast.saved(`${body.full_name} added and emailed`);
+      setMsg(`${body.full_name} added. A welcome email went to ${body.email}. Their record attaches itself the first time they sign in with it.`);
+    }
     (e.target as HTMLFormElement).reset();
   }
 
@@ -47,8 +53,8 @@ export default function AddPerson() {
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="small muted" style={{ marginBottom: 20 }}>
-        Creates the record now. When they sign in with this email address the account attaches itself.
-        No invitation or password is needed.
+        Creates the record now and emails them a welcome note with how to sign in. When they sign in with
+        this email address the account attaches itself. No password is needed.
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>
@@ -62,7 +68,11 @@ export default function AddPerson() {
         <div className="grid-4" style={{ gap: 14 }}>
           {/* No default value — the talent's actual timezone, not an assumed one, since this
               is also what interview-slot matching uses once they're bookable. */}
-          <div className="ff"><label htmlFor={`${fid}-5`}>Timezone</label><input id={`${fid}-5`} name="timezone" placeholder="Asia/Manila" /></div>
+          <div className="ff"><label htmlFor={`${fid}-5`}>Timezone</label>
+            <select id={`${fid}-5`} name="timezone" defaultValue="">
+              <option value="">Choose a timezone…</option>
+              {ZONES.map(z => <option key={z} value={z}>{zoneLabel(z)}</option>)}
+            </select></div>
           <div className="ff"><label htmlFor={`${fid}-6`}>Years</label><input id={`${fid}-6`} name="years_exp" type="number" min="0" placeholder="9" /></div>
           <div className="ff"><label htmlFor={`${fid}-7`}>English</label>
             <select id={`${fid}-7`} name="english"><option>Native-fluent</option><option>Fluent</option><option>Conversational</option></select></div>

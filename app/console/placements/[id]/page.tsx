@@ -24,6 +24,8 @@ import { TimeOffDecider } from '@/components/CareControls';
 import { configured, supabaseServer } from '@/lib/supabase/server';
 import { todayIn } from '@/lib/experience-public';
 
+export const metadata = { title: 'Placement' };
+
 export const dynamic = 'force-dynamic';
 
 const day = fmtDate;
@@ -90,7 +92,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
             {alerts.length ? `${alerts.length}` : <><span className="dot" />Clear</>}</span></div>
         {alerts.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nothing is off. End of week are current, tasks are moving.</p></div>
+            <p className="small">Nothing is off. End of week reports are current, tasks are moving.</p></div>
         ) : (
           <ul className="alert-list">
             {alerts.map((a, i) => (
@@ -239,7 +241,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
                   <div className="xs muted">{nights(t.starts_on, t.ends_on)} days
                     {t.reason ? ` · ${t.reason}` : ''}{t.cover_note ? ` · cover: ${t.cover_note}` : ''}</div></div>
                 <span className={`pill ${st?.tone ?? ''}`}>{st?.label}</span>
-                {t.state === 'requested' && <div style={{ width: '100%' }}><TimeOffDecider id={t.id} state={t.state} /></div>}
+                {t.state === 'requested' && <div style={{ width: '100%' }}><TimeOffDecider id={t.id} state={t.state} talentName={p.talent_name} /></div>}
               </div>
             );
           })}

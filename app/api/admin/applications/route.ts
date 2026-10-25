@@ -7,7 +7,7 @@ import { markInvited } from '@/lib/jobs';
 import { send, templates } from '@/lib/email';
 import { supabaseServer } from '@/lib/supabase/server';
 import { safeMessage } from '@/lib/errors';
-import { firstName } from '@/lib/words';
+import { firstName, fmtWhen, zoneLabel } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const g = await guard(); if (g.error) return g.error;
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
   if (!b.id) return NextResponse.json({ error: 'which application?' }, { status: 400 });
 
   try {
@@ -73,14 +73,11 @@ export async function POST(req: Request) {
       /* The applicant hears about it in their own timezone if they gave us
          one, and in ours if they did not — never in UTC. */
       const tz = app.timezone || 'UTC';
-      const when = new Intl.DateTimeFormat('en-GB', {
-        timeZone: tz, weekday: 'long', day: 'numeric', month: 'long',
-        hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-      }).format(new Date(startISO));
+      const when = `${fmtWhen(startISO, tz)} (${zoneLabel(tz)})`;
 
       let mailed = false;
       try {
-        const first = firstName(app.full_name, 'there');
+        const first = firstName(app.full_name, 'Hello');
         const tpl = b.action === 'move_call'
           ? templates.callMoved({ name: first, when, url: meeting?.url ?? app.call_url ?? null })
           : templates.callInvite({
@@ -139,14 +136,15 @@ export async function POST(req: Request) {
       /* Someone who already has an account needs no record made for them —
          the invitation is then simply the letter. */
       await markInvited(b.id, pendingId as any);
+      let emailed = false;
       try {
         const tpl = templates.applicationInvited({
-          name: firstName(a.full_name, 'there'),
+          name: firstName(a.full_name, ''),
           role: a.post?.title ?? 'the role'
         });
-        await send(a.email, tpl);
+        emailed = await send(a.email, tpl);
       } catch { /* the record stands whether or not the mail server answered */ }
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ ok: true, emailed });
     }
 
     if (!['new', 'reviewing', 'declined'].includes(b.state))

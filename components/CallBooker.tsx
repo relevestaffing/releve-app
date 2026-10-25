@@ -1,9 +1,9 @@
 'use client';
 import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
-import { saving, toast } from '@/components/Toast';
+import { toast } from '@/components/Toast';
 import type { JobApplication } from '@/lib/jobs-public';
-import { firstName } from '@/lib/words';
+import { firstName, fmtWhen, zoneLabel } from '@/lib/words';
 
 /* Booking a call with somebody who does not exist in the system yet.
    ------------------------------------------------------------------
@@ -37,25 +37,44 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
   const theirTime = (() => {
     if (!app.timezone || !when) return null;
     try {
-      return new Intl.DateTimeFormat('en-GB', {
-        timeZone: app.timezone, weekday: 'long', day: 'numeric', month: 'long',
-        hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-      }).format(new Date(when));
+      /* Throws on a zone this runtime has never heard of, which is the
+         signal to fall back to the plain sentence below. */
+      new Intl.DateTimeFormat('en-US', { timeZone: app.timezone });
+      return fmtWhen(new Date(when).toISOString(), app.timezone);
     } catch { return null; }
   })();
 
+  /* The route books first and mails second, and reports both: a booking can
+     stand with no email sent, or with no Zoom link made. Each is said. */
   async function book() {
     if (!when) { toast.bad('Pick a time first.'); return; }
     setBusy(true);
-    const ok = await saving(() => fetch('/api/admin/applications', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        id: app.id, action: moving ? 'move_call' : 'book_call',
-        startISO: new Date(when).toISOString(), minutes
-      })
-    }), moving ? 'Moved. They have been told' : `${firstName(app.full_name)} has the invitation`);
-    setBusy(false);
-    if (ok) { onDone(); router.refresh(); }
+    const first = firstName(app.full_name);
+    try {
+      const r = await fetch('/api/admin/applications', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          id: app.id, action: moving ? 'move_call' : 'book_call',
+          startISO: new Date(when).toISOString(), minutes
+        })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        toast.bad(d.error ? `Not booked. ${d.error}` : 'That did not book. Please try again.');
+        setBusy(false);
+        return;
+      }
+      if (d.mailed) toast.saved(moving ? `Moved. ${first} has been told` : `${first} has the invitation`);
+      else toast.bad(moving
+        ? `Moved, but the email to ${first} did not send. Tell them the new time by hand.`
+        : `Booked, but the email to ${first} did not send. Send the invitation by hand.`);
+      if (d.warning) toast.bad(String(d.warning));
+      setBusy(false);
+      onDone(); router.refresh();
+    } catch {
+      toast.bad('No connection, so nothing was booked.');
+      setBusy(false);
+    }
   }
 
   return (
@@ -88,7 +107,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
 
       <p className="xs muted" style={{ marginBottom: 14 }}>
         {theirTime
-          ? <>For {firstName(app.full_name)} in {app.timezone!.replace(/_/g, ' ')} that is <b>{theirTime}</b>. That is what the email will say.</>
+          ? <>For {firstName(app.full_name)} that is <b>{theirTime} ({zoneLabel(app.timezone)})</b>. That is what the email will say.</>
           : <>They did not give a timezone, so the email will state the time in yours and name the zone.</>}
       </p>
 
@@ -96,7 +115,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
         <button className="btn solid" disabled={busy} onClick={book}>
           {busy ? 'Sending…' : moving ? 'Move it and tell them' : 'Book it and send the invitation'}
         </button>
-        <button type="button" className="btn ghost sm" onClick={onDone}>Cancel</button>
+        <button type="button" className="btn ghost sm" disabled={busy} onClick={onDone}>Cancel</button>
       </div>
     </div>
   );

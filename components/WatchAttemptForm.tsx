@@ -92,7 +92,7 @@ export default function WatchAttemptForm({
               <h2 style={{ color: 'var(--cream)', fontSize: 22, marginTop: 4 }}>Taking The Watch</h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up. Submit what you have' : 'Time remaining'}</div>
+              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up. Send what you have' : 'Time remaining'}</div>
               <div className="mono-num" style={{ color: over ? '#D99C8C' : 'var(--cream)' }}>{over ? '+' : ''}{clock}</div>
             </div>
           </div>
@@ -118,12 +118,12 @@ export default function WatchAttemptForm({
       {!readOnly && (
         <div className="row" style={{ marginTop: 20, gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           {!confirming ? (
-            <button className="btn solid" onClick={() => setConfirming(true)}>Submit Taking The Watch</button>
+            <button className="btn solid" onClick={() => setConfirming(true)}>Send the Watch for review</button>
           ) : (
             <>
-              <span className="small muted">You won’t be able to change any answer after this.</span>
+              <span className="small muted">You will not be able to change any answer after this.</span>
               <button className="btn solid" disabled={submitting} onClick={submit}>
-                {submitting ? 'Submitting…' : 'Yes, submit'}
+                {submitting ? 'Sending…' : 'Yes, send it'}
               </button>
               <button type="button" className="btn ghost sm" disabled={submitting} onClick={() => setConfirming(false)}>
                 Keep working

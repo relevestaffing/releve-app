@@ -7,6 +7,8 @@ import Shell from '@/components/Shell';
 import ApplicationCard from '@/components/ApplicationCard';
 import TableSearch from '@/components/TableSearch';
 
+export const metadata = { title: 'Posting' };
+
 export const dynamic = 'force-dynamic';
 
 /* One posting's own file: the funnel it is actually producing, where those

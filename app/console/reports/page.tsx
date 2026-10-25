@@ -1,9 +1,12 @@
+import { DASH } from '@/lib/words';
 import { redirect } from 'next/navigation';
 import ConsoleTabs from '@/components/ConsoleTabs';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { moneySummary, moneyReports, money, monthLabel } from '@/lib/money';
 import { calibration } from '@/lib/care';
 import Shell from '@/components/Shell';
+
+export const metadata = { title: 'Reports' };
 
 export const dynamic = 'force-dynamic';
 
@@ -145,7 +148,7 @@ export default async function Reports() {
 
   return (
     <Shell profile={profile} active="/console/business" title="The business"
-      crumb="Reports, how it is actually doing">
+      crumb="Reports">
       <ConsoleTabs active="/console/reports" items={[
         { href: '/console/reports', label: 'Reports' },
         { href: '/console/signals', label: 'Match accuracy' },
@@ -162,8 +165,8 @@ export default async function Reports() {
         <div className={`money-stat ${m.overdueCents ? 'alert' : ''}`}>
           <div className="n">{money(m.overdueCents)}</div><div className="k">Overdue</div></div>
         <div className="money-stat">
-          <div className="n">{c.placementsLive ? money(Math.round(m.monthlyRunRateCents / c.placementsLive)) : '–'}</div>
-          <div className="k">Average placement</div></div>
+          <div className="n">{c.placementsLive ? money(Math.round(m.monthlyRunRateCents / c.placementsLive)) : DASH}</div>
+          <div className="k">Per placement</div></div>
       </div>
 
       <h3 className="section-h">Cash collected</h3>
@@ -172,13 +175,13 @@ export default async function Reports() {
           <h3>By the month it landed</h3>
           <span className="xs muted">Last twelve months · {money(cash12)} · net of refunds</span>
         </div>
-        <table className="data" style={{ boxShadow: 'none' }}>
-          <thead><tr><th>Month</th><th style={{ width: '55%' }}></th><th style={{ textAlign: 'right' }}>Collected</th><th style={{ textAlign: 'right' }}>Contracted MRR</th></tr></thead>
+        <table className="data cash-table" style={{ boxShadow: 'none' }}>
+          <thead><tr><th>Month</th><th className="cash-bar" style={{ width: '55%' }}></th><th style={{ textAlign: 'right' }}>Collected</th><th style={{ textAlign: 'right' }}>Contracted MRR</th></tr></thead>
           <tbody>
             {r.cashByMonth.map((x, i) => (
               <tr key={x.month}>
-                <td className="xs">{monthLabel(x.month)}</td>
-                <td>
+                <td className="xs" style={{ whiteSpace: 'nowrap' }}>{monthLabel(x.month)}</td>
+                <td className="cash-bar">
                   <div aria-hidden style={{ height: 8, background: 'var(--mist)', position: 'relative' }}>
                     <div style={{ position: 'absolute', inset: 0, width: `${Math.round((x.cents / cashMax) * 100)}%`, background: 'var(--fern)' }} />
                   </div>
@@ -187,7 +190,7 @@ export default async function Reports() {
                   </div>
                 </td>
                 <td className="amount">{money(x.cents)}{x.count ? <span className="xs muted"> · {x.count}</span> : null}</td>
-                <td className="amount">{money(r.mrrByMonth[i].cents)}<span className="xs muted"> · {r.mrrByMonth[i].placements}</span></td>
+                <td className="amount">{money(r.mrrByMonth[i].cents)}{r.mrrByMonth[i].placements ? <span className="xs muted"> · {r.mrrByMonth[i].placements}</span> : null}</td>
               </tr>
             ))}
           </tbody>
@@ -228,7 +231,7 @@ export default async function Reports() {
         <div className="money-stat"><div className="n">{c.clients}</div><div className="k">Clients</div></div>
         <div className="money-stat"><div className="n">{c.searchesOpen}</div><div className="k">Open searches</div></div>
         <div className="money-stat">
-          <div className="n">{c.medianDaysToPlace ?? '–'}</div><div className="k">Median days to place</div></div>
+          <div className="n">{c.medianDaysToPlace ?? DASH}</div><div className="k">Median days to place</div></div>
         <div className="money-stat">
           <div className="n">{c.interviewsBooked ? Math.round((c.interviewsCompleted / c.interviewsBooked) * 100) : 0}%</div>
           <div className="k">Interviews completed</div></div>
@@ -248,7 +251,7 @@ export default async function Reports() {
       <h3 className="section-h">Placements</h3>
       <div className="money-strip">
         <div className="money-stat"><div className="n">{c.placementsLive}</div><div className="k">Live</div></div>
-        <div className="money-stat"><div className="n">{retention ?? '–'}{retention != null && '%'}</div>
+        <div className="money-stat"><div className="n">{retention ?? DASH}{retention != null && '%'}</div>
           <div className="k">Seats retained{r.retention.awaitingReplacement ? ` · ${r.retention.awaitingReplacement} awaiting replacement` : ''}</div></div>
         <div className={`money-stat ${c.endedNotWorking ? 'alert' : ''}`}>
           <div className="n">{c.endedNotWorking}</div><div className="k">Ended not working</div></div>
@@ -263,10 +266,10 @@ export default async function Reports() {
         <div className="money-stat"><div className="n">{exp.clientsPaying}</div>
           <div className="k">Clients paying</div></div>
         <div className={`money-stat ${exp.topShare != null && exp.topShare >= 33 ? 'alert' : ''}`}>
-          <div className="n">{exp.topShare != null ? `${exp.topShare}%` : '–'}</div>
+          <div className="n">{exp.topShare != null ? `${exp.topShare}%` : DASH}</div>
           <div className="k">Biggest client&rsquo;s share</div></div>
         <div className={`money-stat ${exp.top3Share != null && exp.clientsPaying > 3 && exp.top3Share >= 75 ? 'alert' : ''}`}>
-          <div className="n">{exp.top3Share != null ? `${exp.top3Share}%` : '–'}</div>
+          <div className="n">{exp.top3Share != null ? `${exp.top3Share}%` : DASH}</div>
           <div className="k">Top three&rsquo;s share</div></div>
         <div className="money-stat"><div className="n">{r.retention.replacements}</div>
           <div className="k">Guarantee replacements</div></div>

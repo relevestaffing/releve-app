@@ -215,7 +215,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
           : answeredCount ? answeredCount : 0)}>
         {answeredCount >= data.total && !existing ? 'Resume: one section left'
           : answeredCount && answeredCount < data.total ? `Resume: ${answeredCount} of ${data.total} answered`
-          : existing ? 'Retake the assessment' : 'Begin the assessment'}
+          : existing ? 'Retake the Signature' : 'Begin the Signature'}
       </button>
       {chip && <div className="chip-note"><span className="tick" />{chip}</div>}
     </div>
@@ -270,7 +270,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
             {condsMissing} still to answer
           </span>}
           <button className="btn solid" onClick={submit} disabled={busy || condsMissing > 0}>
-            {busy ? 'Scoring…' : 'Complete my Signature'}
+            {busy ? 'Scoring…' : 'Complete your Signature'}
           </button>
         </div>
       </div>
@@ -363,7 +363,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
         <div className="row" style={{ gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
           <span className="pill" style={{ borderColor: 'var(--pale)', color: 'var(--pale)', background: 'transparent' }}>{result.disposition}</span>
           <span className={`pill ${result.validity.verdict === 'Valid' ? 'good' : result.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>
-            <span className="dot" />{result.validity.verdict === 'Valid' ? 'Profile verified' : result.validity.verdict === 'Review' ? 'Up for review' : 'Needs taking again'}
+            <span className="dot" />{result.validity.verdict === 'Valid' ? 'Profile verified' : result.validity.verdict === 'Review' ? 'Up for review' : 'Needs retaking'}
           </span>
         </div>
         <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 18 }}>{a.tag}</p>

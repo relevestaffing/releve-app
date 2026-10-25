@@ -5,6 +5,8 @@ import { execInTour } from '@/lib/stage';
 import Shell from '@/components/Shell';
 import DelegateContent from '@/components/vision/DelegateContent';
 
+export const metadata = { title: 'What to delegate' };
+
 export const dynamic = 'force-dynamic';
 
 /* What to delegate. Body shared with the first-run tour (DelegateContent); the
@@ -19,7 +21,7 @@ export default async function DelegatePage() {
 
   return (
     <Shell profile={profile} active="/app/delegate" title="What to delegate"
-      crumb="The map before the brief">
+      crumb="The map before the role">
 
       <DelegateContent />
 
@@ -30,12 +32,12 @@ export default async function DelegatePage() {
           </div>
           <div className="small" style={{ maxWidth: 480 }}>
             {tour
-              ? 'Nothing to decide yet. The role brief walks you through it when your search opens.'
-              : 'Pick the areas that matter. The role brief walks you through the rest.'}
+              ? 'Nothing to decide yet. The role page walks you through it when your search opens.'
+              : 'Pick the areas that matter. The role page walks you through the rest.'}
           </div>
         </div>
         <Link className="btn solid" href={tour ? '/app' : '/app/role'}>
-          {tour ? 'Back to your account' : 'Build your role brief'}
+          {tour ? 'Back to your account' : 'Describe the role'}
         </Link>
       </div>
     </Shell>

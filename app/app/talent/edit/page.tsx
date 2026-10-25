@@ -4,6 +4,8 @@ import { getSelfProfile } from '@/lib/store';
 import Shell from '@/components/Shell';
 import ProfileEditor from '@/components/ProfileEditor';
 
+export const metadata = { title: 'Edit your profile' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function EditProfile() {

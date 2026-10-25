@@ -44,8 +44,9 @@ export default function VideoUpload({ initial, name }: { initial?: string | null
 
   async function remove() {
     setBusy(true); setErr(null);
-    await saving(() => fetch('/api/video', { method: 'DELETE' }), 'Video removed');
-    setPreview(null); setBusy(false); router.refresh();
+    const ok = await saving(() => fetch('/api/video', { method: 'DELETE' }), 'Video removed');
+    setBusy(false);
+    if (ok) { setPreview(null); router.refresh(); }
   }
 
   return (

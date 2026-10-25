@@ -62,18 +62,22 @@ export async function POST(req: Request) {
         if (!b.role_title || !b.starts_on)
           return NextResponse.json({ error: 'a role and a start date, at minimum' }, { status: 400 });
         const o = await makeOffer(b);
+        /* Tell both sides. An offer nobody hears about is a draft. The count
+           of letters that actually left is returned so the console can say
+           "sent to both" only when it is true. */
+        let mailed = 0;
         if (b.send && o) {
-          /* Tell both sides. An offer nobody hears about is a draft. */
           for (const who of [o.client_id, o.talent_id]) {
             const p = await personEmail(who);
             if (p?.email) {
               const tpl = templates.offerMade(
                 (p.name ?? '').split(' ')[0] || 'there', o.role_title, o.starts_on);
-              await send(p.email, tpl);
+              const ok = await send(p.email, tpl).catch(() => false);
+              if (ok) mailed++;
             }
           }
         }
-        return NextResponse.json({ ok: true, offer: o });
+        return NextResponse.json({ ok: true, offer: o, mailed });
       }
       case 'send': {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });

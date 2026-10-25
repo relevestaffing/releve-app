@@ -42,14 +42,14 @@ export default function InterviewFeedback({ interviewId, who, side, existing }: 
             <button type="button" key={n} className={rating === n ? 'on' : ''}
               aria-pressed={rating === n} onClick={() => setRating(n)} aria-label={`${n} out of 5`}>{n}</button>
           ))}
-          <span className="xs muted">{['', 'Badly', 'Not great', 'Fine', 'Well', 'Very well'][rating]}</span>
+          <span className="xs muted">{['', 'Badly', 'Poorly', 'Fine', 'Well', 'Very well'][rating]}</span>
         </div>
       </div>
 
       <div className="ff"><label htmlFor={`${fid}-1`}>{side === 'client' ? `Would you take ${who} forward?` : 'Would you want this role?'}</label>
         <select id={`${fid}-1`} name="proceed" defaultValue={existing?.proceed ?? 'yes'}>
           <option value="yes">Yes</option>
-          <option value="maybe">Maybe, I have reservations</option>
+          <option value="maybe">Maybe, with reservations</option>
           <option value="no">No</option>
         </select></div>
 
@@ -68,7 +68,7 @@ export default function InterviewFeedback({ interviewId, who, side, existing }: 
         Only Relève reads this. {side === 'client' ? who : 'The executive'} never sees it.
       </p>
       <div className="row" style={{ gap: 10 }}>
-        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save your notes'}</button>
         <button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>Cancel</button>
       </div>
     </form>

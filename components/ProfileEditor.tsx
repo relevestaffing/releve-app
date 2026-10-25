@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { saving } from './Toast';
 import PhotoUpload from './PhotoUpload';
 import VideoUpload from './VideoUpload';
+import { zoneLabel, ZONES } from '@/lib/words';
 
 
 export default function ProfileEditor({ initial }: { initial: any }) {
@@ -31,14 +32,20 @@ export default function ProfileEditor({ initial }: { initial: any }) {
       <div className="card">
         <div className="card-head"><h3>About you</h3>
           <span className="pill">Shown to executives</span></div>
-        <div className="grid-2" style={{ gap: 14 }}>
+        <div className="grid-2" style={{ gap: 14, marginBottom: 18 }}>
           <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="full_name" defaultValue={initial.full_name ?? ''} /></div>
           <div className="ff"><label htmlFor={`${fid}-2`}>Your role</label>
             <input id={`${fid}-2`} name="headline" defaultValue={initial.headline ?? ''} placeholder="Executive Assistant" /></div>
         </div>
-        <div className="grid-4" style={{ gap: 14 }}>
+        <div className="grid-4" style={{ gap: 14, marginBottom: 18 }}>
           <div className="ff"><label htmlFor={`${fid}-3`}>Location</label><input id={`${fid}-3`} name="location" defaultValue={initial.location ?? ''} placeholder="Cebu, Philippines" /></div>
-          <div className="ff"><label htmlFor={`${fid}-4`}>Timezone</label><input id={`${fid}-4`} name="timezone" defaultValue={initial.timezone ?? ''} placeholder="Asia/Manila" /></div>
+          <div className="ff"><label htmlFor={`${fid}-4`}>Timezone</label>
+            <select id={`${fid}-4`} name="timezone" defaultValue={initial.timezone ?? ''}>
+              <option value="">Choose a timezone…</option>
+              {initial.timezone && !ZONES.includes(initial.timezone) &&
+                <option value={initial.timezone}>{zoneLabel(initial.timezone)}</option>}
+              {ZONES.map(z => <option key={z} value={z}>{zoneLabel(z)}</option>)}
+            </select></div>
           <div className="ff"><label htmlFor={`${fid}-5`}>Years of experience</label><input id={`${fid}-5`} name="years_exp" type="number" min="0" defaultValue={initial.years_exp ?? ''} /></div>
           <div className="ff"><label htmlFor={`${fid}-6`}>English</label>
             <select id={`${fid}-6`} name="english" defaultValue={initial.english ?? 'Fluent'}>
@@ -86,9 +93,9 @@ export default function ProfileEditor({ initial }: { initial: any }) {
         <VideoUpload initial={initial.intro_video_url} name={initial.full_name ?? ''} />
       </div>
 
-      <div className="row" style={{ gap: 14 }}>
-        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save my profile'}</button>
-        <span className="small muted">Your Relève team is notified of changes. Your pay is set by Relève and is never shown to clients.</span>
+      <div className="row" style={{ gap: 14, marginTop: 24, flexWrap: 'wrap' }}>
+        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save your profile'}</button>
+        <span className="small muted">Your Relève team is notified of changes. Your pay is set by Relève and is never shown to executives.</span>
       </div>
     </form>
   );

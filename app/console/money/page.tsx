@@ -1,5 +1,7 @@
+import { DASH } from '@/lib/words';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import Empty from '@/components/Empty';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { allInvoices, moneySummary, isOwner } from '@/lib/money';
 import { listPayments, marginSummary, getPayout, unpaidPlacements } from '@/lib/payout';
@@ -18,6 +20,8 @@ import { RunTheMonth } from '@/components/InvoiceControls';
 import DepositControl from '@/components/DepositControl';
 import type { DepositStatus } from '@/lib/money-public';
 import WiseBatch from '@/components/WiseBatch';
+
+export const metadata = { title: 'Billing' };
 
 export const dynamic = 'force-dynamic';
 
@@ -172,7 +176,7 @@ export default async function ConsoleMoney() {
 
   return (
     <Shell profile={profile} active="/console/money" title="Billing"
-      crumb="What comes in, what goes out"
+      crumb="Billing"
       action={<RunTheMonth month={thisMonth} previous={lastMonth} />}>
 
       {/* Gross, cost, net. The first two were on separate pages and the third
@@ -275,13 +279,11 @@ export default async function ConsoleMoney() {
       )}
       <div className="card">
         {duePayments.length === 0 ? (
-          <p className="small muted" style={{ margin: 0 }}>
-            Nobody is waiting to be paid. Press <b>Run payroll</b> after the
-            billing run and every live placement appears here with what it owes them.
-          </p>
+          <Empty title="Nobody is waiting to be paid"
+            body="Press Run payroll after the billing run and every live placement appears here with what it owes them." />
         ) : (
           <>
-            <WiseBatch count={wiseReady.length} skipped={wiseSkipped} />
+            <WiseBatch count={wiseReady.length} skipped={wiseSkipped} owner={owner} />
             {duePayments.map(p => (
               <div key={p.id} style={{ padding: '14px 0', borderBottom: '1px solid var(--line)' }}>
                 <PaymentRow p={p} payout={payoutBy[p.talent_id] ?? null} providers={providers} />
@@ -301,8 +303,8 @@ export default async function ConsoleMoney() {
                     <td className="xs">{periodLabel(p.period_start)}</td>
                     <td className="amount">{money(p.amount_cents, true)}</td>
                     <td className="amount">{money(p.sent_cents ?? p.amount_cents, true)}{p.fee_cents ? <div className="xs muted">fee {money(p.fee_cents, true)}</div> : null}</td>
-                    <td className="xs">{p.sent_on ? dayLabel(p.sent_on) : '–'}</td>
-                    <td className="xs muted">{[p.method, p.reference, p.fx_note].filter(Boolean).join(' · ') || '–'}</td>
+                    <td className="xs">{p.sent_on ? dayLabel(p.sent_on) : DASH}</td>
+                    <td className="xs muted">{[p.method, p.reference, p.fx_note].filter(Boolean).join(' · ') || DASH}</td>
                   </tr>
                 ))}
               </tbody>

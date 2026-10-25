@@ -1,4 +1,5 @@
 /* Client-safe half of paying people: types and wording only. */
+import { fmtMonth } from './words';
 
 export type PayoutMethod = 'wise' | 'payoneer' | 'bank' | 'paypal' | 'other';
 
@@ -133,6 +134,5 @@ export function payoutMissing(p: Partial<Payout> | null): string[] {
 }
 
 export function periodLabel(start: string): string {
-  return new Date(start + 'T00:00:00Z')
-    .toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return fmtMonth(start);
 }

@@ -9,7 +9,7 @@ export const COND_PUBLIC = [
   { key:'overlap', label:'Overlapping hours', ord:['About 2 hours','About 4 hours','A full working day'],
     cQ:'How many hours of your day do you need them working alongside you?',
     tQ:'How many hours of a US working day can you be online for?' },
-  { key:'volume', label:'How much work', ord:['Light — a few things a week','Steady — something most days','Heavy — a constant stream'],
+  { key:'volume', label:'How much work', ord:['Light: a few things a week','Steady: something most days','Heavy: a constant stream'],
     cQ:'Roughly how much will you hand over in a week?', tQ:'How much work do you handle best?' },
   { key:'discretion', label:'How sensitive', ord:['Ordinary business information','Financial and legal','Personal and deal-sensitive'],
     cQ:'What kind of information will they see?', tQ:'What kind of confidential work have you handled?' },

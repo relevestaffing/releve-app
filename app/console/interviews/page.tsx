@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { listInterviews, getAvailability, listMatches, bookedSlots } from '@/lib/store';
-import { formatSlot, formatTime, overlappingSlots } from '@/lib/scheduling';
+import { formatTime, overlappingSlots } from '@/lib/scheduling';
+import { fmtWhen, zoneLabel } from '@/lib/words';
 import { zoomConfigured } from '@/lib/zoom';
 import Shell from '@/components/Shell';
 import InterviewStatus from '@/components/InterviewStatus';
@@ -9,10 +10,13 @@ import BookInterview from '@/components/BookInterview';
 import ClientSwitcher from '@/components/ClientSwitcher';
 import TableSearch from '@/components/TableSearch';
 import ConsoleTabs from '@/components/ConsoleTabs';
+import Empty from '@/components/Empty';
 import { Stat } from '@/components/Viz';
 import { listPeople } from '@/lib/work';
 import { getBench } from '@/lib/data';
 import { listDecisions } from '@/lib/work';
+
+export const metadata = { title: 'Introductions' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -35,7 +39,7 @@ export default async function ConsoleInterviews({ searchParams }: {
      manager was reading every interview eight hours out. */
   const myAvail = await getAvailability(profile.id, '');
   const tz = myAvail.timezone?.trim() || 'America/Los_Angeles';
-  const tzLabel = tz.split('/')[1]?.replace(/_/g, ' ') ?? tz;
+  const tzLabel = zoneLabel(tz);
   const count = (s: string) => all.filter(i => i.status === s).length;
 
   const now = Date.now();
@@ -84,7 +88,7 @@ export default async function ConsoleInterviews({ searchParams }: {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting" title="Recruiting"
-      crumb={upcoming.length ? `${upcoming.length} coming up` : 'Every account'}
+      crumb={upcoming.length ? `${upcoming.length} coming up` : 'Introductions'}
       action={<span className={`pill ${zoomConfigured() ? 'good' : 'warn'}`}><span className="dot" />
         {zoomConfigured() ? 'Zoom connected' : 'Zoom not connected'}</span>}>
       <ConsoleTabs active="/console/interviews" items={[
@@ -96,7 +100,7 @@ export default async function ConsoleInterviews({ searchParams }: {
       <div className="grid-4">
         <Stat label="Coming up" value={upcoming.length} sub="Not yet held" />
         <Stat label="Completed" value={count('Completed')} sub="Interviews held" />
-        <Stat label="Did not go ahead" value={count('Declined') + count('Cancelled')} sub="Cancelled or declined" />
+        <Stat label="Did not proceed" value={count('Declined') + count('Cancelled')} sub="Cancelled or declined" />
         <Stat label="No-shows" value={count('No-show')} sub="Worth a conversation" />
       </div>
 
@@ -104,10 +108,8 @@ export default async function ConsoleInterviews({ searchParams }: {
         <div className="card-head"><h3>Coming up</h3>
           <span className="pill">All times {tzLabel}</span></div>
         {upcoming.length === 0
-          ? <p className="small muted">
-              Nothing in the diary. Once you have approved a candidate for an executive,
-              book the introduction below.
-            </p>
+          ? <Empty title="Nothing in the diary"
+              body="Once you have approved a candidate for an executive, book the introduction below." />
           : (
             <table className="data">
               <thead><tr><th>Executive</th><th>Candidate</th><th>Stage</th><th>When</th><th>Status</th><th>Link</th></tr></thead>
@@ -117,7 +119,7 @@ export default async function ConsoleInterviews({ searchParams }: {
                     <td><b>{iv.client_name}</b></td>
                     <td>{iv.talent_name}</td>
                     <td className="small">{iv.stage}</td>
-                    <td className="small">{formatSlot(iv.starts_at, tz)}</td>
+                    <td className="small">{fmtWhen(iv.starts_at, tz)}</td>
                     <td><InterviewStatus id={iv.id} status={iv.status} mode="admin" /></td>
                     <td>{iv.meeting_url
                       ? <a className="btn sm ghost" href={iv.meeting_url} target="_blank" rel="noreferrer">Open</a>
@@ -173,7 +175,7 @@ export default async function ConsoleInterviews({ searchParams }: {
                   <tr key={iv.id}>
                     <td><b>{iv.client_name}</b></td>
                     <td>{iv.talent_name}</td>
-                    <td className="small">{formatSlot(iv.starts_at, tz)}</td>
+                    <td className="small">{fmtWhen(iv.starts_at, tz)}</td>
                     <td><InterviewStatus id={iv.id} status={iv.status} mode="admin" /></td>
                   </tr>
                 ))}

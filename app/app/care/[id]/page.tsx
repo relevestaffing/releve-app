@@ -6,6 +6,8 @@ import Shell from '@/components/Shell';
 import PlacementView from '@/components/PlacementView';
 import { firstName } from '@/lib/words';
 
+export const metadata = { title: 'Your placement' };
+
 export const dynamic = 'force-dynamic';
 
 /* One person, for an executive with more than one.

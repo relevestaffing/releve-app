@@ -26,11 +26,13 @@ const OWNER_ONLY = 'Only the owner can do that. Ask her, or have her change your
    fully credited ($0) invoice is still sent, as a statement, and settles
    itself: there is nothing to collect. Eligible starting points are 'draft'
    and 'failed'; anything else is a safe no-op, never a second email. */
-async function mailInvoice(id: string): Promise<boolean> {
+type MailResult = 'mailed' | 'not_draft' | 'no_address' | 'send_failed';
+
+async function mailInvoice(id: string): Promise<MailResult> {
   const before = await getInvoice(id);
-  if (!before || !['draft', 'failed'].includes(before.status)) return false;
+  if (!before || !['draft', 'failed'].includes(before.status)) return 'not_draft';
   const who = before.client_id ? await personEmail(before.client_id) : null;
-  if (!who?.email || before.amount_cents < 0) return false;
+  if (!who?.email || before.amount_cents < 0) return 'no_address';
 
   /* The number is assigned the moment an invoice stops being a draft, and the
      due date resets to today if it was drafted earlier (due on receipt). */
@@ -50,11 +52,11 @@ async function mailInvoice(id: string): Promise<boolean> {
   const ok = await send(who.email, tpl);
   if (!ok) {
     await setInvoiceStatus(id, before.status as any);   // back to draft/failed, safe to try again
-    return false;
+    return 'send_failed';
   }
 
   await markInvoiceSent(id);
-  if (zero) { await settleZeroInvoice(id).catch(() => {}); return true; }
+  if (zero) { await settleZeroInvoice(id).catch(() => {}); return 'mailed'; }
 
   /* Autopay: issuing the invoice is what starts the clock when a payment
      method is on file. chargeInvoice claims the row atomically and refuses
@@ -65,8 +67,14 @@ async function mailInvoice(id: string): Promise<boolean> {
     if (acct?.mandate_ok && acct.payment_method) await chargeInvoice(id);
   } catch { /* left due; the pay link in the email still works */ }
 
-  return true;
+  return 'mailed';
 }
+
+const MAIL_ERRORS: Record<Exclude<MailResult, 'mailed'>, string> = {
+  not_draft: 'That invoice has already been sent. Nothing was emailed again.',
+  no_address: 'Could not send that invoice. There is no email address on file for the executive. Add one under People and try again.',
+  send_failed: 'The email did not go out, so the invoice is still a draft. Try again in a moment.'
+};
 
 /* Every money write funnels through here. The database checks again on its
    own: is_admin() for the team, is_owner() for paid, void and amounts. */
@@ -137,9 +145,9 @@ export async function POST(req: Request) {
 
       case 'invoice_status': {
         if (b.status === 'sent') {
-          const mailed = await mailInvoice(String(b.id)).catch(() => false);
-          if (!mailed) return NextResponse.json(
-            { error: 'Could not send that invoice. Check the address on file and try again.' }, { status: 400 });
+          const result = await mailInvoice(String(b.id)).catch((): MailResult => 'send_failed');
+          if (result !== 'mailed') return NextResponse.json(
+            { error: MAIL_ERRORS[result], reason: result }, { status: 400 });
           return NextResponse.json({ ok: true, mailed: true });
         }
         if ((b.status === 'paid' || b.status === 'void') && !(await isOwner()))
@@ -157,8 +165,8 @@ export async function POST(req: Request) {
         if (!ids.length) return NextResponse.json({ error: 'nothing selected' }, { status: 400 });
         let sentCount = 0, skipped = 0;
         for (const id of ids) {
-          const mailed = await mailInvoice(id).catch(() => false);
-          if (mailed) sentCount++; else skipped++;
+          const result = await mailInvoice(id).catch((): MailResult => 'send_failed');
+          if (result === 'mailed') sentCount++; else skipped++;
         }
         return NextResponse.json({ ok: true, sent: sentCount, skipped });
       }

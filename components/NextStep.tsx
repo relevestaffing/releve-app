@@ -22,7 +22,7 @@ export default function NextStep({ steps, current }: { steps: Step[]; current: s
         </div>
       </div>
       <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
-        {next && <Link className="btn solid" href={next.href}>Start it</Link>}
+        {next && <Link className="btn solid" href={next.href}>{next.title}</Link>}
         <Link className="btn ghost" href="/app">
           {next ? 'Back to your list' : 'Back to your dashboard'}
         </Link>

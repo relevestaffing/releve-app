@@ -6,8 +6,10 @@ import Shell from '@/components/Shell';
 import Empty from '@/components/Empty';
 import BriefEditor from '@/components/BriefEditor';
 import { BRIEF_FIELDS, getBrief } from '@/lib/experience';
-import { firstName, fmtDate } from '@/lib/words';
+import { firstName, fmtDate, WORDS } from '@/lib/words';
 import '@/components/experience.css';
+
+export const metadata = { title: 'Your briefing' };
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +89,7 @@ export default async function BriefPage({ searchParams }: { searchParams: Promis
         ))}
         <div className="row" style={{ gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
           <Link className="btn sm ghost" href={`/app/messages?tab=${p.id}`}>Ask {exec} a question</Link>
-          <Link className="btn sm ghost" href="/app/messages?tab=sm">Something missing? Tell your manager</Link>
+          <Link className="btn sm ghost" href="/app/messages?tab=sm">Something missing? Tell {WORDS.tsmShort}</Link>
         </div>
       </div>
     </Shell>

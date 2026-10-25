@@ -13,6 +13,7 @@
    ============================================================ */
 import nodemailer from 'nodemailer';
 import { APPLY_QUESTIONS } from './jobs-public';
+import { fmtDate, fmtDay } from './words';
 
 const HOST = process.env.SMTP_HOST ?? 'smtp.gmail.com';
 const PORT = Number(process.env.SMTP_PORT ?? 465);
@@ -215,7 +216,7 @@ const rawTemplates = {
     const links = [{ label: "Set up how you'll be invoiced", href: `${SITE}/app/billing` },
       ...(o?.docsUrl ? [{ label: 'Sign your paperwork', href: o.docsUrl }] : [])];
     return {
-      subject: 'Your Relève account',
+      subject: 'Your Relève account is open',
       text: `${name ? name + ',' : 'Hello,'}\n\nYour Relève account is open at ${SITE}. Sign in with this address. There is no password; we send a link.\n\nTwo things from you: the Executive Signature, which takes about thirteen minutes, and your availability. Everything after that is ours.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
       html: shell('Your account is open',
         p(`${name ? name + ',' : 'Hello,'}`) +
@@ -301,7 +302,7 @@ const rawTemplates = {
     highlights: { date: string; text: string }[];
   }) => {
     const first = o.talent.split(' ')[0];
-    const ending = new Date(o.week + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const ending = fmtDay(o.week);
     const lines: string[] = [];
     if (o.hours != null) lines.push(`Hours: ${o.hours}`);
     if (o.accomplished) lines.push(`Done this week:\n${o.accomplished}`);
@@ -366,9 +367,9 @@ const rawTemplates = {
   }),
 
   checkinNudge: (name: string) => ({
-    subject: 'Your end-of-week report',
+    subject: 'Your end of week report',
     text: `${name},\n\nIt is Friday. Four things, about two minutes: your hours, the tasks you accomplished, a win from the week, and any concerns.\n\n${SITE}/app/checkin\n\nThis goes to us, never to the executive. Say what is actually true. It is the only way we can help.\n\nRelève`,
-    html: shell('Your end-of-week report',
+    html: shell('Your end of week report',
       p(`${name},`) +
       p('Four things, about two minutes: your hours, the tasks you accomplished, a win from the week, and any concerns.') +
       p('<b>This comes to us, never to the executive.</b> Say what is actually true. It is the only way we can be useful to you.'),
@@ -463,22 +464,6 @@ const rawTemplates = {
         { label: 'Read and reply', href })
     };
   },
-
-  /* The invoice actually reaching the person who owes it. Marking a row
-     "sent" used to send nothing at all, so a number was minted on a document
-     nobody would ever see. payUrl, when there is one, leads — a no-login
-     link straight to paying this exact amount — with the account itself as
-     the quieter second option, the same shape depositReady already uses. */
-  invoiceIssued: (o: { name: string; number: string; amount: string; period: string; due: string; payUrl?: string }) => ({
-    subject: `Relève invoice ${o.number}, ${o.period}`,
-    text: `${o.name},\n\nInvoice ${o.number} for ${o.period}.\n\nAmount: ${o.amount}\nDue: ${o.due}, on receipt\n\n${o.payUrl ? `Pay it directly, no sign-in needed: ${o.payUrl}\n\n` : ''}The full invoice, ready to print or save, is in your account under Billing.\n\n${SITE}/app/billing\n\nIf anything on it looks wrong, reply to this email rather than paying it. We would rather fix it now.\n\nRelève`,
-    html: shell(`Invoice ${o.number}`,
-      p(`${o.name},`) +
-      p(`<b>${o.amount}</b> for ${o.period}, due ${o.due}, on receipt.`) +
-      p('If anything on it looks wrong, reply to this email rather than paying it. We would rather fix it now.'),
-      o.payUrl ? { label: `Pay ${o.amount}`, href: o.payUrl } : { label: 'View the invoice', href: `${SITE}/app/billing` },
-      o.payUrl ? { label: 'View the full invoice', href: `${SITE}/app/billing` } : undefined)
-  }),
 
   /* Day one. Creating a placement used to send nothing to anybody: nine
      onboarding steps appeared in an account neither side was told to open. */
@@ -595,10 +580,12 @@ const rawTemplates = {
      actually true of) and leaves the rest to the account itself, which
      tracks each step honestly as it comes. */
   applicationInvited: (o: { name: string; role: string; docsUrl?: string }) => ({
-    subject: `Welcome to Relève, ${o.name}`,
-    text: `${o.name},\n\nThank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\nRelève`,
-    html: shell(`Welcome to Relève, ${o.name}`,
-      p(`${o.name},`) +
+    /* An applicant with no recorded name gets a plain welcome, never
+       "Welcome to Relève, there". */
+    subject: o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
+    text: `${o.name || 'Hello'},\n\nThank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\nRelève`,
+    html: shell(o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
+      p(`${o.name || 'Hello'},`) +
       p('Thank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.') +
       (o.docsUrl ? p(`Before you get started, you are welcome to sign your <a href="${o.docsUrl}" style="color:#4C594F;">NDA and contractor agreement</a> whenever suits you.`) : '') +
       p('Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature (twenty to twenty-five minutes, saved as you go), followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.') +
@@ -620,11 +607,11 @@ const rawTemplates = {
 
   shortlisted: (o: { name: string; who: string; candidate?: string }) => ({
     subject: `${o.who} approved ${o.candidate ?? 'their candidate'}`,
-    text: `${o.name},\n\n${o.who} has approved ${o.candidate ?? 'the candidate you put forward'} and would like to meet them. Book the introduction from Interviews.\n\n${SITE}/console/interviews\n\nRelève`,
+    text: `${o.name},\n\n${o.who} has approved ${o.candidate ?? 'the candidate you put forward'} and would like to meet them. Book the introduction from Introductions.\n\n${SITE}/console/interviews\n\nRelève`,
     html: shell('A candidate was approved',
       p(`${esc(o.name)},`) +
       p(`<b>${esc(o.who)}</b> has approved <b>${esc(o.candidate ?? 'the candidate you put forward')}</b> and would like to meet them.`) +
-      p('Book the introduction from Interviews. Both sides\' free times are already there.'),
+      p('Book the introduction from Introductions. Both sides\' free times are already there.'),
       { label: 'Book the introduction', href: `${SITE}/console/interviews` })
   }),
 
@@ -646,8 +633,7 @@ const rawTemplates = {
   /* The offer. Both sides get the same letter, and neither sees the other's
      number — because the number is not in it. */
   offerMade: (name: string, role: string, startsOn: string) => {
-    const when = new Date(startsOn + 'T00:00:00Z').toLocaleDateString('en-GB',
-      { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const when = fmtDate(startsOn);
     return {
       subject: `Your offer from Relève: ${role}`,
       text: `${name},\n\nThere is an offer waiting in your account: ${role}, starting ${when}.\n\nThe role, the hours and the terms are all there. Have a read and say yes or no. Nothing is settled until both sides have answered.\n\n${SITE}/app\n\nRelève`,
@@ -680,7 +666,7 @@ const rawTemplates = {
       p(`${o.name},`) +
       p(`The <b>${o.amount}</b>${o.number ? ` for invoice <b>${o.number}</b>` : ''} did not go through this time. Most often a bank declined a debit that clears fine on the next attempt.`) +
       p('Retry it any time from your billing page, or write in if you would rather use a different payment method.'),
-      { label: 'Retry on Billing', href: `${SITE}/app/billing` })
+      { label: 'Retry the payment', href: `${SITE}/app/billing` })
   }),
 
   /* To the team, the same moment — so a failed charge is a task on Money
@@ -692,7 +678,7 @@ const rawTemplates = {
       p(`<b>${o.client}</b>'s <b>${o.amount}</b>${o.number ? ` (invoice <b>${o.number}</b>)` : ''} was declined.`) +
       (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #8C4A3F;">${esc(o.reason)}</p>` : '') +
       p('They have already been emailed with a retry link. Worth a follow-up if it is still open in a few days.'),
-      { label: 'Open Money', href: `${SITE}/console/money` })
+      { label: 'Open Billing', href: `${SITE}/console/money` })
   }),
 
   /* A talent's own monthly pay, marked sent or failed by the team on
@@ -700,9 +686,9 @@ const rawTemplates = {
      (talent-experience audit, P0). 'due' fires nothing; a talent already
      sees that state by simply not having a payment yet. */
   talentPaymentSent: (o: { name: string; amount: string; period: string; reference?: string | null }) => ({
-    subject: `You were paid: ${o.amount}`,
+    subject: `Your pay is on its way: ${o.amount}`,
     text: `${o.name},\n\n${o.amount} for ${o.period} is on its way to you.${o.reference ? ` Reference: ${o.reference}.` : ''}\n\nSee it any time on your pay page.\n\n${SITE}/app/pay\n\nRelève`,
-    html: shell('You were paid',
+    html: shell('Your pay is on its way',
       p(`${o.name},`) +
       p(`<b>${o.amount}</b> for ${o.period} is on its way to you.${o.reference ? ` Reference: <b>${esc(o.reference)}</b>.` : ''}`) +
       p('You can see this any time on your pay page.'),
@@ -726,12 +712,12 @@ const rawTemplates = {
       ? `Both sides said yes: ${o.role}`
       : `${o.who} said ${o.answer === 'yes' ? 'yes' : 'no'} to the offer: ${o.role}`,
     text: o.both
-      ? `Both sides have accepted the offer for ${o.role}. Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end-of-week reports.\n\n${SITE}/console/offers\n\nRelève`
+      ? `Both sides have accepted the offer for ${o.role}. Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end of week reports.\n\n${SITE}/console/offers\n\nRelève`
       : `${o.who} (${o.side}) said ${o.answer === 'yes' ? 'yes' : 'no'} to the offer for ${o.role}.${o.reason ? `\n\nReason: ${o.reason}` : ''}\n\n${o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.'}\n\n${SITE}/console/offers\n\nRelève`,
     html: shell(o.both ? 'Both sides said yes' : `${o.who} said ${o.answer}`,
       (o.both
         ? p(`Both sides have accepted the offer for <b>${o.role}</b>.`) +
-          p('Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end-of-week reports.')
+          p('Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end of week reports.')
         : p(`<b>${o.who}</b> (${o.side}) said <b>${o.answer}</b> to the offer for <b>${o.role}</b>.`) +
           (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #9A7B3F;">${o.reason}</p>` : '') +
           p(o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.')),
@@ -741,12 +727,11 @@ const rawTemplates = {
   /* To each side once both have said yes. No number in it — each side's
      own terms are in their account, and nobody else's. */
   offerAgreed: (o: { name: string; withWhom: string; role: string; startsOn: string }) => {
-    const when = new Date(o.startsOn + 'T00:00:00Z').toLocaleDateString('en-GB',
-      { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const when = fmtDate(o.startsOn);
     return {
-      subject: `It is agreed: ${o.role}`,
+      subject: `Confirmed: ${o.role}`,
       text: `${o.name},\n\nBoth sides have said yes. ${o.withWhom} and you are starting ${when}: ${o.role}.\n\nRelève confirms the start and sets up your shared workspace: the task list, the 30/60/90 plan and the weekly rhythm. You will get one more email when it is live.\n\n${SITE}/app\n\nRelève`,
-      html: shell('It is agreed',
+      html: shell('Confirmed',
         p(`${o.name},`) +
         p(`Both sides have said yes. <b>${o.withWhom}</b> and you are starting <b>${when}</b>: ${o.role}.`) +
         p('Relève confirms the start and sets up your shared workspace: the task list, the 30/60/90 plan and the weekly rhythm. You will get one more email when it is live.'),
@@ -820,19 +805,7 @@ const rawTemplates = {
       { label: 'Open Taking The Watch', href: `${SITE}/app/watch` })
   }),
 
-  /* ---- the end of a placement, and notice ---- */
-  noticeGiven: (o: { name: string; who: string; endsOn: string; toTeam: boolean }) => ({
-    subject: o.toTeam ? `Notice given: ${o.who}` : 'We have your notice',
-    text: o.toTeam
-      ? `${o.who} has given notice. The placement runs to ${o.endsOn} and is billed through that date.\n\nThirty days' written notice before the current term ends. After the minimum, placements renew in three-month terms.\n\n${SITE}/console/placements\n\nRelève`
-      : `${o.name},\n\nWe have your notice. Your placement runs to ${o.endsOn}, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.\n\nThirty days' written notice before the current term ends. After the minimum, placements renew in three-month terms.\n\n${SITE}/app/care\n\nRelève`,
-    html: shell(o.toTeam ? 'Notice given' : 'We have your notice',
-      (o.toTeam
-        ? p(`<b>${esc(o.who)}</b> has given notice. The placement runs to <b>${esc(o.endsOn)}</b> and is billed through that date.`)
-        : p(`${esc(o.name)},`) + p(`We have your notice. Your placement runs to <b>${esc(o.endsOn)}</b>, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.`))
-      + `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">Thirty days' written notice before the current term ends. After the minimum, placements renew in three-month terms.</p>`,
-      { label: o.toTeam ? 'Open Placements' : 'Open your placement', href: o.toTeam ? `${SITE}/console/placements` : `${SITE}/app/care` })
-  }),
+  /* ---- the end of a placement ---- */
   placementEnded: (o: { name: string; withWhom: string; endedOn: string; side: 'client' | 'talent' }) => ({
     subject: 'Your placement has ended',
     text: `${o.name},\n\nYour placement with ${o.withWhom} ended on ${o.endedOn}. ${o.side === 'client'
@@ -850,30 +823,30 @@ const rawTemplates = {
   /* ---- an interview needs rebooking, and Relève is the one who does it ---- */
   interviewNeedsRebooking: (o: { who: string; withWhom: string; when: string }) => ({
     subject: `Interview cancelled: ${o.who} and ${o.withWhom}`,
-    text: `${o.who} cancelled the interview with ${o.withWhom} that was set for ${o.when}. Both were told a new time is coming. Book it from Interviews.\n\n${SITE}/console/interviews\n\nRelève`,
+    text: `${o.who} cancelled the interview with ${o.withWhom} that was set for ${o.when}. Both were told a new time is coming. Book it from Introductions.\n\n${SITE}/console/interviews\n\nRelève`,
     html: shell('An interview needs rebooking',
       p(`<b>${o.who}</b> cancelled the interview with <b>${o.withWhom}</b> set for ${o.when}.`) +
-      p('Both were told a new time is coming. Book it from Interviews.'),
-      { label: 'Open Interviews', href: `${SITE}/console/interviews` })
+      p('Both were told a new time is coming. Book it from Introductions.'),
+      { label: 'Open Introductions', href: `${SITE}/console/interviews` })
   }),
 
   /* ---- a booking went out without a meeting link ---- */
   meetingLinkOwed: (o: { who: string; withWhom: string; when: string }) => ({
     subject: `Meeting link owed: ${o.who} and ${o.withWhom}, ${o.when}`,
-    text: `An interview was booked between ${o.who} and ${o.withWhom} for ${o.when}, but no meeting link could be made (Zoom is not connected). Both sides were told the link is coming. Send it from Interviews.\n\n${SITE}/console/interviews\n\nRelève`,
+    text: `An interview was booked between ${o.who} and ${o.withWhom} for ${o.when}, but no meeting link could be made (Zoom is not connected). Both sides were told the link is coming. Send it from Introductions.\n\n${SITE}/console/interviews\n\nRelève`,
     html: shell('A meeting link is owed',
       p(`An interview was booked between <b>${o.who}</b> and <b>${o.withWhom}</b> for ${o.when}, but no meeting link could be made, because Zoom is not connected.`) +
-      p('Both sides were told the link is coming. Send it from Interviews.'),
-      { label: 'Open Interviews', href: `${SITE}/console/interviews` })
+      p('Both sides were told the link is coming. Send it from Introductions.'),
+      { label: 'Open Introductions', href: `${SITE}/console/interviews` })
   }),
 
   checkinFlagged: (o: { talent: string; why: string }) => ({
-    subject: `Check-in needs a look: ${o.talent}`,
-    text: `${o.talent}'s weekly check-in needs a closer look.\n\n${o.why}\n\n${SITE}/console/checkins\n\nRelève`,
-    html: shell('A check-in needs a look',
-      p(`<b>${esc(o.talent)}</b>'s weekly check-in needs a closer look.`) +
+    subject: `End of week report needs a look: ${o.talent}`,
+    text: `${o.talent}'s end of week report needs a closer look.\n\n${o.why}\n\n${SITE}/console/checkins\n\nRelève`,
+    html: shell('An end of week report needs a look',
+      p(`<b>${esc(o.talent)}</b>'s end of week report needs a closer look.`) +
       `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #7A2E26;">${esc(o.why)}</p>`,
-      { label: 'Open check-ins', href: `${SITE}/console/checkins` })
+      { label: 'Open end of week reports', href: `${SITE}/console/checkins` })
   })
 };
 
@@ -927,7 +900,7 @@ export function signatureNudge(name: string): Message {
 export function pulseNudge(name: string, month: string, placementId: string): Message {
   return {
     kind: 'pulseNudge',
-    subject: `How is it going? ${month}`,
+    subject: `A minute on ${month}`,
     text: `${name},\n\nA short one: how has this month been?\n\nFive taps and two boxes, and it goes to us rather than to the person you work with, so say what is actually true.\n\n${SITE}/app/care\n\nRelève`,
     html: shell('How has this month been?',
       p(`${name},`) +

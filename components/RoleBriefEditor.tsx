@@ -15,6 +15,9 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [flipping, setFlipping] = useState(false);
+  /* Closing a search hides the candidate, interview and role screens from
+     the executive the moment it lands, so it arms a confirm first. */
+  const [closing, setClosing] = useState(false);
 
   /* closed_at, not the stage label, is what the executive's account reads.
      A search with no closed_at means their candidate and interview screens
@@ -25,7 +28,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
      the hiring screens back. Closing one by hand is for a search called off
      rather than filled — a placement closes its own search automatically. */
   async function flip(open: boolean) {
-    setFlipping(true);
+    setFlipping(true); setClosing(false);
     const ok = await saving(() => fetch('/api/admin/search', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ client_key: clientKey, pending, action: open ? 'open' : 'close', reason: 'withdrawn' })
@@ -85,14 +88,27 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
           </span>
         </div>
         <div className="row" style={{ gap: 8 }}>
-          {!pending && (
-            <button className="btn sm ghost" disabled={flipping} onClick={() => flip(!hiring)}>
+          {!pending && !closing && (
+            <button className="btn sm ghost" disabled={flipping}
+              onClick={() => { if (hiring) setClosing(true); else flip(true); }}>
               {flipping ? 'One moment…' : hiring ? 'Close the search' : 'Open a new search'}
             </button>
           )}
-          <button className="btn sm ghost" onClick={() => { setOpen(true); setSaved(false); }}>Edit brief</button>
+          <button className="btn sm ghost" disabled={closing} onClick={() => { setOpen(true); setSaved(false); }}>Edit brief</button>
         </div>
       </div>
+      {closing && (
+        <div className="row" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
+          <span className="small">
+            Close the search for {firstName(name, 'the executive')}? Their candidate, interview and role screens
+            disappear until a search is opened again.
+          </span>
+          <button className="btn sm solid" disabled={flipping} onClick={() => flip(false)}>
+            {flipping ? 'Closing…' : 'Yes, close it'}
+          </button>
+          <button className="btn sm ghost" disabled={flipping} onClick={() => setClosing(false)}>Keep it open</button>
+        </div>
+      )}
       <p className="xs muted" style={{ marginTop: 8 }}>
         {hiring
           ? `${firstName(name, 'The executive')} can see their candidate, interviews and role brief.`

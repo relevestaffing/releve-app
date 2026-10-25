@@ -58,9 +58,10 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
         onChange={e => {
           const next = e.target.value as DepositStatus;
           if (next === value) return;
-          /* Recording money received is the one change that gets a confirm; the
-             select snaps back to its current value until it is confirmed. */
-          if (next === 'paid' || next === 'waived') { setPending(next); e.target.value = value; return; }
+          /* Recording money received gets a confirm, and so does undoing it:
+             moving a paid deposit back to due says money was never received.
+             The select snaps back to its current value until it is confirmed. */
+          if (next === 'paid' || next === 'waived' || value === 'paid') { setPending(next); e.target.value = value; return; }
           commit(next);
         }}>
         {DEPOSIT_STATUS.filter(s => s.key !== 'processing').map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
@@ -69,11 +70,13 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
         <>
           <span className="xs muted">{pending === 'paid'
             ? `Mark the ${money(cents)} deposit paid?`
-            : `Waive the ${money(cents)} deposit? Its invoice is voided.`}</span>
+            : pending === 'waived'
+              ? `Waive the ${money(cents)} deposit? Its invoice is voided.`
+              : `Mark the ${money(cents)} deposit due again? This records that the money was not received.`}</span>
           <button className="btn sm solid" disabled={busy}
             onClick={() => { const p = pending; setPending(null); commit(p); }}>
-            {pending === 'paid' ? 'Yes, mark it paid' : 'Yes, waive it'}</button>
-          <button className="btn sm ghost" disabled={busy} onClick={() => setPending(null)}>Cancel</button>
+            {busy ? 'Working…' : pending === 'paid' ? 'Yes, mark it paid' : pending === 'waived' ? 'Yes, waive it' : 'Yes, mark it due'}</button>
+          <button className="btn sm ghost" disabled={busy} onClick={() => setPending(null)}>Keep it</button>
         </>
       ) : (
         <>

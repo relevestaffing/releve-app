@@ -1,12 +1,11 @@
-import { tzLabel as tzName } from '@/lib/experience-public';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { currentProfile } from '@/lib/supabase/server';
 import { getMySignature, rankBench, getBench } from '@/lib/data';
 import { getAvailability, listInterviews, listMatches, bookedSlots, getCalendar, noteCalendarError, getSelfProfile, getSearch } from '@/lib/store';
-import { fmtDate } from '@/lib/words';
+import { fmtDate, fmtWhen, zoneLabel } from '@/lib/words';
 import { busyIntervals } from '@/lib/google-calendar';
-import { overlappingSlots, formatSlot, formatTime } from '@/lib/scheduling';
+import { overlappingSlots, formatTime } from '@/lib/scheduling';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import { Portrait } from '@/components/Viz';
@@ -16,6 +15,8 @@ import InterviewFeedback from '@/components/InterviewFeedback';
 import { listFeedback, listDecisions } from '@/lib/work';
 import Empty from '@/components/Empty';
 import { EMPTY, firstName } from '@/lib/words';
+
+export const metadata = { title: 'Interviews' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -40,7 +41,7 @@ export default async function Interviews() {
   const tz = myAvail.timezone?.trim() || 'UTC';
   /* An account with no timezone set rendered the header as "When ()" — on the
      one screen where the time is the entire point. */
-  const tzLabel = tz.split('/')[1]?.replace(/_/g, ' ') ?? tz;
+  const tzLabel = zoneLabel(tz);
   const feedback = await listFeedback({ authorId: profile.id });
   const fbByInterview = Object.fromEntries(feedback.map(f => [f.interview_id, f]));
   const past = (iso: string) => new Date(iso).getTime() < Date.now();
@@ -113,9 +114,9 @@ export default async function Interviews() {
       {!hasAvailRow && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>Your availability is not set</b>, so times here are shown in {tzName(tz)} and{' '}
+            <b>Your availability is not set</b>, so times here are shown in {tzLabel} and{' '}
             {isClient ? 'nobody can be booked from times you are both free' : 'no executive can book you'}.{' '}
-            <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set it now</Link>. It takes two minutes.
+            <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set your availability</Link>. It takes two minutes.
           </p>
         </div>
       )}
@@ -125,7 +126,7 @@ export default async function Interviews() {
           <div className="eyebrow" style={{ marginBottom: 8 }}>Next interview</div>
           <h3 style={{ margin: '0 0 4px' }}>{(isClient ? next.talent_name : next.client_name) ?? 'Your candidate'}</h3>
           <p className="small" style={{ margin: '0 0 16px' }}>
-            {formatSlot(next.starts_at, tz)}{tzLabel && ` · ${tzLabel}`}
+            {fmtWhen(next.starts_at, tz)}{tzLabel && ` (${tzLabel})`}
           </p>
           {next.meeting_url
             ? <a className="btn solid" href={next.meeting_url} target="_blank" rel="noreferrer"
@@ -138,7 +139,7 @@ export default async function Interviews() {
 
       <div className="card">
         <div className="card-head"><h3>Scheduled</h3>
-          <span className="pill">{mine.filter(i => !['cancelled', 'declined'].includes(String(i.status))).length} upcoming or held</span></div>
+          {mine.length > 0 && <span className="pill">{mine.filter(i => !['Cancelled', 'Declined', 'No-show'].includes(String(i.status))).length} upcoming or held</span>}</div>
         {mine.length === 0
           ? <Empty of={isClient ? EMPTY.interviewsClient : EMPTY.interviewsTalent} />
           : (
@@ -149,7 +150,7 @@ export default async function Interviews() {
                   <tr key={iv.id}>
                     <td><b>{isClient ? iv.talent_name : iv.client_name}</b></td>
                     <td className="small">{iv.stage}</td>
-                    <td className="small">{formatSlot(iv.starts_at, tz)}</td>
+                    <td className="small">{fmtWhen(iv.starts_at, tz)}</td>
                     <td><InterviewStatus id={iv.id} status={iv.status} mode={isClient ? 'client' : 'talent'} /></td>
                     <td>{past(iv.starts_at) || iv.status === 'Completed'
                       ? <InterviewFeedback interviewId={iv.id}
@@ -164,6 +165,14 @@ export default async function Interviews() {
               </tbody>
             </table>
           )}
+        {!isClient && (
+          <div style={{ marginTop: 18 }}>
+            <Explain>
+              Executives can only book you inside the hours you have marked as free.
+              Keep them current and you will never be offered a call at 3am.
+            </Explain>
+          </div>
+        )}
       </div>
 
       {isClient && bookable.length > 0 && (
@@ -218,14 +227,6 @@ export default async function Interviews() {
         </>
       )}
 
-      {!isClient && (
-        <div className="card tight">
-          <Explain>
-            Executives can only book you inside the hours you have marked as free.
-            Keep them current and you will never be offered a call at 3am.
-          </Explain>
-        </div>
-      )}
     </Shell>
   );
 }

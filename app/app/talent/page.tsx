@@ -11,6 +11,8 @@ import { AxisBars, Portrait } from '@/components/Viz';
 import { WORDS } from '@/lib/words';
 import { getSkills, skillsShape, DISCIPLINE } from '@/lib/roles';
 
+export const metadata = { title: 'Your profile' };
+
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +56,7 @@ export default async function TalentProfile() {
             <h3>What you wrote</h3>
             <div className="small muted" style={{ marginTop: 4 }}>An executive reads this before anything else.</div>
           </div>
-          <Link className="btn sm ghost" href="/app/talent/edit">Edit</Link>
+          <Link className="btn sm ghost" href="/app/talent/edit">Edit your profile</Link>
         </div>
         <div className="row" style={{ marginBottom: self.bio || shape ? 18 : 0 }}>
           <Portrait id={profile.id} name={self.full_name ?? profile.full_name ?? ''} cls="lg" url={self.photo_url} />
@@ -83,11 +85,13 @@ export default async function TalentProfile() {
             ))}
           </div>
         ) : (
-          <p className="xs muted" style={{ marginTop: 16 }}>
-            You have not broken your skills down yet. Until you do, executives
-            cannot be matched to what you are actually good at.{' '}
-            <a href="/app/skills" style={{ textDecoration: 'underline' }}>Do it now</a>.
-          </p>
+          <div style={{ marginTop: 16 }}>
+            <p className="small muted" style={{ maxWidth: 560, marginBottom: 12 }}>
+              You have not broken your skills down yet. Until you do, executives
+              cannot be matched to what you are actually good at.
+            </p>
+            <a className="btn sm ghost" href="/app/skills">Break down your skills</a>
+          </div>
         )}
       </div>
 
@@ -134,10 +138,10 @@ export default async function TalentProfile() {
       )}
 
       <div className="card">
-        <div className="card-head"><h3>Your results in full</h3><span className="pill">See the full assessment</span></div>
+        <div className="card-head"><h3>Your results in full</h3><span className="pill">{WORDS.moreDetail}</span></div>
         <p className="small muted">Most people never need this. It is here because it is your data.</p>
         <details className="more">
-          <summary>See every score</summary>
+          <summary>{WORDS.moreDetail}</summary>
           <div className="inner">
             <div className="grid-2" style={{ marginBottom: 22 }}>
               <div><div className="eyebrow" style={{ marginBottom: 12 }}>Working style</div>

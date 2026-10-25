@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { configured, type Profile } from '@/lib/supabase/server';
+import { getSelfProfile } from '@/lib/store';
 import DemoSwitch from './DemoSwitch';
 import MobileNav from './MobileNav';
 import QuickBar from './QuickBar';
@@ -35,16 +37,16 @@ const NAV: Record<string, NavGroup[]> = {
     { items: [{ href: '/app', label: 'Dashboard' }] },
     { group: 'Your brief', items: [
       { href: '/app/signature', label: 'Executive Signature' },
-      { href: '/app/role', label: 'The Role' },
-      { href: '/app/profile', label: 'Your Profile' }
+      { href: '/app/role', label: 'The role' },
+      { href: '/app/profile', label: 'Your profile' }
     ]},
     { group: 'Hiring', items: [
-      { href: '/app/pipeline', label: 'Your Candidate' },
+      { href: '/app/pipeline', label: 'Your candidate' },
       { href: '/app/interviews', label: 'Interviews' },
       { href: '/app/availability', label: 'Availability' }
     ]},
     { group: 'Working together', items: [
-      { href: '/app/care', label: 'Your Placement' },
+      { href: '/app/care', label: 'Your placement' },
       { href: '/app/tasks', label: 'Tasks' },
       { href: '/app/billing', label: 'Billing' }
     ]},
@@ -53,10 +55,10 @@ const NAV: Record<string, NavGroup[]> = {
 
   talent: [
     { items: [{ href: '/app', label: 'Dashboard' }] },
-    { group: 'Your profile', items: [
+    { group: 'About you', items: [
       { href: '/app/signature', label: 'Talent Signature' },
-      { href: '/app/skills', label: 'Your Skills' },
-      { href: '/app/talent', label: 'Your Profile' },
+      { href: '/app/skills', label: 'Your skills' },
+      { href: '/app/talent', label: 'Your profile' },
       { href: '/app/watch', label: 'Taking The Watch' },
       { href: '/app/vetting', label: 'Verification' }
     ]},
@@ -64,13 +66,13 @@ const NAV: Record<string, NavGroup[]> = {
       { href: '/app/interviews', label: 'Interviews' },
       { href: '/app/availability', label: 'Availability' }
     ]},
-    { group: 'Your placement', items: [
-      { href: '/app/care', label: 'Your Placement' },
+    { group: 'Working', items: [
+      { href: '/app/care', label: 'Your placement' },
       { href: '/app/tasks', label: 'Tasks' },
-      { href: '/app/log', label: 'Daily Log' },
-      { href: '/app/brief', label: 'Your Briefing' },
-      { href: '/app/checkin', label: 'End of Week Report' },
-      { href: '/app/pay', label: 'Your Pay' }
+      { href: '/app/log', label: 'Daily log' },
+      { href: '/app/brief', label: 'Your briefing' },
+      { href: '/app/checkin', label: 'End of week report' },
+      { href: '/app/pay', label: 'Your pay' }
     ]},
     { items: [{ href: '/app/messages', label: 'Messages' }] }
   ],
@@ -102,7 +104,7 @@ const NAV: Record<string, NavGroup[]> = {
   ]
 };
 
-const WHO: Record<string, string> = { client: 'Executive Account', talent: 'Talent Account', admin: 'Relève Console' };
+const WHO: Record<string, string> = { client: 'Executive account', talent: 'Talent account', admin: 'Relève console' };
 
 /* Where the logo and the account name each go. The logo is always "home" —
    the dashboard for whoever is signed in. The name is always "you" — the one
@@ -152,14 +154,14 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
      rides alongside it while hiring, where picturing the role is the job. */
   if (stage.hiring) {
     brief.push({ href: '/app/delegate', label: 'What to delegate' });
-    brief.push({ href: '/app/role', label: 'The Role' });
+    brief.push({ href: '/app/role', label: 'The role' });
   }
-  brief.push({ href: '/app/profile', label: 'Your Profile' });
+  brief.push({ href: '/app/profile', label: 'Your profile' });
   nav.push({ group: 'Your brief', items: brief });
 
   if (stage.hiring) {
     nav.push({ group: 'Hiring', items: [
-      { href: '/app/pipeline', label: 'Your Candidate' },
+      { href: '/app/pipeline', label: 'Your candidate' },
       { href: '/app/interviews', label: 'Interviews' },
       { href: '/app/availability', label: 'Availability' }
     ]});
@@ -169,12 +171,12 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
     const placements = await listPlacementsFor(profile.id);
     const items: NavItem[] = placements.length > 1
       ? placements.map(p => ({ href: `/app/care/${p.id}`, label: firstName(p.talent_name) }))
-      : [{ href: '/app/care', label: 'Your Placement' }];
+      : [{ href: '/app/care', label: 'Your placement' }];
     nav.push({
       group: placements.length > 1 ? 'Your team' : 'Working together',
       items: [...items,
         { href: '/app/tasks', label: 'Tasks' },
-        { href: '/app/report', label: 'Your Month' },
+        { href: '/app/report', label: 'Your month' },
         { href: '/app/billing', label: 'Billing' }]
     });
   } else {
@@ -199,7 +201,7 @@ async function talentNav(profile: Profile): Promise<NavGroup[]> {
   /* Before a placement there is no daily log, no end-of-week report and no
      pay, so those three entries wait until there is. Tasks and messages stay,
      since Relève writes to people on the roster too. */
-  return NAV.talent.map(g => g.group === 'Your placement'
+  return NAV.talent.map(g => g.group === 'Working'
     ? { ...g, items: g.items.filter(i => !['/app/log', '/app/brief', '/app/checkin', '/app/pay'].includes(i.href)) }
     : g);
 }
@@ -224,6 +226,19 @@ export default async function Shell({
      Relève's own team is exempt — you do not contract with yourself. */
   if (profile.role !== 'admin' && !(await hasAccepted(profile.id, TERMS_VERSION)))
     return <TermsGate name={profile.full_name} side={profile.role === 'client' ? 'client' : 'talent'} />;
+
+  /* A sign-up who has not yet said which side they are on has no account to
+     show: the role they carry is a placeholder. Only /app/welcome asked that
+     question, so a deep link to any other page handed them the full talent
+     product under their raw e-mail. Same test welcome/page.tsx makes, here,
+     so every page under Shell sends them back to answer it first. Anyone
+     Relève added by hand already has a side and is never asked. */
+  if (profile.role !== 'admin' && active !== '/app/welcome') {
+    const self = await getSelfProfile(profile.id);
+    /* onboarded_at is the belt to the braces: an account that finished its
+       first run before the choice was stamped is never sent back to it. */
+    if (!self.role_chosen_at && !self.assigned_by_releve && !self.onboarded_at) redirect('/app/welcome');
+  }
 
   /* Nothing else opens while something asked-for sits unpaid — checked here
      rather than on any one page, so it holds no matter which page under
@@ -259,7 +274,7 @@ export default async function Shell({
   const profileHref = PROFILE[profile.role];
   /* Sage, 19 October: the console greets her by name, not the shared inbox. */
   const shownName = profile.role === 'admin' && (!profile.full_name || profile.full_name.includes('@'))
-    ? 'Sage' : (profile.full_name ?? profile.email);
+    ? 'Sage' : (profile.full_name ?? 'Your account');
   return (
     <>
       <Motion />
@@ -322,13 +337,19 @@ export default async function Shell({
             {action && <div className="topbar-action">{action}</div>}
           </div>
           <div className="page-body">
-            <QuickBar role={profile.role} active={active} placedOnly={placedOnly}
-              tour={clientTour} unread={unread} />
-            {action && <div className="mobile-action">{action}</div>}
             {/* The grace banner, on every client page, so an open invoice is
                 seen well before the fourteen-day gate. */}
             {profile.role === 'client' && <BillingBanner clientId={profile.id} />}
             {children}
+            {/* Last in the DOM, first on the screen: both carry order:-2 in the
+                phone stylesheet. Putting them after the content means the
+                page's first real block is also .page-body's :first-child, which
+                is what the desktop rules that lift the opening card over the
+                hero band key on; with the (display:none) quick bar sitting in
+                that slot, those rules were landing on nothing. */}
+            <QuickBar role={profile.role} active={active} placedOnly={placedOnly}
+              tour={clientTour} unread={unread} />
+            {action && <div className="mobile-action">{action}</div>}
           </div>
         </main>
       </div>

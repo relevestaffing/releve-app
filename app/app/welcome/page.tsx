@@ -7,6 +7,8 @@ import ChooseRole from '@/components/ChooseRole';
 import TermsGate from '@/components/TermsGate';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 
+export const metadata = { title: 'Welcome' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function WelcomePage() {

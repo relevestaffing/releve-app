@@ -6,6 +6,8 @@ import Shell from '@/components/Shell';
 import WatchScoreForm from '@/components/WatchScoreForm';
 import { fmtDate } from '@/lib/words';
 
+export const metadata = { title: 'Taking The Watch' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function ConsoleWatchAttempt({ params }: { params: Promise<{ id: string }> }) {

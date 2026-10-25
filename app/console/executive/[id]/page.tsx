@@ -12,6 +12,8 @@ import { money, INVOICE_STATUS } from '@/lib/money-public';
 import { fmtDate, zoneLabel } from '@/lib/words';
 import Shell from '@/components/Shell';
 
+export const metadata = { title: 'Executive' };
+
 export const dynamic = 'force-dynamic';
 
 const AGREEMENT_WORDS: Record<string, string> = {
@@ -65,15 +67,15 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
   return (
     <Shell profile={profile} active="/console/directory"
       title={client.full_name}
-      crumb={[client.org_name, client.email].filter(Boolean).join(' · ')}
-      action={<Link className="btn sm ghost" href="/console/people">All executives</Link>}>
+      crumb={client.org_name || 'Executive'}
+      action={<Link className="btn sm ghost" href="/console/people">← Executives</Link>}>
 
       <div className="grid-3">
         <div className="card stat"><div className="eyebrow">Paid to date</div>
           <div className="score">{money(paidCents)}</div></div>
         <div className="card stat"><div className="eyebrow">Outstanding</div>
           <div className="score">{money(owedCents)}</div></div>
-        <div className="card stat"><div className="eyebrow">Live placements</div>
+        <div className="card stat"><div className="eyebrow">In seat</div>
           <div className="score">{live.length}</div></div>
       </div>
 
@@ -94,7 +96,7 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
 
       <div className="card">
         <div className="card-head"><h3>Placements</h3>
-          <span className="pill">{mine.length}</span></div>
+          {mine.length > 0 && <span className="pill">{mine.length} on file</span>}</div>
         {mine.length === 0 ? (
           <div className="empty"><span className="tick" />
             <p className="small">Nobody placed yet.</p></div>
@@ -121,7 +123,7 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
 
       <div className="card">
         <div className="card-head"><h3>Invoices</h3>
-          <span className="pill">{invoices.length}</span></div>
+          {invoices.length > 0 && <span className="pill">{invoices.length} on file</span>}</div>
         {invoices.length === 0 ? (
           <div className="empty"><span className="tick" />
             <p className="small">Nothing invoiced yet.</p></div>

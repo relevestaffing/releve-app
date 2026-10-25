@@ -8,6 +8,8 @@ import Shell from '@/components/Shell';
 import PlacementMaker from '@/components/PlacementMaker';
 import ConsoleTabs from '@/components/ConsoleTabs';
 
+export const metadata = { title: 'Placements' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function ConsolePlacements({ searchParams }: { searchParams: Promise<{ replace?: string; mine?: string }> }) {

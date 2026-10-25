@@ -5,7 +5,7 @@ import type { Manager } from '@/lib/experience-public';
 import { REPLY_PROMISE } from '@/lib/experience-public';
 import { saving } from './Toast';
 import ManagerLine from './ManagerLine';
-import { firstName } from '@/lib/words';
+import { firstName, fmtTime } from '@/lib/words';
 
 const POLL_MS = 20_000;
 
@@ -116,11 +116,10 @@ export default function MessageThread({
     const diff = Math.round((new Date(now.toDateString()).getTime() - new Date(d.toDateString()).getTime()) / 86400000);
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Yesterday';
-    if (diff < 7) return d.toLocaleDateString(undefined, { weekday: 'long' });
-    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+    if (diff < 7) return d.toLocaleDateString('en-US', { weekday: 'long' });
+    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long' });
   };
-  const time = (iso: string) =>
-    new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const time = (iso: string) => fmtTime(iso);
 
   const groups: { day: string; items: Message[] }[] = [];
   msgs.forEach(m => {
@@ -144,17 +143,19 @@ export default function MessageThread({
       <div className="card-head">
         {managerThread && manager
           ? <ManagerLine manager={manager} compact />
-          : <h3>{asTeam || placement || readOnly ? theirName : 'Your Success Manager'}</h3>}
-        <span className="xs muted">{msgs.length} message{msgs.length === 1 ? '' : 's'}</span>
+          : <h3>{asTeam || placement || readOnly ? theirName : manager?.title ? `Your ${manager.title}` : 'Your Success Manager'}</h3>}
+        {msgs.length > 0 && <span className="xs muted">{msgs.length} message{msgs.length === 1 ? '' : 's'}</span>}
       </div>
       {managerThread && <p className="xs muted chat-promise">{REPLY_PROMISE}</p>}
 
       {msgs.length === 0 ? (
-        <div className="empty" style={{ flex: 1 }}><span className="tick" />
+        <div className="empty-card" style={{ flex: 1, padding: '34px 20px' }}>
+          <div className="empty-mark" aria-hidden="true" />
+          <h3>{readOnly || asTeam ? 'Nothing written yet' : placement ? `Nothing yet from either of you` : 'No messages yet'}</h3>
           <p className="small">
-            {readOnly ? 'Nothing has been written here yet.'
-              : asTeam ? 'Nothing here yet.'
-              : placement ? `Nothing here yet. Write to ${theirName ?? 'them'} directly.`
+            {readOnly ? 'When these two write to each other, it appears here.'
+              : asTeam ? 'When they write in, it appears here and you answer below.'
+              : placement ? `Write to ${theirName ?? 'them'} directly. They see it the moment they open the app.`
               : 'Anything at all: a question, something that is not working, or something you want us to know. A person reads every message.'}
           </p></div>
       ) : (
@@ -190,8 +191,8 @@ export default function MessageThread({
         <form onSubmit={send} className="composer">
           <label htmlFor={`compose-${key}`} className="sr-only">Your message</label>
           <textarea id={`compose-${key}`} name="body" rows={1} required
-            placeholder={asTeam ? 'Reply…' : placement ? `Write to ${theirName ?? 'them'}…`
-              : manager?.id ? `Write to ${firstName(manager.name)}…` : 'Write to your Success Manager…'}
+            placeholder={asTeam ? 'Reply…' : placement ? `Write to ${firstName(theirName, 'them')}…`
+              : manager?.id ? `Write to ${firstName(manager.name)}…` : manager?.title ? `Write to your ${manager.title}…` : 'Write a message…'}
             onInput={e => {
               const el = e.currentTarget;
               el.style.height = 'auto';

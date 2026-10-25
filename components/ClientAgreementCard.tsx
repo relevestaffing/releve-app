@@ -48,7 +48,7 @@ export default function ClientAgreementCard({ state, rejectReason }: {
         countersigns right after, and this card clears once both signatures are on file.
       </p>
       {state === 'rejected' && rejectReason && (
-        <p className="small" style={{ color: '#7A2E26', marginBottom: 14 }}><b>Needs another go:</b> {rejectReason}</p>
+        <p className="small" style={{ color: '#7A2E26', marginBottom: 14 }}><b>Needs another try:</b> {rejectReason}</p>
       )}
       <button className="btn sm solid" disabled={busy} onClick={sign}>
         {busy ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}

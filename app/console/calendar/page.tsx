@@ -6,6 +6,8 @@ import { attendeeTimezones } from '@/lib/store';
 import Shell from '@/components/Shell';
 import { fmtDay } from '@/lib/words';
 
+export const metadata = { title: 'Calendar' };
+
 export const dynamic = 'force-dynamic';
 
 /* hello@relevestaffing.com runs on Pacific time — that's the zone the
@@ -62,7 +64,7 @@ export default async function ConsoleCalendar() {
 
   return (
     <Shell profile={profile} active="/console/business" title="The business"
-      crumb="Calendar, the next 30 days">
+      crumb="Next 30 days">
       <ConsoleTabs active="/console/calendar" items={[
         { href: '/console/reports', label: 'Reports' },
         { href: '/console/signals', label: 'Match accuracy' },

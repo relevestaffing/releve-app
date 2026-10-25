@@ -5,6 +5,8 @@ import { getSelfProfile } from '@/lib/store';
 import { fmtDate } from '@/lib/words';
 import PlacementRevealScreen from '@/components/PlacementRevealScreen';
 
+export const metadata = { title: 'Placement confirmed' };
+
 /* Reached one of two ways for either side: the redirect in app/app/page.tsx
    for whoever has an unrevealed placement, or someone typing the URL
    directly — both are handled the same way, by checking for real. Nobody

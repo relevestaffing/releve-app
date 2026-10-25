@@ -123,6 +123,7 @@ export default function Welcome({ role }: { role: 'client' | 'talent' }) {
   }, [i]);
 
   async function finish() {
+    if (busy) return;
     setBusy(true);
     try {
       const r = await fetch('/api/profile', {
@@ -159,14 +160,14 @@ export default function Welcome({ role }: { role: 'client' | 'talent' }) {
             </div>
             <div className="welcome-acts">
               {!last && (
-                <button className="welcome-skip" onClick={finish}>Skip</button>
+                <button className="welcome-skip" disabled={busy} onClick={finish}>Skip</button>
               )}
               {i > 0 && (
                 <button className="btn sm ghost" onClick={() => setI(i - 1)}>Back</button>
               )}
               {last
                 ? <button className="btn sm solid" disabled={busy} onClick={finish}>
-                    {busy ? 'One moment…' : 'Take me to my account'}
+                    {busy ? 'One moment…' : 'Open your account'}
                   </button>
                 : <button className="btn sm solid" onClick={() => setI(i + 1)}>Continue</button>}
             </div>

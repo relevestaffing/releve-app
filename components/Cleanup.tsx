@@ -71,13 +71,21 @@ export default function Cleanup({ rows, archived }: {
     }
   }
 
+  const [restoring, setRestoring] = useState<string | null>(null);
   async function restore(id: string, who: string) {
-    const r = await fetch('/api/admin/people', {
-      method: 'PATCH', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'restore', ids: [id] })
-    });
-    if (r.ok) { toast.saved(`${who} is back`); router.refresh(); }
-    else toast.bad('That did not go through.');
+    setRestoring(id);
+    try {
+      const r = await fetch('/api/admin/people', {
+        method: 'PATCH', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'restore', ids: [id] })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) { toast.saved(`${who} is back`); router.refresh(); }
+      else toast.bad(d.error ? `Not restored. ${d.error}` : `${who} was not put back. Please try again.`);
+    } catch {
+      toast.bad(`No connection. ${who} was not put back.`);
+    }
+    setRestoring(null);
   }
 
   return (
@@ -213,7 +221,11 @@ export default function Cleanup({ rows, archived }: {
               <div className="ff" style={{ maxWidth: 220 }}>
                 <label htmlFor="cleanup-confirm">Type REMOVE</label>
                 <input id="cleanup-confirm" value={typed} autoFocus disabled={busy}
-                  placeholder="REMOVE" onChange={e => setTyped(e.target.value)} />
+                  placeholder="REMOVE" onChange={e => setTyped(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Escape') setConfirming(null);
+                    if (e.key === 'Enter' && !busy && typed.trim().toUpperCase() === 'REMOVE') { e.preventDefault(); run('remove'); }
+                  }} />
               </div>
               <div className="row" style={{ gap: 10, marginTop: 14 }}>
                 <button className="btn sm solid danger"
@@ -256,9 +268,9 @@ export default function Cleanup({ rows, archived }: {
                     {a.archive_reason ? ` · ${a.archive_reason}` : ''}
                   </div>
                 </div>
-                <button className="btn sm ghost"
+                <button className="btn sm ghost" disabled={restoring !== null}
                   onClick={() => restore(a.id, a.full_name || a.email || 'They')}>
-                  Put back
+                  {restoring === a.id ? 'Putting back…' : 'Put back'}
                 </button>
               </li>
             ))}

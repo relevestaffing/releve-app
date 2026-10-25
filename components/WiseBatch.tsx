@@ -12,9 +12,12 @@ import { toast } from './Toast';
 
    Recording the batch emails every person in it to say their money is on the
    way, so the second step asks before it fires. */
-export default function WiseBatch({ count, skipped }: {
+export default function WiseBatch({ count, skipped, owner = true }: {
   count: number;
   skipped: { name: string; why: string }[];
+  /* Recording the batch as paid is the owner's call; the route refuses
+     anyone else, so the button is only shown to her. */
+  owner?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -69,10 +72,13 @@ export default function WiseBatch({ count, skipped }: {
             Download the Wise file
           </a>
         )}
-        {count > 0 && !confirming && (
+        {count > 0 && !confirming && owner && (
           <button className="btn sm ghost" disabled={busy} onClick={() => setConfirming(true)}>
             I have sent it in Wise
           </button>
+        )}
+        {count > 0 && !owner && (
+          <span className="xs muted" style={{ alignSelf: 'center' }}>Only the owner can record payments.</span>
         )}
       </div>
 

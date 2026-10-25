@@ -151,6 +151,14 @@ export default function Motion() {
 
     settle(Array.from(document.querySelectorAll<HTMLElement>(BLOCKS)).filter(el => !primed(el)), cameFromNav);
 
+    /* The reveal must never be the reason something stays hidden. An observer
+       that never fires (a capture, a print, a block parked under a sticky
+       element, a browser quirk) used to leave a page of blank cards; after a
+       beat and a half, everything that is still waiting simply appears. */
+    const failsafe = window.setTimeout(() => {
+      document.querySelectorAll(BLOCKS).forEach(el => el.classList.add('in'));
+    }, 1500);
+
     /* Not every block is ready at mount, and not every block that was ready
        stays ready. A component that loads its own data — calendar status,
        an availability grid, anything that renders a placeholder first —
@@ -174,6 +182,7 @@ export default function Motion() {
        and the next effect. The observers are what need releasing. */
     return () => {
       window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(failsafe);
       io?.disconnect();
       mo?.disconnect();
     };

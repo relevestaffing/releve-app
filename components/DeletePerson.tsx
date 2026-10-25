@@ -24,9 +24,13 @@ export default function DeletePerson({ id, name: rawName, pending }: {
   const name = (rawName ?? '').trim() || 'this person';
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  /* Archive is reversible, so it asks once in the row rather than for a
+     typed name: a sentence saying what happens, and a yes. */
+  const [archiving, setArchiving] = useState(false);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
   const first = (rawName ?? '').trim() ? (name.split(/\s+/)[0]).toLowerCase() : 'remove';
+  const canRemove = pending || typed.trim().toLowerCase() === first;
 
   async function remove() {
     setBusy(true);
@@ -45,15 +49,27 @@ export default function DeletePerson({ id, name: rawName, pending }: {
       body: JSON.stringify({ action: 'archive', ids: [id] })
     }), `${name} archived`);
     setBusy(false);
-    if (ok) router.refresh();
+    if (ok) { setArchiving(false); router.refresh(); }
   }
+
+  if (archiving) return (
+    <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <span className="xs muted">
+        Archive {name}? They leave every list and count. Everything on file stays, and you can put them back from Tidy up.
+      </span>
+      <button className="btn sm solid" disabled={busy} onClick={archive}>
+        {busy ? 'Archiving…' : 'Yes, archive'}
+      </button>
+      <button className="btn sm ghost" disabled={busy} onClick={() => setArchiving(false)}>Keep them</button>
+    </div>
+  );
 
   if (!open) return (
     <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
       {!pending && (
-        <button className="btn sm ghost" disabled={busy} onClick={archive}
+        <button className="btn sm ghost" disabled={busy} onClick={() => setArchiving(true)}
           title="Takes them off every list and keeps everything on file. Reversible.">
-          {busy ? 'Archiving…' : 'Archive'}
+          Archive
         </button>
       )}
       {/* The sentence explaining the difference between these two used to be
@@ -81,11 +97,14 @@ export default function DeletePerson({ id, name: rawName, pending }: {
             <input aria-label="Type the name to confirm" value={typed} autoFocus disabled={busy} style={{ width: 110 }}
               placeholder={(rawName ?? '').trim() ? name.split(/\s+/)[0] : 'REMOVE'}
               onChange={e => setTyped(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Escape') { setOpen(false); setTyped(''); } }} />
+              onKeyDown={e => {
+                if (e.key === 'Escape') { setOpen(false); setTyped(''); }
+                if (e.key === 'Enter' && canRemove && !busy) { e.preventDefault(); remove(); }
+              }} />
           </span>
         </>
       )}
-      <button className="btn sm solid danger" disabled={busy || (!pending && typed.trim().toLowerCase() !== first)}
+      <button className="btn sm solid danger" disabled={busy || !canRemove}
         onClick={remove}>{busy ? 'Removing…' : 'Yes, remove permanently'}</button>
       <button className="btn sm ghost" disabled={busy} onClick={() => { setOpen(false); setTyped(''); }}>Cancel</button>
     </div>

@@ -31,7 +31,7 @@ async function counterparts(placementId: string, actorId: string): Promise<{ ema
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
   if (!b.placement_id) return NextResponse.json({ error: 'which placement?' }, { status: 400 });
   const title = String(b.title ?? '').trim();
   if (!title) return NextResponse.json({ error: 'a task needs a title' }, { status: 400 });
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  const { id, ...patch } = await req.json();
+  const { id, ...patch } = await req.json().catch(() => ({}));
   if (!id) return NextResponse.json({ error: 'which task?' }, { status: 400 });
   try {
     const after = await updateTask(id, patch, me.id);

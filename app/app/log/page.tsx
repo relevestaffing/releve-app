@@ -7,6 +7,8 @@ import DailyLogForm from '@/components/DailyLogForm';
 import { listLogs, viewerTimezone, todayIn } from '@/lib/experience';
 import { firstName, fmtDate } from '@/lib/words';
 
+export const metadata = { title: 'Daily log' };
+
 export const dynamic = 'force-dynamic';
 
 /* The daily log. Two minutes at the end of the day; the honest record of

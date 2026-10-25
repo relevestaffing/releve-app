@@ -2,7 +2,8 @@
 import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { saving } from './Toast';
+import { saving, toast } from './Toast';
+import { fmtDate } from '@/lib/words';
 import { ENDED_REASONS, owesReplacement, type EndedReason } from '@/lib/care-public';
 import PersonPicker from './PersonPicker';
 import { todayInPacific } from '@/lib/money-public';
@@ -15,8 +16,7 @@ type Row = {
 
 const label = (p: Person) =>
   `${p.full_name ?? p.email}${p.org_name ? ` · ${p.org_name}` : ''}`;
-const day = (d: string) =>
-  new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+const day = (d: string) => fmtDate(d);
 
 export default function PlacementMaker({ people, placements, owed = [], initialReplaces = '' }: {
   people: Person[]; placements: Row[];
@@ -48,22 +48,45 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
   };
   const live = placements.filter(p => !p.ended_on && hit(p));
   const past = placements.filter(p => p.ended_on && hit(p));
+  /* Creating a placement emails both people and starts billing, so the form
+     arms a confirm naming the pair before it submits. The new file's id comes
+     back so there is somewhere to go next. */
+  const [armed, setArmed] = useState(false);
+  const [madeId, setMadeId] = useState<string | null>(null);
+  const execPicked = clients.find(p => p.id === clientId);
+  const talentPicked = talent.find(p => p.id === talentId);
+  const execLabel = execPicked ? (execPicked.full_name ?? execPicked.email) : 'the executive';
+  const talentLabel = talentPicked ? (talentPicked.full_name ?? talentPicked.email) : 'the talent';
 
   async function create(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
+    if (!armed) { setArmed(true); return; }
     const f = new FormData(form);
-    setBusy(true);
-    const ok = await saving(() => fetch('/api/admin/placements', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        client_id: f.get('client_id'), talent_id: f.get('talent_id'),
-        started_on: f.get('started_on'), rate: String(f.get('rate') ?? '').trim() || null,
-        replaces_id: replaces || null
-      })
-    }), 'Placement created');
-    setBusy(false);
-    if (ok) { form.reset(); setClientId(''); setTalentId(''); setReplaces(''); router.refresh(); }
+    setBusy(true); setMadeId(null);
+    try {
+      const r = await fetch('/api/admin/placements', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          client_id: f.get('client_id'), talent_id: f.get('talent_id'),
+          started_on: f.get('started_on'), rate: String(f.get('rate') ?? '').trim() || null,
+          replaces_id: replaces || null
+        })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save. Please try again.'); setBusy(false); return; }
+      const mailed = Number(d.mailed ?? 0);
+      if (mailed >= 2) toast.saved(`Placement created. Both ${execLabel} and ${talentLabel} were emailed`);
+      else toast.bad(mailed === 1
+        ? `Placement created, but only one of the two emails went out. Check the addresses on file for ${execLabel} and ${talentLabel}`
+        : `Placement created, but neither email went out. Check the addresses on file for ${execLabel} and ${talentLabel}`);
+      setMadeId(d.placement_id ?? null);
+      setBusy(false); setArmed(false);
+      form.reset(); setClientId(''); setTalentId(''); setReplaces(''); router.refresh();
+    } catch {
+      toast.bad('No connection, so nothing was saved.');
+      setBusy(false);
+    }
   }
 
   /* Ending a placement asks why, because the answer decides whether the
@@ -85,8 +108,7 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
   return (
     <>
       <div className="card">
-        <div className="card-head"><h3>Place someone</h3>
-          <span className="pill">{live.length} running</span></div>
+        <div className="card-head"><h3>Place someone</h3></div>
         {clients.length === 0 || talent.length === 0 ? (
           <div className="empty"><span className="tick" />
             <p className="small">
@@ -128,21 +150,43 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
               </div>
             )}
             <p className="xs muted" style={{ marginBottom: 16 }}>
-              This opens their shared task list and starts the weekly check-ins. The talent's stage moves to Placed.
+              This opens their shared task list and starts the end of week reports. The talent's stage moves to Placed.
             </p>
-            <button className="btn solid" disabled={busy || !clientId || !talentId}>
-              {busy ? 'Saving…' : 'Create placement'}
-            </button>
+            {armed ? (
+              <>
+                <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 12 }}>
+                  Place <b>{talentLabel}</b> with <b>{execLabel}</b>? Both are emailed, and billing starts from the start date.
+                </p>
+                <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+                  <button className="btn solid" disabled={busy}>
+                    {busy ? 'Saving…' : 'Yes, create the placement'}
+                  </button>
+                  <button type="button" className="btn ghost" disabled={busy} onClick={() => setArmed(false)}>Keep editing</button>
+                </div>
+              </>
+            ) : (
+              <button className="btn solid" disabled={busy || !clientId || !talentId}>
+                Create placement
+              </button>
+            )}
           </form>
+        )}
+        {madeId && (
+          <p className="small" style={{ marginTop: 14 }}>
+            <Link className="btn sm ghost" href={`/console/placements/${madeId}`}>Open the new placement file</Link>
+          </p>
         )}
       </div>
 
       <div className="card">
         <div className="card-head">
           <h3>Running</h3>
-          <div className="ff picker-inline">
-            <input value={find} onChange={e => setFind(e.target.value)}
-              placeholder="Search placements…" aria-label="Search placements" />
+          <div className="row" style={{ gap: 10 }}>
+            {live.length > 0 && <span className="pill">{live.length} running</span>}
+            <div className="ff picker-inline">
+              <input value={find} onChange={e => setFind(e.target.value)}
+                placeholder="Search placements…" aria-label="Search placements" />
+            </div>
           </div>
         </div>
         {live.length === 0 ? (
@@ -213,7 +257,7 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
 
       {past.length > 0 && (
         <div className="card">
-          <div className="card-head"><h3>Ended</h3><span className="pill">{past.length}</span></div>
+          <div className="card-head"><h3>Ended</h3><span className="pill">{past.length} on file</span></div>
           <ul className="past-list">
             {past.map(p => (
               <li key={p.id}>

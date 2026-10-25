@@ -410,7 +410,7 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
 
   const poorCheckinCount = flaggedCheckin.size;
   add({ key: 'poor_checkin', rank: 4, level: 'high', count: poorCheckinCount,
-    what: `${agree(poorCheckinCount, 'check-in needs', 'check-ins need')} a closer look`,
+    what: `${agree(poorCheckinCount, 'report needs', 'reports need')} a closer look`,
     why: 'they took the time to speak up, and following up shows it mattered',
     href: '/console/checkins', cta: 'Read what they said' });
 
@@ -526,7 +526,7 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
 
   add({ key: 'stale', rank: 12, level: 'medium', count: staleCheckin,
     what: `${agree(staleCheckin, 'placement has', 'placements have')} not checked in for over a week`,
-    why: 'a quick check-in now keeps the relationship strong',
+    why: 'a quick word now keeps the relationship strong',
     href: '/console/checkins', cta: 'Check in' });
 
   add({ key: 'norate', rank: 11, level: 'medium', count: noRate,

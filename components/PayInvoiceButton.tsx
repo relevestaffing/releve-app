@@ -7,7 +7,9 @@ import { toast } from './Toast';
    app, pulled out into a small reusable button so any open invoice can be
    paid directly from wherever it's shown, not only from the hard gate. */
 export default function PayInvoiceButton({ invoiceId, label, className }: {
-  invoiceId: string; label?: string; className?: string;
+  /* Always amount-bearing ("Pay $4,500"): every caller passes it, so the
+     button never reads two ways on one screen. */
+  invoiceId: string; label: string; className?: string;
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -29,7 +31,7 @@ export default function PayInvoiceButton({ invoiceId, label, className }: {
 
   return (
     <button type="button" className={className ?? 'btn sm solid'} disabled={busy} onClick={pay}>
-      {busy ? 'Opening…' : (label ?? 'Pay now')}
+      {busy ? 'Opening…' : label}
     </button>
   );
 }

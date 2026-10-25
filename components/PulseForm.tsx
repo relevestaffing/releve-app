@@ -97,7 +97,7 @@ export default function PulseForm({ placementId, talentName, existing }: {
       </div>
 
       <button className="btn solid" disabled={!ready || busy} onClick={submit}>
-        {busy ? 'Sending…' : existing ? 'Update my answer' : 'Send to Relève'}
+        {busy ? 'Sending…' : existing ? 'Update your answer' : 'Send to Relève'}
       </button>
       {!ready && <p className="xs muted" style={{ marginTop: 12 }}>
         The three quick ones are all we need. The boxes are optional.

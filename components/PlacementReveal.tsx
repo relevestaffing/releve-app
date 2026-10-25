@@ -15,6 +15,8 @@ type PlacementRevealProps = {
   roleTitle: string;
   startDate: string;
   onViewPlacement: () => void;
+  /* True while the mark-seen call is out, so a second tap does nothing. */
+  busy?: boolean;
 };
 
 export default function PlacementReveal({
@@ -23,6 +25,7 @@ export default function PlacementReveal({
   roleTitle,
   startDate,
   onViewPlacement,
+  busy = false,
 }: PlacementRevealProps) {
   const [ticks, setTicks] = useState<
     { id: number; left: number; size: number; delay: number; duration: number; alt: boolean }[]
@@ -67,7 +70,7 @@ export default function PlacementReveal({
       </div>
 
       <div className="rv-content">
-        <div className="rv-eyebrow">YOUR PLACEMENT HAS ARRIVED</div>
+        <div className="rv-eyebrow">Your placement is confirmed</div>
         <h1 className="rv-h1">Consider it handled.</h1>
 
         <div className="rv-card">
@@ -85,8 +88,8 @@ export default function PlacementReveal({
           </div>
         </div>
 
-        <button className="rv-cta" onClick={onViewPlacement}>
-          View Your Placement
+        <button className="rv-cta" onClick={onViewPlacement} disabled={busy} aria-busy={busy}>
+          {busy ? 'One moment…' : 'View your placement'}
         </button>
       </div>
 

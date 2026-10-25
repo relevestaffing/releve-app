@@ -25,7 +25,7 @@ export const dynamic = 'force-dynamic';
 
 type DB = SupabaseClient;
 
-const first = (s: unknown) => String(s ?? '').trim().split(/\s+/)[0] || 'there';
+const first = (s: unknown) => String(s ?? '').trim().split(/\s+/)[0] || 'Hello';
 
 /* An invoice's stored status is a column value ("void", "processing"); what
    the team reads everywhere else is its label ("Void", "Clearing"). Alerts

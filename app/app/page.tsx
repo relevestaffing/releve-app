@@ -28,13 +28,15 @@ import ExecOnboarding from '@/components/ExecOnboarding';
 import GuaranteeBadge from '@/components/GuaranteeBadge';
 import { depositGateFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
-import { firstName } from '@/lib/words';
+import { firstName, WORDS } from '@/lib/words';
 import { docusignClientReady } from '@/lib/docusign';
 import { getClientAgreement } from '@/lib/agreement';
 import ClientAgreementCard from '@/components/ClientAgreementCard';
 import ClientAgreementStatus from '@/components/ClientAgreementStatus';
 import ManagerLine from '@/components/ManagerLine';
 import { primaryManager, viewerTimezone, todayIn } from '@/lib/experience';
+
+export const metadata = { title: 'Dashboard' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -181,7 +183,7 @@ export default async function AppHome() {
       title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
       crumb="Getting set up">
       <Checklist steps={steps}
-        heading={side === 'client' ? 'Now let’s build your Signature' : 'Before we can begin your search'} />
+        heading={side === 'client' ? 'Build your Signature' : 'Before you can be matched'} />
       <div className="card tight">
         <p className="small muted">
           {side === 'client'
@@ -275,7 +277,7 @@ export default async function AppHome() {
 
     return (
       <Shell profile={profile} active="/app"
-        title={myName ? `Good to see you, ${myName}` : 'Your account'}
+        title={myName || 'Your account'}
         crumb={profile.org_name ?? 'Executive'}>
 
         {offer && <OfferCard offer={offer} side="client" />}
@@ -350,7 +352,7 @@ export default async function AppHome() {
 
   return (
     <Shell profile={profile} active="/app"
-      title={myName ? `Good to see you, ${myName}` : 'Your account'}
+      title={myName || 'Your account'}
       crumb={self.headline ?? 'Talent'}>
 
       {offer && <OfferCard offer={offer} side="talent" />}
@@ -368,7 +370,7 @@ export default async function AppHome() {
         <div className="card-head"><h3>How you work best</h3></div>
         <ul className="plain">{selfLines.map(l => <li key={l}>{l}</li>)}</ul>
         <details className="more">
-          <summary>See the full profile</summary>
+          <summary>{WORDS.moreDetail}</summary>
           <div className="inner">
             <div style={{ marginBottom: 18 }}>
               <Explain>
@@ -382,7 +384,7 @@ export default async function AppHome() {
                 <AxisBars values={sig.scores} axes={L2_SHOWN} /></div>
             </div>
             <div className="row" style={{ marginTop: 20 }}>
-              <Link className="btn sm ghost" href="/app/signature">Retake the assessment</Link>
+              <Link className="btn sm ghost" href="/app/signature">Retake the Signature</Link>
             </div>
           </div>
         </details>

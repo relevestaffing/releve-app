@@ -3,6 +3,7 @@ import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import PhotoUpload from './PhotoUpload';
 import { saving } from './Toast';
+import { zoneLabel, ZONES } from '@/lib/words';
 
 /* The executive's own profile. Deliberately shorter than the talent one —
    an executive is not being assessed here, they are being introduced.
@@ -40,6 +41,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
     if (ok) { setJustSaved(body); router.refresh(); setEditing(false); }
   }
 
+  const unset = <span className="muted">Not set</span>;
   if (!editing) {
     return (
       <div className="card">
@@ -48,11 +50,11 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
           <button type="button" className="btn sm ghost" onClick={() => setEditing(true)}>Edit profile</button>
         </div>
         <dl className="brief-facts">
-          <dt>Name</dt><dd>{view.full_name || '·'}</dd>
-          <dt>Title</dt><dd>{view.headline || '·'}</dd>
-          <dt>Company</dt><dd>{view.org_name || '·'}</dd>
-          <dt>Based in</dt><dd>{view.location || '·'}</dd>
-          <dt>Timezone</dt><dd>{view.timezone || '·'}</dd>
+          <dt>Name</dt><dd>{view.full_name || unset}</dd>
+          <dt>Title</dt><dd>{view.headline || unset}</dd>
+          <dt>Company</dt><dd>{view.org_name || unset}</dd>
+          <dt>Based in</dt><dd>{view.location || unset}</dd>
+          <dt>Timezone</dt><dd>{zoneLabel(view.timezone) || unset}</dd>
         </dl>
         {view.bio && <p className="small muted" style={{ marginTop: 16, maxWidth: 'var(--measure)' }}>{view.bio}</p>}
       </div>
@@ -79,7 +81,12 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
             <input id={`${fid}-4`} name="location" defaultValue={initial.location ?? ''} placeholder="Los Angeles, USA" /></div>
         </div>
         <div className="ff" style={{ maxWidth: 320 }}><label htmlFor={`${fid}-5`}>Your timezone</label>
-          <input id={`${fid}-5`} name="timezone" defaultValue={initial.timezone ?? ''} placeholder="America/Los_Angeles" /></div>
+          <select id={`${fid}-5`} name="timezone" defaultValue={initial.timezone ?? ''}>
+            <option value="">Choose a timezone…</option>
+            {initial.timezone && !ZONES.includes(initial.timezone) &&
+              <option value={initial.timezone}>{zoneLabel(initial.timezone)}</option>}
+            {ZONES.map(z => <option key={z} value={z}>{zoneLabel(z)}</option>)}
+          </select></div>
         <p className="xs muted">
           Your timezone decides which interview slots you are offered. It is the one field worth getting exactly right.
         </p>
@@ -107,7 +114,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
       </div>
 
       <div className="row" style={{ gap: 14 }}>
-        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
+        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save your profile'}</button>
         <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Cancel</button>
         <span className="small muted">Only matched candidates see this, never the wider roster.</span>
       </div>

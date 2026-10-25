@@ -37,14 +37,14 @@ const meta: Record<string, Omit<Person,'scores'|'facets'|'validity'|'confidence'
   t8:{id:'t8',name:'Luis Aguilar',role:'Finance & Admin',loc:'Guadalajara, Mexico',tz:'GMT-6',yrs:9,eng:'Fluent',rate:'$1,550/mo',stage:'Vetted'}
 };
 const conds: Record<string, CondSet> = {
-  t1:{overlap:'Full working day',volume:'Heavy — 25+',discretion:'Maximum — personal & deal-sensitive',mix:'Mostly heads-down',tools:['Google Workspace','Slack','Notion','Canva']},
-  t2:{overlap:'4 hours',volume:'Steady — 10 to 25',discretion:'Standard',mix:'Balanced',tools:['Google Workspace','Slack','HubSpot']},
-  t3:{overlap:'Full working day',volume:'Heavy — 25+',discretion:'Maximum — personal & deal-sensitive',mix:'Balanced',tools:['Google Workspace','Slack','Notion','QuickBooks']},
-  t4:{overlap:'Full working day',volume:'Heavy — 25+',discretion:'High — financial & legal',mix:'Mostly people-facing',tools:['Google Workspace','HubSpot','Slack']},
-  t5:{overlap:'Full working day',volume:'Steady — 10 to 25',discretion:'Standard',mix:'Mostly heads-down',tools:['Airtable','Notion','Slack','Google Workspace']},
-  t6:{overlap:'4 hours',volume:'Light — under 10 requests/week',discretion:'Standard',mix:'Mostly people-facing',tools:['Canva','Slack','Google Workspace']},
-  t7:{overlap:'Full working day',volume:'Heavy — 25+',discretion:'Maximum — personal & deal-sensitive',mix:'Balanced',tools:['Microsoft 365','Google Workspace','Slack','Notion']},
-  t8:{overlap:'4 hours',volume:'Steady — 10 to 25',discretion:'High — financial & legal',mix:'Mostly heads-down',tools:['QuickBooks','Microsoft 365','Google Workspace']}
+  t1:{overlap:'Full working day',volume:'Heavy: 25+',discretion:'Maximum: personal and deal-sensitive',mix:'Mostly heads-down',tools:['Google Workspace','Slack','Notion','Canva']},
+  t2:{overlap:'4 hours',volume:'Steady: 10 to 25',discretion:'Standard',mix:'Balanced',tools:['Google Workspace','Slack','HubSpot']},
+  t3:{overlap:'Full working day',volume:'Heavy: 25+',discretion:'Maximum: personal and deal-sensitive',mix:'Balanced',tools:['Google Workspace','Slack','Notion','QuickBooks']},
+  t4:{overlap:'Full working day',volume:'Heavy: 25+',discretion:'High: financial and legal',mix:'Mostly people-facing',tools:['Google Workspace','HubSpot','Slack']},
+  t5:{overlap:'Full working day',volume:'Steady: 10 to 25',discretion:'Standard',mix:'Mostly heads-down',tools:['Airtable','Notion','Slack','Google Workspace']},
+  t6:{overlap:'4 hours',volume:'Light: under 10 requests a week',discretion:'Standard',mix:'Mostly people-facing',tools:['Canva','Slack','Google Workspace']},
+  t7:{overlap:'Full working day',volume:'Heavy: 25+',discretion:'Maximum: personal and deal-sensitive',mix:'Balanced',tools:['Microsoft 365','Google Workspace','Slack','Notion']},
+  t8:{overlap:'4 hours',volume:'Steady: 10 to 25',discretion:'High: financial and legal',mix:'Mostly heads-down',tools:['QuickBooks','Microsoft 365','Google Workspace']}
 };
 const vals: Record<string, Validity> = {
   t1:{verdict:'Valid',im:30,attFails:0,inconsistency:12,extreme:34,straight:4,medSec:6.8,flags:[]},
@@ -101,7 +101,7 @@ export const DEMO_EXEC = {
   scores: execScores,
   facets: execFacets,
   confidence: seedConfidence(execFacets),
-  cond: { overlap:'Full working day', volume:'Heavy — 25+', discretion:'Maximum — personal & deal-sensitive',
+  cond: { overlap:'Full working day', volume:'Heavy: 25+', discretion:'Maximum: personal and deal-sensitive',
           mix:'Mostly heads-down', tools:['Google Workspace','Slack','Notion'],
           never:'Client relationships and anything that speaks for me on a deal.' } as CondSet,
   search: { role:'Executive Assistant', scope:'Inbox, calendar, travel, deal-room prep', day:8, target:'Aug 25, 2026', hours:'30–40 / week' }

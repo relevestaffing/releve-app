@@ -33,41 +33,72 @@ export default function OfferDesk({ offers, clients, talent }: {
      retracts an offer someone may already have said yes to — neither should
      fire on a single stray click, so both arm a confirm first. */
   const [armed, setArmed] = useState<{ id: string; action: string } | null>(null);
-  const [f, setF] = useState({
-    client_id: '', talent_id: '', role_title: '', starts_on: '',
-    hours: '', scope: '', rate: '', pay: '', plan: 'essential', elivate: false
-  });
+  /* The new-offer form has two actions that reach outside the console:
+     "Send to both sides" emails two people, and "Discard" drops whatever was
+     typed. Each arms a confirm inside the card before it fires. */
+  const [formArmed, setFormArmed] = useState<null | 'send' | 'discard'>(null);
+  const blank = { client_id: '', talent_id: '', role_title: '', starts_on: '', hours: '', scope: '', rate: '', pay: '', plan: 'essential', elivate: false };
+  const [f, setF] = useState(blank);
 
   const set = (k: string, v: string) => setF({ ...f, [k]: v });
   const elivateOk = f.plan === 'essential' || f.plan === 'specialist';
+  const dirty = Object.entries(f).some(([k, v]) => v !== (blank as any)[k]);
+  const execName = clients.find(p => p.id === f.client_id);
+  const talentName = talent.find(p => p.id === f.talent_id);
 
-  async function create(send: boolean) {
+  /* Both recipients, named, so the sentence on the confirm says exactly who
+     is about to get an email. */
+  function sentToast(mailed: number, exec: string, tal: string) {
+    if (mailed >= 2) return `Sent to both sides, ${exec} and ${tal}`;
+    if (mailed === 1) return `Saved, but only one of the two emails went out. Check the address on file for ${exec} and ${tal}`;
+    return `Saved, but neither email went out. Check the addresses on file for ${exec} and ${tal}`;
+  }
+
+  function formReady(): boolean {
     if (!f.client_id || !f.talent_id || !f.role_title || !f.starts_on) {
       toast.bad('Executive, talent, role and start date are all needed.');
-      return;
+      return false;
     }
     const rate = f.rate ? toCents(f.rate) : null;
     const pay = f.pay ? toCents(f.pay) : null;
     if (rate != null && pay != null && pay >= rate) {
-      toast.bad('The talent would be paid more than the client pays. Check both numbers.');
-      return;
+      toast.bad('The talent would be paid more than the executive pays. Check both numbers.');
+      return false;
     }
-    setBusy(true);
-    const ok = await saving(() => post({
-      action: 'make', ...f,
-      minimum_months: PLANS[f.plan as PlanKey].months,
-      prepaid_total_cents: f.plan === 'part_time_full' ? PART_TIME_TOTAL_CENTS : undefined,
-      intro_discount_cents: elivateOk && f.elivate ? ELIVATE_DISCOUNT_CENTS : undefined,
-      intro_discount_months: elivateOk && f.elivate ? ELIVATE_DISCOUNT_MONTHS : undefined,
-      rate_month_cents: rate ?? undefined,
-      talent_pay_cents: pay ?? undefined,
-      send
-    }), send ? 'Offer sent to both sides' : 'Saved as a draft');
-    setBusy(false);
-    if (ok) {
+    return true;
+  }
+
+  async function create(send: boolean) {
+    if (!formReady()) return;
+    const rate = f.rate ? toCents(f.rate) : null;
+    const pay = f.pay ? toCents(f.pay) : null;
+    setBusy(true); setFormArmed(null);
+    try {
+      const r = await post({
+        action: 'make', ...f,
+        minimum_months: PLANS[f.plan as PlanKey].months,
+        prepaid_total_cents: f.plan === 'part_time_full' ? PART_TIME_TOTAL_CENTS : undefined,
+        intro_discount_cents: elivateOk && f.elivate ? ELIVATE_DISCOUNT_CENTS : undefined,
+        intro_discount_months: elivateOk && f.elivate ? ELIVATE_DISCOUNT_MONTHS : undefined,
+        rate_month_cents: rate ?? undefined,
+        talent_pay_cents: pay ?? undefined,
+        send
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save. Please try again.'); setBusy(false); return; }
+      if (!send) toast.saved('Saved as a draft');
+      else {
+        const mailed = Number(d.mailed ?? 0);
+        const text = sentToast(mailed, execName ? nameOf(execName) : 'the executive', talentName ? nameOf(talentName) : 'the talent');
+        if (mailed >= 2) toast.saved(text); else toast.bad(text);
+      }
+      setBusy(false);
       setOpen(false);
-      setF({ client_id: '', talent_id: '', role_title: '', starts_on: '', hours: '', scope: '', rate: '', pay: '', plan: 'essential', elivate: false });
+      setF(blank);
       router.refresh();
+    } catch {
+      toast.bad('No connection, so nothing was saved.');
+      setBusy(false);
     }
   }
 
@@ -76,6 +107,26 @@ export default function OfferDesk({ offers, clients, talent }: {
     const ok = await saving(() => post({ action, id }), okText);
     setBusy(false);
     if (ok) router.refresh();
+  }
+
+  /* Sending a draft: the route reports how many of the two letters left. */
+  async function sendDraft(o: Offer) {
+    setBusy(true); setArmed(null);
+    const exec = o.org_name ?? o.client_name ?? 'the executive';
+    const tal = o.talent_name ?? 'the talent';
+    try {
+      const r = await post({ action: 'send', id: o.id });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast.bad(d.error ? `Not sent. ${d.error}` : 'That did not send. Please try again.'); setBusy(false); return; }
+      const mailed = Number(d.mailed ?? 0);
+      const text = sentToast(mailed, exec, tal);
+      if (mailed >= 2) toast.saved(text); else toast.bad(text);
+      setBusy(false);
+      router.refresh();
+    } catch {
+      toast.bad('No connection, so the offer was not sent.');
+      setBusy(false);
+    }
   }
 
   const rateCents = f.rate ? toCents(f.rate) : null;
@@ -144,7 +195,7 @@ export default function OfferDesk({ offers, clients, talent }: {
                 placeholder="Inbox and calendar, board prep, running the weekly leadership meeting." /></div>
 
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label htmlFor={`${fid}-5`}>The client pays (USD/mo)</label>
+              <div className="ff"><label htmlFor={`${fid}-5`}>The executive pays (USD a month)</label>
                 <input id={`${fid}-5`} value={f.rate} inputMode="decimal" onChange={e => set('rate', e.target.value)}
                   placeholder="3500" />
                 {outside && <p className="xs muted" style={{ marginTop: 6 }}>
@@ -162,13 +213,42 @@ export default function OfferDesk({ offers, clients, talent }: {
               </p>
             )}
 
-            <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
-              <button className="btn sm solid" disabled={busy} onClick={() => create(true)}>
-                {busy ? 'Working…' : 'Send to both sides'}
-              </button>
-              <button className="btn sm ghost" disabled={busy} onClick={() => create(false)}>Save as draft</button>
-              <button className="btn sm ghost" onClick={() => setOpen(false)}>Discard</button>
-            </div>
+            {formArmed === 'send' ? (
+              <>
+                <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 12 }}>
+                  Email this offer to <b>{execName ? nameOf(execName) : 'the executive'}</b> and{' '}
+                  <b>{talentName ? nameOf(talentName) : 'the talent'}</b>? Each sees only their own number.
+                </p>
+                <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+                  <button className="btn sm solid" disabled={busy} onClick={() => create(true)}>
+                    {busy ? 'Sending…' : 'Yes, send to both'}
+                  </button>
+                  <button className="btn sm ghost" disabled={busy} onClick={() => setFormArmed(null)}>Keep editing</button>
+                </div>
+              </>
+            ) : formArmed === 'discard' ? (
+              <>
+                <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 12 }}>
+                  Discard this offer? Nothing typed here is kept.
+                </p>
+                <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+                  <button className="btn sm solid danger" disabled={busy}
+                    onClick={() => { setFormArmed(null); setF(blank); setOpen(false); }}>
+                    Yes, discard it
+                  </button>
+                  <button className="btn sm ghost" disabled={busy} onClick={() => setFormArmed(null)}>Keep editing</button>
+                </div>
+              </>
+            ) : (
+              <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+                <button className="btn sm solid" disabled={busy} onClick={() => { if (formReady()) setFormArmed('send'); }}>
+                  {busy ? 'Working…' : 'Send to both sides'}
+                </button>
+                <button className="btn sm ghost" disabled={busy} onClick={() => create(false)}>Save as draft</button>
+                <button className="btn sm ghost" disabled={busy}
+                  onClick={() => { if (dirty) setFormArmed('discard'); else setOpen(false); }}>Discard</button>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -212,9 +292,22 @@ export default function OfferDesk({ offers, clients, talent }: {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="row" style={{ gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                        {o.state === 'draft' &&
-                          <button className="btn sm solid" disabled={busy}
-                            onClick={() => act(o.id, 'send', 'Sent to both sides')}>Send</button>}
+                        {o.state === 'draft' && (
+                          armed?.id === o.id && armed.action === 'send' ? (
+                            <>
+                              <span className="xs muted">
+                                Email this offer to {o.org_name ?? o.client_name ?? 'the executive'} and {o.talent_name ?? 'the talent'}?
+                              </span>
+                              <button className="btn sm solid" disabled={busy} onClick={() => sendDraft(o)}>
+                                {busy ? 'Sending…' : 'Yes, send to both'}
+                              </button>
+                              <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Keep it</button>
+                            </>
+                          ) : (
+                            <button className="btn sm solid" disabled={busy}
+                              onClick={() => setArmed({ id: o.id, action: 'send' })}>Send</button>
+                          )
+                        )}
                         {o.state === 'accepted' && !o.placement_id && (
                           armed?.id === o.id && armed.action === 'place' ? (
                             <>

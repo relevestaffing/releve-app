@@ -18,7 +18,7 @@ export async function GET() {
 }
 export async function POST(req: Request) {
   const g = await guard(); if (g.error) return g.error;
-  const body = await req.json();
+  const body = await req.json().catch(() => ({}));
   if (!body.email || !body.full_name)
     return NextResponse.json({ error: 'A name and an email are required.' }, { status: 400 });
   try {

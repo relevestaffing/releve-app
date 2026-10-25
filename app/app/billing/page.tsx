@@ -1,3 +1,4 @@
+import { DASH } from '@/lib/words';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
@@ -15,6 +16,8 @@ import PayInvoiceButton from '@/components/PayInvoiceButton';
 import { billingAccount } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { todayIn } from '@/lib/experience-public';
+
+export const metadata = { title: 'Billing' };
 
 export const dynamic = 'force-dynamic';
 
@@ -80,8 +83,8 @@ export default async function Billing() {
 
       <div className="money-strip">
         <div className="money-stat">
-          <div className="n">{money(monthly)}</div>
-          <div className="k">Per month</div>
+          <div className="n">{live.length ? money(monthly) : DASH}</div>
+          <div className="k">{live.length ? 'Per month' : 'Per month, from your start date'}</div>
         </div>
         <div className={`money-stat ${owed > 0 ? 'alert' : ''}`}>
           <div className="n">{money(owed)}</div>
@@ -141,7 +144,7 @@ export default async function Billing() {
                   <tr key={i.id}>
                     <td className="inv-num xs">
                       <Link href={`/app/billing/${i.id}`}>
-                        {i.number ?? <span className="muted">pending</span>}
+                        {i.number ?? <span className="muted">{DASH}</span>}
                       </Link>
                     </td>
                     <td className="xs">
@@ -159,7 +162,7 @@ export default async function Billing() {
                       <div className="row" style={{ gap: 6, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <Link className="btn sm ghost" href={`/app/billing/${i.id}`}>View</Link>
                         {openInv && i.amount_cents > 0 && stripeReady() &&
-                          <PayInvoiceButton invoiceId={i.id} label="Pay" className="btn sm solid" />}
+                          <PayInvoiceButton invoiceId={i.id} label={`Pay ${money(i.amount_cents, true)}`} className="btn sm solid" />}
                       </div>
                     </td>
                   </tr>

@@ -1,9 +1,9 @@
 'use client';
 import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
-import { saving, toast } from '@/components/Toast';
+import { toast } from '@/components/Toast';
 import { FEEDBACK_SCORES, type Feedback } from '@/lib/care-public';
-import { firstName } from '@/lib/words';
+import { firstName, DASH } from '@/lib/words';
 
 /* Written in draft, released deliberately. The talent sees nothing until the
    Share switch is thrown — a half-finished review turning up in someone's
@@ -21,16 +21,33 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
   const [growing, setGrowing] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});
 
+  const first = firstName(talentName);
+
+  /* Sharing emails the talent; the route says whether that letter left, and
+     the toast says the same rather than assuming. */
+  async function post(body: Record<string, unknown>, okText: string, sharing: boolean): Promise<boolean> {
+    try {
+      const r = await fetch('/api/care', {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save. Please try again.'); return false; }
+      if (sharing && d.emailed === false) toast.bad(`Shared with ${first}, but the email telling them did not send.`);
+      else toast.saved(okText);
+      return true;
+    } catch {
+      toast.bad('No connection, so nothing was saved.');
+      return false;
+    }
+  }
+
   async function save(shared: boolean) {
     if (!strengths.trim()) { toast.bad('Say what they are doing well first.'); return; }
     setBusy(true);
-    const ok = await saving(() => fetch('/api/care', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        action: 'feedback_save', placement_id: placementId, talent_id: talentId,
-        period, strengths, growing, ...scores, shared
-      })
-    }), shared ? `Shared with ${firstName(talentName)}` : 'Saved as a draft');
+    const ok = await post({
+      action: 'feedback_save', placement_id: placementId, talent_id: talentId,
+      period, strengths, growing, ...scores, shared
+    }, shared ? `Shared with ${first}. They have been emailed` : 'Saved as a draft', shared);
     setBusy(false);
     if (ok) {
       setOpen(false); setStrengths(''); setGrowing(''); setScores({});
@@ -40,10 +57,8 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
 
   async function toggleShare(f: Feedback) {
     setBusy(true);
-    const ok = await saving(() => fetch('/api/care', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action: 'feedback_share', id: f.id, shared: !f.shared })
-    }), f.shared ? 'Hidden again' : `Shared with ${firstName(talentName)}`);
+    const ok = await post({ action: 'feedback_share', id: f.id, shared: !f.shared },
+      f.shared ? 'Hidden again' : `Shared with ${first}. They have been emailed`, !f.shared);
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -51,7 +66,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Feedback for {firstName(talentName)}</h3>
+        <h3>Feedback for {first}</h3>
         {!open && <button className="btn sm solid" onClick={() => setOpen(true)}>Write one</button>}
       </div>
 
@@ -88,7 +103,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
             <button className="btn sm ghost"  disabled={busy} onClick={() => save(false)}>Save as draft</button>
             <button className="btn sm solid"  disabled={busy} onClick={() => save(true)}>Save and share</button>
-            <button className="btn sm ghost" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn sm ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</button>
           </div>
         </div>
       )}
@@ -113,7 +128,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
             </div>
           </div>
           <p className="xs muted" style={{ marginTop: 6 }}>
-            {FEEDBACK_SCORES.map(s => `${s.label} ${f[s.key] ?? '·'}`).join(' · ')}
+            {FEEDBACK_SCORES.map(s => `${s.label} ${f[s.key] ?? DASH}`).join(' · ')}
           </p>
           <p className="small" style={{ marginTop: 8 }}>{f.strengths}</p>
           {f.growing && <p className="small muted" style={{ marginTop: 6 }}>{f.growing}</p>}

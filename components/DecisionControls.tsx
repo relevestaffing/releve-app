@@ -97,7 +97,7 @@ export default function DecisionControls({ talentId, name, decision }: {
         <button className="btn sm ghost" disabled={busy} onClick={() => setAsking('passed')}>Decline</button>
       )}
       {decision?.state === 'passed' && (
-        <button className="btn sm ghost" disabled={busy} onClick={() => setAsking('shortlisted')}>Change my mind</button>
+        <button className="btn sm ghost" disabled={busy} onClick={() => setAsking('shortlisted')}>Change your answer</button>
       )}
     </div>
   );

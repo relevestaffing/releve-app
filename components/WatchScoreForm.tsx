@@ -56,7 +56,7 @@ export default function WatchScoreForm({ attemptId, existing }: { attemptId: str
       <div className="ff"><label htmlFor={`${fid}-5`}>Result</label>
         <select id={`${fid}-5`} name="overall_result" defaultValue={existing?.overall_result ?? 'cleared'}>
           <option value="cleared">Cleared</option>
-          <option value="needs_retake">Needs another attempt</option>
+          <option value="needs_retake">Needs another try</option>
         </select></div>
 
       <div className="ff"><label htmlFor={`${fid}-6`}>Feedback for the talent</label>

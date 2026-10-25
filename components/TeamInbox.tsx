@@ -18,8 +18,11 @@ type Open = { kind: 'subject'; t: Thread } | { kind: 'direct'; d: Direct };
    - an executive and their talent writing to each other, which the team can
      read (to spot trouble early) but never writes into from this screen.
    "Mine" narrows both to the placements the signed-in manager looks after. */
-export default function TeamInbox({ me, initialThread, initialMine = false }: {
+export default function TeamInbox({ me, initialThread, initialMine = false, initialName = null, initialRole = 'client' }: {
   me: string; initialThread?: string | null; initialMine?: boolean;
+  /* From a "Message them" link: who the thread is with, for the case where
+     they have never written in and so are not in the list yet. */
+  initialName?: string | null; initialRole?: 'client' | 'talent';
 }) {
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [direct, setDirect] = useState<Direct[]>([]);
@@ -33,13 +36,26 @@ export default function TeamInbox({ me, initialThread, initialMine = false }: {
     fetch(`/api/messages${m ? '?mine=1' : ''}`, { cache: 'no-store' })
       .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
       .then(d => {
-        const ts: Thread[] = d.threads ?? [];
+        let ts: Thread[] = d.threads ?? [];
+        if (initialThread && !open) {
+          let hit = ts.find(x => x.subject_id === initialThread);
+          /* "Message them" from a request used to land here and open nothing
+             when the executive had never written in. An empty thread for that
+             person is listed at the top instead, so the composer is there. */
+          if (!hit) {
+            hit = {
+              subject_id: initialThread, name: initialName?.trim() || (initialRole === 'talent' ? 'Talent' : 'Executive'),
+              role: initialRole, org_name: null, last: 'Nothing written yet', last_at: new Date().toISOString(),
+              waiting: false, unread: 0
+            };
+            ts = [hit, ...ts];
+          }
+          setOpen({ kind: 'subject', t: hit });
+        } else if (open?.kind === 'subject' && !ts.some(x => x.subject_id === open.t.subject_id)) {
+          ts = [open.t, ...ts];   // keep a placeholder thread listed across a reload
+        }
         setThreads(ts);
         setDirect(d.placementThreads ?? []);
-        if (initialThread && !open) {
-          const hit = ts.find(x => x.subject_id === initialThread);
-          if (hit) setOpen({ kind: 'subject', t: hit });
-        }
       })
       .catch(() => setFailed(true));
   }
@@ -72,29 +88,35 @@ export default function TeamInbox({ me, initialThread, initialMine = false }: {
     setThreads(ts => (ts ?? []).map(x => x.subject_id === subjectId ? { ...x, unread: 0 } : x));
   }
 
+  /* The two kinds of conversation are tabs, the same strip every other
+     console section uses; Mine/Everyone is a filter and sits beside them. */
   const filterBar = (
-    <div className="inbox-filter" role="group" aria-label="Which conversations">
-      <button type="button" className={`btn sm ${view === 'us' ? 'solid' : 'ghost'}`} aria-pressed={view === 'us'} onClick={() => setView('us')}>
-        Writing to us{unreadThreads ? ` · ${unreadThreads}` : ''}
-      </button>
-      <button type="button" className={`btn sm ${view === 'direct' ? 'solid' : 'ghost'}`} aria-pressed={view === 'direct'} onClick={() => setView('direct')}>
-        Executive and talent
-      </button>
-      <button type="button" className={`btn sm ${mine ? 'solid' : 'ghost'}`} aria-pressed={mine} onClick={toggleMine}>
-        {mine ? 'Mine' : 'Everyone'}
-      </button>
+    <div className="dir-head inbox-filter">
+      <nav className="tabs" role="tablist" aria-label="Which conversations">
+        <button type="button" role="tab" className={view === 'us' ? 'on' : ''} aria-selected={view === 'us'} onClick={() => setView('us')}>
+          Writing to us{unreadThreads ? <span className="tab-n">{unreadThreads}</span> : null}
+        </button>
+        <button type="button" role="tab" className={view === 'direct' ? 'on' : ''} aria-selected={view === 'direct'} onClick={() => setView('direct')}>
+          Executive and talent
+        </button>
+      </nav>
+      <div className="dir-aside">
+        <button type="button" className={`btn sm ${mine ? 'solid' : 'ghost'}`} aria-pressed={mine} onClick={toggleMine}>
+          {mine ? 'Mine' : 'Everyone'}
+        </button>
+      </div>
     </div>
   );
 
   return (
-    <div className="stack">
+    <>
       {filterBar}
       <div className="inbox">
         <div className="card inbox-list">
           <div className="card-head">
             <h3>{view === 'us' ? 'Threads' : 'Direct lines'}</h3>
             {view === 'us'
-              ? <span className="pill">{unreadThreads} unread</span>
+              ? (unreadThreads > 0 && <span className="pill">{unreadThreads} unread</span>)
               : <span className="pill">Read only</span>}
           </div>
           <div style={{ marginBottom: 12 }}>
@@ -147,10 +169,10 @@ export default function TeamInbox({ me, initialThread, initialMine = false }: {
             : open?.kind === 'direct'
               ? <MessageThread placement={open.d.placement_id} me={me} readOnly
                   theirName={`${open.d.org_name ?? open.d.client_name} and ${open.d.talent_name}`} />
-              : <div className="card"><div className="empty"><span className="tick" />
+              : <div className="card inbox-unchosen"><div className="empty"><span className="tick" />
                   <p className="small">Choose a thread to read it.</p></div></div>}
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -180,7 +180,7 @@ export default async function PlacementView({
             : 'Yours, not the executive’s. Nothing you send is passed on.'}
         </p>
         <a className="btn sm ghost" href="/app/messages?tab=sm">
-          {manager?.id ? `Message ${firstName(manager.name)}` : 'Message your manager'}
+          {manager?.id ? `Message ${firstName(manager.name)}` : `Message ${side === 'client' ? WORDS.csmShort : WORDS.tsmShort}`}
         </a>
       </div>
 

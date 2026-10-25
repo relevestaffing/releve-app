@@ -147,7 +147,7 @@ export async function POST(req: Request) {
   if (me.role !== 'admin') return NextResponse.json({ error: 'not permitted' }, { status: 403 });
   /* Same bar as marking a single payment paid: recording money as sent is
      the owner's call. */
-  if (!(await isOwner())) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
+  if (!(await isOwner())) return NextResponse.json({ error: 'Only the owner can record payments.' }, { status: 403 });
 
   try {
     const b = await req.json().catch(() => ({}));

@@ -129,7 +129,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
   if (!b.id || !['verified', 'rejected'].includes(b.verdict))
     return NextResponse.json({ error: 'verified or rejected?' }, { status: 400 });
   try {

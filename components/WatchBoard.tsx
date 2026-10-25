@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from './Toast';
 import type { WatchStatus } from '@/lib/watch';
+import { money } from '@/lib/money-public';
 
 type Item = {
   discipline: string; name: string; status: WatchStatus;
@@ -14,9 +15,9 @@ type Item = {
 const LABEL: Record<WatchStatus, string> = {
   not_started: 'Not started',
   in_progress: 'In progress',
-  awaiting_review: 'Submitted. Waiting on review',
+  awaiting_review: 'Submitted, and with us',
   cleared: 'Cleared',
-  needs_retake: 'Needs another attempt'
+  needs_retake: 'Needs another try'
 };
 const TONE: Record<WatchStatus, 'good' | 'warn' | ''> = {
   not_started: '', in_progress: 'warn', awaiting_review: 'warn', cleared: 'good', needs_retake: 'warn'
@@ -76,7 +77,7 @@ export default function WatchBoard({ items }: { items: Item[] }) {
                 <>
                   <span className="small muted">
                     {it.timeLimitMinutes
-                      ? `Once you start, the clock runs for ${Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours straight through, paid at $6/hour.`
+                      ? `Once you start, the clock runs for ${Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours straight through, paid at ${money(600)} an hour.`
                       : 'Once you start, the clock is running.'}
                   </span>
                   <button className="btn sm solid" disabled={busy === it.discipline} onClick={() => start(it.discipline)}>

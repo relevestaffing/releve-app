@@ -5,6 +5,8 @@ import { DISCIPLINE } from '@/lib/disciplines';
 import Shell from '@/components/Shell';
 import WatchAttemptForm from '@/components/WatchAttemptForm';
 
+export const metadata = { title: 'Taking The Watch' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function WatchAttemptPage({ params }: { params: Promise<{ attemptId: string }> }) {

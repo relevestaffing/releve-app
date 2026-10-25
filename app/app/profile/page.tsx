@@ -13,6 +13,8 @@ import { AxisBars, Portrait } from '@/components/Viz';
 import { executiveStage } from '@/lib/stage';
 import { WORDS } from '@/lib/words';
 
+export const metadata = { title: 'Your profile' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function ExecProfile() {
@@ -116,10 +118,10 @@ export default async function ExecProfile() {
           )}
 
           <div className="card">
-            <div className="card-head"><h3>Your results in full</h3><span className="pill">See the full assessment</span></div>
+            <div className="card-head"><h3>Your results in full</h3><span className="pill">{WORDS.moreDetail}</span></div>
             <p className="small muted">Most people never need this. It is here because it is your data.</p>
             <details className="more">
-              <summary>See every score</summary>
+              <summary>{WORDS.moreDetail}</summary>
               <div className="inner">
                 <div className="grid-2" style={{ marginBottom: 22 }}>
                   <div><div className="eyebrow" style={{ marginBottom: 12 }}>Working style</div>
@@ -149,7 +151,7 @@ export default async function ExecProfile() {
                   </>
                 )}
                 <div className="row" style={{ marginTop: 20 }}>
-                  <a className="btn sm ghost" href="/app/signature">Retake the assessment</a>
+                  <a className="btn sm ghost" href="/app/signature">Retake the Signature</a>
                 </div>
               </div>
             </details>

@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { firstName } from '@/lib/words';
+import './experience.css';
 
 
 /* The very first thing a new account sees, unless Relève added them by hand —
@@ -74,7 +75,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
               You want a seat beside one executive, not a queue of tasks from twelve. We place you
               deliberately, and manage the relationship after you land.
             </p>
-            <span className="choose-go">{busy === 'talent' ? 'One moment…' : 'This is me →'}</span>
+            <span className="choose-go">{busy === 'talent' ? 'One moment…' : 'Continue as talent →'}</span>
           </button>
         </div>
 
@@ -83,6 +84,11 @@ export default function ChooseRole({ name }: { name?: string | null }) {
           You just cannot switch yourself once the account is set up.
         </p>
         {err && <p className="small" style={{ color: 'var(--crit)', marginTop: 14 }}>{err}</p>}
+        {/* The one way out that is not a choice: the same quiet sign-out the
+            other gates carry, for whoever signed in with the wrong address. */}
+        <form action="/api/signout" method="post" style={{ margin: '18px 0 0' }}>
+          <button className="gate-link" type="submit">Sign out</button>
+        </form>
       </div>
     </div>
   );

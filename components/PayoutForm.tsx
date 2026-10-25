@@ -132,7 +132,7 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
           )}
 
           <button className="btn solid" disabled={busy || missing.length > 0} onClick={save}>
-            {busy ? 'Saving…' : initial ? 'Save these details' : 'Save'}
+            {busy ? 'Saving…' : 'Save these details'}
           </button>
         </>
       )}

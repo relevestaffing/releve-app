@@ -82,7 +82,7 @@ export default function ExecFirstRun() {
               }}>Back</button>
             )}
             <button className="btn sm solid" disabled={busy} onClick={next}>
-              {busy ? 'One moment…' : last ? 'Take me to my account' : 'Continue'}
+              {busy ? 'One moment…' : last ? 'Open your account' : 'Continue'}
             </button>
           </div>
         </div>

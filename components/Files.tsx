@@ -2,6 +2,7 @@
 import { useRef, useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
+import { fmtDate } from '@/lib/words';
 import type { Doc, OwnerKind } from '@/lib/documents-public';
 import { docSize } from '@/lib/documents-public';
 
@@ -39,7 +40,7 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
     router.refresh();
   }
 
-  const when = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const when = (iso: string) => fmtDate(iso);
 
   return (
     <div className="card">

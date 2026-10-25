@@ -3,6 +3,7 @@
    level security decides what comes back. Nothing is filtered in JavaScript
    that the database is not already enforcing. */
 import { configured, supabaseServer } from './supabase/server';
+import { DEMO_BENCH } from './demo';
 import type { Checkin, Decision, DecisionState, InterviewFeedback, Message, Origin, Placement, Priority, Task, Vetting } from './work-public';
 import { todayInPacific } from './money-public';
 import { teamEmailsAdmin } from './supabase/admin';
@@ -274,7 +275,15 @@ export type Person = { id: string; full_name: string | null; email: string; role
 
 /* Everyone Relève could place. Admin only — row level security sees to that. */
 export async function listPeople(): Promise<Person[]> {
-  if (!configured()) return [];
+  if (!configured()) {
+    /* The in-memory roster, so preview mode agrees with itself: the Directory
+       listed the demo executive and six talent while every picker built on
+       this read nobody at all. */
+    return [
+      { id: 'demo-client', full_name: 'Elena Marsh', email: 'demo@relevestaffing.com', role: 'client', org_name: 'Marsh & Co.' },
+      ...DEMO_BENCH.map(p => ({ id: p.id, full_name: p.name, email: `${p.id}@example.com`, role: 'talent', org_name: null }))
+    ];
+  }
   const sb = await supabaseServer();
   const { data } = await sb.from('profiles')
     .select('id, full_name, email, role, org_name')
@@ -477,7 +486,7 @@ export function alertsFor(input: {
 
   const filedThisWeek = input.checkins.some(c => c.week_ending === input.thisWeek);
   const isLateInWeek = new Date().getUTCDay() === 5 || new Date().getUTCDay() === 6;
-  if (!filedThisWeek && isLateInWeek) out.push({ level: 'watch', text: 'No check-in filed for this week yet' });
+  if (!filedThisWeek && isLateInWeek) out.push({ level: 'watch', text: 'No end of week report filed for this week yet' });
 
   const missedRun = (() => {
     const weeks = new Set(input.checkins.map(c => c.week_ending));
@@ -488,12 +497,12 @@ export function alertsFor(input: {
     }
     return miss;
   })();
-  if (missedRun >= 2) out.push({ level: 'high', text: `${missedRun} of the last 3 weekly check-ins missing` });
+  if (missedRun >= 2) out.push({ level: 'high', text: `${missedRun} of the last 3 end of week reports missing` });
 
   const flagged = input.checkins.filter(c => c.needs_attention).slice(0, 3);
   flagged.forEach(c => out.push({
     level: 'high',
-    text: `Check-in for week ending ${c.week_ending} needs a look${c.blocked ? `: "${c.blocked.slice(0, 70)}"` : ''}`
+    text: `Report for week ending ${c.week_ending} needs a look${c.blocked ? `: "${c.blocked.slice(0, 70)}"` : ''}`
   }));
 
   const overdue = input.tasks.filter(t => !t.done && t.due_on && t.due_on < today);
@@ -505,7 +514,7 @@ export function alertsFor(input: {
     out.push({ level: 'high', text: 'Two weeks in and no work has been delegated at all' });
 
   const lowRapport = input.checkins.slice(0, 3).filter(c => (c.rapport ?? 5) <= 2).length;
-  if (lowRapport >= 2) out.push({ level: 'high', text: 'Rapport rated 2 or below in two recent check-ins' });
+  if (lowRapport >= 2) out.push({ level: 'high', text: 'Rapport rated 2 or below in two recent reports' });
 
   const heavy = input.checkins.slice(0, 3).filter(c => c.workload === 'heavy').length;
   if (heavy >= 2) out.push({ level: 'watch', text: 'Workload reported as unsustainable more than once' });

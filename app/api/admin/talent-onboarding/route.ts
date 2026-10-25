@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
     /* The record stands whether or not the mail server answers — a failed
        send should never look like a failed save. */
-    const tpl = templates.applicationInvited({ name: firstName(name, 'there'), role: role ?? 'the role', docsUrl });
+    const tpl = templates.applicationInvited({ name: firstName(name, ''), role: role ?? 'the role', docsUrl });
     const sent = await send(email, tpl);
 
     return NextResponse.json({ ok: true, emailed: sent });

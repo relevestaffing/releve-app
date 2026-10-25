@@ -24,7 +24,7 @@ export default async function BillingBanner({ clientId }: { clientId: string }) 
         </p>
         {pay
           ? <PayInvoiceButton invoiceId={n.id} label={`Pay ${money(n.amount_cents, true)}`} className="btn sm solid" />
-          : <a className="btn sm ghost" href="/app/messages">Ask about paying</a>}
+          : <a className="btn sm ghost" href="/app/messages">Ask how to pay</a>}
       </div>
     </div>
   );

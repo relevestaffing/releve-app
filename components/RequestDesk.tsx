@@ -72,7 +72,10 @@ export default function RequestDesk({ rows }: { rows: Row[] }) {
               </form>
             ) : (
               <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                <a className="btn sm ghost" href={`/console/messages?thread=${r.client_id}`}>Message them</a>
+                <a className="btn sm ghost"
+                  href={`/console/messages?thread=${r.client_id}&name=${encodeURIComponent(r.client_name)}&role=client`}>
+                  Message them
+                </a>
                 <a className="btn sm ghost" href={`/console/placements/${r.placement_id}`}>Open the placement</a>
                 {r.state === 'open' && (
                   <button className="btn sm ghost" disabled={busy === r.id} onClick={() => move(r.id, 'in_hand')}>Mark in hand</button>

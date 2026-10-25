@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
 import { saving, toast } from './Toast';
-import { fmtDate } from '@/lib/words';
+import { fmtDate, fmtWhen } from '@/lib/words';
 import { openSignedLink } from '@/lib/open-tab';
 
 type Row = Vetting & { talent?: { full_name: string | null; email: string; stage: string | null } };
@@ -12,6 +12,9 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  /* Verifying emails the candidate that they are through, so it asks once
+     in the row before it fires. */
+  const [verifying, setVerifying] = useState<string | null>(null);
 
   /* The tab opens inside the tap (Safari blocks one opened after an await). */
   function open(path: string) {
@@ -30,7 +33,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id, verdict, reason, expires_on: expires, talent_id: talentId, kind })
     }), verdict === 'verified' ? 'Verified' : 'Sent back');
-    setBusy(false); setRejecting(null);
+    setBusy(false); setRejecting(null); setVerifying(null);
     if (ok) router.refresh();
   }
 
@@ -55,8 +58,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
           {pendingSignature.map(r => (
             <p key={r.id} className="small" style={{ margin: '4px 0' }}>
               <b>{r.talent?.full_name ?? r.talent?.email ?? 'Candidate'}</b>, sent
-              {r.submitted_at && ` ${new Date(r.submitted_at)
-                .toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`}, nothing to do here until
+              {r.submitted_at && ` ${fmtWhen(r.submitted_at)}`}, nothing to do here until
               it comes back signed.
             </p>
           ))}
@@ -76,8 +78,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                 <h4>{r.talent?.full_name ?? r.talent?.email ?? 'Candidate'}</h4>
                 <p className="small muted" style={{ margin: '3px 0 0' }}>
                   {labelOf(r.kind)}
-                  {r.submitted_at && ` · sent ${new Date(r.submitted_at)
-                    .toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`}
+                  {r.submitted_at && ` · sent ${fmtWhen(r.submitted_at)}`}
                   {r.expires_on && ` · expires ${fmtDate(r.expires_on)}`}
                 </p>
               </div>
@@ -87,10 +88,25 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                     Open {r.file_name ?? 'document'}
                   </button>
                 )}
-                <button className="btn sm solid" disabled={busy}
-                  onClick={() => decide(r.id, 'verified', undefined, r.expires_on ?? undefined, r.talent_id, r.kind)}>Verify</button>
-                <button className="btn sm ghost" disabled={busy}
-                  onClick={() => setRejecting(rejecting === r.id ? null : r.id)}>Needs another go</button>
+                {verifying === r.id ? (
+                  <>
+                    <span className="xs muted">
+                      Verify this {labelOf(r.kind).toLowerCase()}? {r.talent?.full_name ?? 'The candidate'} is emailed that it is accepted.
+                    </span>
+                    <button className="btn sm solid" disabled={busy}
+                      onClick={() => decide(r.id, 'verified', undefined, r.expires_on ?? undefined, r.talent_id, r.kind)}>
+                      {busy ? 'Verifying…' : 'Yes, verify'}
+                    </button>
+                    <button className="btn sm ghost" disabled={busy} onClick={() => setVerifying(null)}>Not yet</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="btn sm solid" disabled={busy}
+                      onClick={() => { setRejecting(null); setVerifying(r.id); }}>Verify</button>
+                    <button className="btn sm ghost" disabled={busy}
+                      onClick={() => { setVerifying(null); setRejecting(rejecting === r.id ? null : r.id); }}>Needs another try</button>
+                  </>
+                )}
               </div>
             </div>
             {rejecting === r.id && (

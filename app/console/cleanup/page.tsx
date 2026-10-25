@@ -1,8 +1,11 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { cleanupRows, listArchived, archivingIsLive } from '@/lib/archive';
 import Shell from '@/components/Shell';
 import Cleanup from '@/components/Cleanup';
+
+export const metadata = { title: 'Tidy up' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -27,7 +30,8 @@ export default async function CleanupPage() {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
-      title="Tidy up" crumb="Archive or remove people">
+      title="Tidy up" crumb="Archive or remove people"
+      action={<Link className="btn sm ghost" href="/console/directory">← Directory</Link>}>
 
 
       {!configured() && (

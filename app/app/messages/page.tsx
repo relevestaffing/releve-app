@@ -6,6 +6,8 @@ import { listPlacementsFor } from '@/lib/work';
 import { primaryManager, unreadByThread, placementThread, subjectThread } from '@/lib/experience';
 import { WORDS, firstName } from '@/lib/words';
 
+export const metadata = { title: 'Messages' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -33,7 +35,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   return (
     <Shell profile={profile} active="/app/messages" title="Messages"
       crumb={placements.length
-        ? (manager.id ? `${manager.name}, and whoever you are placed with` : 'Your Success Manager, and whoever you are placed with')
+        ? (manager.id ? `${manager.name}, and whoever you are placed with` : `${profile.role === 'client' ? WORDS.csmShort : WORDS.tsmShort}, and whoever you are placed with`)
         : (manager.id ? `Straight to ${manager.name}` : (profile.role === 'client' ? `Straight to ${WORDS.csmShort}` : `Straight to ${WORDS.tsmShort}`))}>
       <MessagesTabs me={profile.id} tabs={tabs} initial={tab ?? null} manager={manager} />
     </Shell>

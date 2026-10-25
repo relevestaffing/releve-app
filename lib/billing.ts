@@ -97,7 +97,9 @@ export async function startPaymentSetup(clientId: string, email: string, name: s
 export async function depositGateFor(clientId: string): Promise<{
   searchId: string; status: 'due' | 'processing' | 'paid' | 'waived'; cents: number;
 } | null> {
-  if (!configured()) return null;
+  /* Preview mode: the demo executive is mid-search with the deposit paid, so
+     the preview shows the working account rather than the pre-deposit tour. */
+  if (!configured()) return clientId === 'demo-client' ? { searchId: 'demo-search', status: 'paid', cents: 50_000 } : null;
   const sb = await supabaseServer();
   const { data } = await sb.from('searches')
     .select('id, deposit_status, deposit_cents')

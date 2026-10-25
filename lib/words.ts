@@ -37,6 +37,12 @@ export const WORDS = {
   moreDetail: 'See the full assessment'
 } as const;
 
+/* ---------- the placeholder ---------- */
+/* One mark for "nothing here": a figure with no value yet, an empty field, a
+   date not set. The audit found three ('–', '·', '—') on the same screens;
+   the en dash is the one, everywhere. */
+export const DASH = '–';
+
 /* ---------- dates ---------- */
 /* One function per shape, so the same field never renders three ways.
    All of them treat a bare YYYY-MM-DD as a calendar date, not an instant —
@@ -50,16 +56,16 @@ const asUTC = (iso: string) => new Date(iso.slice(0, 10) + 'T00:00:00Z');
     "Within six weeks" before now) so a bad value reads as unset rather than
     as the literal string "Invalid Date". */
 export function fmtDate(iso: string | null | undefined): string {
-  if (!iso) return '–';
+  if (!iso) return DASH;
   const d = asUTC(iso);
-  if (Number.isNaN(d.getTime())) return '–';
+  if (Number.isNaN(d.getTime())) return DASH;
   return d.toLocaleDateString('en-US',
     { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
 /** September 4 — for dates inside the current year, where the year is noise. */
 export function fmtDay(iso: string | null | undefined): string {
-  if (!iso) return '–';
+  if (!iso) return DASH;
   const d = asUTC(iso);
   const sameYear = d.getUTCFullYear() === new Date().getUTCFullYear();
   return d.toLocaleDateString('en-US', sameYear
@@ -67,9 +73,17 @@ export function fmtDay(iso: string | null | undefined): string {
     : { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
+/** Nov 5 — the short day, for tight columns and chips where the year is noise. */
+export function fmtShortDay(iso: string | null | undefined): string {
+  if (!iso) return DASH;
+  const d = asUTC(iso);
+  if (Number.isNaN(d.getTime())) return DASH;
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+}
+
 /** September 2026 */
 export function fmtMonth(iso: string | null | undefined): string {
-  if (!iso) return '–';
+  if (!iso) return DASH;
   return asUTC(iso).toLocaleDateString('en-US',
     { month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
@@ -83,14 +97,40 @@ export function fmtMonth(iso: string | null | undefined): string {
    The clock goes with them: lib/scheduling.ts has always shown 12-hour
    times, so a timestamp that read 14:30 was the only 24-hour clock in the
    product. */
-export function fmtWhen(iso: string | null | undefined): string {
-  if (!iso) return '–';
-  return new Date(iso).toLocaleString('en-US',
-    { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+export function fmtWhen(iso: string | null | undefined, timeZone?: string | null): string {
+  if (!iso) return DASH;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return DASH;
+  let s: string;
+  try {
+    s = d.toLocaleString('en-US',
+      { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, ...(timeZone ? { timeZone } : {}) });
+  } catch {
+    /* An unknown zone identifier falls back to the runtime's zone rather than
+       throwing inside a render. */
+    s = d.toLocaleString('en-US',
+      { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+  return s
     /* lower case, and an ordinary space before it: the rest of the app
        writes "2:30 pm", and Intl hands back "2:30 PM" with a narrow
        no-break space that copies into a search box as a mystery character. */
     .replace(/[\s\u202f]*(AM|PM)/, (_m, x) => ' ' + x.toLowerCase());
+}
+
+/** 2:30 pm — the time alone, for a timestamp whose day is already on the
+    screen (a message under its day heading). Same clock as fmtWhen. */
+export function fmtTime(iso: string | null | undefined, timeZone?: string | null): string {
+  if (!iso) return DASH;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return DASH;
+  let s: string;
+  try {
+    s = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, ...(timeZone ? { timeZone } : {}) });
+  } catch {
+    s = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+  return s.replace(/[\s\u202f]*(AM|PM)/, (_m, x) => ' ' + x.toLowerCase());
 }
 
 
@@ -184,3 +224,19 @@ export function zoneLabel(zone: string | null | undefined): string {
     return city;
   }
 }
+
+/* The timezones a person can pick from, wherever one is picked. Every
+   interview time either side ever sees is computed from this, so the same
+   list sits behind the availability grid and both profile editors; a
+   free-text field here is how "America/Los_Angeles" ended up printed back
+   to an executive as if it were a place. */
+export const ZONES = [
+  'America/Los_Angeles', 'America/Denver', 'America/Chicago', 'America/New_York',
+  'America/Phoenix', 'America/Anchorage', 'Pacific/Honolulu',
+  'America/Mexico_City', 'America/Bogota', 'America/Lima', 'America/Argentina/Buenos_Aires', 'America/Sao_Paulo',
+  'Europe/London', 'Europe/Dublin', 'Europe/Lisbon', 'Europe/Madrid', 'Europe/Paris',
+  'Europe/Berlin', 'Europe/Rome', 'Europe/Athens', 'Africa/Nairobi', 'Asia/Dubai', 'Asia/Karachi',
+  'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Manila',
+  'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Tokyo', 'Australia/Perth',
+  'Australia/Sydney', 'Pacific/Auckland', 'UTC'
+];

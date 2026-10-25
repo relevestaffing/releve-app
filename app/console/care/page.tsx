@@ -7,10 +7,13 @@ import {
 import Shell from '@/components/Shell';
 import ConsoleTabs from '@/components/ConsoleTabs';
 import { TimeOffDecider, OutcomeForm } from '@/components/CareControls';
-import { fmtDate } from '@/lib/words';
+import { fmtDate, DASH } from '@/lib/words';
 import Link from 'next/link';
+import Empty from '@/components/Empty';
 import RequestDesk from '@/components/RequestDesk';
 import { allRequests, mineFor } from '@/lib/experience';
+
+export const metadata = { title: 'Care' };
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +43,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
 
   return (
     <Shell profile={profile} active="/console/placements" title="Placements"
-      crumb={mine ? 'Care, your placements' : 'Care, what needs a person today'}
+      crumb={mine ? 'Care, yours' : 'Care'}
       action={
         <span className="row" role="group" aria-label="Whose placements" style={{ gap: 6 }}>
           <Link className={`btn sm ${mine ? 'ghost' : 'solid'}`} href="/console/care">Everyone</Link>
@@ -55,19 +58,19 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
 
       <div className="money-strip">
         <div className={`money-stat ${flagged.length ? 'alert' : ''}`}>
-          <div className="n">{flagged.length}</div><div className="k">Clients to check on</div>
+          <div className="n">{flagged.length}</div><div className="k">Check on</div>
         </div>
         <div className={`money-stat ${waiting.length ? 'alert' : ''}`}>
-          <div className="n">{waiting.length}</div><div className="k">Time off to decide</div>
+          <div className="n">{waiting.length}</div><div className="k">Time off</div>
         </div>
         <div className={`money-stat ${watch.length ? 'alert' : ''}`}>
-          <div className="n">{watch.length}</div><div className="k">Searches to fill by day 14</div>
+          <div className="n">{watch.length}</div><div className="k">Fill by day 14</div>
         </div>
         <div className={`money-stat ${openRequests.length ? 'alert' : ''}`}>
-          <div className="n">{openRequests.length}</div><div className="k">Requests to answer</div>
+          <div className="n">{openRequests.length}</div><div className="k">Requests</div>
         </div>
         <div className="money-stat">
-          <div className="n">{due.length}</div><div className="k">Six-month reviews</div>
+          <div className="n">{due.length}</div><div className="k">6-month reviews</div>
         </div>
       </div>
 
@@ -109,7 +112,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
             <h3>Time off</h3>
             <span className="xs muted">Next 45 days</span>
           </div>
-          {!off.length ? <p className="small muted">Nothing booked or asked for.</p> : off.map(t => {
+          {!off.length ? <Empty title="Nothing booked" body="No time off is booked or asked for in the next 45 days." /> : off.map(t => {
             const s = TIME_OFF_STATE.find(x => x.key === t.state);
             return (
               <div key={t.id} style={{ padding: '13px 0', borderTop: '1px solid var(--mist)' }}>
@@ -125,7 +128,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
                   </div>
                   <span className={`pill ${s?.tone ?? ''}`}>{s?.label}</span>
                 </div>
-                <TimeOffDecider id={t.id} state={t.state} />
+                <TimeOffDecider id={t.id} state={t.state} talentName={t.talent_name} />
               </div>
             );
           })}
@@ -137,10 +140,8 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
             <span className="xs muted">Monthly pulse</span>
           </div>
           {!pulses.length ? (
-            <p className="small muted">
-              Nothing filed yet. Clients see the pulse on their Placement page from
-              the month their talent starts.
-            </p>
+            <Empty title="Nothing filed yet"
+              body="Clients see the pulse on their Placement page from the month their talent starts." />
           ) : pulses.slice(0, 20).map(p => (
             <div key={p.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
               <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
@@ -150,7 +151,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
                 </div>
                 <div className="row" style={{ gap: 8 }}>
                   {p.needs_attention && <span className="pill crit"><span className="dot" />Look at this</span>}
-                  <span className="pill">{GOING.find(g => g.n === p.going)?.label ?? '–'}</span>
+                  <span className="pill">{GOING.find(g => g.n === p.going)?.label ?? DASH}</span>
                 </div>
               </div>
               <div className="xs muted" style={{ marginTop: 5 }}>
@@ -166,7 +167,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
         <div className="card">
           <div className="card-head"><h3>Six-month reviews due</h3>
             <span className="pill">Teaches the matching</span></div>
-          {!due.length ? <p className="small muted">Nothing due.</p> : due.map((d: any) => (
+          {!due.length ? <Empty title="Nothing due" body="A review falls due six months after each placement starts." /> : due.map((d: any) => (
             <div key={d.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
               <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
                 <div><b className="small">{d.client_name}</b>

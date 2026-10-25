@@ -6,6 +6,8 @@ import CheckinForm from '@/components/CheckinForm';
 import { EMPTY, WORDS, fmtDate } from '@/lib/words';
 import Empty from '@/components/Empty';
 
+export const metadata = { title: 'End of week report' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function CheckinPage() {

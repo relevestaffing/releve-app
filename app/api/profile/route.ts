@@ -6,7 +6,7 @@ import { safeMessage } from '@/lib/errors';
 export async function PATCH(req: Request) {
   const p = await currentProfile();
   if (!p) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  const body = await req.json();
+  const body = await req.json().catch(() => ({}));
 
   if (body.onboarded) { await markOnboarded(p.id); return NextResponse.json({ ok: true }); }
 

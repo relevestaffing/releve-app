@@ -151,9 +151,15 @@ export async function saveFeedback(f: {
   id?: string; placement_id: string; talent_id: string; period: string;
   strengths: string; growing?: string;
   quality?: number; communication?: number; ownership?: number; shared?: boolean;
-}) {
-  if (!configured()) return;
+}): Promise<{ id: string; talent_id: string; period: string; shared: boolean; newlyShared: boolean } | null> {
+  if (!configured()) return null;
   const sb = await supabaseServer();
+  /* Whether this review was already visible to the talent, so the caller can
+     tell "saved and shared for the first time" (which deserves an email)
+     from "re-saved something they could already read". */
+  const { data: prior } = await sb.from('talent_feedback').select('shared')
+    .eq('placement_id', f.placement_id).eq('period', f.period).maybeSingle();
+  const wasShared = Boolean((prior as any)?.shared);
   const row: any = {
     placement_id: f.placement_id, talent_id: f.talent_id, period: f.period,
     strengths: f.strengths.trim(), growing: f.growing?.trim() || null,
@@ -164,9 +170,12 @@ export async function saveFeedback(f: {
      two separate reviews and the talent saw the draft as well. One review per
      placement per period. */
   if (f.id) row.id = f.id;
-  const { error } = await sb.from('talent_feedback')
-    .upsert(row, { onConflict: 'placement_id,period' });
+  const { data, error } = await sb.from('talent_feedback')
+    .upsert(row, { onConflict: 'placement_id,period' })
+    .select('id, talent_id, period, shared').maybeSingle();
   if (error) throw new Error(error.message);
+  const saved = data as { id: string; talent_id: string; period: string; shared: boolean } | null;
+  return saved ? { ...saved, newlyShared: Boolean(saved.shared) && !wasShared } : null;
 }
 
 /* Written first, released deliberately. A half-finished review appearing in

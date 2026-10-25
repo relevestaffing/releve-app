@@ -150,8 +150,3 @@ export function prevMonth(ym01: string): string {
   d.setUTCMonth(d.getUTCMonth() - 1);
   return d.toISOString().slice(0, 10);
 }
-
-/** Timezone names read "America/Los Angeles", every underscore replaced. */
-export function tzLabel(tz: string | null | undefined): string {
-  return (tz ?? '').replace(/_/g, ' ');
-}

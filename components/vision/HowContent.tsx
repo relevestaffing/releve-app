@@ -23,7 +23,7 @@ const METHOD: { t: string; d: string }[] = [
   { t: 'Prepared, then presented',
     d: 'Briefed on your tools and standards before you meet. Your calendar, your terms, your decision.' },
   { t: 'Handled from there',
-    d: 'Your Client Success Manager and their Talent Success Manager carry the check-ins, coaching and cover.' }
+    d: 'Your Client Success Manager and their Talent Success Manager carry the weekly reports, coaching and cover.' }
 ];
 
 export default function HowContent() {
@@ -96,7 +96,7 @@ export default function HowContent() {
           </div>
           <div className="money-stat">
             <div className="n">{money(PLANS.essential.monthlyCents)}–{money(PLANS.specialist.monthlyCents).replace('$', '')}</div>
-            <div className="k">Monthly, unlimited hours. Starter: $950 a month, or $2,500 paid in full for 3 months, 15 hrs/week</div>
+            <div className="k">Monthly, unlimited hours. Starter: $950 a month, or $2,500 for three months, up to fifteen hours a week</div>
           </div>
         </div>
         <p className="small muted" style={{ marginTop: 4, maxWidth: 560 }}>

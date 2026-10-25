@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Checkin, Placement } from '@/lib/work-public';
 import { saving } from './Toast';
-import { firstName } from '@/lib/words';
+import { firstName, fmtDay } from '@/lib/words';
 
 /* The end-of-week report (Sage, 25 October 2026).
    ----------------------------------------------
@@ -39,8 +39,7 @@ export default function CheckinForm({ placement, week, existing }: {
     if (ok) router.refresh();
   }
 
-  const friday = new Date(week + 'T00:00:00')
-    .toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+  const friday = fmtDay(week);
   const id = (k: string) => `eow-${k}-${placement.id}`;
 
   return (

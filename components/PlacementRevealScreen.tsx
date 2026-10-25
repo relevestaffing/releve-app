@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PlacementReveal from './PlacementReveal';
 import { toast } from './Toast';
@@ -13,8 +14,11 @@ export default function PlacementRevealScreen({
   counterpartLabel, counterpartName, roleTitle, startDate
 }: { counterpartLabel: string; counterpartName: string; roleTitle: string; startDate: string }) {
   const router = useRouter();
+  const [busy, setBusy] = useState(false);
 
   async function onViewPlacement() {
+    if (busy) return;
+    setBusy(true);
     try {
       const res = await fetch('/api/placement-reveal', { method: 'POST' });
       if (!res.ok) toast.bad('Could not save that you have seen this. It may show again next time.');
@@ -31,6 +35,7 @@ export default function PlacementRevealScreen({
       roleTitle={roleTitle}
       startDate={startDate}
       onViewPlacement={onViewPlacement}
+      busy={busy}
     />
   );
 }

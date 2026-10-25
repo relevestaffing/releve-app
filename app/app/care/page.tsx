@@ -10,6 +10,8 @@ import { Portrait } from '@/components/Viz';
 import Empty from '@/components/Empty';
 import { firstName, EMPTY } from '@/lib/words';
 
+export const metadata = { title: 'Your placement' };
+
 export const dynamic = 'force-dynamic';
 
 /* Everything about the placement itself, for whichever side is looking.
@@ -52,7 +54,7 @@ export default async function Care() {
      their own name and photo on every row. */
   return (
     <Shell profile={profile} active="/app/care"
-      title={side === 'client' ? 'Your team' : 'Your placements'}
+      title="Your placements"
       crumb={side === 'client'
         ? `${placements.length} people placed with you`
         : `${placements.length} executives you work with`}>
@@ -60,7 +62,7 @@ export default async function Care() {
         <Explain>
           {side === 'client'
             ? 'Each person has their own page: what they are working on, how the month has gone, and their ninety-day onboarding plan. Tasks and billing cover everyone together.'
-            : 'Each placement has its own page: the ninety-day plan, time off and feedback for that role. Your tasks and check-ins cover every placement together.'}
+            : 'Each placement has its own page: the ninety-day plan, time off and feedback for that role. Your tasks and end of week reports cover every placement together.'}
         </Explain>
       </div>
       <div className="stack">

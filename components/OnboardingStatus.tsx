@@ -19,8 +19,8 @@ export default function OnboardingStatus({ steps, compact }: { steps: Step[]; co
   const list = (
     <ul className="plain" style={{ marginTop: compact ? 10 : 0 }}>
       {steps.map(s => (
-        <li key={s.key} className={compact ? 'xs' : 'small'} style={{ marginBottom: 6 }}>
-          <span className={s.done ? '' : 'muted'}>{s.done ? '✓' : '○'} {s.title}</span>
+        <li key={s.key} className={`${compact ? 'xs' : 'small'}${s.done ? ' done' : ''}`} style={{ marginBottom: 6 }}>
+          <span className={s.done ? '' : 'muted'}>{s.title}</span>
           {s.critical && !s.done && <span className="xs muted"> · needed to match</span>}
         </li>
       ))}

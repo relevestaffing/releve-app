@@ -7,6 +7,8 @@ import { setupFor } from '@/lib/setup';
 import VettingUpload from '@/components/VettingUpload';
 import { docusignReady } from '@/lib/docusign';
 
+export const metadata = { title: 'Verification' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function VettingPage() {

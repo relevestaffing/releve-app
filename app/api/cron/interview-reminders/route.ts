@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { send } from '@/lib/email';
 import { experienceEmails } from '@/lib/email-experience';
 import { cronAllowed, cronClient } from '@/lib/cron-auth';
-import { tzLabel } from '@/lib/experience-public';
+import { fmtWhen, zoneLabel } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,16 +18,11 @@ export const dynamic = 'force-dynamic';
    one between 0 and 75 minutes ahead. */
 const H = 3_600_000;
 
+/* "Nov 5, 2:00 pm (Manila · GMT+8)": the house time format, in the reader's
+   own zone, with the zone named the way the rest of the app names it. */
 function when(iso: string, tz: string) {
-  try {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: tz
-    }).format(new Date(iso)) + ` (${tzLabel(tz)})`;
-  } catch {
-    return new Intl.DateTimeFormat('en-US', {
-      weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles'
-    }).format(new Date(iso)) + ' (Pacific)';
-  }
+  const zone = zoneLabel(tz);
+  return fmtWhen(iso, tz) + (zone ? ` (${zone})` : '');
 }
 
 export async function POST(req: Request) {

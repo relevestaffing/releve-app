@@ -6,6 +6,8 @@ import { monthLabel } from '@/lib/money-public';
 import Shell from '@/components/Shell';
 import InvoiceDocument from '@/components/InvoiceDocument';
 
+export const metadata = { title: 'Invoice' };
+
 export const dynamic = 'force-dynamic';
 
 /* The same document the executive sees, for the team: to print, to attach

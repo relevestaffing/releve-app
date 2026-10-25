@@ -16,6 +16,10 @@ export default function PostingEditor({ post, onDone }: {
   const fid = useId();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  /* On a live role, "draft" and "closed" both take it off the internet, so
+     each arms a confirm first instead of firing on the click. */
+  const [armed, setArmed] = useState<null | 'draft' | 'closed'>(null);
+  const live = post?.state === 'open';
   const [f, setF] = useState({
     title: post?.title ?? '', discipline: post?.discipline ?? '',
     summary: post?.summary ?? '', about: post?.about ?? '',
@@ -30,12 +34,13 @@ export default function PostingEditor({ post, onDone }: {
   const slug = post?.opened_at ? post.slug : (slugify(f.title) || 'role');
 
   async function save(state: PostState) {
-    setBusy(true);
+    setBusy(true); setArmed(null);
     const ok = await saving(() => fetch('/api/admin/postings', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...f, id: post?.id, state })
     }), state === 'open' ? 'Live on the careers page'
-      : state === 'closed' ? 'Closed and off the site' : 'Draft saved');
+      : state === 'closed' ? 'Closed and off the site'
+      : live ? 'Unpublished and saved as a draft' : 'Draft saved');
     setBusy(false);
     if (ok) { onDone?.(); router.refresh(); }
   }
@@ -96,21 +101,37 @@ export default function PostingEditor({ post, onDone }: {
         </p>
       )}
 
-      <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
-        <button className="btn sm solid" disabled={busy || missing.length > 0}
-          onClick={() => save('open')}>
-          {post?.state === 'open' ? 'Save & keep it live' : 'Publish to the careers page'}
-        </button>
-        <button className="btn sm ghost" disabled={busy} onClick={() => save('draft')}>
-          Save as draft
-        </button>
-        {post?.state === 'open' && (
-          <button className="btn sm ghost" disabled={busy} onClick={() => save('closed')}>
-            Close this role
+      {armed ? (
+        <>
+          <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 12 }}>
+            {armed === 'draft'
+              ? <>Take <b>{f.title || 'this role'}</b> off the careers page and keep it as a draft? Anyone holding the link sees nothing until it is published again.</>
+              : <>Close <b>{f.title || 'this role'}</b>? It comes off the careers page and no more applications are taken.</>}
+          </p>
+          <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+            <button className="btn sm solid" disabled={busy} onClick={() => save(armed)}>
+              {busy ? 'Saving…' : armed === 'draft' ? 'Yes, unpublish it' : 'Yes, close it'}
+            </button>
+            <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Keep it live</button>
+          </div>
+        </>
+      ) : (
+        <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn sm solid" disabled={busy || missing.length > 0}
+            onClick={() => save('open')}>
+            {live ? 'Save and keep it live' : 'Publish to the careers page'}
           </button>
-        )}
-        {onDone && <button className="btn sm ghost" disabled={busy} onClick={onDone}>Cancel</button>}
-      </div>
+          <button className="btn sm ghost" disabled={busy} onClick={() => live ? setArmed('draft') : save('draft')}>
+            {live ? 'Unpublish and save as draft' : 'Save as draft'}
+          </button>
+          {live && (
+            <button className="btn sm ghost" disabled={busy} onClick={() => setArmed('closed')}>
+              Close this role
+            </button>
+          )}
+          {onDone && <button className="btn sm ghost" disabled={busy} onClick={onDone}>Cancel</button>}
+        </div>
+      )}
     </div>
   );
 }

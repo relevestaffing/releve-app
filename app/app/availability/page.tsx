@@ -7,6 +7,8 @@ import AvailabilityEditor from '@/components/AvailabilityEditor';
 import CalendarConnect from '@/components/CalendarConnect';
 import { googleConfigured } from '@/lib/google-calendar';
 
+export const metadata = { title: 'Availability' };
+
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +21,7 @@ export default async function AvailabilityPage() {
   if (profile.role === 'admin') redirect('/console/calendar');
   const who = profile.role === 'client' ? 'client' : 'talent';
   return (
-    <Shell profile={profile} active="/app/availability" title="Availability" crumb="Interviews">
+    <Shell profile={profile} active="/app/availability" title="Availability" crumb="The hours you can take a call">
       {/* Only offered where Google is actually switched on for this site. */}
       {googleConfigured() && <CalendarConnect />}
       <AvailabilityEditor who={who} />

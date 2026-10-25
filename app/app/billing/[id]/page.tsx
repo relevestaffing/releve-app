@@ -8,6 +8,8 @@ import InvoiceDocument from '@/components/InvoiceDocument';
 import PayInvoiceButton from '@/components/PayInvoiceButton';
 import { stripeReady } from '@/lib/stripe';
 
+export const metadata = { title: 'Invoice' };
+
 export const dynamic = 'force-dynamic';
 
 /* One invoice, as a document the executive can print or save as a PDF. Read

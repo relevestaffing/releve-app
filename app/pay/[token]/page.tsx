@@ -3,6 +3,8 @@ import { depositLinkSummary } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { money } from '@/lib/money-public';
 
+export const metadata = { title: 'Deposit' };
+
 export const dynamic = 'force-dynamic';
 
 /* Where the onboarding email's deposit button lands.
@@ -62,10 +64,10 @@ export default async function PayDeposit({ params, searchParams }: {
           {message && <p className="note" style={{ marginBottom: 16 }}>{message}</p>}
           {canPay ? (
             <form method="post" action={`/pay/${encodeURIComponent(token)}/go`}>
-              <button className="btn solid" type="submit">Continue to secure payment</button>
+              <button className="btn solid" type="submit">Pay by bank or card</button>
             </form>
           ) : (
-            <a className="btn ghost sm" style={{ marginTop: 10, display: 'inline-block' }} href="/">Go to Relève</a>
+            <a className="btn ghost sm" style={{ marginTop: 10, display: 'inline-block' }} href="/">Open your account</a>
           )}
         </div>
       </div>

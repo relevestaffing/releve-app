@@ -5,15 +5,17 @@ import { currentProfile } from '@/lib/supabase/server';
 import { createInterview, setInterviewStatus, listInterviews, getInterview, getAvailability } from '@/lib/store';
 import { createZoomMeeting, zoomConfigured, cancelZoomMeeting } from '@/lib/zoom';
 import { getBench } from '@/lib/data';
+import { fmtWhen, zoneLabel } from '@/lib/words';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const STAGES = ['First interview', 'Second interview', 'Final interview', 'Working session'];
 
-/* Each side reads a time in their own timezone, never the other person's. */
-const when = (iso: string, tz: string | null) => new Intl.DateTimeFormat('en-GB', {
-  timeZone: tz || 'UTC', weekday: 'long', day: 'numeric', month: 'long',
-  hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-}).format(new Date(iso));
+/* Each side reads a time in their own timezone, never the other person's:
+   "Nov 5, 2:00 pm (Manila · GMT+8)", the same shape the app shows. */
+const when = (iso: string, tz: string | null) => {
+  const zone = tz?.trim() || 'UTC';
+  return `${fmtWhen(iso, zone)} (${zoneLabel(zone)})`;
+};
 
 export async function GET() {
   const p = await currentProfile();

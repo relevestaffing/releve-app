@@ -14,7 +14,7 @@ import { carryOverToReplacement } from '@/lib/experience';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const { client_id, talent_id, started_on, rate, replaces_id } = await req.json();
+  const { client_id, talent_id, started_on, rate, replaces_id } = await req.json().catch(() => ({}));
   if (!client_id || !talent_id)
     return NextResponse.json({ error: 'pick both an executive and a talent' }, { status: 400 });
   if (client_id === talent_id)
@@ -60,22 +60,23 @@ export async function POST(req: Request) {
     /* Both sides are told, and pointed at the two-week plan that has just
        been generated for them. Nine onboarding steps used to appear in an
        account neither person had been asked to open. */
+    let mailed = 0;
     try {
       const on = fmtDate(started_on || todayInPacific());
       const [exec, talent] = await Promise.all([personEmail(client_id), personEmail(talent_id)]);
       if (exec?.email && talent) {
         const t = templates.placementStarted({
           name: exec.name, withWhom: talent.full, startsOn: on, side: 'client' });
-        await send(exec.email, t);
+        if (await send(exec.email, t)) mailed++;
       }
       if (talent?.email && exec) {
         const t = templates.placementStarted({
           name: talent.name, withWhom: exec.full, startsOn: on, side: 'talent' });
-        await send(talent.email, t);
+        if (await send(talent.email, t)) mailed++;
       }
     } catch { /* the placement stands whether or not the mail went */ }
 
-    return NextResponse.json({ ok: true, rateSet: cents != null });
+    return NextResponse.json({ ok: true, rateSet: cents != null, placement_id: id ?? null, mailed });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const { id, ended_on, reason } = await req.json();
+  const { id, ended_on, reason } = await req.json().catch(() => ({}));
   if (!id) return NextResponse.json({ error: 'which placement?' }, { status: 400 });
   if (reason && !ENDED_REASONS.some(r => r.key === reason))
     return NextResponse.json({ error: 'that is not a reason we record' }, { status: 400 });

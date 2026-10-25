@@ -16,13 +16,17 @@ export async function POST(req: Request) {
     if (b.action === 'role') {
       if (me.role !== 'client' && me.role !== 'admin')
         return NextResponse.json({ error: 'executives only' }, { status: 403 });
-      await saveRoleBreakdown(b.client_id ?? me.id, b.data);
+      /* Only the team may write on somebody else's behalf. A non-admin's own
+         id is the only target they can reach, whatever the body says. */
+      const target = me.role === 'admin' && b.client_id ? String(b.client_id) : me.id;
+      await saveRoleBreakdown(target, b.data);
       return NextResponse.json({ ok: true });
     }
     if (b.action === 'skills') {
       if (me.role !== 'talent' && me.role !== 'admin')
         return NextResponse.json({ error: 'talent only' }, { status: 403 });
-      await saveSkills(b.talent_id ?? me.id, b.data);
+      const target = me.role === 'admin' && b.talent_id ? String(b.talent_id) : me.id;
+      await saveSkills(target, b.data);
       return NextResponse.json({ ok: true });
     }
     return NextResponse.json({ error: 'unknown action' }, { status: 400 });

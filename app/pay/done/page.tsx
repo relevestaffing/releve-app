@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic';
 
+export const metadata = { title: 'Payment received' };
+
 /* Where Stripe sends someone after paying the deposit from the onboarding
    email, before they have an account. Their part is done; the rest is
    ours, and their account is the next step. */
@@ -30,7 +32,7 @@ export default async function DepositDone({ searchParams }: { searchParams: Prom
             </>
           )}
           <a className="btn solid sm" style={{ marginTop: 20, display: 'inline-block' }} href="/">
-            {cancelled ? 'Go to Relève' : 'Set up your account'}
+            {cancelled ? 'Open your account' : 'Set up your account'}
           </a>
         </div>
       </div>

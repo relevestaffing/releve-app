@@ -6,6 +6,7 @@ import {
   type TaskComment, type TaskStatus
 } from '@/lib/experience-public';
 import { saving, toast } from './Toast';
+import { fmtShortDay, fmtWhen } from '@/lib/words';
 import './experience.css';
 
 type TaskX = Task & { status?: TaskStatus };
@@ -60,8 +61,8 @@ function dueLabel(d: string | null, today: string) {
   if (days < 0) return { text: days === -1 ? 'Yesterday' : `${-days} days late`, tone: 'late' };
   if (days === 0) return { text: 'Today', tone: 'now' };
   if (days === 1) return { text: 'Tomorrow', tone: 'now' };
-  if (days <= 7) return { text: due.toLocaleDateString(undefined, { weekday: 'long', timeZone: 'UTC' }), tone: '' };
-  return { text: due.toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: 'UTC' }), tone: '' };
+  if (days <= 7) return { text: due.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' }), tone: '' };
+  return { text: fmtShortDay(d), tone: '' };
 }
 
 export default function TaskBoard({ placementId, me, side, counterpart, limit, seeAllHref, tz: profileTz }: {
@@ -324,7 +325,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
                     <div className="task-meta xs">
                       <span className="muted">
                         Done{t.done_by ? (t.done_by === me ? ' by you' : ` by ${counterpart}`) : ''}
-                        {t.done_at ? `, ${new Date(t.done_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', timeZone: tz ?? undefined })}` : ''}
+                        {t.done_at ? `, ${fmtWhen(t.done_at, tz)}` : ''}
                       </span>
                     </div>
                   </div>
@@ -352,6 +353,7 @@ function TaskRow({
   onSaved: () => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [talk, setTalk] = useState<null | 'comment' | 'question'>(null);
   const due = dueLabel(t.due_on, today);
   const origin = ORIGINS.find(o => o.key === t.origin);
@@ -361,12 +363,15 @@ function TaskRow({
 
   async function saveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (savingEdit) return;   // a second Enter or click while the first PATCH is out
     const f = new FormData(e.currentTarget);
+    setSavingEdit(true);
     const ok = await onEdit({
       title: f.get('title'), detail: f.get('detail'),
       priority: f.get('priority'), due_on: f.get('due_on'),
       due_time: f.get('due_time') || null, repeat_weekly: f.get('repeat_weekly') === 'on'
     });
+    setSavingEdit(false);
     if (ok) setEditing(false);
   }
 
@@ -442,8 +447,8 @@ function TaskRow({
               </label>
             </div>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn sm solid">Save</button>
-              <button type="button" className="btn sm ghost" onClick={() => setEditing(false)}>Cancel</button>
+              <button className="btn sm solid" disabled={savingEdit}>{savingEdit ? 'Saving…' : 'Save'}</button>
+              <button type="button" className="btn sm ghost" disabled={savingEdit} onClick={() => setEditing(false)}>Cancel</button>
             </div>
           </form>
         )}
@@ -503,7 +508,7 @@ function TaskTalk({ task, me, side, counterpart, question, onSent }: {
             <span className="who">{c.author_id === me ? 'You'
               : sides[c.author_id] === 'team' ? 'Relève'
               : side === 'admin' ? (sides[c.author_id] === 'client' ? 'Executive' : 'Talent')
-              : counterpart} · {new Date(c.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>
+              : counterpart} · {fmtWhen(c.created_at)}</span>
             <p>{c.body}</p>
           </div>
         ))}

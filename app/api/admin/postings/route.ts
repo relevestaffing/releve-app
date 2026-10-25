@@ -16,7 +16,7 @@ async function guard() {
 
 export async function POST(req: Request) {
   const g = await guard(); if (g.error) return g.error;
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
 
   if (b.action === 'delete') {
     if (!b.id) return NextResponse.json({ error: 'which posting?' }, { status: 400 });

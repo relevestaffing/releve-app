@@ -33,7 +33,7 @@ export default function FirstFortnight({ steps, startedOn, side, today: todayPro
     const ok = await saving(() => fetch('/api/care', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'step', id: s.id, done: !s.done })
-    }), s.done ? 'Unticked' : 'Done');
+    }), s.done ? 'Marked not done' : 'Done');
     setBusy(null);
     if (ok) router.refresh();
   }

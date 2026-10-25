@@ -21,9 +21,12 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [approving, setApproving] = useState(false);
+  /* Pulling back or unmatching a released candidate takes someone out of
+     the executive's account without warning, so those two arm a confirm. */
+  const [armed, setArmed] = useState<null | 'unrelease' | 'remove'>(null);
 
   async function act(action: string, extra: Record<string, unknown> = {}) {
-    setBusy(true);
+    setBusy(true); setArmed(null);
     const word: Record<string, string> = {
       add: 'Matched. Not sent yet', remove: 'Unmatched',
       release: `Approved: ${talentName} is now with ${clientName}`,
@@ -68,6 +71,22 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
     );
   }
 
+  if (armed) {
+    return (
+      <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span className="xs muted">
+          {armed === 'unrelease'
+            ? `Pull ${talentName} back from ${clientName}? They disappear from the executive's account.`
+            : `Unmatch ${talentName} from ${clientName}? They disappear from the executive's account and the match is gone.`}
+        </span>
+        <button className="btn sm solid" disabled={busy} onClick={() => act(armed)}>
+          {busy ? 'Working…' : armed === 'unrelease' ? 'Yes, pull back' : 'Yes, unmatch'}
+        </button>
+        <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Keep it</button>
+      </div>
+    );
+  }
+
   return (
     <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
       {manual && <span className="pill" title="Added by hand, not by the engine">Manual</span>}
@@ -78,11 +97,12 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
             {released
               ? <>
                   <button className="btn sm ghost" disabled={busy} onClick={() => setApproving(true)}>Edit note</button>
-                  <button className="btn sm ghost" disabled={busy} onClick={() => act('unrelease')}>Pull back</button>
+                  <button className="btn sm ghost" disabled={busy} onClick={() => setArmed('unrelease')}>Pull back</button>
                 </>
               : <button className="btn sm solid" disabled={busy || !!blocked} title={blocked ?? undefined}
                   onClick={() => setApproving(true)}>Approve &amp; send…</button>}
-            <button className="btn sm ghost" disabled={busy} onClick={() => act('remove')}>Unmatch</button>
+            <button className="btn sm ghost" disabled={busy}
+              onClick={() => { if (released) setArmed('remove'); else act('remove'); }}>Unmatch</button>
           </>
         )}
     </div>

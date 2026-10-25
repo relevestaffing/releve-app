@@ -80,7 +80,7 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
 
   return (
     <div className="card">
-      <div className="card-head"><h3>Start your search</h3></div>
+      <div className="card-head"><h3>Open your search</h3></div>
       {returned === 'cancelled' && (
         <p className="small" style={{ marginBottom: 12 }}>
           Nothing was charged. Whenever you are ready, it is one step.

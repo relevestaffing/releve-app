@@ -3,7 +3,9 @@ import ConsoleTabs from '@/components/ConsoleTabs';
 import { currentProfile } from '@/lib/supabase/server';
 import { allDecisions, allFeedback } from '@/lib/work';
 import Shell from '@/components/Shell';
-import { fmtDate } from '@/lib/words';
+import { fmtDate, DASH } from '@/lib/words';
+
+export const metadata = { title: 'Match accuracy' };
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +35,7 @@ export default async function Signals() {
 
   return (
     <Shell profile={profile} active="/console/business" title="The business"
-      crumb="Match accuracy, how well the matches are landing">
+      crumb="Match accuracy">
       <ConsoleTabs active="/console/signals" items={[
         { href: '/console/reports', label: 'Reports' },
         { href: '/console/signals', label: 'Match accuracy' },
@@ -54,21 +56,16 @@ export default async function Signals() {
         <div className="card stat"><div className="eyebrow">Decisions recorded</div>
           <div className="score">{decisions.length}</div></div>
         <div className="card stat"><div className="eyebrow">Approved</div>
-          <div className="score">{rate === null ? '·' : `${rate}%`}</div></div>
+          <div className="score">{rate === null ? DASH : `${rate}%`}</div></div>
         <div className="card stat"><div className="eyebrow">Interviews scored</div>
           <div className="score">{rated.length}</div></div>
         <div className="card stat"><div className="eyebrow">Average interview</div>
-          <div className="score">{avg ?? '·'}{avg && <span className="of">/5</span>}</div></div>
+          <div className="score">{avg ?? DASH}{avg && <span className="of">/5</span>}</div></div>
       </div>
-
-      {decisions.length < 8 && (
-        <div className="card">
-        </div>
-      )}
 
       <div className="card">
         <div className="card-head"><h3>Why executives pass</h3>
-          <span className="pill">{passed.length}</span></div>
+          {passed.length > 0 && <span className="pill">{passed.length} on file</span>}</div>
         {ranked.length === 0 ? (
           <div className="empty"><span className="tick" />
             <p className="small">Nobody has passed on a candidate yet, or nobody has told you why.</p></div>
@@ -104,13 +101,13 @@ export default async function Signals() {
             <tbody>
               {decisions.slice(0, 25).map(d => (
                 <tr key={d.id}>
-                  <td><b>{d.client?.full_name ?? '·'}</b>
+                  <td><b>{d.client?.full_name ?? DASH}</b>
                     {d.client?.org_name && <div className="small muted">{d.client.org_name}</div>}</td>
-                  <td>{d.talent?.full_name ?? '·'}</td>
+                  <td>{d.talent?.full_name ?? DASH}</td>
                   <td><span className={`pill ${d.state === 'shortlisted' || d.state === 'hired' ? 'good' : ''}`}>
                     {d.state === 'shortlisted' ? 'Approved' : d.state === 'passed' ? 'Declined'
                       : d.state === 'interviewing' ? 'Interviewing' : 'Hired'}</span></td>
-                  <td className="small muted">{d.reason ?? '·'}{d.note ? ` · ${d.note}` : ''}</td>
+                  <td className="small muted">{d.reason ?? DASH}{d.note ? ` · ${d.note}` : ''}</td>
                   <td className="small muted">{day(d.decided_at)}</td>
                 </tr>
               ))}
@@ -121,7 +118,7 @@ export default async function Signals() {
 
       <div className="card">
         <div className="card-head"><h3>Interview feedback</h3>
-          <span className={`pill ${noes ? 'warn' : ''}`}>{noes} said no</span></div>
+          {noes > 0 && <span className="pill warn">{noes} said no</span>}</div>
         {feedback.length === 0 ? (
           <div className="empty"><span className="tick" />
             <p className="small">No interview has been scored yet. Both sides are asked once the time has passed.</p></div>
@@ -130,7 +127,7 @@ export default async function Signals() {
             <div className="row between" style={{ marginBottom: 6 }}>
               <b>{f.side === 'client' ? 'Executive' : 'Talent'} · {f.interview?.stage ?? 'Interview'}</b>
               <span className="xs muted">
-                {f.rating ?? '·'}/5 · would proceed: {f.proceed ?? '·'} · {day(f.created_at)}
+                {f.rating ?? DASH}/5 · would proceed: {f.proceed ?? DASH} · {day(f.created_at)}
               </span>
             </div>
             {f.strengths && <p className="small"><span className="muted">Stood out: </span>{f.strengths}</p>}

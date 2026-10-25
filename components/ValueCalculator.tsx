@@ -30,7 +30,7 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
   const who = starter ? 'Part-time' : 'Full-time';
   const fullOngoing = CA_EA_SALARY * fraction * (1 + BENEFITS_LOAD);
   const fullFirstYear = fullOngoing + CA_EA_SALARY * fraction * RECRUITING_FEE;
-  const releveFigure = hasRetainer ? fmt(releveYear) : 'Under $55,000';
+  const releveFigure = hasRetainer ? fmt(releveYear) : '$55,000';
   const over = hasRetainer ? '' : 'over ';
   const ongoingSave = fullOngoing - releveYear;     // ~75,000
   const firstYearSave = fullFirstYear - releveYear; // ~95,000
@@ -54,7 +54,7 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
           </div>
           <div className="money-stat" style={{ boxShadow: 'inset 3px 0 0 var(--fern)' }}>
             <div className="n" style={{ color: 'var(--fern)' }}>{releveFigure}</div>
-            <div className="k">Relève · per year</div>
+            <div className="k">{hasRetainer ? 'Relève · per year' : 'Relève · under, per year'}</div>
           </div>
         </div>
 

@@ -77,7 +77,7 @@ export default function SignIn({ initialError }: { initialError?: string }) {
             </>
           ) : (
             <>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>Accounts Center</div>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Relève Executive Staffing</div>
               <h2 style={{ fontSize: 24, marginBottom: 10 }}>Sign in</h2>
               <p className="note" style={{ marginBottom: 24 }}>
                 {live ? 'Enter the email address your account is under. We will send you a link.'

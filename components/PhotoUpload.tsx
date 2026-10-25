@@ -63,8 +63,9 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
 
   async function remove() {
     setBusy(true); setErr(null);
-    await saving(() => fetch('/api/photo', { method: 'DELETE' }), 'Photo removed');
-    setPreview(null); setBusy(false); router.refresh();
+    const ok = await saving(() => fetch('/api/photo', { method: 'DELETE' }), 'Photo removed');
+    setBusy(false);
+    if (ok) { setPreview(null); router.refresh(); }
   }
 
   return (

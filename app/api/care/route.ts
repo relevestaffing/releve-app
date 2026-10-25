@@ -79,24 +79,36 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true });
 
       /* ---- feedback ---- */
-      case 'feedback_save':
+      case 'feedback_save': {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
         if (!String(b.strengths ?? '').trim())
           return NextResponse.json({ error: 'Say what they’re doing well first.' }, { status: 400 });
-        await saveFeedback(b);
-        return NextResponse.json({ ok: true });
+        const fb = await saveFeedback(b);
+        /* "Save and share" used to make the review visible and tell nobody;
+           only the separate Share switch emailed. Same letter, same moment:
+           the first time this review becomes visible. */
+        let emailed = false;
+        if (fb?.newlyShared) {
+          try {
+            const who = await personEmail(fb.talent_id);
+            if (who?.email) emailed = await send(who.email, templates.feedbackShared({ name: who.name, period: fb.period }));
+          } catch { /* it is shared either way */ }
+        }
+        return NextResponse.json({ ok: true, shared: Boolean(fb?.shared), emailed });
+      }
 
       case 'feedback_share': {
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
         const fb = await shareFeedback(String(b.id), !!b.shared);
-        /* Shared deliberately — and told deliberately. */
+        /* Shared deliberately, and told deliberately. */
+        let emailed = false;
         if (fb?.shared) {
           try {
             const who = await personEmail(fb.talent_id);
-            if (who?.email) await send(who.email, templates.feedbackShared({ name: who.name, period: fb.period }));
+            if (who?.email) emailed = await send(who.email, templates.feedbackShared({ name: who.name, period: fb.period }));
           } catch { /* it is shared either way */ }
         }
-        return NextResponse.json({ ok: true });
+        return NextResponse.json({ ok: true, emailed });
       }
 
       case 'feedback_seen': {

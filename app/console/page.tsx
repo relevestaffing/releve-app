@@ -4,7 +4,9 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { consoleSnapshot } from '@/lib/console';
 import { money } from '@/lib/money-public';
 import Shell from '@/components/Shell';
-import { firstName } from '@/lib/words';
+import { firstName, DASH } from '@/lib/words';
+
+export const metadata = { title: 'Overview' };
 
 /* Line icons at a single 1.25px stroke, matching MobileNav/QuickBar's. Kept
    local rather than pulled into QuickBar's icon set — that one is the
@@ -28,7 +30,7 @@ export const dynamic = 'force-dynamic';
 const day = (iso: string | null) => iso
   ? new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US',
       { day: 'numeric', month: 'short', timeZone: 'UTC' })
-  : '–';
+  : DASH;
 
 const HEALTH: Record<string, { label: string; tone: string }> = {
   good:  { label: 'On track', tone: 'good' },
@@ -47,7 +49,10 @@ export default async function Console({ searchParams }: { searchParams: Promise<
 
   const { attention, vitals, placements } = await consoleSnapshot({ mine: mine ? profile.id : null });
   const first = firstName(profile.full_name, '');
-  const hour = new Date().getHours();
+  /* The server runs on UTC, which said "Good morning" to Sage at eight in
+     the evening. The business keeps Los Angeles time; so does this page. */
+  const ZONE = 'America/Los_Angeles';
+  const hour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: ZONE }).format(new Date())) % 24;
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const urgent = attention.filter(a => a.level === 'high');
 
@@ -55,7 +60,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
     <Shell profile={{ ...profile, role: 'admin' }} active="/console"
       title={first ? `${greeting}, ${first}` : greeting}
       crumb={new Date().toLocaleDateString('en-US',
-        { weekday: 'long', day: 'numeric', month: 'long' })}>
+        { weekday: 'long', day: 'numeric', month: 'long', timeZone: ZONE })}>
 
       {/* ---------- the five things this console exists to make easy ----------
          Every manager's first question is "where do I go to do the thing",
@@ -77,7 +82,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
         </Link>
         <Link className="qa-tile" href="/console/people">
           <QaIcon k="send" />
-          <div><div className="qa-t">Send client onboarding</div>
+          <div><div className="qa-t">Send executive onboarding</div>
             <div className="qa-s">Discovery call done: open their search and email the deposit link.</div></div>
         </Link>
         <Link className="qa-tile" href="/console/bench">

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
 import { toast } from './Toast';
+import { fmtDate } from '@/lib/words';
 
 const TONE: Record<string, string> = {
   verified: 'good', rejected: 'crit', expired: 'warn', submitted: '', not_started: ''
@@ -98,13 +99,12 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
                 {item.why && <p className="xs muted" style={{ margin: '6px 0 0' }}>{item.why}</p>}
                 {state === 'rejected' && row?.reject_reason && (
                   <p className="small" style={{ color: '#7A2E26', marginTop: 10 }}>
-                    <b>Needs another go:</b> {row.reject_reason}
+                    <b>Needs another try:</b> {row.reject_reason}
                   </p>
                 )}
                 {state === 'verified' && row?.expires_on && (
                   <p className="xs muted" style={{ marginTop: 8 }}>
-                    Valid until {new Date(row.expires_on + 'T00:00:00')
-                      .toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    Valid until {fmtDate(row.expires_on)}
                   </p>
                 )}
               </div>
@@ -161,8 +161,8 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
                     : state === 'submitted' ? 'Replace document' : 'Choose a file'}
                 </button>
                 {item.expires && (
-                  <label className="vet-exp">
-                    <span className="xs muted">Expiry date (on the document you're uploading)</span>
+                  <label className="ff vet-exp">
+                    <span className="xs muted">Expiry date on the document</span>
                     <input id={`exp-${item.kind}`} type="date" />
                   </label>
                 )}

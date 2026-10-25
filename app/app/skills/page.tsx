@@ -6,6 +6,8 @@ import NextStep from '@/components/NextStep';
 import { setupFor } from '@/lib/setup';
 import SkillsForm from '@/components/SkillsForm';
 
+export const metadata = { title: 'Your skills' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function SkillsPage() {

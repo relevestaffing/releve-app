@@ -167,7 +167,20 @@ export type CondSet = { overlap: string; volume: string; discretion: string; mix
 /* Saved answers carry the wording the person chose, which is the public
    wording (COND_PUBLIC) for every Signature taken in the app. Match either
    list: the two run in the same order. */
-const ordIdx = (k: string, v: string) => {
+/* The option wording used to carry an em dash and an ampersand; answers
+   saved under that wording still resolve to the same rung. */
+const LEGACY_ORD: Record<string, string> = {
+  'Light — under 10 requests/week': 'Light: under 10 requests a week',
+  'Steady — 10 to 25': 'Steady: 10 to 25',
+  'Heavy — 25+': 'Heavy: 25+',
+  'High — financial & legal': 'High: financial and legal',
+  'Maximum — personal & deal-sensitive': 'Maximum: personal and deal-sensitive',
+  'Light — a few things a week': 'Light: a few things a week',
+  'Steady — something most days': 'Steady: something most days',
+  'Heavy — a constant stream': 'Heavy: a constant stream'
+};
+const ordIdx = (k: string, raw: string) => {
+  const v = LEGACY_ORD[raw] ?? raw;
   const i = COND.find(c => c.key === k)!.ord.indexOf(v);
   if (i >= 0) return i;
   return COND_PUBLIC.find(c => c.key === k)?.ord.indexOf(v) ?? -1;

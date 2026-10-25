@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
 
   /* ---- the person's own details ---- */
   if (!b.action || b.action === 'save') {

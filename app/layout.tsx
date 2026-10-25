@@ -4,12 +4,14 @@ import Toaster from '@/components/Toast';
 import SWRegister from '@/components/SWRegister';
 
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
-const TITLE = 'Relève · Accounts Center';
+const TITLE = 'Relève';
 const DESCRIPTION = 'The Relève Signature, talent matching, and placement management.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: TITLE,
+  /* Each page names itself ("Billing · Relève"); the bare name is the
+     fallback for anything that does not. */
+  title: { default: TITLE, template: '%s · Relève' },
   description: DESCRIPTION,
   openGraph: {
     type: 'website', siteName: 'Relève', title: TITLE, description: DESCRIPTION, url: '/',

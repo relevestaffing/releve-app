@@ -10,6 +10,8 @@ import RolePicker from '@/components/RolePicker';
 import TeamMemberRemove from '@/components/TeamMemberRemove';
 import AddAdmin from '@/components/AddAdmin';
 
+export const metadata = { title: 'Team' };
+
 export const dynamic = 'force-dynamic';
 
 const when = (iso: string) => new Date(iso).toLocaleString('en-US', {

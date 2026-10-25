@@ -6,6 +6,8 @@ import Shell from '@/components/Shell';
 import DirectoryTabs from '@/components/DirectoryTabs';
 import { AddProspect, ProspectRow } from '@/components/ProspectDesk';
 
+export const metadata = { title: 'Prospects' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Prospects() {
@@ -25,7 +27,7 @@ export default async function Prospects() {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory"
-      crumb={decided ? `Prospects · ${Math.round(100 * won / decided)}% of calls become clients` : 'Prospects'}>
+      crumb="Prospects">
       <DirectoryTabs active="prospects" />
       <AddProspect calendarOn={calendarConfigured()} />
 

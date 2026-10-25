@@ -1,23 +1,10 @@
 'use client';
-import { zoneLabel } from '@/lib/words';
+import { zoneLabel, ZONES } from '@/lib/words';
 import { useEffect, useState, useId } from 'react';
 import { WEEKDAYS, minutesToLabel, type Window } from '@/lib/scheduling';
 import { saving } from './Toast';
 
 const HOURS = Array.from({ length: 15 }, (_, i) => (i + 6) * 60);   // 6am – 8pm
-
-/* Every interview time either side ever sees is computed from this, and it
-   used to be read once from the browser and shown as a read-only label. A
-   phone on the wrong setting, or a VPN, and there was no way to fix it. */
-const ZONES = [
-  'America/Los_Angeles', 'America/Denver', 'America/Chicago', 'America/New_York',
-  'America/Phoenix', 'America/Anchorage', 'Pacific/Honolulu',
-  'Europe/London', 'Europe/Dublin', 'Europe/Lisbon', 'Europe/Madrid', 'Europe/Paris',
-  'Europe/Berlin', 'Europe/Athens', 'Africa/Nairobi', 'Asia/Dubai', 'Asia/Karachi',
-  'Asia/Kolkata', 'Asia/Dhaka', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Manila',
-  'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Tokyo', 'Australia/Perth',
-  'Australia/Sydney', 'Pacific/Auckland', 'UTC'
-];
 
 export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }) {
   const fid = useId();
@@ -112,6 +99,8 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
         ))}
       </div>
       </div>
+      {/* Fifteen hours do not fit a phone; the grid scrolls, and this says so. */}
+      <p className="xs muted avail-cue" aria-hidden="true">Scroll sideways for later hours</p>
       {/* Forty individual taps for a normal working week was the whole job. */}
       <div className="row" style={{ marginTop: 18, gap: 8, flexWrap: 'wrap' }}>
         <button className="btn sm ghost" onClick={() => { setWindows(

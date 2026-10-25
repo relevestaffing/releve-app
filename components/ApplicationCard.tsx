@@ -20,7 +20,29 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
   const [booking, setBooking] = useState(false);
   const [result, setResult] = useState(false);
   const [more, setMore] = useState(false);
+  /* Inviting someone creates their talent record and emails them, so it
+     arms a confirm in the card first. */
+  const [inviting, setInviting] = useState(false);
   const first = firstName(app.full_name, 'them');
+
+  async function invite() {
+    setBusy(true);
+    try {
+      const r = await fetch('/api/admin/applications', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: app.id, action: 'invite' })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast.bad(d.error ? `Not invited. ${d.error}` : 'That did not go through. Please try again.'); setBusy(false); return; }
+      if (d.emailed) toast.saved(`${first} is in. They have the invitation`);
+      else toast.bad(`${first} is in, but the invitation email did not send. Send them the link by hand.`);
+      setBusy(false); setInviting(false);
+      router.refresh();
+    } catch {
+      toast.bad('No connection, so nothing was changed.');
+      setBusy(false);
+    }
+  }
   const callWhen = app.call_at
     ? new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short',
         hour: 'numeric', minute: '2-digit' }).format(new Date(app.call_at))
@@ -186,10 +208,19 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
               </button>
             )}
             {app.state !== 'invited' && app.call_state === 'held' && (
-              <button className="btn sm solid" disabled={busy}
-                onClick={() => act({ action: 'invite' }, `${first} is in. They have the invitation`)}>
-                Bring {first} into the platform
-              </button>
+              inviting ? (
+                <>
+                  <span className="xs muted">Email the invitation to {first} at {app.email}? Their talent record is created now.</span>
+                  <button className="btn sm solid" disabled={busy} onClick={invite}>
+                    {busy ? 'Sending…' : 'Yes, send the invitation'}
+                  </button>
+                  <button className="btn sm ghost" disabled={busy} onClick={() => setInviting(false)}>Not yet</button>
+                </>
+              ) : (
+                <button className="btn sm solid" disabled={busy} onClick={() => setInviting(true)}>
+                  Bring {first} into the platform
+                </button>
+              )
             )}
             {app.state === 'new' && (
               <button className="btn sm ghost" disabled={busy}

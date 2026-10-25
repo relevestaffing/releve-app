@@ -6,6 +6,8 @@ import Shell from '@/components/Shell';
 import Link from 'next/link';
 import { fmtDate } from '@/lib/words';
 
+export const metadata = { title: 'Taking The Watch' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function ConsoleWatch() {
@@ -16,7 +18,8 @@ export default async function ConsoleWatch() {
 
   return (
     <Shell profile={profile} active="/console/directory" title="Taking The Watch"
-      crumb="Submitted, waiting on a decision">
+      crumb="To review"
+      action={<Link className="btn sm ghost" href="/console/directory">← Directory</Link>}>
       {queue.length === 0 ? (
         <div className="card"><div className="empty"><span className="tick" />
           <p className="small">Nothing waiting on review.</p></div></div>

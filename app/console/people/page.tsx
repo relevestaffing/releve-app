@@ -18,6 +18,8 @@ import OnboardingStatus from '@/components/OnboardingStatus';
 import { docusignClientReady, manualSendUrl } from '@/lib/docusign';
 import { getClientAgreements } from '@/lib/agreement';
 
+export const metadata = { title: 'Executives' };
+
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
 
@@ -58,7 +60,6 @@ export default async function People({ searchParams }: { searchParams: Promise<{
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Executives">
       <DirectoryTabs active="executives" />
-      <OnboardingSender prefill={prefill} />
 
       <div className="card">
         <div className="card-head"><h3>Executive accounts</h3>
@@ -66,14 +67,15 @@ export default async function People({ searchParams }: { searchParams: Promise<{
             {clients.length > 5 &&
               <TableSearch scope="exec-list" rows=".client-row" placeholder="Search executives…" />}
             {missing > 0 && <span className="pill warn"><span className="dot" />{missing} without a brief</span>}
-            <span className="pill">{clients.length} on file</span>
+            {clients.length > 0 && <span className="pill">{clients.length} on file</span>}
+            <OnboardingSender prefill={prefill} />
           </div></div>
 
         {rows.length === 0 && (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
             <h3>No executives yet</h3>
-            <p className="small">Send the onboarding email above after a discovery call.</p>
+            <p className="small">After a discovery call, send the onboarding email from the top of this card.</p>
           </div>
         )}
 

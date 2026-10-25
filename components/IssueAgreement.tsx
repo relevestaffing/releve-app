@@ -69,7 +69,7 @@ export default function IssueAgreement({ talent, docusignOn, pendingCountersign,
           : <>You send the contractor agreement and NDA yourself, they sign it, and you file the signed copy here.
               It appears in their account to read; they cannot upload or change it.</>}
       </p>
-      <div className="grid-2" style={{ gap: 14, alignItems: 'end' }}>
+      <div className="grid-2" style={{ gap: 14, alignItems: 'start' }}>
         <div className="ff" style={{ marginBottom: 0 }}><label htmlFor={`${fid}-1`}>Whose agreement</label>
           <select id={`${fid}-1`} value={who} onChange={e => setWho(e.target.value)}>
             <option value="">Choose a candidate…</option>
@@ -84,19 +84,19 @@ export default function IssueAgreement({ talent, docusignOn, pendingCountersign,
       </div>
       <div className="row" style={{ marginTop: 16, flexWrap: 'wrap', gap: 12 }}>
         {docusignOn && (
-          <button className="btn solid" disabled={busy || !who} onClick={sendViaDocuSign}>
+          <button className="btn sm solid" disabled={busy || !who} onClick={sendViaDocuSign}>
             {busy ? 'Sending…' : 'Send via DocuSign'}
           </button>
         )}
         {!docusignOn && manualSendUrl && (
-          <a className="btn solid" href={manualSendUrl} target="_blank" rel="noopener noreferrer">
+          <a className="btn sm solid" href={manualSendUrl} target="_blank" rel="noopener noreferrer">
             Open DocuSign to send it →
           </a>
         )}
         <div>
           <input aria-label="Agreement file" ref={input} type="file" accept="application/pdf,image/*" hidden
             onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
-          <button className={!docusignOn && manualSendUrl ? 'btn sm ghost' : docusignOn ? 'btn sm ghost' : 'btn solid'}
+          <button className={!docusignOn && manualSendUrl ? 'btn sm ghost' : docusignOn ? 'btn sm ghost' : 'btn sm solid'}
             disabled={busy || !who || (!docusignOn && !signed)} onClick={() => input.current?.click()}>
             {busy ? 'Filing…' : docusignOn ? 'Or upload a signed copy you already have'
               : manualSendUrl ? 'Then upload the signed copy' : 'Upload the signed copy'}

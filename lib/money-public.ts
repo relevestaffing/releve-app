@@ -22,7 +22,7 @@ export type PlanKey = 'essential' | 'specialist' | 'part_time' | 'part_time_full
 export const PLANS: Record<PlanKey, {
   label: string; monthlyCents: number; months: number; hoursPerWeek: number | null; blurb: string;
 }> = {
-  essential:  { label: 'Essential',  monthlyCents: 250_000, months: 6, hoursPerWeek: null, blurb: 'Unlimited hours, non-specialized VA' },
+  essential:  { label: 'Essential',  monthlyCents: 250_000, months: 6, hoursPerWeek: null, blurb: 'Unlimited hours, dedicated, non-specialized talent' },
   specialist: { label: 'Specialist', monthlyCents: 450_000, months: 6, hoursPerWeek: null, blurb: 'Unlimited hours, specialized expert role' },
   part_time:  { label: 'Starter',  monthlyCents: 95_000,  months: 3, hoursPerWeek: 15,   blurb: '$950 a month, up to 15 hours a week' },
   part_time_full: { label: 'Starter, paid in full', monthlyCents: 83_333, months: 3, hoursPerWeek: 15, blurb: '$2,500 paid in full for three months, up to 15 hours a week' }

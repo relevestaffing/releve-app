@@ -11,7 +11,9 @@ import { listDecisions } from '@/lib/work';
 import RoleFit from '@/components/RoleFit';
 import { getRoleBreakdown, skillsFor } from '@/lib/roles';
 import { listMatches } from '@/lib/store';
-import { firstName, zoneLabel } from '@/lib/words';
+import { firstName, zoneLabel, EMPTY, WORDS } from '@/lib/words';
+
+export const metadata = { title: 'Your candidate' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -55,30 +57,26 @@ export default async function Pipeline() {
 
   return (
     <Shell profile={profile} active="/app/pipeline" title="Your candidate" crumb="One person, matched to you">
-      <div style={{ maxWidth: 620 }}>
-        <Explain>
-          We do not hand you a stack to sort through. Relève interviews widely, narrows
-          the field itself, and puts forward one professional, matched to the role,
-          matched to how you work, and briefed on your business before you meet.
-          Approve them, or decline and we bring the next.
-        </Explain>
-      </div>
-
+      {/* The page-level explanation lives inside whichever card opens the
+         page: on its own it was the first child of the body, which on a
+         desktop lands on the fern hero, unreadable. */}
       {!current && (
         <div className="card">
-          <div className="card-head"><h3>{declined.length ? 'We are finding the next one' : 'Your candidate is being chosen'}</h3></div>
+          <div className="card-head"><h3>{declined.length ? 'We are finding the next one' : EMPTY.shortlist.title}</h3></div>
           <p className="small" style={{ marginBottom: 16 }}>
             {declined.length
               ? 'Thank you for telling us why the last one was not right. That is exactly how the next match gets sharper. Your Client Success Manager is already on it.'
-              : 'Nobody has been put forward yet, and that is deliberate. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time.'}
+              : EMPTY.shortlist.body}
           </p>
           <div style={{ marginBottom: 18 }}>
             <Explain>
-              Our promise is a qualified candidate within fourteen days of your search
-              opening. You will have an email the moment there is someone to see.
+              Relève interviews widely, narrows the field itself, and puts forward one
+              professional, matched to the role, matched to how you work, and briefed on
+              your business before you meet. You will have an email the moment there is
+              someone to see.
             </Explain>
           </div>
-          <a className="btn sm ghost" href="/app/messages">Ask your manager where things stand</a>
+          <a className="btn sm ghost" href={EMPTY.shortlist.cta!.href}>{EMPTY.shortlist.cta!.label}</a>
         </div>
       )}
 
@@ -108,10 +106,19 @@ export default async function Pipeline() {
                   </div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
+              <div className="fit-score">
                 <div className="score">{match.overall}<sup>%</sup></div>
                 <div className="xs muted">{match.band.k} fit</div>
               </div>
+            </div>
+
+            <div style={{ marginTop: 14 }}>
+              <Explain>
+                We do not hand you a stack to sort through. Relève interviews widely, narrows
+                the field itself, and puts forward one professional, matched to the role,
+                matched to how you work, and briefed on your business before you meet.
+                Approve them, or decline and we bring the next.
+              </Explain>
             </div>
 
             {person.intro_video_url && (
@@ -133,7 +140,7 @@ export default async function Pipeline() {
             )}
 
             <div className="rationale">
-              <div className="eyebrow">The Signature Match</div>
+              <div className="eyebrow">The Signature match</div>
               <p className="verdict">{fitSentence(match, first)}</p>
 
               {why.strong.length > 0 && (
@@ -165,7 +172,7 @@ export default async function Pipeline() {
             <RoleFit role={role} skills={skills[person.id] ?? null} name={person.name} />
 
             <details className="more">
-              <summary>See the full assessment</summary>
+              <summary>{WORDS.moreDetail}</summary>
               <div className="inner">
                 <div className="grid-2" style={{ marginBottom: 22 }}>
                   <div>

@@ -22,10 +22,15 @@ export default function InterviewStatus({ id, status, mode }: {
   const [value, setValue] = useState(status);
   const [saving, setSaving] = useState(false);
   const [asking, setAsking] = useState(false);
+  /* In the console, the three final states end the Zoom meeting, and
+     Cancelled emails both sides. A dropdown pick should not do that on its
+     own, so those three arm a confirm beneath the select first. */
+  const [pending, setPending] = useState<string | null>(null);
+  const TERMINAL = ['Cancelled', 'Declined', 'No-show'];
 
   async function set(next: string, word: string) {
     const prev = value;
-    setValue(next); setSaving(true);
+    setValue(next); setSaving(true); setPending(null);
     const ok = await save(() => fetch('/api/interviews', {
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id, status: next }) }), word);
@@ -38,11 +43,32 @@ export default function InterviewStatus({ id, status, mode }: {
   if (mode === 'read') return pill;
 
   if (mode === 'admin') return (
-    <select aria-label="Interview status" value={value} disabled={saving} className={`pill ${cls(value)}`}
-      style={{ padding: '5px 10px', cursor: 'pointer' }}
-      onChange={e => set(e.target.value, `Interview marked ${e.target.value}`)}>
-      {OPTIONS.map(o => <option key={o}>{o}</option>)}
-    </select>
+    <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <select aria-label="Interview status" value={value} disabled={saving} className={`pill ${cls(value)}`}
+        style={{ padding: '5px 10px', cursor: 'pointer' }}
+        onChange={e => {
+          const next = e.target.value;
+          if (next === value) return;
+          if (TERMINAL.includes(next) && !TERMINAL.includes(value)) { setPending(next); e.target.value = value; return; }
+          set(next, `Interview marked ${next}`);
+        }}>
+        {OPTIONS.map(o => <option key={o}>{o}</option>)}
+      </select>
+      {pending && (
+        <>
+          <span className="xs muted">
+            {pending === 'Cancelled'
+              ? 'Mark it cancelled? The Zoom meeting is ended and both sides are emailed.'
+              : `Mark it ${pending.toLowerCase()}? The Zoom meeting is ended. Nobody is emailed.`}
+          </span>
+          <button className="btn sm solid" disabled={saving}
+            onClick={() => set(pending, `Interview marked ${pending}`)}>
+            {saving ? 'Saving…' : `Yes, mark it ${pending.toLowerCase()}`}
+          </button>
+          <button className="btn sm ghost" disabled={saving} onClick={() => setPending(null)}>Keep it</button>
+        </>
+      )}
+    </div>
   );
 
   /* Settled one way or the other — nothing left for either side to press. */
@@ -71,7 +97,7 @@ export default function InterviewStatus({ id, status, mode }: {
         ? pill
         : <button className="btn sm solid" disabled={saving}
             onClick={() => set('Confirmed', 'Confirmed. It is in the diary')}>
-            {saving ? 'Saving…' : 'Confirm I will be there'}
+            {saving ? 'Saving…' : 'Confirm you will be there'}
           </button>}
       <button className="btn sm ghost" disabled={saving} onClick={() => setAsking(true)}>
         I need to move it

@@ -234,7 +234,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'talk_to_customers', kind: 'choice',
         ask: 'Will they speak to prospects directly?',
         askTalent: 'How much direct selling have you done?',
-        options: ['Never — behind the scenes only', 'Email and chat only', 'Calls too', 'They run the call'] },
+        options: ['Never, behind the scenes only', 'Email and chat only', 'Calls too', 'They run the call'] },
       { key: 'deal_size', kind: 'choice',
         ask: 'Typical deal size?',
         askTalent: 'What deal sizes have you worked?',

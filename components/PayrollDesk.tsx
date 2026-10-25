@@ -68,10 +68,26 @@ export function SendAllPay({ ids, providers }: { ids: string[]; providers: { pay
   const [busy, setBusy] = useState(false);
   const [armed, setArmed] = useState(false);
   if (!providers.paypal && !providers.wise) return null;
+  /* Asks PayPal and Wise where recent payments stand. The route says how
+     many it looked up; that number is the only proof the click did anything. */
   async function refresh() {
     setBusy(true);
-    await fetch('/api/payout/send', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'refresh' }) }).catch(() => null);
-    setBusy(false); router.refresh();
+    try {
+      const r = await fetch('/api/payout/send', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'refresh' })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) toast.bad(d.error ? `Not checked. ${d.error}` : 'The payment status check did not run. Please try again.');
+      else {
+        const n = Number(d.checked ?? 0);
+        toast.saved(n === 0 ? 'Checked. No recent payments to look up' : `Checked ${n} payment${n === 1 ? '' : 's'}`);
+        router.refresh();
+      }
+    } catch {
+      toast.bad('No connection, so nothing was checked.');
+    }
+    setBusy(false);
   }
   return (
     <span className="rate-set">
@@ -80,7 +96,7 @@ export function SendAllPay({ ids, providers }: { ids: string[]; providers: { pay
               {busy ? 'Sending…' : `Yes, pay ${ids.length} now`}</button>
             <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button></>
         : <button className="btn sm solid" onClick={() => setArmed(true)}>Pay everyone due ({ids.length})</button>)}
-      <button className="btn sm ghost" disabled={busy} onClick={refresh}>Check payment status</button>
+      <button className="btn sm ghost" disabled={busy} onClick={refresh}>{busy && !armed ? 'Checking…' : 'Check payment status'}</button>
     </span>
   );
 }

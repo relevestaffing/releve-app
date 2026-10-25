@@ -3,6 +3,8 @@ import { invoiceLinkSummary } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { money } from '@/lib/money-public';
 
+export const metadata = { title: 'Pay invoice' };
+
 export const dynamic = 'force-dynamic';
 
 /* Where the invoice email's pay button lands. The same shape as the deposit
@@ -57,7 +59,7 @@ export default async function PayInvoicePage({ params, searchParams }: {
           {message && <p className="note" style={{ marginBottom: 16 }}>{message}</p>}
           {canPay ? (
             <form method="post" action={`/pay-invoice/${encodeURIComponent(token)}/go`}>
-              <button className="btn solid" type="submit">Continue to secure payment</button>
+              <button className="btn solid" type="submit">Pay by bank or card</button>
             </form>
           ) : (
             <a className="btn ghost sm" style={{ marginTop: 10, display: 'inline-block' }} href="/app/billing">Open Billing</a>

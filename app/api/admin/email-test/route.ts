@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
   const { to } = await req.json().catch(() => ({ to: null }));
   const target = String(to ?? me.email);
-  const tpl = templates.emailTest(me.full_name?.split(' ')[0] ?? 'there');
+  const tpl = templates.emailTest(me.full_name?.split(' ')[0] || 'Hello');
 
   try {
     const info = await sendOrThrow(target, tpl);

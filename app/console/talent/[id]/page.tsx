@@ -1,3 +1,4 @@
+import { DASH } from '@/lib/words';
 import Link from 'next/link';
 import Files from '@/components/Files';
 import { listDocuments } from '@/lib/documents';
@@ -19,6 +20,8 @@ import Shell from '@/components/Shell';
 import { Radar, AxisBars, Portrait } from '@/components/Viz';
 import PaySetter from '@/components/PaySetter';
 import OnboardingStatus from '@/components/OnboardingStatus';
+
+export const metadata = { title: 'Talent' };
 
 export const dynamic = 'force-dynamic';
 
@@ -89,21 +92,19 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
       title={name}
       crumb={[self.headline, self.location].filter(Boolean).join(' · ') || 'Talent file'}
-      action={<Link className="btn sm ghost" href="/console/bench">← Talent Roster</Link>}>
+      action={<Link className="btn sm ghost" href="/console/bench">← Talent</Link>}>
 
-      <div className="card dark">
+      {/* The hero already carries the name and the headline; this card is the
+         status line under it, not a second hero. */}
+      <div className="card">
         <div className="row" style={{ gap: 18, flexWrap: 'wrap' }}>
           <Portrait id={id} name={name} cls="lg" url={self.photo_url} />
           <div style={{ flex: 1, minWidth: 220 }}>
-            <h2 style={{ fontSize: 24, color: 'var(--cream)', marginBottom: 6 }}>{name}</h2>
-            <p style={{ fontFamily: 'Marcellus,serif', fontSize: 16, color: 'var(--pale)' }}>
-              {[self.headline, self.location, self.timezone?.replace('_', ' ')].filter(Boolean).join(' · ')}
-            </p>
-            <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+            <div className="row pills" style={{ gap: '8px 18px', flexWrap: 'wrap' }}>
               <span className={`pill ${verified ? 'good' : 'warn'}`}><span className="dot" />{verified ? 'Verified' : 'Not verified'}</span>
               {type && <span className="pill">{type.n}</span>}
               {sig && <span className={`pill ${sig.validity?.verdict === 'Valid' ? 'good' : sig.validity?.verdict === 'Review' ? 'warn' : 'crit'}`}>
-                Signature {sig.validity?.verdict ?? '·'}</span>}
+                Signature {sig.validity?.verdict ?? DASH}</span>}
               {disciplines.length > 0 && (
                 <span className={`pill ${watch.every(w => w.cleared) && watch.length === disciplines.length ? 'good' : 'warn'}`}>
                   Watch {watch.filter(w => w.cleared).length}/{disciplines.length} cleared
@@ -118,7 +119,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
-        {self.bio && <p className="small" style={{ maxWidth: 640, marginTop: 18 }}>{self.bio}</p>}
+        {self.bio && <p className="small" style={{ marginTop: 18 }}>{self.bio}</p>}
         <div className="row" style={{ gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
           <span className="xs muted">{self.intro_video_url ? 'Intro video on file' : 'No intro video yet'}</span>
           <span className="xs muted">·</span>
@@ -129,7 +130,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
       <OnboardingStatus steps={onboarding} />
 
       <div className="grid-2">
-        <div className="card">
+        <div className="card" style={{ alignSelf: 'start' }}>
           <div className="card-head"><h3>The Signature</h3>{type && <span className="pill">{type.n}</span>}</div>
           {!sig ? (
             <div className="empty"><span className="tick" /><p className="small">Not taken yet. Nothing can be matched until it is.</p></div>
@@ -158,7 +159,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
               <dt>Identity</dt><dd><span className={`pill ${stateTone(identity)}`}>{stateWord(identity)}</span></dd>
               <dt>Agreement</dt><dd><span className={`pill ${stateTone(agreement)}`}>{stateWord(agreement)}</span>
                 {(agreement as any)?.signed_on && <span className="xs muted" style={{ marginLeft: 8 }}>signed {dayLabel((agreement as any).signed_on)}</span>}</dd>
-              <dt>Stage</dt><dd>{(self as any).stage ?? '·'}</dd>
+              <dt>Stage</dt><dd>{(self as any).stage ?? DASH}</dd>
             </dl>
           </div>
 
@@ -239,7 +240,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-head"><h3>Placements</h3><span className="pill">{placements.length}</span></div>
+          <div className="card-head"><h3>Placements</h3>{placements.length > 0 && <span className="pill">{placements.length} on file</span>}</div>
           {!placements.length ? <p className="small muted">Never placed yet.</p> : (
             <ul className="past-list">
               {placements.map(p => (
@@ -252,7 +253,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           )}
         </div>
         <div className="card">
-          <div className="card-head"><h3>Put forward</h3><span className="pill">{decisions.length}</span></div>
+          <div className="card-head"><h3>Put forward</h3>{decisions.length > 0 && <span className="pill">{decisions.length} on file</span>}</div>
           {!decisions.length ? <p className="small muted">Not yet sent to any executive.</p> : (
             <ul className="past-list">
               {decisions.map(d => (

@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   if (me.role !== 'admin') return NextResponse.json({ error: 'not allowed' }, { status: 403 });
 
-  const { client_key, pending, action, reason, ...patch } = await req.json();
+  const { client_key, pending, action, reason, ...patch } = await req.json().catch(() => ({}));
   if (!client_key) return NextResponse.json({ error: 'no client' }, { status: 400 });
 
   /* Opening and closing is separate from editing the brief, because it

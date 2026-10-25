@@ -1,7 +1,8 @@
+import { DASH } from '@/lib/words';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { currentProfile, configured } from '@/lib/supabase/server';
-import { getBench, archetype, dispositionLine } from '@/lib/data';
+import { getBench, archetype } from '@/lib/data';
 import Shell from '@/components/Shell';
 import DirectoryTabs from '@/components/DirectoryTabs';
 import { Portrait } from '@/components/Viz';
@@ -14,6 +15,8 @@ import { money } from '@/lib/money-public';
 import TableSearch from '@/components/TableSearch';
 import PaySetter from '@/components/PaySetter';
 import DeletePerson from '@/components/DeletePerson';
+
+export const metadata = { title: 'Talent' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -43,23 +46,23 @@ export default async function Bench() {
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Talent">
       <DirectoryTabs active="talent" />
-      <TalentOnboardingSender />
 
       <div className="card">
         <div className="card-head"><h3>Every assessed profile</h3>
           <div className="row" style={{ gap: 10 }}>
             {bench.length > 5 && <TableSearch scope="bench-table" placeholder="Search the roster…" />}
-            <span className="pill">{bench.length} on file</span>
+            {bench.length > 0 && <span className="pill">{bench.length} on file</span>}
+            <TalentOnboardingSender />
             <AddPerson /></div></div>
         {!bench.length ? (
           <div className="empty-card" style={{ padding: '34px 24px' }}>
             <div className="empty-mark" aria-hidden="true" />
             <h3>The roster is empty</h3>
-            <p className="small">Add someone above, or let them apply through Careers.</p>
+            <p className="small">Add someone from the top of this card, or let them apply through Careers.</p>
           </div>
         ) : (
         <table className="data" id="bench-table">
-          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Disposition</th><th>Validity</th><th style={{ textAlign: 'right' }}>What Relève pays</th><th>Stage</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Validity</th><th style={{ textAlign: 'right' }}>What Relève pays</th><th>Stage</th><th></th></tr></thead>
           <tbody>
             {bench.map(t => (
               <tr key={t.id}>
@@ -67,7 +70,6 @@ export default async function Bench() {
                   <div><Link href={`/console/talent/${t.id}`}><b>{t.name}</b></Link><div className="small muted">{t.yrs} yrs · {t.loc}</div></div></div></td>
                 <td className="small">{t.role}</td>
                 <td><span className="pill">{archetype(t.scores, 'talent').n}</span></td>
-                <td className="small muted">{dispositionLine(t.scores)}</td>
                 <td><span className={`pill ${t.validity.verdict === 'Valid' ? 'good' : t.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>
                   <span className="dot" />{t.validity.verdict}</span></td>
                 <td className="amount"><PaySetter talentId={t.id} cents={pay[t.id] != null ? pay[t.id]! * 100 : null} compact /></td>
@@ -96,8 +98,8 @@ export default async function Bench() {
                 <td className="num">{t.validity.inconsistency}</td>
                 <td className="small">{t.validity.extreme}%</td>
                 <td className="small">{t.validity.straight}</td>
-                <td className="small">{t.validity.medSec?.toFixed(1) ?? '·'}</td>
-                <td className="small muted">{t.validity.flags.map(f => f.k).join(', ') || '·'}</td>
+                <td className="small">{t.validity.medSec?.toFixed(1) ?? DASH}</td>
+                <td className="small muted">{t.validity.flags.map(f => f.k).join(', ') || DASH}</td>
               </tr>
             ))}
           </tbody>
@@ -109,7 +111,7 @@ export default async function Bench() {
       {unbookable.length > 0 && (
         <div className="card" style={{ borderColor: 'rgba(140,74,63,.45)' }}>
           <div className="card-head"><h3>Assessed but not bookable</h3>
-            <span className="pill crit"><span className="dot" />{unbookable.length}</span></div>
+            <span className="pill crit"><span className="dot" />{unbookable.length} to chase</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
             Complete, but no availability set, so nobody can book them.
           </p>
@@ -120,7 +122,7 @@ export default async function Bench() {
       )}
       {unsigned.length > 0 && (
         <div className="card">
-          <div className="card-head"><h3>Mid-onboarding, no Signature yet</h3><span className="pill warn"><span className="dot" />{unsigned.length}</span></div>
+          <div className="card-head"><h3>Mid-onboarding, no Signature yet</h3><span className="pill warn"><span className="dot" />{unsigned.length} in progress</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
             Started, Signature not finished, so there is nothing to match against yet.
           </p>
@@ -131,8 +133,8 @@ export default async function Bench() {
                 <tr key={t.id}>
                   <td><div className="row"><Portrait id={t.id} name={t.name} url={t.photo_url} />
                     <b>{t.name}</b></div></td>
-                  <td className="small">{t.role || '·'}</td>
-                  <td className="small muted">{t.loc || '·'}</td>
+                  <td className="small">{t.role || DASH}</td>
+                  <td className="small muted">{t.loc || DASH}</td>
                 </tr>
               ))}
             </tbody>
@@ -141,12 +143,12 @@ export default async function Bench() {
       )}
       {pending.length > 0 && (
         <div className="card">
-          <div className="card-head"><h3>Added, not yet signed in</h3><span className="pill warn"><span className="dot" />{pending.length}</span></div>
+          <div className="card-head"><h3>Added, not yet signed in</h3><span className="pill warn"><span className="dot" />{pending.length} waiting</span></div>
           <table className="data">
             <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th><th></th></tr></thead>
             <tbody>{pending.map((p: any) => (
               <tr key={p.id}><td><b>{p.full_name}</b></td><td className="small">{p.email}</td>
-                <td className="small">{p.headline ?? p.org_name ?? '·'}</td>
+                <td className="small">{p.headline ?? p.org_name ?? DASH}</td>
                 <td><span className="pill">{p.role}</span></td>
                 <td><DeletePerson id={p.id} name={p.full_name} pending /></td></tr>
             ))}</tbody>

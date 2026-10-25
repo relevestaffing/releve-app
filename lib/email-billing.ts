@@ -56,14 +56,14 @@ export const billingTemplates = {
      done. Day 13 says plainly what day 14 means, once, without leaning on it. */
   invoiceReminder(o: { name: string; number: string; amount: string; day: number; payUrl?: string }) {
     const href = o.payUrl ?? BILLING;
-    const head = o.day >= 13 ? 'A note before tomorrow' : o.day >= 7 ? 'A gentle reminder' : 'A quick reminder';
+    const head = o.day >= 13 ? `Invoice ${o.number} pauses the placement tomorrow` : o.day >= 7 ? `Invoice ${o.number}, seven days open` : `Invoice ${o.number} is open`;
     const lead = o.day >= 13
       ? `Invoice ${o.number} for ${o.amount} is still open. Under the terms, a placement pauses once an invoice has been open fourteen days, and we would much rather it carried on without a break.`
       : o.day >= 7
         ? `Invoice ${o.number} for ${o.amount} is still open. If it is already on its way, thank you, and please ignore this.`
         : `Invoice ${o.number} for ${o.amount} was due yesterday. If it is already on its way, thank you, and please ignore this.`;
     return msg('invoiceReminder',
-      `${head}: invoice ${o.number}`,
+      head,
       `${o.name},\n\n${lead}\n\nIt takes a minute by bank or card: ${href}\n\nIf something about it is not right, reply here and we will sort it out.${SIGN}`,
       shell(head,
         p(`${esc(o.name)},`) + p(esc(lead)) +
@@ -98,18 +98,18 @@ export const billingTemplates = {
   placementResumed(o: { name: string; withWhom: string; side: 'client' | 'talent' }) {
     const line = o.side === 'client'
       ? `Thank you. Your placement with ${o.withWhom} is running again, as of today.`
-      : `Good news: your placement with ${o.withWhom} is running again, as of today. Pick up where you left off.`;
+      : `Your placement with ${o.withWhom} is running again, as of today. Pick up where you left off.`;
     return msg('placementResumed',
       `Your placement with ${o.withWhom} has resumed`,
       `${o.name},\n\n${line}${SIGN}`,
-      shell('Back up and running', p(`${esc(o.name)},`) + p(esc(line)),
+      shell('Your placement has resumed', p(`${esc(o.name)},`) + p(esc(line)),
         { label: 'Open your account', href: `${SITE}/app` }));
   },
 
   placementPausedTeam(o: { client: string; talent: string; number: string; amount: string }) {
     return msg('placementPausedTeam',
       `Placement paused: ${o.client} and ${o.talent}`,
-      `${o.client}'s invoice ${o.number} (${o.amount}) reached fourteen days open, so the placement with ${o.talent} is paused and payroll for it will not be created until it resumes. Both sides have been told, warmly.\n\nIt resumes on its own when the invoice is paid. To resume it sooner, open the placement file.\n\n${SITE}/console/money${SIGN}`,
+      `${o.client}'s invoice ${o.number} (${o.amount}) reached fourteen days open, so the placement with ${o.talent} is paused and payroll for it will not be created until it resumes. Both sides have been told.\n\nIt resumes on its own when the invoice is paid. To resume it sooner, open the placement file.\n\n${SITE}/console/money${SIGN}`,
       shell('A placement is paused',
         p(`<b>${esc(o.client)}</b>'s invoice <b>${esc(o.number)}</b> (${esc(o.amount)}) reached fourteen days open, so the placement with <b>${esc(o.talent)}</b> is paused and payroll for it will not be created until it resumes.`) +
         p('Both sides have been told. It resumes on its own when the invoice is paid; to resume it sooner, open the placement file.'),

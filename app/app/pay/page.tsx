@@ -9,8 +9,10 @@ import { setupFor } from '@/lib/setup';
 import { getPayout, listPayments, periodLabel } from '@/lib/payout';
 import { money } from '@/lib/money-public';
 import { supabaseServer, configured } from '@/lib/supabase/server';
-import { fmtDate } from '@/lib/words';
+import { fmtDate, DASH } from '@/lib/words';
 import { listPlacementsFor } from '@/lib/work';
+
+export const metadata = { title: 'Your pay' };
 
 export const dynamic = 'force-dynamic';
 
@@ -72,7 +74,7 @@ export default async function PayPage() {
           account below. Every payment appears in the list underneath with the date it was sent and
           a reference.
         </p>
-        <p className="xs muted" style={{ margin: 0 }}>
+        <p className="xs muted" style={{ margin: '10px 0 0' }}>
           A question about a payment? Write to your Talent Success Manager. Replies within one business day, usually sooner.
         </p>
       </div>
@@ -126,12 +128,12 @@ export default async function PayPage() {
               {payments.map(p => (
                 <tr key={p.id}>
                   <td>{periodLabel(p.period_start)}</td>
-                  {placements.length > 1 && <td className="small">{(p.placement_id && forWhom.get(p.placement_id)) || '–'}</td>}
+                  {placements.length > 1 && <td className="small">{(p.placement_id && forWhom.get(p.placement_id)) || DASH}</td>}
                   <td className="amount">{money(p.amount_cents)}</td>
                   <td className="small">{p.sent_on ? fmtDate(p.sent_on)
                     : p.state === 'failed' ? <span className="pill warn"><span className="dot" />Being sent again</span>
                     : <span className="pill warn"><span className="dot" />Due</span>}</td>
-                  <td className="xs muted">{p.reference ?? '–'}</td>
+                  <td className="xs muted">{p.reference ?? DASH}</td>
                 </tr>
               ))}
             </tbody>

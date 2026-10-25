@@ -57,10 +57,13 @@
 .inline-link{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .firstrun-exit{display:flex;gap:10px;align-items:center}
 .firstrun-exit .firstrun-step{margin-right:6px}
+/* The step stays, and the two links keep their air: at 2px "WRITE TO US" and
+   "SIGN OUT" ran together into one word. */
 @media (max-width:560px){
-  .firstrun-top{padding:12px 14px 4px}
-  .firstrun-exit{gap:2px}
-  .firstrun-exit .firstrun-step{display:none}
+  .firstrun-top{padding:12px 14px 4px;gap:12px}
+  .firstrun-exit{gap:16px}
+  .firstrun-exit .firstrun-step{margin-right:0}
+  .firstrun-exit .gate-link{padding:10px 0}
   .firstrun-top img{height:22px}
 }
 

@@ -95,7 +95,7 @@ function seed() {
   }));
   mem.selves.set('demo-client', {
     id: 'demo-client', full_name: 'Elena Marsh', headline: 'Founder & CEO', location: 'Los Angeles, USA',
-    timezone: 'America/Los_Angeles', onboarded_at: null, assigned_by_releve: true
+    timezone: 'America/Los_Angeles', onboarded_at: '2026-09-01T09:00:00Z', assigned_by_releve: true
   });
   mem.availability.set('demo-client', {
     user_id: 'demo-client', timezone: 'America/Los_Angeles',

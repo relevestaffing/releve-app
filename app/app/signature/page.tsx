@@ -9,6 +9,9 @@ import { AxisBars, FacetBars } from '@/components/Viz';
 import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import SignatureFlow from '@/components/SignatureFlow';
+import { WORDS } from '@/lib/words';
+
+export const metadata = { title: 'Signature' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -40,7 +43,7 @@ export default async function SignaturePage({ searchParams }: {
     const validityWord = sig.validity?.verdict === 'Valid' ? 'good' : sig.validity?.verdict === 'Review' ? 'warn' : 'crit';
 
     return (
-      <Shell profile={profile} active="/app/signature" title={title} crumb="The Relève Signature">
+      <Shell profile={profile} active="/app/signature" title={title} crumb="Your Signature">
         <div className="card dark">
           <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your Signature</div>
           <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
@@ -66,7 +69,7 @@ export default async function SignaturePage({ searchParams }: {
           <div className="card-head"><h3>How you work</h3></div>
           <ul className="plain">{selfLines.map(l => <li key={l}>{l}</li>)}</ul>
           <details className="more">
-            <summary>See the working-style axes</summary>
+            <summary>{WORDS.moreDetail}</summary>
             <div className="inner">
               <div style={{ marginBottom: 18 }}>
                 <Explain>
@@ -110,14 +113,14 @@ export default async function SignaturePage({ searchParams }: {
         </div>
 
         <div className="row">
-          <Link className="btn sm ghost" href="/app/signature?retake=1">Retake the assessment</Link>
+          <Link className="btn sm ghost" href="/app/signature?retake=1">Retake the Signature</Link>
         </div>
       </Shell>
     );
   }
 
   return (
-    <Shell profile={profile} active="/app/signature" title={title} crumb="The Relève Signature">
+    <Shell profile={profile} active="/app/signature" title={title} crumb="Your Signature">
       <SignatureFlow side={side} existing={!!sig} fresh={!!retake} />
     </Shell>
   );

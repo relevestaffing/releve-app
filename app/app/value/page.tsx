@@ -3,6 +3,8 @@ import { currentProfile, supabaseServer, configured } from '@/lib/supabase/serve
 import Shell from '@/components/Shell';
 import ValueContent from '@/components/vision/ValueContent';
 
+export const metadata = { title: 'The value' };
+
 export const dynamic = 'force-dynamic';
 
 /* The value view. Body shared with the first-run tour (ValueContent); the page

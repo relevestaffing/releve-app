@@ -7,6 +7,8 @@ import { firstName, EMPTY } from '@/lib/words';
 import Empty from '@/components/Empty';
 import { viewerTimezone } from '@/lib/experience';
 
+export const metadata = { title: 'Tasks' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function TasksPage() {

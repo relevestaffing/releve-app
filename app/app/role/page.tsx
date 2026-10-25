@@ -6,6 +6,8 @@ import NextStep from '@/components/NextStep';
 import { setupFor } from '@/lib/setup';
 import RoleBreakdownForm from '@/components/RoleBreakdownForm';
 
+export const metadata = { title: 'The role' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function RolePage() {

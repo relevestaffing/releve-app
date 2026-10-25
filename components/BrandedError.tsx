@@ -13,7 +13,9 @@ export default function BrandedError({
   eyebrow?: string; title: string; line: string;
   retry?: () => void; home?: string; digest?: string;
 }) {
-  const subject = encodeURIComponent(digest ? `Something did not load (ref ${digest})` : 'Something did not load');
+  /* The page's own title is the subject; the digest rides along only there,
+     where it helps whoever reads the email, never on the page itself. */
+  const subject = encodeURIComponent(digest ? `${title} (ref ${digest})` : title);
   return (
     <main className="brand-error" role="main">
       <div className="brand-error-inner">
@@ -37,7 +39,6 @@ export default function BrandedError({
           </div>
           <p className="xs muted" style={{ marginTop: 18 }}>
             {CONTACT_EMAIL} reaches a person. Replies within one business day, usually sooner.
-            {digest ? <> Reference {digest}.</> : null}
           </p>
         </div>
       </div>

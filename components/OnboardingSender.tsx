@@ -3,6 +3,7 @@ import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/Toast';
 import { firstName } from '@/lib/words';
+import Overlay from './Overlay';
 
 /* The whole intake for an executive, right after the discovery call.
    --------------------------------------------------------------
@@ -49,12 +50,16 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
     router.refresh();
   }
 
+  /* A small button in the card head of the list it adds to; the form itself
+     opens over the page. The trigger used to be a full-size solid button
+     floating between the tabs and the card, the one object on the page with
+     no container, and the form unfolded in that gap. */
   if (!open) return (
-    <button className="btn solid" onClick={() => setOpen(true)}>Send onboarding email</button>
+    <button className="btn sm solid" onClick={() => setOpen(true)}>Send onboarding email</button>
   );
 
   return (
-    <div className="card" style={{ marginBottom: 22 }}>
+    <Overlay onClose={() => setOpen(false)} label="Send executive onboarding">
       <div className="card-head">
         <h3>Send onboarding email</h3>
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
@@ -74,6 +79,6 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
         <button className="btn solid" disabled={busy}>{busy ? 'Sending…' : 'Send onboarding email'}</button>
         {err && <div className="err">{err}</div>}
       </form>
-    </div>
+    </Overlay>
   );
 }

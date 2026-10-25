@@ -8,6 +8,8 @@ import { applicationStages, APPLICATION_SECTIONS } from '@/lib/jobs-public';
 import Link from 'next/link';
 import ConsoleTabs from '@/components/ConsoleTabs';
 
+export const metadata = { title: 'Applications' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Applications() {
@@ -29,7 +31,7 @@ export default async function Applications() {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/recruiting"
-      title="Recruiting" crumb={yours ? `${yours} waiting on you` : 'Everyone who applied'}>
+      title="Recruiting" crumb={yours ? `${yours} waiting on you` : 'Applications'}>
       <ConsoleTabs active="/console/applications" items={[
         { href: '/console/applications', label: 'Applications', count: yours },
         { href: '/console/interviews', label: 'Introductions' },

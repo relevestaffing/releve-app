@@ -71,7 +71,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
     return (
       <div className="row" style={{ gap: 8, alignItems: 'center' }}>
         {state === 'rejected' && rejectReason && (
-          <span className="xs muted" title={rejectReason}>Needs another go: </span>
+          <span className="xs muted" title={rejectReason}>Needs another try: </span>
         )}
         <button className="btn sm ghost" disabled={busy} onClick={send}>
           {busy ? 'Sending…' : 'Send Client Services Agreement'}
@@ -87,7 +87,7 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
   return (
     <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
       {state === 'rejected' && rejectReason && (
-        <span className="xs muted" title={rejectReason}>Needs another go: </span>
+        <span className="xs muted" title={rejectReason}>Needs another try: </span>
       )}
       {manualSendUrl && (
         <a className="btn sm ghost" href={manualSendUrl} target="_blank" rel="noopener noreferrer">

@@ -18,7 +18,7 @@ export default function ManagerLine({ manager, compact = false, onDark = false }
         : <span className="mgr-face plate" aria-hidden="true">{initials}</span>}
       <span className="mgr-text">
         <b>{manager.name}</b>
-        <span className="xs">{manager.id ? `Your ${manager.title}` : `${manager.title.replace(/ Manager$/, '')}, at Relève`}</span>
+        <span className="xs">{manager.id ? `Your ${manager.title}` : `${manager.title.replace(/ Manager$/, '')}, Relève`}</span>
         {!compact && <span className="xs mgr-promise">{REPLY_PROMISE}</span>}
       </span>
     </div>

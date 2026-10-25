@@ -1,7 +1,7 @@
 'use client';
 import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
-import { saving } from '@/components/Toast';
+import { saving, toast } from '@/components/Toast';
 import { type TimeOffState } from '@/lib/care-public';
 
 async function post(body: any) {
@@ -12,36 +12,65 @@ async function post(body: any) {
 
 /* Approve or decline time off, with the cover note recorded at the same
    moment — approving without saying who covers is how a Tuesday goes wrong. */
-export function TimeOffDecider({ id, state }: { id: string; state: TimeOffState }) {
+export function TimeOffDecider({ id, state, talentName }: { id: string; state: TimeOffState; talentName?: string | null }) {
   const router = useRouter();
   const [cover, setCover] = useState('');
+  const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  /* Declining emails the talent, so it arms a confirm with an optional
+     reason for the team's own record first. */
+  const [declining, setDeclining] = useState(false);
   if (state !== 'requested') return null;
+  const who = talentName?.trim() || 'the talent';
 
   async function decide(next: TimeOffState) {
     if (next === 'approved' && !cover.trim()) {
-      const { toast } = await import('@/components/Toast');
       toast.bad('Say who is covering before you approve.');
       return;
     }
     setBusy(true);
     const ok = await saving(
-      () => post({ action: 'time_off_decide', id, state: next, cover_note: cover }),
-      next === 'approved' ? 'Approved, and cover noted' : 'Declined'
+      () => post({ action: 'time_off_decide', id, state: next, cover_note: next === 'approved' ? cover : reason.trim() || null }),
+      next === 'approved' ? `Approved, and cover noted. ${who} has been emailed` : `Declined. ${who} has been emailed`
     );
     setBusy(false);
-    if (ok) router.refresh();
+    if (ok) { setDeclining(false); router.refresh(); }
   }
+
+  if (declining) return (
+    <div style={{ marginTop: 10 }}>
+      <p className="small" style={{ marginBottom: 10 }}>
+        Decline this time off? {who} is emailed that it could not be approved and that their Talent Success Manager will write to them.
+      </p>
+      <div className="ff" style={{ marginBottom: 10 }}>
+        <input aria-label="Why, for your own record" value={reason} onChange={e => setReason(e.target.value)}
+          placeholder="Why, for your own record (optional)" autoFocus disabled={busy}
+          onKeyDown={e => {
+            if (e.key === 'Escape') setDeclining(false);
+            if (e.key === 'Enter' && !busy) { e.preventDefault(); decide('declined'); }
+          }} />
+      </div>
+      <div className="row" style={{ gap: 8 }}>
+        <button className="btn sm solid" disabled={busy} onClick={() => decide('declined')}>
+          {busy ? 'Declining…' : 'Yes, decline it'}
+        </button>
+        <button className="btn sm ghost" disabled={busy} onClick={() => setDeclining(false)}>Keep it open</button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ marginTop: 10 }}>
       <div className="ff" style={{ marginBottom: 10 }}>
         <input aria-label="Who is covering, and how" value={cover} onChange={e => setCover(e.target.value)}
-          placeholder="Who is covering, and how" />
+          placeholder="Who is covering, and how" disabled={busy}
+          onKeyDown={e => { if (e.key === 'Enter' && !busy) { e.preventDefault(); decide('approved'); } }} />
       </div>
       <div className="row" style={{ gap: 8 }}>
-        <button className="btn sm solid" disabled={busy} onClick={() => decide('approved')}>Approve</button>
-        <button className="btn sm ghost"  disabled={busy} onClick={() => decide('declined')}>Decline</button>
+        <button className="btn sm solid" disabled={busy} onClick={() => decide('approved')}>
+          {busy ? 'Approving…' : 'Approve'}
+        </button>
+        <button className="btn sm ghost"  disabled={busy} onClick={() => setDeclining(true)}>Decline</button>
       </div>
     </div>
   );
@@ -60,12 +89,10 @@ export function OutcomeForm({ placementId, predicted }: { placementId: string; p
   async function submit() {
     const n = Number(score);
     if (!Number.isInteger(n) || n < 0 || n > 100) {
-      const { toast } = await import('@/components/Toast');
       toast.bad('Score it out of 100.');
       return;
     }
     if (retained == null) {
-      const { toast } = await import('@/components/Toast');
       toast.bad('Say whether they are still in place.');
       return;
     }

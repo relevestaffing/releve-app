@@ -4,6 +4,7 @@ import { signatureOf, rankBench, archetype } from '@/lib/data';
 import { L1, L2 } from '@/lib/signature/model';
 import Shell from '@/components/Shell';
 import ConsoleTabs from '@/components/ConsoleTabs';
+import Empty from '@/components/Empty';
 import { Radar } from '@/components/Viz';
 import MatchControls from '@/components/MatchControls';
 import { listMatches } from '@/lib/store';
@@ -12,6 +13,8 @@ import { getRoleBreakdown, skillsFor, fitByDiscipline, roleFitScore, roleShape }
 import Link from 'next/link';
 import ClientSwitcher from '@/components/ClientSwitcher';
 import RecordAnswer from '@/components/RecordAnswer';
+
+export const metadata = { title: 'Matching' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
@@ -47,15 +50,9 @@ export default async function Matching({ searchParams }: {
         { href: '/console/matching', label: 'Matching' },
         { href: '/console/offers', label: 'Offers' }
       ]} />
-      <div className="card tight">
-        <p className="small">
-          There are no executives on the books yet. Add one and complete their
-          Executive Signature, and this page will rank the roster against them.
-        </p>
-        <Link className="btn sm solid" href="/console/people" style={{ marginTop: 14 }}>
-          Add an executive
-        </Link>
-      </div>
+      <Empty title="Nobody to match yet"
+        body="There are no executives on the books. Add one and complete their Executive Signature, and this page will rank the roster against them."
+        cta={{ label: 'Add an executive', href: '/console/people' }} />
     </Shell>
   );
 
@@ -115,7 +112,7 @@ export default async function Matching({ searchParams }: {
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/matching"
       title="Matching"
-      crumb={chosen?.org_name ? `${chosen.org_name} · ${chosen.full_name}` : (chosen?.full_name ?? 'Rank and approve')}
+      crumb={chosen?.org_name ?? chosen?.full_name ?? 'Matching'}
       action={picker}>
 
       <ConsoleTabs active="/console/matching" items={[

@@ -37,9 +37,14 @@ export function googleCalendarLink(t: { title: string; detail?: string | null; d
   let dates: string;
   if (t.due_time) {
     const [h, m] = t.due_time.split(':').map(Number);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const endH = (h + 1) % 24;
-    dates = `${d}T${pad(h)}${pad(m)}00/${d}T${pad(endH)}${pad(m)}00`;
+    /* Floating local times (no Z), so Google reads them in the viewer's own
+       zone. The end is start plus an hour on a Date, so a 23:00 task ends at
+       00:00 the next day rather than before it began. */
+    const start = new Date(Date.UTC(
+      Number(t.due_on.slice(0, 4)), Number(t.due_on.slice(5, 7)) - 1, Number(t.due_on.slice(8, 10)), h || 0, m || 0, 0));
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const stamp = (x: Date) => x.toISOString().slice(0, 19).replace(/[-:]/g, '');
+    dates = `${stamp(start)}/${stamp(end)}`;
   } else {
     const next = new Date(t.due_on + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 1);
     dates = `${d}/${next.toISOString().slice(0, 10).replace(/-/g, '')}`;
@@ -146,5 +151,5 @@ export const VETTING_ITEMS: {
 
 export const VETTING_WORDING: Record<VettingState, string> = {
   not_started: 'Not started', submitted: 'With Relève', verified: 'Verified',
-  rejected: 'Needs another go', expired: 'Expired'
+  rejected: 'Needs another try', expired: 'Expired'
 };
