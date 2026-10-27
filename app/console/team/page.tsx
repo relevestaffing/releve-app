@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
 import ConsoleTabs from '@/components/ConsoleTabs';
 import { signinStageLabel } from '@/lib/signin-public';
+import { DASH } from '@/lib/words';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { auditTrail, TEAM_ROLES } from '@/lib/care';
+import { teamLoad, type MemberLoad } from '@/lib/founder';
 import type { TeamRole } from '@/lib/care-public';
 import Shell from '@/components/Shell';
 import EmailCheck from '@/components/EmailCheck';
@@ -17,6 +19,22 @@ export const dynamic = 'force-dynamic';
 const when = (iso: string) => new Date(iso).toLocaleString('en-US', {
   day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'
 });
+
+/* How long ago, in the fewest words, for "last acted". */
+const since = (iso: string | null): string => {
+  if (!iso) return 'No actions yet';
+  const h = (Date.now() - new Date(iso).getTime()) / 3_600_000;
+  if (h < 1) return 'Just now';
+  if (h < 24) return `${Math.round(h)}h ago`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'Yesterday' : `${d} days ago`;
+};
+const carrying = (m: { executives: number; talent: number }): string => {
+  const parts: string[] = [];
+  if (m.executives) parts.push(`${m.executives} exec`);
+  if (m.talent) parts.push(`${m.talent} talent`);
+  return parts.join(' · ') || 'Nothing live';
+};
 
 /* What each entry in the log actually means, in words rather than table names. */
 const SAYS: Record<string, string> = {
@@ -44,7 +62,11 @@ type Invite = { id: string; name: string; email: string; team_role: TeamRole };
    from team_roles alone: an admin with no team_roles row is still an admin,
    and is_owner() treats them as an owner, so they belong on this list. */
 async function loadTeam(): Promise<{ members: Member[]; invites: Invite[] }> {
-  if (!configured()) return { members: [], invites: [] };
+  if (!configured()) return { members: [
+    { user_id: 'demo-admin', name: 'Rae Lindqvist', email: 'hello@relevestaffing.com', team_role: 'owner' },
+    { user_id: 'demo-csm', name: 'Marguerite Vance', email: 'marguerite@relevestaffing.com', team_role: 'client_success' },
+    { user_id: 'demo-tsm', name: 'Theo Okafor', email: 'theo@relevestaffing.com', team_role: 'talent_success' }
+  ], invites: [] };
   const sb = await supabaseServer();
   const [{ data: admins }, { data: roles }, { data: pending }] = await Promise.all([
     sb.from('profiles').select('id, full_name, email').eq('role', 'admin'),
@@ -84,6 +106,12 @@ export default async function ConsoleTeam() {
   const owners = team.filter(t => t.team_role === 'owner').length;
   const label = (k: TeamRole) => TEAM_ROLES.find(r => r.key === k)?.label ?? k;
 
+  /* Each person's book beside their name, so the founder sees who is carrying
+     the load and who is behind. Owner-only: this is oversight, not something
+     a peer needs to see about a peer. */
+  const load: Map<string, MemberLoad> = new Map(
+    owner ? (await teamLoad()).map(m => [m.user_id, m]) : []);
+
   /* Every send attempt, worst first. Reading this used to be impossible:
      send() caught its own failure and almost every caller ignored the result,
      so a page said "Sent" whether or not anything left the building. */
@@ -118,13 +146,102 @@ export default async function ConsoleTeam() {
 
   return (
     <Shell profile={profile} active="/console/business" title="The business"
-      crumb="Team, who can do what">
+      crumb="Who is on the team, and what each is carrying">
       <ConsoleTabs active="/console/team" items={[
         { href: '/console/reports', label: 'Reports' },
         { href: '/console/signals', label: 'Match accuracy' },
         { href: '/console/calendar', label: 'Calendar' },
         { href: '/console/team', label: 'Team' }
       ]} />
+
+      <div className="card">
+        <div className="card-head"><h3>The Relève team</h3></div>
+        {!team.length ? <p className="small muted">Just you so far.</p> : (
+          <table className="data">
+            <thead><tr>
+              <th>Name</th><th>Role</th>
+              {owner && <><th>Carrying</th><th>Open items</th></>}
+              {owner && <th aria-label="Actions" />}
+            </tr></thead>
+            <tbody>
+              {team.map(t => {
+                const self = t.user_id === profile.id;
+                const lastOwner = t.team_role === 'owner' && owners <= 1;
+                const l = load.get(t.user_id);
+                const open = l ? l.openRequests + l.reviewsOverdue + l.flaggedReports : 0;
+                return (
+                  <tr key={t.user_id}>
+                    <td>{t.name}{self && <span className="xs muted"> · you</span>}
+                      <div className="xs muted">{t.email}</div></td>
+                    <td><RolePicker userId={t.user_id} name={t.name} role={t.team_role}
+                          canEdit={owner && !lastOwner} /></td>
+                    {owner && <>
+                      <td className="small">{l ? carrying(l) : DASH}</td>
+                      <td>
+                        {!l ? DASH : open === 0
+                          ? <span className="pill good"><span className="dot" />Clear</span>
+                          : <span className="pill warn"><span className="dot" />{open} to pick up</span>}
+                        {l && open > 0 && (
+                          <div className="xs muted wrap" style={{ marginTop: 4 }}>
+                            {[l.openRequests && `${l.openRequests} request${l.openRequests === 1 ? '' : 's'}`,
+                              l.reviewsOverdue && `${l.reviewsOverdue} review${l.reviewsOverdue === 1 ? '' : 's'} due`,
+                              l.flaggedReports && `${l.flaggedReports} report${l.flaggedReports === 1 ? '' : 's'} flagged`]
+                              .filter(Boolean).join(', ')}
+                          </div>
+                        )}
+                        {l && <div className="xs muted wrap" style={{ marginTop: 3 }}>
+                          Last acted {since(l.lastActedAt).toLowerCase()}</div>}
+                      </td>
+                    </>}
+                    {owner && (
+                      <td>
+                        {lastOwner
+                          ? <span className="xs muted">Only owner</span>
+                          : <TeamMemberRemove userId={t.user_id} name={t.name} self={self} />}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+
+        {invites.length > 0 && (
+          <div style={{ marginTop: 18 }}>
+            <p className="xs muted" style={{ marginBottom: 8 }}>
+              Invited, not signed in yet. Each becomes an admin the first time they sign in with this email.
+            </p>
+            <table className="data">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th>{owner && <th aria-label="Actions" />}</tr></thead>
+              <tbody>
+                {invites.map(i => (
+                  <tr key={i.id}>
+                    <td>{i.name}</td>
+                    <td className="xs">{i.email}</td>
+                    <td><span className="pill">{label(i.team_role)}</span></td>
+                    {owner && <td><TeamMemberRemove inviteId={i.id} name={i.name} /></td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {owner && <div style={{ marginTop: 14 }}><AddAdmin /></div>}
+        <div style={{ marginTop: 18 }}>
+          {TEAM_ROLES.map(r => (
+            <p key={r.key} className="xs muted" style={{ marginBottom: 4 }}>
+              <b>{r.label}</b>: {r.what}
+            </p>
+          ))}
+        </div>
+        <p className="xs muted" style={{ marginTop: 16 }}>
+          {owner
+            ? 'To add someone, use their email. If they already have a Relève account, they get console access as soon as you confirm. If not, they get it the first time they sign in with that email.'
+            : 'Only an owner can add, change or remove people on the team.'}
+        </p>
+      </div>
 
       <EmailCheck />
 
@@ -240,70 +357,6 @@ export default async function ConsoleTeam() {
         )}
       </div>
 
-      <div className="card">
-        <div className="card-head"><h3>The Relève team</h3></div>
-        {!team.length ? <p className="small muted">Just you so far.</p> : (
-          <table className="data">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th>{owner && <th aria-label="Actions" />}</tr></thead>
-            <tbody>
-              {team.map(t => {
-                const self = t.user_id === profile.id;
-                const lastOwner = t.team_role === 'owner' && owners <= 1;
-                return (
-                  <tr key={t.user_id}>
-                    <td>{t.name}{self && <span className="xs muted"> · you</span>}</td>
-                    <td className="xs">{t.email}</td>
-                    <td><RolePicker userId={t.user_id} name={t.name} role={t.team_role}
-                          canEdit={owner && !lastOwner} /></td>
-                    {owner && (
-                      <td>
-                        {lastOwner
-                          ? <span className="xs muted">The only owner</span>
-                          : <TeamMemberRemove userId={t.user_id} name={t.name} self={self} />}
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        {invites.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            <p className="xs muted" style={{ marginBottom: 8 }}>
-              Invited, not signed in yet. Each becomes an admin the first time they sign in with this email.
-            </p>
-            <table className="data">
-              <thead><tr><th>Name</th><th>Email</th><th>Role</th>{owner && <th aria-label="Actions" />}</tr></thead>
-              <tbody>
-                {invites.map(i => (
-                  <tr key={i.id}>
-                    <td>{i.name}</td>
-                    <td className="xs">{i.email}</td>
-                    <td><span className="pill">{label(i.team_role)}</span></td>
-                    {owner && <td><TeamMemberRemove inviteId={i.id} name={i.name} /></td>}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {owner && <div style={{ marginTop: 14 }}><AddAdmin /></div>}
-        <div style={{ marginTop: 18 }}>
-          {TEAM_ROLES.map(r => (
-            <p key={r.key} className="xs muted" style={{ marginBottom: 4 }}>
-              <b>{r.label}</b>: {r.what}
-            </p>
-          ))}
-        </div>
-        <p className="xs muted" style={{ marginTop: 16 }}>
-          {owner
-            ? 'To add someone, use their email. If they already have a Relève account, they get console access as soon as you confirm. If not, they get it the first time they sign in with that email.'
-            : 'Only an owner can add, change or remove people on the team.'}
-        </p>
-      </div>
 
       <div className="card">
         <div className="card-head">

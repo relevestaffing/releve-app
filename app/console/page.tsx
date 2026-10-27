@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { consoleSnapshot } from '@/lib/console';
+import { moneyReports, moneySummary, isOwner } from '@/lib/money';
+import { businessTrend } from '@/lib/founder';
+import FounderBand from '@/components/FounderBand';
 import { money } from '@/lib/money-public';
 import Shell from '@/components/Shell';
 import { firstName, DASH } from '@/lib/words';
@@ -48,6 +51,16 @@ export default async function Console({ searchParams }: { searchParams: Promise<
   const mine = (await searchParams).mine === '1';
 
   const { attention, vitals, placements } = await consoleSnapshot({ mine: mine ? profile.id : null });
+
+  /* The founder's trajectory band, above the day's work. Owner-only: a
+     Success Manager gets the operational console, not the state of the whole
+     business. Three extra queries, all read-only, run only for an owner. */
+  const owner = await isOwner();
+  const trend = owner ? await (async () => {
+    const reports = await moneyReports();
+    const high = attention.filter(a => a.level === 'high').length;
+    return businessTrend(reports.mrrByMonth, reports.retention.pct, high);
+  })() : null;
   const first = firstName(profile.full_name, '');
   /* The server runs on UTC, which said "Good morning" to Sage at eight in
      the evening. The business keeps Los Angeles time; so does this page. */
@@ -68,6 +81,8 @@ export default async function Console({ searchParams }: { searchParams: Promise<
          launchers, in the order she asked for them: her calendar, matching
          and placements, client onboarding, talent onboarding, payroll, then
          invoices and money. */}
+      {trend && <FounderBand trend={trend} />}
+
       <h3 className="section-h" style={{ marginTop: 0 }}>Dashboard</h3>
       <div className="qa-grid">
         <Link className="qa-tile" href="/console/calendar">
@@ -115,7 +130,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
          gives just this card an order:-1 at the phone breakpoint so it
          leads on mobile while keeping the desktop order (launchers first)
          untouched — see globals.css. */}
-      <div className="card today-card">
+      <div className="card today-card" id="today">
         <div className="card-head">
           <h3>Today</h3>
           {/* Counts the things that are actually urgent, not the sum of every

@@ -2852,3 +2852,27 @@ aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--f
 @media (min-width:641px){
   .card-head .btn{ white-space:nowrap }
 }
+
+/* ---------- Founder band (owner-only, top of Overview) ----------
+   Where the business is heading, read in three seconds, above the day's
+   work. 27 October 2026. */
+.founder-band{ background:linear-gradient(180deg,#fff, #FBFAF6); }
+.founder-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.5fr); gap:28px; align-items:center; }
+.founder-rate{ display:flex; flex-direction:column; gap:3px; }
+.founder-rate .founder-n{ font-family:'Tenor Sans',sans-serif; font-variant-numeric:tabular-nums;
+  font-size:40px; line-height:1.02; color:var(--fern); }
+.founder-sub{ font-size:12.5px; letter-spacing:.01em; }
+.founder-sub .up{ color:var(--fern); font-weight:600; }
+.founder-sub .down{ color:#8C4A3F; font-weight:600; }
+.founder-rate .spark{ margin-top:10px; }
+.founder-tiles{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden; }
+.founder-tile{ background:#fff; padding:16px 18px; display:flex; flex-direction:column; gap:4px; }
+.founder-t-n{ font-family:'Tenor Sans',sans-serif; font-variant-numeric:tabular-nums;
+  font-size:27px; line-height:1.05; color:var(--ink,#22302A); }
+a.pill.crit{ text-decoration:none; }
+@media (max-width:760px){
+  .founder-grid{ grid-template-columns:1fr; gap:20px; }
+  .founder-tiles{ grid-template-columns:1fr 1fr; }
+  .founder-tiles > :last-child:nth-child(odd){ grid-column:1 / -1; }
+}
