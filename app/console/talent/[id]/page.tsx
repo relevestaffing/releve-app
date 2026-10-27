@@ -20,6 +20,8 @@ import Shell from '@/components/Shell';
 import { Radar, AxisBars, Portrait } from '@/components/Viz';
 import PaySetter from '@/components/PaySetter';
 import OnboardingStatus from '@/components/OnboardingStatus';
+import AccountManagerPicker from '@/components/AccountManagerPicker';
+import { teamRoles } from '@/lib/care';
 
 export const metadata = { title: 'Talent' };
 
@@ -41,6 +43,15 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
   const self = await getSelfProfile(id);
   if (!self || !self.full_name && configured()) redirect('/console/bench');
   const name = self.full_name ?? 'Talent';
+
+  /* Who owns this talent, end to end, and the team the picker chooses from.
+     The owner column (profiles.tsm_id) is new (part50), so read it on its
+     own: an error means the migration has not run yet, and the file still
+     renders with nobody assigned rather than failing. */
+  const [team, tsm] = await Promise.all([
+    teamRoles().catch(() => []),
+    accountManagerId(id, 'talent')
+  ]);
 
   const [sig, skills, vetting, avail, pay, payout, payments, placements, watch, decisions, watchPay] = await Promise.all([
     signatureOf(id, 'talent'),
@@ -125,6 +136,8 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           <span className="xs muted">·</span>
           <span className="xs muted">{self.photo_url ? 'Photo on file' : 'No photo yet'}</span>
         </div>
+        <div className="hr" style={{ margin: '14px 0' }} />
+        <AccountManagerPicker personId={id} side="talent" team={team as any} current={tsm} />
       </div>
 
       <OnboardingStatus steps={onboarding} />
@@ -269,6 +282,20 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
       </div>
     </Shell>
   );
+}
+
+/* The account's owner (profiles.tsm_id). New column, so its own read: an
+   error means the migration has not run yet, and the file still renders with
+   nobody assigned rather than failing. */
+async function accountManagerId(personId: string, side: 'client' | 'talent'): Promise<string | null> {
+  if (!configured()) return null;
+  try {
+    const sb = await supabaseServer();
+    const col = side === 'client' ? 'csm_id' : 'tsm_id';
+    const { data, error } = await sb.from('profiles').select(col).eq('id', personId).maybeSingle();
+    if (error) return null;
+    return ((data as any)?.[col] as string | null) ?? null;
+  } catch { return null; }
 }
 
 async function placementsOf(talentId: string) {

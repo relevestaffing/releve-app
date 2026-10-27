@@ -14,7 +14,7 @@ import { carryOverToReplacement } from '@/lib/experience';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const { client_id, talent_id, started_on, rate, replaces_id } = await req.json().catch(() => ({}));
+  const { client_id, talent_id, started_on, rate, replaces_id, csm_id, tsm_id } = await req.json().catch(() => ({}));
   if (!client_id || !talent_id)
     return NextResponse.json({ error: 'pick both an executive and a talent' }, { status: 400 });
   if (client_id === talent_id)
@@ -49,6 +49,27 @@ export async function POST(req: Request) {
   try {
     const id = await createPlacement(client_id, talent_id, started_on, replaces_id ?? null);
     if (cents != null && id) await setPlacementRate(id, cents);
+    /* The placement inherits the account's owners: whoever already looks after
+       this executive (profiles.csm_id) and this talent (profiles.tsm_id),
+       unless the caller named someone. Those columns are new (part50), so this
+       is never worth failing the placement over. */
+    if (id && configured()) {
+      try {
+        const sb = await supabaseServer();
+        const patch: Record<string, string> = {};
+        if (csm_id) patch.csm_id = String(csm_id);
+        else {
+          const { data: ex } = await sb.from('profiles').select('csm_id').eq('id', client_id).maybeSingle();
+          if ((ex as any)?.csm_id) patch.csm_id = (ex as any).csm_id;
+        }
+        if (tsm_id) patch.tsm_id = String(tsm_id);
+        else {
+          const { data: tl } = await sb.from('profiles').select('tsm_id').eq('id', talent_id).maybeSingle();
+          if ((tl as any)?.tsm_id) patch.tsm_id = (tl as any).tsm_id;
+        }
+        if (Object.keys(patch).length) await sb.from('placements').update(patch).eq('id', id);
+      } catch { /* the placement stands with no managers set */ }
+    }
     /* A replacement inherits the executive's briefing and the open work, so
        the new person does not start from nothing. Never worth failing the
        placement over. */

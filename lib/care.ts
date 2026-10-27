@@ -13,7 +13,11 @@ export * from './care-public';
 /* ---------- the team ---------- */
 
 export async function teamRoles() {
-  if (!configured()) return [];
+  if (!configured()) return [
+    { user_id: 'demo-admin', team_role: 'owner' as TeamRole, added_at: null, name: 'Rae Lindqvist', email: 'hello@relevestaffing.com' },
+    { user_id: 'demo-csm', team_role: 'client_success' as TeamRole, added_at: null, name: 'Marguerite Vance', email: 'marguerite@relevestaffing.com' },
+    { user_id: 'demo-tsm', team_role: 'talent_success' as TeamRole, added_at: null, name: 'Theo Okafor', email: 'theo@relevestaffing.com' }
+  ];
   const sb = await supabaseServer();
   const { data } = await sb.from('team_roles')
     .select('user_id, team_role, added_at, person:user_id(full_name, email)');
@@ -37,6 +41,20 @@ export async function assignManagers(placementId: string, csm: string | null, ts
   const sb = await supabaseServer();
   const { error } = await sb.from('placements')
     .update({ csm_id: csm, tsm_id: tsm }).eq('id', placementId);
+  if (error) throw new Error(error.message);
+}
+
+/* The account's own owner, held on the person rather than on a placement:
+   the Client Success Manager for an executive (profiles.csm_id), the Talent
+   Success Manager for a talent (profiles.tsm_id). Set from onboarding onward,
+   so someone waiting on their first match still has a named owner. */
+export async function assignAccountManager(
+  personId: string, side: 'client' | 'talent', managerId: string | null
+) {
+  if (!configured()) return;
+  const sb = await supabaseServer();
+  const col = side === 'client' ? 'csm_id' : 'tsm_id';
+  const { error } = await sb.from('profiles').update({ [col]: managerId }).eq('id', personId);
   if (error) throw new Error(error.message);
 }
 

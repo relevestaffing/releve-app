@@ -2,7 +2,9 @@ import Link from 'next/link';
 import Files from '@/components/Files';
 import { listDocuments } from '@/lib/documents';
 import { redirect, notFound } from 'next/navigation';
-import { currentProfile } from '@/lib/supabase/server';
+import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
+import { teamRoles } from '@/lib/care';
+import AccountManagerPicker from '@/components/AccountManagerPicker';
 import { listClients, getSearch, getSelfProfile, getAvailability } from '@/lib/store';
 import { signatureOf, archetype } from '@/lib/data';
 import { listInvoicesFor } from '@/lib/money';
@@ -51,6 +53,14 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
     listDocuments('person', id).catch(() => [])
   ]);
 
+  /* Who owns this account, and the team the picker chooses from. The owner
+     column is new (part50), so read it on its own: a record that shows the
+     account beats one that will not open because the column is not there yet. */
+  const [team, csm] = await Promise.all([
+    teamRoles().catch(() => []),
+    accountManagerId(id, 'client')
+  ]);
+
   const mine = places.filter(p => p.client_id === id);
   const live = mine.filter(p => !p.ended_on);
   const type = sig ? archetype((sig as any).scores, 'client') : null;
@@ -92,6 +102,8 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
           <dt>Open role</dt><dd>{brief?.role_title || 'No brief written yet'}</dd>
         </dl>
         {self?.bio && <p className="small" style={{ marginTop: 14 }}>{self.bio}</p>}
+        <div className="hr" style={{ margin: '14px 0' }} />
+        <AccountManagerPicker personId={id} side="client" team={team as any} current={csm} />
       </div>
 
       <div className="card">
@@ -146,4 +158,18 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
       </div>
     </Shell>
   );
+}
+
+/* The account's owner (profiles.csm_id / profiles.tsm_id). New column, so its
+   own read: an error means the migration has not run yet, and the page still
+   renders with nobody assigned rather than failing. */
+async function accountManagerId(personId: string, side: 'client' | 'talent'): Promise<string | null> {
+  if (!configured()) return null;
+  try {
+    const sb = await supabaseServer();
+    const col = side === 'client' ? 'csm_id' : 'tsm_id';
+    const { data, error } = await sb.from('profiles').select(col).eq('id', personId).maybeSingle();
+    if (error) return null;
+    return ((data as any)?.[col] as string | null) ?? null;
+  } catch { return null; }
 }

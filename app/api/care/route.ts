@@ -5,7 +5,7 @@ import { personEmail, teamEmails, getPlacement } from '@/lib/work';
 import { dayLabel, todayInPacific } from '@/lib/money-public';
 import { safeMessage } from '@/lib/errors';
 import {
-  assignManagers, decideTimeOff, endPlacementWithReason, markFeedbackSeen,
+  assignAccountManager, assignManagers, decideTimeOff, endPlacementWithReason, markFeedbackSeen,
   markFirstCandidate, recordOutcome, requestTimeOff, savePulse, saveFeedback,
   shareFeedback, tickStep
 } from '@/lib/care';
@@ -157,6 +157,12 @@ export async function POST(req: Request) {
       case 'assign_managers':
         if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
         await assignManagers(String(b.placement_id), b.csm_id ?? null, b.tsm_id ?? null);
+        return NextResponse.json({ ok: true });
+
+      /* The account's own owner, set on the person from onboarding onward. */
+      case 'assign_account_manager':
+        if (!team) return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
+        await assignAccountManager(String(b.person_id), b.side, b.manager_id ?? null);
         return NextResponse.json({ ok: true });
 
       default:

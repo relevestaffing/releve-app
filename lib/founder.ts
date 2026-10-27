@@ -114,6 +114,23 @@ export async function teamLoad(): Promise<MemberLoad[]> {
 
   const roleOf = new Map(((roles ?? []) as any[]).map(r => [r.user_id, r.team_role as TeamRole]));
 
+  /* Executives and talent are counted end to end, by who owns the account on
+     the person (profiles.csm_id / profiles.tsm_id), not only by live
+     placements. Someone looking after an executive who is still waiting on
+     their first match is carrying that account. Those columns are new
+     (part50), so read them on their own: a missing column yields 0, not a
+     failed page. Open requests, overdue reviews and flagged reports stay
+     scoped to live placements below. */
+  const ownedCsm = new Map<string, number>();
+  const ownedTsm = new Map<string, number>();
+  try {
+    const { data: owned, error } = await sb.from('profiles').select('id, role, csm_id, tsm_id');
+    if (!error) for (const p of (owned ?? []) as any[]) {
+      if (p.role === 'client' && p.csm_id) ownedCsm.set(p.csm_id, (ownedCsm.get(p.csm_id) ?? 0) + 1);
+      if (p.role === 'talent' && p.tsm_id) ownedTsm.set(p.tsm_id, (ownedTsm.get(p.tsm_id) ?? 0) + 1);
+    }
+  } catch { /* the owner columns are not there yet */ }
+
   /* last action per person, from the most recent audit rows */
   const lastActed = new Map<string, string>();
   for (const a of (audit ?? []) as any[]) {
@@ -147,8 +164,8 @@ export async function teamLoad(): Promise<MemberLoad[]> {
       name: (m.full_name as string) ?? (m.email as string),
       email: m.email as string,
       team_role: roleOf.get(m.id) ?? 'owner',
-      executives: new Set(asCsm.map(p => p.client_id)).size,
-      talent: new Set(asTsm.map(p => p.talent_id)).size,
+      executives: ownedCsm.get(m.id) ?? 0,
+      talent: ownedTsm.get(m.id) ?? 0,
       openRequests, reviewsOverdue, flaggedReports,
       lastActedAt: lastActed.get((m.email ?? '').toLowerCase()) ?? null
     } as MemberLoad;

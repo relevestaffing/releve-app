@@ -76,8 +76,32 @@ export async function ownerAsManager(side: 'client' | 'talent'): Promise<Manager
   } catch { return null; }
 }
 
+/** The account's own owner, held on the person rather than on a placement
+    (profiles.csm_id for an executive, profiles.tsm_id for talent). This is
+    what names a manager before any placement exists. New column, so read it
+    on its own and skip if it is not there yet. Service role, because a
+    client's session cannot read a team member's row (same as ownerAsManager).
+    (27 October 2026.) */
+export async function accountManager(profile: Profile, side: 'client' | 'talent'): Promise<Manager | null> {
+  const sv = serviceClient();
+  if (!sv) return null;
+  try {
+    const col = side === 'client' ? 'csm_id' : 'tsm_id';
+    const { data: me, error } = await sv.from('profiles').select(col).eq('id', profile.id).maybeSingle();
+    if (error) return null;
+    const mgrId = (me as any)?.[col] as string | undefined;
+    if (!mgrId) return null;
+    const { data: p } = await sv.from('profiles').select('full_name, photo_url').eq('id', mgrId).maybeSingle();
+    const name = String((p as any)?.full_name ?? '').trim();
+    if (!name || name.includes('@')) return null;
+    return { placement_id: null, id: mgrId, name, title: titleFor(side),
+             photo: (p as any)?.photo_url ? `/api/manager-photo?u=${mgrId}` : null };
+  } catch { return null; }
+}
+
 /** One manager to name on a screen that is not about a specific placement
-    (the Messages page, the dashboard): the first assigned one, then the
+    (the Messages page, the dashboard): the first assigned placement manager,
+    then the account's own owner (end to end, before any placement), then the
     owner, then the team. */
 export async function primaryManager(profile: Profile, placementId?: string | null): Promise<Manager> {
   const side = profile.role === 'client' ? 'client' : 'talent';
@@ -86,7 +110,10 @@ export async function primaryManager(profile: Profile, placementId?: string | nu
     const hit = all.find(m => m.placement_id === placementId);
     if (hit) return hit;
   }
-  return all[0] ?? (await ownerAsManager(side)) ?? fallbackManager(side, placementId ?? null);
+  return all[0]
+    ?? (await accountManager(profile, side))
+    ?? (await ownerAsManager(side))
+    ?? fallbackManager(side, placementId ?? null);
 }
 
 /** Who should hear that this person wrote in: their assigned manager(s),
@@ -105,6 +132,20 @@ export async function managerEmailsFor(personId: string, role: 'client' | 'talen
         const { data: ppl } = await sv.from('profiles').select('email, role').in('id', ids);
         const out = ((ppl ?? []) as any[]).filter(p => p.role === 'admin' && p.email).map(p => p.email as string);
         if (out.length) return out;
+      }
+    } catch { /* fall through to the account owner, then the whole team */ }
+    /* Before a placement exists, the account's own owner (profiles.csm_id /
+       profiles.tsm_id) still hears. New column, so read it on its own and
+       skip if it is not there yet. */
+    try {
+      const prof = role === 'client' ? 'csm_id' : 'tsm_id';
+      const { data: me, error } = await sv.from('profiles').select(prof).eq('id', personId).maybeSingle();
+      if (!error) {
+        const mgrId = (me as any)?.[prof] as string | undefined;
+        if (mgrId) {
+          const { data: p } = await sv.from('profiles').select('email, role').eq('id', mgrId).maybeSingle();
+          if ((p as any)?.role === 'admin' && (p as any)?.email) return [(p as any).email as string];
+        }
       }
     } catch { /* fall through to the whole team */ }
   }

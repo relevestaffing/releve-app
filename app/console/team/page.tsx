@@ -172,7 +172,7 @@ export default async function ConsoleTeam() {
                 return (
                   <tr key={t.user_id}>
                     <td>{t.name}{self && <span className="xs muted"> · you</span>}
-                      <div className="xs muted">{t.email}</div></td>
+                      {t.name !== t.email && <div className="xs muted">{t.email}</div>}</td>
                     <td><RolePicker userId={t.user_id} name={t.name} role={t.team_role}
                           canEdit={owner && !lastOwner} /></td>
                     {owner && <>
