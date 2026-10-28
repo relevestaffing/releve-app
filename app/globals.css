@@ -2981,3 +2981,15 @@ a.pill.crit{ text-decoration:none; }
   .lead-table td .btn{ white-space:nowrap }
   .lead-table td:last-child{ white-space:nowrap; text-align:right }
 }
+
+
+/* ---- lead account page + audit desk (part 52) ---- */
+.lead-link{text-decoration:none;cursor:pointer}
+.lead-link:hover{text-decoration:underline;text-underline-offset:3px}
+.audit-list{display:flex;flex-direction:column}
+.audit-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
+.audit-row:first-child{border-top:0}
+.audit-row > div:first-child{flex:1;min-width:0}
+.check-line{display:flex;align-items:center;gap:9px;margin:2px 0 16px;font-size:14px;color:var(--body);cursor:pointer}
+.check-line input{width:16px;height:16px;flex:none}
+.audit-editor .audit-text{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;line-height:1.6;width:100%}

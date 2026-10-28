@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Overlay from './Overlay';
 import { toast, saving } from './Toast';
 import type { Prospect, Touch, ProspectStage } from '@/lib/prospects-public';
@@ -252,7 +253,7 @@ function AddLead({ onAdded }: { onAdded: (p: Prospect) => void }) {
         id: id || `new-${now}`, full_name, email, org_name,
         source: source as Prospect['source'], call_at: null, stage: 'new',
         note: null, lost_reason: null, pending_id: null, next_follow_up: null,
-        last_touched_at: null, owner_id: null, created_at: now, updated_at: now
+        last_touched_at: null, owner_id: null, website: null, created_at: now, updated_at: now
       });
       form.reset();
       setOpen(false);
@@ -356,7 +357,7 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
           return (
             <div key={p.id} className="fu-row">
               <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                <b className="lead-name">{p.full_name}</b>
+                <Link href={`/console/lead/${p.id}`} className="lead-name lead-link">{p.full_name}</Link>
                 {p.org_name && <span className="lead-sub"> · {p.org_name}</span>}
                 <div><span className={`fu-when ${w.tone}`}>{w.text}</span></div>
               </div>
@@ -396,7 +397,7 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
                     {groupRows.map(p => (
                       <tr key={p.id}>
                         <td className="lead-cell" data-label="Lead">
-                          <b className="lead-name">{p.full_name}</b>
+                          <Link href={`/console/lead/${p.id}`} className="lead-name lead-link">{p.full_name}</Link>
                           <div className="lead-sub">{[p.org_name, p.email].filter(Boolean).join(' · ')}</div>
                         </td>
                         <td data-label="Status">

@@ -1,4 +1,4 @@
-export type OwnerKind = 'person' | 'placement';
+export type OwnerKind = 'person' | 'placement' | 'prospect';
 export type Doc = {
   id: string; owner_kind: OwnerKind; owner_id: string;
   name: string; label: string | null; file_path: string; mime: string; bytes: number;

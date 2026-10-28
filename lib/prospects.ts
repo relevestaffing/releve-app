@@ -16,7 +16,7 @@ function demoProspects(): Prospect[] {
   const base = (over: Partial<Prospect>): Prospect => ({
     id: '', full_name: '', email: '', org_name: null, source: 'other',
     call_at: null, stage: 'new', note: null, lost_reason: null, pending_id: null,
-    next_follow_up: null, last_touched_at: null, owner_id: null,
+    next_follow_up: null, last_touched_at: null, owner_id: null, website: null,
     created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...over
   });
   return [
@@ -107,6 +107,7 @@ export async function dueFollowUps(): Promise<Prospect[]> {
 export async function saveProspect(row: {
   id?: string; full_name: string; email: string; org_name?: string | null;
   source?: ProspectSource; call_at?: string | null; note?: string | null;
+  website?: string | null;
 }): Promise<string> {
   const sb = await supabaseServer();
   const email = row.email.trim().toLowerCase();
@@ -115,17 +116,35 @@ export async function saveProspect(row: {
     call_at: row.call_at || null, note: row.note?.trim() || null
   };
   if (row.source) patch.source = row.source;
+  if (row.website !== undefined) patch.website = row.website?.trim() || null;
   if (row.id) {
-    const { error } = await sb.from('prospects').update(patch).eq('id', row.id);
+    let { error } = await sb.from('prospects').update(patch).eq('id', row.id);
+    if (error && /website/i.test(error.message) && 'website' in patch) {
+      delete patch.website;
+      ({ error } = await sb.from('prospects').update(patch).eq('id', row.id));
+    }
     if (error) throw new Error(error.message);
     return row.id;
   }
-  const { data, error } = await sb.from('prospects').insert(patch).select('id').single();
-  if (error) {
-    if (error.code === '23505') throw new Error('They are already on the list.');
-    throw new Error(error.message);
+  let ins = await sb.from('prospects').insert(patch).select('id').single();
+  if (ins.error && /website/i.test(ins.error.message) && 'website' in patch) {
+    delete patch.website;
+    ins = await sb.from('prospects').insert(patch).select('id').single();
   }
-  return (data as any).id;
+  if (ins.error) {
+    if (ins.error.code === '23505') throw new Error('They are already on the list.');
+    throw new Error(ins.error.message);
+  }
+  return (ins.data as any).id;
+}
+
+/* One lead in full, for its account page. Tolerant of the website column being
+   absent before part52: select('*') simply omits it. */
+export async function getProspect(id: string): Promise<Prospect | null> {
+  if (!configured()) return demoProspects().find(p => p.id === id) ?? null;
+  const sb = await supabaseServer();
+  const { data } = await sb.from('prospects').select('*').eq('id', id).maybeSingle();
+  return (data as Prospect) ?? null;
 }
 
 export async function setProspectStage(id: string, stage: ProspectStage, extra?: { lost_reason?: string | null; note?: string | null }) {

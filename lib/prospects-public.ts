@@ -18,6 +18,7 @@ export type Prospect = {
   source: ProspectSource; call_at: string | null; stage: ProspectStage;
   note: string | null; lost_reason: string | null; pending_id: string | null;
   next_follow_up: string | null; last_touched_at: string | null; owner_id: string | null;
+  website: string | null;
   created_at: string; updated_at: string;
 };
 
