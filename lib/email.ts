@@ -840,6 +840,29 @@ const rawTemplates = {
       { label: 'Open Introductions', href: `${SITE}/console/interviews` })
   }),
 
+  /* To the team each weekday morning, the leads owed a touch today.
+     --------------------------------------------------------------
+     A lead with a follow-up date that has arrived is a lead quietly going
+     cold on the board nobody opened. This lists them, most overdue first,
+     so the first thing the morning holds is who to chase. Sent only when
+     there is at least one; an empty inbox is the right state, not a letter
+     saying so. Each line is name, company, stage and how late. */
+  followUps: (o: { leads: { name: string; company: string | null; stage: string; overdue: string }[] }) => {
+    const n = o.leads.length;
+    const line = (l: typeof o.leads[number]) =>
+      `${l.name}${l.company ? `, ${l.company}` : ''} · ${l.stage} · ${l.overdue}`;
+    return {
+      subject: `${n} lead${n === 1 ? '' : 's'} to follow up with today`,
+      text: `${n === 1 ? 'One lead is' : `${n} leads are`} due a follow-up today, most overdue first.\n\n${o.leads.map(line).join('\n')}\n\nOpen your leads: ${SITE}/console/prospects\n\nRelève`,
+      html: shell('Leads to follow up with today',
+        p(`${n === 1 ? 'One lead is' : `<b>${n}</b> leads are`} due a follow-up today, most overdue first.`) +
+        o.leads.map(l =>
+          `<p style="margin:0 0 10px;"><b style="color:#35443A;">${esc(l.name)}</b>${l.company ? `, ${esc(l.company)}` : ''}` +
+          `<br><span style="color:#5F7163;font-size:13.5px;">${esc(l.stage)} · ${esc(l.overdue)}</span></p>`).join(''),
+        { label: 'Open your leads', href: `${SITE}/console/prospects` })
+    };
+  },
+
   checkinFlagged: (o: { talent: string; why: string }) => ({
     subject: `End of week report needs a look: ${o.talent}`,
     text: `${o.talent}'s end of week report needs a closer look.\n\n${o.why}\n\n${SITE}/console/checkins\n\nRelève`,

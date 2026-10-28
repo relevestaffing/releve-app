@@ -2876,3 +2876,107 @@ a.pill.crit{ text-decoration:none; }
   .founder-tiles{ grid-template-columns:1fr 1fr; }
   .founder-tiles > :last-child:nth-child(odd){ grid-column:1 / -1; }
 }
+
+/* ---------- the lead board (Monday-style) — part 51, 28 October 2026 ------
+   A grouped table with a solid coloured status label per row, so the board
+   reads at a glance the way Sage's Monday boards do, while the colours stay
+   inside Relève's world (set in lib/prospects-public). The "Follow up today"
+   card sits above it and is the point of the feature. */
+
+.lead-name{font-family:'Marcellus',serif;font-size:16px;color:var(--fern)}
+.lead-sub{font-size:12.5px;color:var(--sage);line-height:1.45;overflow-wrap:anywhere}
+.lead-name{white-space:nowrap}
+.lead-table td.lead-cell{min-width:178px;width:19%}
+
+/* follow up today */
+.followups .fu-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 0;border-top:1px solid var(--line)}
+.followups .fu-row:first-of-type{border-top:0}
+.fu-when{font-size:12px;letter-spacing:.06em}
+.fu-when.over{color:var(--crit)}
+.fu-when.today{color:var(--warn)}
+
+/* groups */
+.board-group{margin-top:28px}
+.group-head{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding-left:15px;position:relative}
+.group-head::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:4px;border-radius:3px;background:var(--accent,var(--fern))}
+.group-head h3{font-size:20px}
+.group-count{font-size:12px;letter-spacing:.14em;color:var(--sage)}
+
+.add-lead{background:none;border:1px dashed var(--line-strong);color:var(--sage);padding:9px 16px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:.2s}
+.add-lead:hover{border-color:var(--fern);color:var(--fern)}
+.add-lead-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-left:auto}
+.add-lead-form input,.add-lead-form select{font-family:inherit;font-size:14px;color:var(--body);background:#fff;border:1px solid var(--line-strong);padding:9px 11px}
+.add-lead-form input:focus,.add-lead-form select:focus{outline:2px solid var(--fern)}
+
+/* the table */
+.lead-table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 26px 60px -46px rgba(34,48,42,.5)}
+.lead-table th{font-family:'Marcellus',serif;font-weight:400;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);text-align:left;padding:13px 10px;border-bottom:1px solid var(--line-strong)}
+.lead-table td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+.lead-table tr:last-child td{border-bottom:none}
+.lead-table tbody tr{transition:background .16s ease}
+.lead-table tbody tr:hover{background:var(--cream)}
+.lead-actions-cell{text-align:right}
+.lead-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+/* the status label and its menu */
+.status-wrap{position:relative;display:inline-block}
+.status-pill{display:inline-flex;align-items:center;gap:8px;color:#fff;border:0;padding:7px 14px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap;transition:filter .2s}
+.status-pill:hover{filter:brightness(1.08)}
+.status-pill .caret{font-size:9px;opacity:.85}
+.menu-scrim{position:fixed;inset:0;z-index:80}
+.status-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:81;background:#fff;border:1px solid var(--line);box-shadow:0 30px 70px -34px rgba(34,48,42,.6);min-width:190px;padding:6px}
+.status-opt{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:9px 10px;font-size:13px;color:var(--body);cursor:pointer;text-align:left;font-family:inherit}
+.status-opt:hover{background:var(--cream)}
+.status-swatch{width:12px;height:12px;border-radius:3px;flex:none}
+
+/* owner, source, inline date */
+.owner-select{font-family:inherit;font-size:13.5px;color:var(--body);background:#fff;border:1px solid var(--line);padding:7px 9px;max-width:130px}
+.owner-select:focus{outline:2px solid var(--fern)}
+.date-cell{font-family:inherit;font-size:13.5px;color:var(--body);background:#fff;border:1px solid var(--line);padding:6px 7px;max-width:134px}
+.date-cell:focus{outline:2px solid var(--fern)}
+.date-cell.overdue{color:var(--crit);border-color:rgba(140,74,63,.4)}
+.date-empty{background:none;border:1px dashed var(--line-strong);color:var(--sage);padding:7px 11px;font-size:12px;letter-spacing:.08em;cursor:pointer;font-family:inherit;white-space:nowrap}
+.date-empty:hover{border-color:var(--fern);color:var(--fern)}
+.src-pill{display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);background:var(--cream);padding:4px 10px}
+
+/* the touch log in the panel */
+.touch-log{margin-top:26px;border-top:1px solid var(--line);padding-top:18px}
+.touch-head{font-family:'Marcellus',serif;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);margin-bottom:12px}
+.touch-item{padding:12px 0;border-bottom:1px solid var(--line)}
+.touch-item:last-child{border-bottom:0}
+
+/* phone: the board rows stack into cards, no horizontal scroll */
+@media (max-width:760px){
+  .add-lead-form{width:100%}
+  .add-lead-form input,.add-lead-form select{flex:1 1 140px}
+  .lead-table{display:block;box-shadow:none}
+  .lead-table thead{display:none}
+  .lead-table tbody,.lead-table tr,.lead-table td{display:block}
+  .lead-table tr{background:#fff;border:1px solid var(--line);padding:14px 16px;margin-bottom:12px;box-shadow:0 20px 46px -40px rgba(34,48,42,.5)}
+  .lead-table td{border:0;padding:7px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .lead-table td::before{content:attr(data-label);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);flex:none}
+  .lead-table td.lead-cell{display:block;padding-top:0}
+  .lead-table td.lead-cell::before{display:none}
+  .lead-table td[data-label=""]::before{display:none}
+  .lead-actions{justify-content:flex-start}
+  .owner-select,.date-cell{max-width:none}
+  .status-menu{left:auto;right:0}
+}
+
+/* The board table can be wider than the content column (seven columns, the
+   trailing actions among them); scroll it inside its group rather than letting
+   the last cell spill past the page edge. On a phone the rows stack into cards,
+   so the scroller is released and there is no horizontal scroll. */
+.lead-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;padding:0 2px}
+.lead-table{min-width:820px}
+@media (max-width:760px){
+  .lead-scroll{overflow:visible;margin:0}
+  .lead-table{min-width:0}
+}
+
+/* Keep the board's row-action buttons on one line (Log touch / Send
+   onboarding) so the last column does not wrap and crowd the card edge. */
+@media (min-width:761px){
+  .lead-table td .btn{ white-space:nowrap }
+  .lead-table td:last-child{ white-space:nowrap; text-align:right }
+}

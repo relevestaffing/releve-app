@@ -5,7 +5,9 @@ import { consoleSnapshot } from '@/lib/console';
 import { moneyReports, moneySummary, isOwner } from '@/lib/money';
 import { businessTrend } from '@/lib/founder';
 import FounderBand from '@/components/FounderBand';
-import { money } from '@/lib/money-public';
+import { dueFollowUps } from '@/lib/prospects';
+import { stageLabel } from '@/lib/prospects-public';
+import { money, todayInPacific } from '@/lib/money-public';
 import Shell from '@/components/Shell';
 import { firstName, DASH } from '@/lib/words';
 
@@ -41,6 +43,15 @@ const HEALTH: Record<string, { label: string; tone: string }> = {
   poor:  { label: 'Needs you', tone: 'crit' }
 };
 
+/* How late a lead's follow-up is, in words, for the glance card. Due today
+   reads as such; anything earlier is counted in whole days. */
+const overdueLabel = (nextFollowUp: string, today: string) => {
+  if (nextFollowUp >= today) return 'due today';
+  const days = Math.round(
+    (Date.parse(today + 'T00:00:00Z') - Date.parse(nextFollowUp + 'T00:00:00Z')) / 86_400_000);
+  return `${days} day${days === 1 ? '' : 's'} overdue`;
+};
+
 /* The first screen of the business. Ordered by what decays if nobody looks:
    what needs a person today, then the money, then the pipeline, then every
    live placement with its health on one line. */
@@ -51,6 +62,13 @@ export default async function Console({ searchParams }: { searchParams: Promise<
   const mine = (await searchParams).mine === '1';
 
   const { attention, vitals, placements } = await consoleSnapshot({ mine: mine ? profile.id : null });
+
+  /* Leads owed a touch today, for the glance card below the launchers. Its
+     own tolerant query, so a pre-part51 database returns an empty list
+     rather than a broken page. */
+  const due = await dueFollowUps();
+  const today = todayInPacific();
+  const dueOverdue = due.some(p => !!p.next_follow_up && p.next_follow_up < today);
 
   /* The founder's trajectory band, above the day's work. Owner-only: a
      Success Manager gets the operational console, not the state of the whole
@@ -115,6 +133,53 @@ export default async function Console({ searchParams }: { searchParams: Promise<
           <div><div className="qa-t">Send invoices, see money</div>
             <div className="qa-s">Draft, send and track what every executive owes.</div></div>
         </Link>
+      </div>
+
+      {/* ---------- leads owed a touch today ----------
+         A glance, not a workspace: who is going cold on the lead board and
+         how late they are, with the board one tap away for the actual work.
+         Operational, so every admin sees it, not only the owner. Placed
+         right after the launchers, above Today, because a lead left to cool
+         is the cheapest thing on this page to lose and the easiest to fix. */}
+      <div className="card">
+        <div className="card-head">
+          <h3>Follow up today</h3>
+          <span className={`pill ${dueOverdue ? 'crit' : 'good'}`}>
+            {due.length
+              ? `${due.length} lead${due.length === 1 ? '' : 's'}`
+              : <><span className="dot" />All clear</>}
+          </span>
+        </div>
+        {!due.length ? (
+          <p className="small" style={{ margin: 0, color: 'var(--sage)' }}>
+            No leads are due a follow-up today. The lead board is where you work them.
+          </p>
+        ) : (
+          <>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {due.map((p, i) => {
+                const over = !!p.next_follow_up && p.next_follow_up < today;
+                return (
+                  <li key={p.id} style={{ display: 'flex', alignItems: 'baseline', gap: 12,
+                    padding: '9px 0', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <b style={{ fontWeight: 400, color: 'var(--ink)' }}>{p.full_name}</b>
+                      {p.org_name ? <span className="muted">, {p.org_name}</span> : ''}
+                      <span className="xs muted"> · {stageLabel(p.stage)}</span>
+                    </span>
+                    <span className="xs" style={{ flex: 'none',
+                      color: over ? 'var(--crit)' : 'var(--sage)' }}>
+                      {overdueLabel(p.next_follow_up as string, today)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <Link className="btn sm ghost" href="/console/prospects" style={{ marginTop: 16 }}>
+              Open your leads
+            </Link>
+          </>
+        )}
       </div>
 
       {/* ---------- what needs a person ----------

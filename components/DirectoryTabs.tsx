@@ -31,7 +31,7 @@ export default async function DirectoryTabs({ active }: { active: 'prospects' | 
     <ConsoleTabs
       active={active === 'prospects' ? '/console/prospects' : active === 'executives' ? '/console/people' : '/console/bench'}
       items={[
-        { href: '/console/prospects', label: 'Prospects', count: live },
+        { href: '/console/prospects', label: 'Leads', count: live },
         { href: '/console/people', label: 'Executives' },
         { href: '/console/bench', label: 'Talent' },
         { href: '/console/cleanup', label: 'Tidy up' }
