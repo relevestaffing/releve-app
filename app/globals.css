@@ -2924,7 +2924,8 @@ a.pill.crit{ text-decoration:none; }
 .status-pill:hover{filter:brightness(1.08)}
 .status-pill .caret{font-size:9px;opacity:.85}
 .menu-scrim{position:fixed;inset:0;z-index:80}
-.status-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:81;background:#fff;border:1px solid var(--line);box-shadow:0 30px 70px -34px rgba(34,48,42,.6);min-width:190px;padding:6px}
+.status-menu{position:fixed;z-index:81;background:#fff;border:1px solid var(--line);box-shadow:0 30px 70px -34px rgba(34,48,42,.6);min-width:196px;max-width:calc(100vw - 16px);padding:6px}
+.status-now{margin-left:auto;color:var(--sage);font-size:12px}
 .status-opt{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:9px 10px;font-size:13px;color:var(--body);cursor:pointer;text-align:left;font-family:inherit}
 .status-opt:hover{background:var(--cream)}
 .status-swatch{width:12px;height:12px;border-radius:3px;flex:none}
@@ -2960,7 +2961,7 @@ a.pill.crit{ text-decoration:none; }
   .lead-table td[data-label=""]::before{display:none}
   .lead-actions{justify-content:flex-start}
   .owner-select,.date-cell{max-width:none}
-  .status-menu{left:auto;right:0}
+  .status-opt{padding:11px 10px}
 }
 
 /* The board table can be wider than the content column (seven columns, the

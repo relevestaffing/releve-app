@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState, useId } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Overlay from './Overlay';
 import { toast, saving } from './Toast';
-import type { Prospect, Touch, TouchKind } from '@/lib/prospects-public';
+import type { Prospect, Touch, ProspectStage } from '@/lib/prospects-public';
 import {
   PROSPECT_STAGES, PROSPECT_SOURCES, STAGE_GROUPS, TOUCH_KINDS,
   stageLabel, stageColor, stageGroup, sourceLabel, followUpDue
@@ -11,22 +12,43 @@ import {
 import { daysBetweenISO } from '@/lib/money-public';
 import { fmtWhen } from '@/lib/words';
 
-/* The lead board, reworked Monday-style (28 October 2026). One grouped table,
-   a solid coloured status label per row, an owner column, inline-editable
-   dates, add a lead inline. The "Follow up today" card sits above it: it is
-   the point of the whole feature, so it reads first. */
+/* The lead board, reworked to feel seamless (28 October 2026). One grouped
+   table, a solid coloured status label per row, inline owner and date. Every
+   inline edit updates the row on screen at once and saves in the background,
+   so nothing reloads the page or jumps the scroll. The status menu renders in
+   a portal so the table's own scroll can never clip it. "Follow up today"
+   sits on top: it is the point of the whole feature, so it reads first. */
 
 type Member = { user_id: string; name: string };
 
-async function patch(body: Record<string, unknown>, label: string) {
-  return saving(() => fetch('/api/admin/prospects', {
-    method: 'PATCH', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body)
-  }), label);
+/* A team member's name, tidied. Accounts without a display name fall back to
+   their email; show the readable part rather than a raw address. */
+function cleanName(name: string): string {
+  if (!name) return 'Someone';
+  if (!name.includes('@')) return name;
+  const local = name.split('@')[0].replace(/[._-]+/g, ' ').trim();
+  return local ? local.replace(/\b\w/g, c => c.toUpperCase()) : name;
 }
 
-/* Last touched, said the short way. A timestamp, compared by its calendar day
-   in the business timezone so "today" means today here. */
+/* A background save for a single-cell edit. The row already shows the change;
+   this just persists it, stays quiet on success, and on failure says so and
+   hands back the previous value to put back. */
+async function persist(body: Record<string, unknown>, revert: () => void) {
+  try {
+    const res = await fetch('/api/admin/prospects', {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      let why = '';
+      try { why = (await res.json())?.error ?? ''; } catch { /* not json */ }
+      toast.bad(why ? `Not saved. ${why}` : 'That did not save. Please try again.');
+      revert();
+    }
+  } catch { toast.bad('No connection, so nothing was saved.'); revert(); }
+}
+
+/* Last touched, said the short way. */
 function sinceDay(iso: string | null, today: string): string {
   if (!iso) return 'Not yet';
   const day = iso.slice(0, 10);
@@ -47,29 +69,59 @@ function dueWords(nextFollowUp: string | null, today: string): { text: string; t
   return { text: `${n} days overdue`, tone: 'over' };
 }
 
-/* ---------- the status label, click to change ---------- */
-function StatusCell({ p, onMove }: { p: Prospect; onMove: (stage: string) => void }) {
+/* ---------- the status label, click to change ----------
+   The menu is portalled to the body at a fixed position worked out from the
+   button, so the table's horizontal scroll (overflow) never clips it. It
+   closes on an outside click, on scroll, on resize and on Escape. */
+function StatusCell({ stage, onMove }: { stage: ProspectStage; onMove: (s: ProspectStage) => void }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const r = btn.current?.getBoundingClientRect();
+      if (!r) return;
+      const H = 332;
+      const below = window.innerHeight - r.bottom;
+      const top = below < H ? Math.max(8, r.top - H - 4) : r.bottom + 6;
+      const left = Math.min(r.left, window.innerWidth - 210);
+      setPos({ top, left: Math.max(8, left) });
+    };
+    place();
+    const close = () => setOpen(false);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   return (
     <div className="status-wrap">
-      <button className="status-pill" style={{ background: stageColor(p.stage) }}
+      <button ref={btn} className="status-pill" style={{ background: stageColor(stage) }}
         aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>
-        {stageLabel(p.stage)}<span className="caret" aria-hidden="true">▾</span>
+        {stageLabel(stage)}<span className="caret" aria-hidden="true">▾</span>
       </button>
-      {open && (
+      {open && pos && createPortal(
         <>
           <div className="menu-scrim" onClick={() => setOpen(false)} />
-          <div className="status-menu" role="menu">
+          <div className="status-menu" role="menu" style={{ top: pos.top, left: pos.left }}>
             {PROSPECT_STAGES.map(s => (
               <button key={s.key} className="status-opt" role="menuitem"
-                onClick={() => { setOpen(false); if (s.key !== p.stage) onMove(s.key); }}>
+                onClick={() => { setOpen(false); if (s.key !== stage) onMove(s.key); }}>
                 <span className="status-swatch" style={{ background: s.color }} aria-hidden="true" />
                 {s.label}
+                {s.key === stage && <span className="status-now" aria-hidden="true">✓</span>}
               </button>
             ))}
           </div>
-        </>
-      )}
+        </>, document.body)}
     </div>
   );
 }
@@ -89,14 +141,17 @@ function DateCell({ p, today, onSet }: { p: Prospect; today: string; onSet: (d: 
 }
 
 /* ---------- the touch panel ---------- */
-function TouchPanel({ p, team, today, onClose }: {
-  p: Prospect; team: Member[]; today: string; onClose: () => void;
+function TouchPanel({ p, team, onClose, onLogged }: {
+  p: Prospect; team: Member[]; onClose: () => void;
+  onLogged: (next_follow_up: string | null) => void;
 }) {
   const fid = useId();
-  const router = useRouter();
   const [touches, setTouches] = useState<Touch[] | null>(null);
   const [busy, setBusy] = useState(false);
-  const nameOf = (id: string | null) => team.find(m => m.user_id === id)?.name ?? null;
+  const nameOf = (id: string | null) => {
+    const m = team.find(x => x.user_id === id);
+    return m ? cleanName(m.name) : null;
+  };
 
   useEffect(() => {
     let live = true;
@@ -109,16 +164,17 @@ function TouchPanel({ p, team, today, onClose }: {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const nextFollow = (f.get('next_follow_up') as string) || null;
     setBusy(true);
     const ok = await saving(() => fetch('/api/admin/prospects', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         action: 'touch', prospect_id: p.id, kind: f.get('kind'),
-        note: f.get('note'), next_follow_up: f.get('next_follow_up') || null
+        note: f.get('note'), next_follow_up: nextFollow
       })
     }), 'Touch logged');
     setBusy(false);
-    if (ok) { onClose(); router.refresh(); }
+    if (ok) { onLogged(nextFollow); onClose(); }
   }
 
   return (
@@ -166,25 +222,41 @@ function TouchPanel({ p, team, today, onClose }: {
 }
 
 /* ---------- add a lead inline ---------- */
-function AddLead() {
+function AddLead({ onAdded }: { onAdded: (p: Prospect) => void }) {
   const fid = useId();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    const full_name = String(f.get('full_name') ?? '').trim();
+    const email = String(f.get('email') ?? '').trim();
+    const org_name = String(f.get('org_name') ?? '').trim() || null;
+    const source = String(f.get('source') ?? 'linkedin');
     setBusy(true);
-    const ok = await saving(() => fetch('/api/admin/prospects', {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        full_name: f.get('full_name'), email: f.get('email'),
-        org_name: f.get('org_name'), source: f.get('source')
-      })
-    }), 'Lead added');
+    let id = '';
+    const ok = await saving(async () => {
+      const res = await fetch('/api/admin/prospects', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ full_name, email, org_name, source })
+      });
+      try { id = (await res.clone().json())?.id ?? ''; } catch { /* keep res */ }
+      return res;
+    }, 'Lead added');
     setBusy(false);
-    if (ok) { (e.target as HTMLFormElement).reset(); setOpen(false); router.refresh(); }
+    if (ok) {
+      const now = new Date().toISOString();
+      onAdded({
+        id: id || `new-${now}`, full_name, email, org_name,
+        source: source as Prospect['source'], call_at: null, stage: 'new',
+        note: null, lost_reason: null, pending_id: null, next_follow_up: null,
+        last_touched_at: null, owner_id: null, created_at: now, updated_at: now
+      });
+      form.reset();
+      setOpen(false);
+    }
   }
 
   if (!open) return <button className="add-lead" onClick={() => setOpen(true)}>+ Add lead</button>;
@@ -207,9 +279,36 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
   prospects: Prospect[]; team: Member[]; calendarOn: boolean; today: string;
 }) {
   const router = useRouter();
+  const [rows, setRows] = useState<Prospect[]>(prospects);
   const [touchFor, setTouchFor] = useState<Prospect | null>(null);
   const [pulling, setPulling] = useState(false);
-  const ownerName = (id: string | null) => team.find(m => m.user_id === id)?.name ?? null;
+
+  // Re-seed when the server sends a fresh list (navigation, or after an import).
+  useEffect(() => { setRows(prospects); }, [prospects]);
+
+  const ownerName = (id: string | null) => {
+    const m = team.find(x => x.user_id === id);
+    return m ? cleanName(m.name) : null;
+  };
+  const patchRow = (id: string, change: Partial<Prospect>) =>
+    setRows(rs => rs.map(r => (r.id === id ? { ...r, ...change } : r)));
+
+  // Inline edits: change the row on screen now, save in the background.
+  const move = (p: Prospect, stage: ProspectStage) => {
+    const prev = p.stage;
+    patchRow(p.id, { stage });
+    persist({ id: p.id, stage }, () => patchRow(p.id, { stage: prev }));
+  };
+  const setOwner = (p: Prospect, owner_id: string | null) => {
+    const prev = p.owner_id;
+    patchRow(p.id, { owner_id });
+    persist({ id: p.id, owner_id }, () => patchRow(p.id, { owner_id: prev }));
+  };
+  const setFollow = (p: Prospect, d: string | null) => {
+    const prev = p.next_follow_up;
+    patchRow(p.id, { next_follow_up: d });
+    persist({ id: p.id, next_follow_up: d }, () => patchRow(p.id, { next_follow_up: prev }));
+  };
 
   async function pull() {
     setPulling(true);
@@ -228,8 +327,8 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
     router.refresh();
   }
 
-  const due = prospects.filter(p => followUpDue(p, today))
-    .sort((a, b) => (a.next_follow_up ?? '') < (b.next_follow_up ?? '') ? -1 : 1);
+  const due = rows.filter(p => followUpDue(p, today))
+    .sort((a, b) => ((a.next_follow_up ?? '') < (b.next_follow_up ?? '') ? -1 : 1));
 
   const onboardHref = (p: Prospect) =>
     `/console/people?onboard=${encodeURIComponent(p.email)}&name=${encodeURIComponent(p.full_name)}`;
@@ -261,8 +360,8 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
                 {p.org_name && <span className="lead-sub"> · {p.org_name}</span>}
                 <div><span className={`fu-when ${w.tone}`}>{w.text}</span></div>
               </div>
-              <StatusCell p={p} onMove={stage => patch({ id: p.id, stage }, stageLabel(stage)).then(ok => ok && router.refresh())} />
-              <DateCell p={p} today={today} onSet={d => patch({ id: p.id, next_follow_up: d }, 'Rescheduled').then(ok => ok && router.refresh())} />
+              <StatusCell stage={p.stage} onMove={s => move(p, s)} />
+              <DateCell p={p} today={today} onSet={d => setFollow(p, d)} />
               <button className="btn sm solid" onClick={() => setTouchFor(p)}>Log touch</button>
             </div>
           );
@@ -271,17 +370,17 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
 
       {/* The board */}
       {STAGE_GROUPS.map(g => {
-        const rows = prospects.filter(p => stageGroup(p.stage) === g.key);
+        const groupRows = rows.filter(p => stageGroup(p.stage) === g.key);
         const accent = stageColor(PROSPECT_STAGES.find(s => s.group === g.key)!.key);
         return (
           <div key={g.key} className="board-group">
             <div className="group-head" style={{ '--accent': accent } as React.CSSProperties}>
               <h3>{g.label}</h3>
-              <span className="group-count">{rows.length}</span>
-              {g.key === 'leads' && <span style={{ marginLeft: 'auto' }}><AddLead /></span>}
+              <span className="group-count">{groupRows.length}</span>
+              {g.key === 'leads' && <span style={{ marginLeft: 'auto' }}><AddLead onAdded={p => setRows(rs => [p, ...rs])} /></span>}
             </div>
-            {rows.length === 0
-              ? <p className="small muted" style={{ paddingLeft: 14 }}>
+            {groupRows.length === 0
+              ? <p className="small muted" style={{ paddingLeft: 15 }}>
                   {g.key === 'leads' ? 'No leads yet. Add one, or pull calls from the calendar.' : 'Nothing here yet.'}
                 </p>
               : (
@@ -294,26 +393,26 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map(p => (
+                    {groupRows.map(p => (
                       <tr key={p.id}>
                         <td className="lead-cell" data-label="Lead">
                           <b className="lead-name">{p.full_name}</b>
                           <div className="lead-sub">{[p.org_name, p.email].filter(Boolean).join(' · ')}</div>
                         </td>
                         <td data-label="Status">
-                          <StatusCell p={p} onMove={stage => patch({ id: p.id, stage }, stageLabel(stage)).then(ok => ok && router.refresh())} />
+                          <StatusCell stage={p.stage} onMove={s => move(p, s)} />
                         </td>
                         <td data-label="Owner">
                           <select className="owner-select" key={p.owner_id ?? 'none'} defaultValue={p.owner_id ?? ''}
                             aria-label={`Owner for ${p.full_name}`}
-                            onChange={e => patch({ id: p.id, owner_id: e.target.value || null }, 'Owner set').then(ok => ok && router.refresh())}>
+                            onChange={e => setOwner(p, e.target.value || null)}>
                             <option value="">Unassigned</option>
-                            {team.map(m => <option key={m.user_id} value={m.user_id}>{m.name}</option>)}
+                            {team.map(m => <option key={m.user_id} value={m.user_id}>{cleanName(m.name)}</option>)}
                           </select>
                         </td>
                         <td data-label="Source"><span className="src-pill">{sourceLabel(p.source)}</span></td>
                         <td data-label="Next follow-up">
-                          <DateCell p={p} today={today} onSet={d => patch({ id: p.id, next_follow_up: d }, 'Follow-up set').then(ok => ok && router.refresh())} />
+                          <DateCell p={p} today={today} onSet={d => setFollow(p, d)} />
                         </td>
                         <td data-label="Last touched"><span className="muted small">{sinceDay(p.last_touched_at, today)}</span></td>
                         <td data-label="" className="lead-actions-cell">
@@ -332,7 +431,17 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
         );
       })}
 
-      {touchFor && <TouchPanel p={touchFor} team={team} today={today} onClose={() => setTouchFor(null)} />}
+      {touchFor && (
+        <TouchPanel
+          p={touchFor}
+          team={team}
+          onClose={() => setTouchFor(null)}
+          onLogged={next => patchRow(touchFor.id, {
+            last_touched_at: new Date().toISOString(),
+            next_follow_up: next ?? touchFor.next_follow_up
+          })}
+        />
+      )}
     </>
   );
 }
