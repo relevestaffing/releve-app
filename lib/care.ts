@@ -12,6 +12,21 @@ export * from './care-public';
 
 /* ---------- the team ---------- */
 
+/* A team member's display name. Mirrors the sidebar (Shell.tsx): the shared
+   console inbox shows as "Sage", not the raw hello@ address, and any account
+   still without a real name shows a readable label rather than an email. */
+const CONSOLE_INBOX = 'hello@relevestaffing.com';
+export function teamMemberName(full_name?: string | null, email?: string | null): string {
+  if (full_name && !full_name.includes('@')) return full_name;
+  if ((email ?? '').toLowerCase() === CONSOLE_INBOX) return 'Sage';
+  const e = email ?? '';
+  if (e.includes('@')) {
+    const local = e.split('@')[0].replace(/[._-]+/g, ' ').trim();
+    if (local) return local.replace(/\b\w/g, c => c.toUpperCase());
+  }
+  return full_name || 'Someone';
+}
+
 export async function teamRoles() {
   if (!configured()) return [
     { user_id: 'demo-admin', team_role: 'owner' as TeamRole, added_at: null, name: 'Rae Lindqvist', email: 'hello@relevestaffing.com' },
@@ -23,7 +38,7 @@ export async function teamRoles() {
     .select('user_id, team_role, added_at, person:user_id(full_name, email)');
   return (data ?? []).map((r: any) => ({
     user_id: r.user_id, team_role: r.team_role as TeamRole, added_at: r.added_at,
-    name: r.person?.full_name ?? r.person?.email ?? 'Someone',
+    name: teamMemberName(r.person?.full_name, r.person?.email),
     email: r.person?.email ?? ''
   }));
 }
