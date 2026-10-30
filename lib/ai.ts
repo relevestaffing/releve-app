@@ -8,7 +8,7 @@ import type { AuditInputs } from './audits-public';
 import { planLabel } from './audits-public';
 
 const ENDPOINT = 'https://api.anthropic.com/v1/messages';
-const DEFAULT_MODEL = 'claude-sonnet-4-5';
+const DEFAULT_MODEL = 'claude-sonnet-5-5';
 
 export function aiReady(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
@@ -131,7 +131,7 @@ export async function classifyInboxEmailAI(m: { from: string; subject: string; s
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: process.env.ANTHROPIC_CLASSIFY_MODEL || 'claude-haiku-4-5',
+        model: process.env.ANTHROPIC_CLASSIFY_MODEL || 'claude-haiku-5-5',
         max_tokens: 5,
         system: 'Relève places fully managed virtual executive staff (assistants, VAs, specialists) from the Philippines and Latin America with founders and business owners. You read one email sent to hello@relevestaffing.com and answer with exactly one word. CLIENT: a business owner or company asking Relève for that service, wanting to hire or be matched with an assistant or virtual staff, asking about pricing, plans or how it works for their business, or asking to book or reschedule a discovery call. APPLICANT: a person looking for work through Relève, applying for a role, sending a resume or CV, or offering themselves as an assistant or VA. OTHER: everything else, including vendors, agencies or anyone selling something, partnership or sponsorship pitches, newsletters, notifications, receipts, invoices, existing team, and anything unclear.',
         messages: [{ role: 'user', content: `From: ${m.from}\nSubject: ${m.subject}\nResume attached: ${m.hasResume ? 'yes' : 'no'}\n\n${m.snippet}` }]
