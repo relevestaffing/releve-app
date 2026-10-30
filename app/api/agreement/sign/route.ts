@@ -5,6 +5,7 @@ import { buildSignedAgreement } from '@/lib/agreement-pdf';
 import { AGREEMENT_VERSION } from '@/lib/agreement-text';
 import { send, templates } from '@/lib/email';
 import { safeMessage } from '@/lib/errors';
+import { depositLocked } from '@/lib/stage';
 import { CONTACT_EMAIL } from '@/lib/experience-public';
 
 export const dynamic = 'force-dynamic';
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
       filename: 'Releve-Client-Services-Agreement-signed.pdf', content: pdf, contentType: 'application/pdf'
     };
     const first = name.split(' ')[0];
-    const copy = await send(me.email, { ...templates.clientAgreementSigned(first), kind: 'clientAgreementSigned', attachments: [attachment] });
+    const copy = await send(me.email, { ...templates.clientAgreementSigned(first, await depositLocked(me as any)), kind: 'clientAgreementSigned', attachments: [attachment] });
     await send(CONTACT_EMAIL, { ...templates.clientAgreementSignedTeam({ name, email: me.email }), kind: 'clientAgreementSignedTeam', attachments: [attachment] });
 
     return NextResponse.json({ ok: true, emailed: copy, to: me.email });

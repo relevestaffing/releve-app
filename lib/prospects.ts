@@ -116,8 +116,12 @@ export async function saveProspect(row: {
   const email = row.email.trim().toLowerCase();
   const patch: any = {
     full_name: row.full_name.trim(), email, org_name: row.org_name?.trim() || null,
-    call_at: row.call_at || null, note: row.note?.trim() || null
   };
+  /* Only touch what the caller sent. The contact card sends name, company,
+     email, website and source; writing call_at and note as null there wiped
+     a booked call and the website's notes (QA, 30 Oct 2026). */
+  if (row.call_at !== undefined) patch.call_at = row.call_at || null;
+  if (row.note !== undefined) patch.note = row.note?.trim() || null;
   if (row.source) patch.source = row.source;
   if (row.website !== undefined) patch.website = row.website?.trim() || null;
   if (row.id) {

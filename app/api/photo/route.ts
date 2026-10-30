@@ -3,6 +3,7 @@ import { configured, currentProfile, supabaseServer } from '@/lib/supabase/serve
 import { saveSelfProfile, getSelfProfile } from '@/lib/store';
 import { looksLike } from '@/lib/filetype';
 import { safeMessage } from '@/lib/errors';
+import { depositLocked } from '@/lib/stage';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,7 @@ const MAX_BYTES = 2 * 1024 * 1024;   // the browser already shrank it; this is t
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
+  if (await depositLocked(me)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
 
   const form = await req.formData();
   const file = form.get('photo');

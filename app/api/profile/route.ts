@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
 import { markOnboarded, saveSelfProfile } from '@/lib/store';
 import { safeMessage } from '@/lib/errors';
+import { depositLocked } from '@/lib/stage';
 
 export async function PATCH(req: Request) {
   const p = await currentProfile();
@@ -9,6 +10,7 @@ export async function PATCH(req: Request) {
   const body = await req.json().catch(() => ({}));
 
   if (body.onboarded) { await markOnboarded(p.id); return NextResponse.json({ ok: true }); }
+  if (await depositLocked(p)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
 
   /* a person editing their own profile. Pay is deliberately not in this list —
      talent can never set what they are paid. */

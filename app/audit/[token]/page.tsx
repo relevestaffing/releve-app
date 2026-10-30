@@ -26,7 +26,11 @@ export default async function AuditView({ params }: { params: Promise<{ token: s
   }
 
   const escaped = (audit.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const html = await marked.parse(escaped, { gfm: true, breaks: false });
+  const raw = await marked.parse(escaped, { gfm: true, breaks: false });
+  /* Markdown links can carry javascript: or data: URLs even with the angle
+     brackets escaped. Keep http(s) and mailto, drop the rest (QA, 30 Oct). */
+  const html = raw.replace(/href="([^"]*)"/g, (_m, u: string) =>
+    /^(https?:|mailto:)/i.test(u.replace(/&amp;/g, '&').trim()) ? `href="${u}" rel="noopener noreferrer"` : 'href="#"');
 
   return (
     <main className="audit-wrap">

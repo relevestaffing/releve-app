@@ -26,7 +26,7 @@ export default async function HowPage() {
         <div>
           <div className="eyebrow" style={{ marginBottom: 6 }}>Where the value is</div>
           <div className="small" style={{ maxWidth: 560 }}>
-            See how the retainer compares to hiring and holding the same person full-time.
+            See how many hours, days and dollars come back to you.
           </div>
         </div>
         <Link className="btn solid" href="/app/value">The value, in your own numbers</Link>

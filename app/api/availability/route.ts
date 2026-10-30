@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { getAvailability, setAvailability } from '@/lib/store';
 import { safeMessage } from '@/lib/errors';
+import { depositLocked } from '@/lib/stage';
 
 /* Every weekday window in minutes-from-midnight, 0–6 and 0–1440 — the same
    shape scheduling.ts's own Window type promises everywhere else it is read.
@@ -23,6 +24,7 @@ export async function GET() {
 export async function POST(req: Request) {
   const p = await currentProfile();
   if (!p) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
+  if (await depositLocked(p)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
   const b = await req.json().catch(() => null);
   if (!b || typeof b.timezone !== 'string' || !b.timezone.trim())
     return NextResponse.json({ error: 'which timezone?' }, { status: 400 });

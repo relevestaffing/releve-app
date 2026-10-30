@@ -51,6 +51,13 @@ export default async function LeadFile({ params }: { params: Promise<{ id: strin
 
       <LeadContact lead={lead} />
 
+      {lead.note && (
+        <div className="card">
+          <div className="card-head"><h3>What they told us</h3></div>
+          <p className="small" style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{lead.note}</p>
+        </div>
+      )}
+
       <AuditDesk
         prospectId={lead.id}
         email={lead.email}

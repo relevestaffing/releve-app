@@ -59,7 +59,10 @@ export async function POST(req: Request) {
   try {
     const id = await saveProspect({
       id: b.id || undefined, full_name, email,
-      org_name: b.org_name, source: b.source, call_at: b.call_at || null, note: b.note, website: b.website
+      org_name: b.org_name, source: b.source,
+      call_at: 'call_at' in b ? (b.call_at || null) : undefined,
+      note: 'note' in b ? b.note : undefined,
+      website: b.website
     });
     return NextResponse.json({ ok: true, id });
   } catch (e: any) {

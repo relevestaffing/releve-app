@@ -4,7 +4,7 @@ import { getProspect } from '@/lib/prospects';
 import { auditDraft } from '@/lib/ai';
 import { createAudit, updateAudit, getAudit, markAuditSent } from '@/lib/audits';
 import type { AuditInputs } from '@/lib/audits-public';
-import { shell, send } from '@/lib/email';
+import { shell, send, esc } from '@/lib/email';
 import { SITE } from '@/lib/stripe';
 import { safeMessage } from '@/lib/errors';
 
@@ -24,7 +24,11 @@ export async function GET(req: Request) {
   if (!id) return NextResponse.json({ error: 'Which audit?' }, { status: 400 });
   const audit = await getAudit(id);
   if (!audit) return NextResponse.json({ error: 'That audit was not found.' }, { status: 404 });
-  return NextResponse.json({ ok: true, audit: { title: audit.title, content: audit.content, status: audit.status } });
+  const st = (audit.inputs ?? {}) as any;
+  return NextResponse.json({ ok: true, audit: {
+    title: audit.title, content: audit.content, status: audit.status,
+    state: st._state ?? (audit.content ? 'ready' : 'writing'), error: st._error ?? null
+  } });
 }
 
 export async function POST(req: Request) {
@@ -39,14 +43,29 @@ export async function POST(req: Request) {
     const lead = await getProspect(prospectId);
     if (!lead) return NextResponse.json({ error: 'That lead was not found.' }, { status: 404 });
     const inputs = (b.inputs ?? {}) as AuditInputs;
+    if (!process.env.ANTHROPIC_API_KEY)
+      return NextResponse.json({ error: 'Add your Anthropic API key (ANTHROPIC_API_KEY) in Netlify to turn on audits.' }, { status: 400 });
     try {
+      /* A full audit takes Claude longer than a web request may run, so the
+         draft is filed empty and written by a background function; the
+         console polls it (QA, 30 Oct 2026). Without the background function
+         (local dev), it is written here as before. */
+      const { id, token } = await createAudit({
+        prospectId, title: 'Writing the audit…', inputs: { ...inputs, _state: 'writing' } as any, content: '', createdBy: g.p?.id
+      });
+      const base = (process.env.NEXT_PUBLIC_APP_URL ?? process.env.URL ?? SITE).replace(/\/$/, '');
+      const secret = process.env.CRON_SECRET;
+      const kick = secret ? await fetch(`${base}/.netlify/functions/audit-draft-background`, {
+        method: 'POST', headers: { 'x-cron-key': secret, 'content-type': 'application/json' }, body: JSON.stringify({ id })
+      }).catch(() => null) : null;
+      if (kick && kick.status < 300)
+        return NextResponse.json({ ok: true, id, token, pending: true, title: 'Writing the audit…', content: '' });
+
       const draft = await auditDraft({
         name: lead.full_name, company: lead.org_name ?? '',
         inputs: { ...inputs, website: inputs.website || lead.website || undefined }
       });
-      const { id, token } = await createAudit({
-        prospectId, title: draft.title, inputs, content: draft.content, createdBy: g.p?.id
-      });
+      await updateAudit(id, { title: draft.title, content: draft.content });
       return NextResponse.json({ ok: true, id, token, title: draft.title, content: draft.content });
     } catch (e: any) {
       // auditDraft throws readable messages (missing key, bad model, rate limit).
@@ -75,7 +94,7 @@ export async function POST(req: Request) {
     const url = `${SITE}/audit/${audit.view_token}`;
     const first = (lead.full_name ?? '').trim().split(/\s+/)[0] || '';
     const inner =
-      `<p style="margin:0 0 15px;">${first ? first + ',' : 'Hello,'}</p>` +
+      `<p style="margin:0 0 15px;">${first ? esc(first) + ',' : 'Hello,'}</p>` +
       `<p style="margin:0 0 15px;">Thank you for the conversation. We put together a short audit of where your business is now and what we would run for you, with the plan and the investment laid out.</p>` +
       `<p style="margin:0 0 15px;">It is yours to read anytime at the link below.</p>`;
     const ok = await send(lead.email, {

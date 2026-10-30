@@ -39,11 +39,38 @@ export default function AuditDesk({ prospectId, email, website, elivateMember, a
       });
       d = await res.json().catch(() => ({}));
     } catch { setWriting(false); toast.bad('No connection, so nothing was written.'); return; }
-    setWriting(false);
-    if (!res.ok) { toast.bad(d.error ?? 'The audit could not be written.'); return; }
-    setBuilding(false);
+    if (!res.ok) { setWriting(false); toast.bad(d.error ?? 'The audit could not be written.'); return; }
     setRows(rs => [{ id: d.id, title: d.title, status: 'draft', view_token: d.token, created_at: new Date().toISOString() }, ...rs]);
-    setEditing({ id: d.id, title: d.title, content: d.content, token: d.token, status: 'draft' });
+    let title = d.title as string, content = d.content as string;
+    if (d.pending) {
+      /* Claude writes it in the background; check every few seconds, for up
+         to five minutes. */
+      const until = Date.now() + 5 * 60 * 1000;
+      let done = false;
+      while (Date.now() < until) {
+        await new Promise(r => setTimeout(r, 4000));
+        try {
+          const r = await fetch(`/api/admin/audits?id=${encodeURIComponent(d.id)}`);
+          const j = await r.json().catch(() => ({}));
+          if (r.ok && j.audit?.state === 'error') {
+            setWriting(false);
+            setRows(rs => rs.map(x => x.id === d.id ? { ...x, title: j.audit.title } : x));
+            toast.bad(j.audit.error ?? 'The audit could not be written.');
+            return;
+          }
+          if (r.ok && j.audit?.content) { title = j.audit.title; content = j.audit.content; done = true; break; }
+        } catch { /* keep waiting */ }
+      }
+      if (!done) {
+        setWriting(false); setBuilding(false);
+        toast.bad('Still writing. It will appear in this list shortly; refresh in a minute.');
+        return;
+      }
+    }
+    setWriting(false);
+    setBuilding(false);
+    setRows(rs => rs.map(x => x.id === d.id ? { ...x, title } : x));
+    setEditing({ id: d.id, title, content, token: d.token, status: 'draft' });
     toast.saved('Audit drafted');
   }
 
@@ -161,7 +188,7 @@ function KeyPointsForm({ website, elivateMember, writing, onClose, onGenerate }:
             <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)}
               placeholder="Optional. Anything worth weaving in." /></div>
           <button className="btn solid" disabled={writing}>{writing ? 'Writing the audit…' : 'Write the audit'}</button>
-          {writing && <p className="xs muted" style={{ marginTop: 10 }}>Claude is writing it now. This takes a few seconds.</p>}
+          {writing && <p className="xs muted" style={{ marginTop: 10 }}>Claude is writing it now. This takes a minute or two. You can keep this open.</p>}
         </form>
       </div>
     </Overlay>
