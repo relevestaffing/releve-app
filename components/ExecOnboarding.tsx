@@ -19,9 +19,9 @@ export default function ExecOnboarding({ deposit, stripeOn, manager }: {
         <span className="pill"><span className="dot" />Clearing</span>
       </div>
       <p className="small" style={{ marginBottom: 12, maxWidth: 560 }}>
-        Thank you. Your <b>{money(deposit.cents)}</b> deposit is on its way through the bank, and your
-        search is already open. Bank transfers take a few business days to settle; nothing more is
-        needed from you.
+        Thank you. Your <b>{money(deposit.cents)}</b> deposit is on its way through the bank. Bank
+        transfers take a few business days to settle, and your account opens the moment it does.
+        Nothing more is needed from you.
       </p>
       <p className="xs muted" style={{ maxWidth: 560 }}>
         It is credited in full against your first month once you are placed. This page updates on its own
@@ -55,8 +55,8 @@ export default function ExecOnboarding({ deposit, stripeOn, manager }: {
         <li><b>Within fourteen days of the search opening.</b> Your first qualified candidate.</li>
       </ol>
       <p className="xs muted" style={{ maxWidth: 560 }}>
-        If you already arranged the deposit on your call, nothing more is needed. Questions any time: write to
-        your Client Success Manager from Messages.
+        If you have already arranged your deposit with us directly, your Client Success Manager will open your
+        account. Questions any time: write to them from Messages.
       </p>
     </div>
   );

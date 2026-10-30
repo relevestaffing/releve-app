@@ -535,17 +535,17 @@ details.more .inner{padding-top:18px;animation:riseSm .4s cubic-bezier(.22,.61,.
    A responsive gallery of the delegation areas. Two up on desktop, one on a
    phone; each card is a bare panel in the same hairline-mosaic language as the
    stat strips, and the example tasks are quiet chips rather than another list. */
-.delegate-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;
-  background:var(--line);border:1px solid var(--mist);border-radius:0;overflow:hidden;
-  box-shadow:0 26px 60px -44px rgba(34,48,42,.4);margin-bottom:26px}
-.delegate-card{border:none;border-radius:0;box-shadow:none;margin:0;padding:22px 24px}
+.delegate-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  background:transparent;border:none;border-radius:0;overflow:visible;
+  box-shadow:none;margin-bottom:26px}
+.delegate-card{margin:0;padding:22px 24px}
 .delegate-card h3{font-family:Marcellus,serif}
 .deleg-tags{display:flex;flex-wrap:wrap;gap:6px}
 .deleg-tag{font-size:11.5px;color:var(--sage);background:var(--cream);
   border:1px solid var(--mist);border-radius:0;padding:4px 11px;line-height:1.3}
 .deleg-tag.more{color:var(--muted);background:transparent;border-style:dashed}
 @media (max-width:760px){
-  .delegate-grid{grid-template-columns:1fr}
+  .delegate-grid{grid-template-columns:1fr;gap:12px}
   .delegate-card{padding:18px}
   .delegate-card p{min-height:0 !important}
 }
@@ -3032,3 +3032,10 @@ a.pill.crit{ text-decoration:none; }
   .topbar h1.title-rise,.topbar .crumb{animation:none}
   .btn.solid::after{display:none}
 }
+
+/* time-back calculator, first-run tour step 3 */
+.tb-in{display:grid;gap:22px;margin:6px 0 26px}
+.tb-rng{display:grid;gap:10px}
+.tb-lab{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:14.5px;color:var(--body)}
+.tb-lab output{font-family:Marcellus,serif;font-size:22px;color:var(--fern);white-space:nowrap}
+.tb-rng input[type=range]{width:100%;accent-color:var(--fern);height:28px;cursor:pointer}

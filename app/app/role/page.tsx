@@ -5,6 +5,7 @@ import Shell from '@/components/Shell';
 import NextStep from '@/components/NextStep';
 import { setupFor } from '@/lib/setup';
 import RoleBreakdownForm from '@/components/RoleBreakdownForm';
+import { requireDeposit } from '@/lib/stage';
 
 export const metadata = { title: 'The role' };
 
@@ -13,6 +14,7 @@ export const dynamic = 'force-dynamic';
 export default async function RolePage() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  await requireDeposit(profile);
   if (profile.role !== 'client') redirect('/app');
   const initial = await getRoleBreakdown(profile.id);
 

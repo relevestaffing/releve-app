@@ -8,14 +8,14 @@ export default function DelegateContent() {
     <>
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 12 }}>
-          What to delegate
+          Built around your business
         </div>
         <h2 style={{ fontSize: 28, color: 'var(--cream)', marginBottom: 14, maxWidth: 560 }}>
-          Most executives hand over the calendar and stop there.
+          We tune your assistant to your business.
         </h2>
         <p className="small" style={{ maxWidth: 520, color: 'var(--pale)' }}>
-          Everything a Relève placement can own. Pick the few that would give you
-          your week back.
+          Choose what you want off your plate. We shape the role, and match your
+          person, around how your business actually runs.
         </p>
       </div>
 

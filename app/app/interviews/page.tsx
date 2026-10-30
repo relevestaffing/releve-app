@@ -15,6 +15,7 @@ import InterviewFeedback from '@/components/InterviewFeedback';
 import { listFeedback, listDecisions } from '@/lib/work';
 import Empty from '@/components/Empty';
 import { EMPTY, firstName } from '@/lib/words';
+import { requireDeposit } from '@/lib/stage';
 
 export const metadata = { title: 'Interviews' };
 
@@ -24,6 +25,7 @@ export const dynamic = 'force-dynamic';
 export default async function Interviews() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  await requireDeposit(profile);
   /* Every other page under /app sends the team to the console. Without it
      the line below reads any non-client as talent, so an admin opening this
      page was handed the talent's own screen. */

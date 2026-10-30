@@ -12,6 +12,7 @@ import RoleFit from '@/components/RoleFit';
 import { getRoleBreakdown, skillsFor } from '@/lib/roles';
 import { listMatches } from '@/lib/store';
 import { firstName, zoneLabel, EMPTY, WORDS } from '@/lib/words';
+import { requireDeposit } from '@/lib/stage';
 
 export const metadata = { title: 'Your candidate' };
 
@@ -31,6 +32,7 @@ export const dynamic = 'force-dynamic';
 export default async function Pipeline() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  await requireDeposit(profile);
   if (profile.role !== 'client') redirect('/app');
   const sig = await getMySignature(profile, 'client');
   if (!sig) redirect('/app/signature');

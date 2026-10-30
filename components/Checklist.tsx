@@ -35,7 +35,7 @@ export default function Checklist({ steps, heading }: { steps: Step[]; heading?:
           <h3>{heading ?? 'Getting set up'}</h3>
           <p className="setup-count">
             {done === 0
-              ? `${steps.length} things, and the first is below`
+              ? `${steps.length} steps to set up`
               : `${done} of ${steps.length} done`}
           </p>
         </div>
@@ -51,8 +51,8 @@ export default function Checklist({ steps, heading }: { steps: Step[]; heading?:
       {blocking > 0 && (
         <p className="setup-note">
           {blocking === 1
-            ? 'One of these is needed before you can be matched.'
-            : `${blocking} of these are needed before you can be matched.`}
+            ? 'One step is needed before you can be matched.'
+            : `${blocking} steps are needed before you can be matched.`}
         </p>
       )}
 

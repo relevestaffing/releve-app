@@ -12,6 +12,7 @@ import ExecProfileEditor from '@/components/ExecProfileEditor';
 import { AxisBars, Portrait } from '@/components/Viz';
 import { executiveStage } from '@/lib/stage';
 import { WORDS } from '@/lib/words';
+import { requireDeposit } from '@/lib/stage';
 
 export const metadata = { title: 'Your profile' };
 
@@ -20,6 +21,7 @@ export const dynamic = 'force-dynamic';
 export default async function ExecProfile() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  await requireDeposit(profile);
   if (profile.role !== 'client') redirect('/app');
   const self = await getSelfProfile(profile.id);
   const initial = {

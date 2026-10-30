@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { saveRoleBreakdown, saveSkills } from '@/lib/roles';
 import { safeMessage } from '@/lib/errors';
+import { depositLocked } from '@/lib/stage';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
+  if (await depositLocked(me)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
   const b = await req.json().catch(() => ({} as any));
   if (!b?.data || typeof b.data !== 'object')
     return NextResponse.json({ error: 'nothing to save' }, { status: 400 });

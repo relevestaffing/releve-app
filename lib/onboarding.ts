@@ -94,16 +94,16 @@ export function clientSteps(o: {
        glance, not studied: if a line needs a second sentence to justify its
        step, the step is not carrying its own weight. */
     { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: 'about 15 min',
-      blurb: 'How you run your day. Every candidate is scored against it. Saves as you go.',
+      blurb: 'How you run your day. Every candidate is scored against it, and your answers save as you go.',
       done: o.hasSignature, critical: true },
     { key: 'role', title: 'Break down the role', href: '/app/role', minutes: '10 min',
-      blurb: 'What the person will own. The more exact, the closer the match.',
+      blurb: 'What your person will own. The more precise you are, the closer the match.',
       done: !!o.hasRole, critical: true },
     { key: 'availability', title: 'Set your interview hours', href: '/app/availability', minutes: '2 min',
-      blurb: 'Nobody is offered a slot outside these.',
+      blurb: 'Candidates are only offered times inside these hours.',
       done: o.hasAvailability, critical: true },
     { key: 'intro', title: 'Add your photo and a short intro', href: '/app/profile', minutes: '3 min',
-      blurb: 'What a candidate reads before they meet you.',
+      blurb: 'What a candidate sees before they meet you.',
       done: o.hasIntro }
   ];
 }

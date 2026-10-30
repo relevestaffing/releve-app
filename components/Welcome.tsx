@@ -27,7 +27,7 @@ const TALENT: Panel[] = [
        Watch joined the checklist. A first-time talent reading "three things"
        here and then meeting a nine-item dashboard is exactly the kind of
        first impression that costs trust nobody gets back. */
-    lede: 'Your dashboard tracks all of it until it is done. Four things carry your account itself:',
+    lede: 'Your dashboard tracks every step until it is done. Four matter most:',
     points: [
       'Verify who you are, and sign your agreement: a document check we run once, never shown to an executive.',
       'Take the Signature: twenty to twenty-five minutes, saved as you go. Nothing is matched until it exists.',
@@ -39,18 +39,18 @@ const TALENT: Panel[] = [
 
 const CLIENT: Panel[] = [
   { h: 'Welcome to Relève',
-    lede: 'This is your account. Everything about your search runs through here, so the work that fills your week leaves your desk and your attention goes back to what grows the business.',
+    lede: 'This is your account. Your search, your candidates and your messages all live here, so the work that fills your week leaves your desk.',
     points: [
       'Every candidate is vetted on six fronts and matched to how you work before you meet them.',
-      'In front of you within fourteen days, prepared for your role on Essential and Specialist plans, and replaced if the fit is not right.',
+      'A vetted candidate in front of you within fourteen days, and replaced if the fit is not right.',
       'A Client Success Manager handles your side. A Talent Success Manager handles theirs.'
     ] },
   { h: 'How this begins',
     lede: 'Three short screens, then the one step that starts everything.',
     points: [
       'See how Relève works, what a placement can take off your plate, and what it is worth against a full-time hire.',
-      'Open your search with your $500 deposit, credited in full to your first month, and the moment sourcing begins.',
-      'Read as much or as little as you like. A decided executive can pay straight away.'
+      'Open your search with your $500 deposit. It is credited in full toward your first month, and sourcing begins the moment it is paid.',
+      'Read as much or as little as you like. If you are ready, you can pay your deposit straight away.'
     ],
     note: 'If you already arranged the deposit on your call, that step is done and you move straight on.' },
   { h: 'Once your search is open',

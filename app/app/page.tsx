@@ -164,9 +164,10 @@ export default async function AppHome() {
      below, which from here on only ever catches talent, and clients who have
      already paid and still owe their Signature. A placed executive never
      enters here. */
-  /* An ACH deposit in 'processing' has been paid from the client's side; it
-     only waits on the bank, so it does not hold them in the tour. */
-  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived' || deposit?.status === 'processing';
+  /* Only a deposit that is paid, or marked received or waived in the console,
+     opens the account. A bank transfer still clearing keeps the welcome
+     screens, which say so, until it lands. */
+  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived';
   const manager = await primaryManager(profile);
   if (side === 'client' && !stage.placed && !depositSettled) {
     return (
@@ -183,7 +184,7 @@ export default async function AppHome() {
       title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
       crumb="Getting set up">
       <Checklist steps={steps}
-        heading={side === 'client' ? 'Build your Signature' : 'Before you can be matched'} />
+        heading={side === 'client' ? 'Set up your account' : 'Before you can be matched'} />
       <div className="card tight">
         <p className="small muted">
           {side === 'client'

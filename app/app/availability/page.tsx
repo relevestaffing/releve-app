@@ -6,6 +6,7 @@ import { setupFor } from '@/lib/setup';
 import AvailabilityEditor from '@/components/AvailabilityEditor';
 import CalendarConnect from '@/components/CalendarConnect';
 import { googleConfigured } from '@/lib/google-calendar';
+import { requireDeposit } from '@/lib/stage';
 
 export const metadata = { title: 'Availability' };
 
@@ -15,6 +16,7 @@ export const dynamic = 'force-dynamic';
 export default async function AvailabilityPage() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  await requireDeposit(profile);
   /* Every other page under /app sends the team to the console. Without it
      the line below reads any non-client as talent, so an admin opening this
      page was handed the talent's own screen. */

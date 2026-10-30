@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 /* Which stage an executive's account is in.
    ----------------------------------------
    An executive is not one kind of user for the life of their account. While
@@ -58,5 +59,23 @@ export async function execInTour(clientId: string): Promise<boolean> {
   const stage = await executiveStage(clientId);
   if (stage.placed) return false;
   const dep = await depositGateFor(clientId);
-  return !dep || (dep.status !== 'paid' && dep.status !== 'waived' && dep.status !== 'processing');
+  return !dep || (dep.status !== 'paid' && dep.status !== 'waived');
+}
+
+/* The lock on every executive account.
+   --------------------------------------
+   Nothing past the welcome screens opens until the $500 deposit is paid, or
+   Relève marks it received or waived from the console (the deposit control
+   on a client's row). That means no Signature, no role brief, no interview
+   hours and no profile before it. The menu already hides those screens; this
+   is what stops a typed address or a saved bookmark from getting round it,
+   and the API routes use the boolean form so nothing can be saved either.
+   Only executives are ever locked: talent and the team pass straight through,
+   and so does anyone already placed. */
+export async function depositLocked(profile: { id: string; role: string }): Promise<boolean> {
+  if (profile.role !== 'client') return false;
+  return execInTour(profile.id);
+}
+export async function requireDeposit(profile: { id: string; role: string }): Promise<void> {
+  if (await depositLocked(profile)) redirect('/app');
 }

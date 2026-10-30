@@ -10,6 +10,7 @@ import Shell from '@/components/Shell';
 import Explain from '@/components/Explain';
 import SignatureFlow from '@/components/SignatureFlow';
 import { WORDS } from '@/lib/words';
+import { requireDeposit } from '@/lib/stage';
 
 export const metadata = { title: 'Signature' };
 
@@ -26,6 +27,7 @@ export default async function SignaturePage({ searchParams }: {
 }) {
   const profile = await currentProfile();
   if (!profile) redirect('/');
+  await requireDeposit(profile);
   /* Every other page under /app sends the team to the console. Without it
      the line below reads any non-client as talent, so an admin opening this
      page was handed the talent's own screen. */

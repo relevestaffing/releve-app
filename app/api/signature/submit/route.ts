@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { scoreInstrument, archetype, dispositionLine } from '@/lib/signature/score';
 import { configured, currentProfile, supabaseServer } from '@/lib/supabase/server';
+import { depositLocked } from '@/lib/stage';
 
 /* The only place a Signature is scored. Answers in, scores out. */
 export async function POST(req: Request) {
   const profile = await currentProfile();
   if (!profile) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
+  if (await depositLocked(profile)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
   const { side, answers, pairs, timings, conditions } = await req.json();
   if (side !== 'client' && side !== 'talent')
     return NextResponse.json({ error: 'unknown instrument' }, { status: 400 });

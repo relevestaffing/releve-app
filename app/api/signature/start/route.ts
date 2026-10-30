@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { INSTRUMENT, sections, SCALE, AXIS, FACET } from '@/lib/signature/model';
 import { currentProfile } from '@/lib/supabase/server';
 import { loadAttempt } from '@/lib/attempts';
+import { depositLocked } from '@/lib/stage';
 
 /* Sends the browser the statements only — never which axis they load onto. */
 export async function POST(req: Request) {
   /* The instrument is the product's own IP: signed-in accounts only. */
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
+  if (await depositLocked(me)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
   const { side, fresh } = await req.json();
   if (side !== 'client' && side !== 'talent')
     return NextResponse.json({ error: 'unknown instrument' }, { status: 400 });
