@@ -116,3 +116,30 @@ export async function auditDraft(ctx: { name: string; company: string; inputs: A
   const title = `Business VA Audit: ${company}`;
   return { title, content };
 }
+
+/* Is this email from someone asking Relève for service? Used by the hello@
+   inbox import so only real prospects reach the CRM (Nona, 29 October 2026:
+   "only clients requesting service or booking a discovery call"). Returns
+   null when the AI is off or unreachable, so the caller falls back to its
+   keyword rule rather than guessing. Haiku-class model: one short call per
+   unknown sender, at most hourly. */
+export async function isClientRequestAI(m: { from: string; subject: string; snippet: string }): Promise<boolean | null> {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: process.env.ANTHROPIC_CLASSIFY_MODEL || 'claude-haiku-4-5',
+        max_tokens: 5,
+        system: 'Relève places fully managed virtual executive staff (assistants, VAs, specialists) with founders and business owners. You read one email sent to hello@relevestaffing.com and answer with exactly YES or NO. YES only if the sender is a business owner or company asking Relève for that service: wanting to hire or be matched with an assistant or virtual staff, asking about pricing, plans or how it works for their business, or asking to book or reschedule a discovery call. NO for everything else: job seekers, candidates, applications, resumes, freelancers offering themselves, vendors, agencies or anyone selling something, partnership or sponsorship pitches, newsletters, notifications, receipts, invoices, existing team or talent, and anything unclear.',
+        messages: [{ role: 'user', content: `From: ${m.from}\nSubject: ${m.subject}\n\n${m.snippet}` }]
+      })
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const t = String(j?.content?.[0]?.text ?? '').trim().toUpperCase();
+    return t.startsWith('YES') ? true : t.startsWith('NO') ? false : null;
+  } catch { return null; }
+}

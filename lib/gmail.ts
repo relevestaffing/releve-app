@@ -104,3 +104,14 @@ export async function recentInboxMessages(days = 3): Promise<{ messages: InboxMe
   }
   return { messages: out };
 }
+
+/* The fallback when the AI is off: strict on purpose, so the CRM only gets
+   people asking for service or a call, never job seekers or vendors.
+   Both tests must pass: a clear request, and no sign of a candidate or a pitch. */
+const WANTS = /\b(hire|hiring|looking for (an? )?(assistant|va|virtual|executive|help|someone)|need (an? )?(assistant|va|help|virtual)|(virtual|executive|personal) assistant|\bva\b|staffing|discovery call|book(ing)? a call|schedule (a )?call|consult(ation)?|pricing|price|rates?|quote|your (services?|plans?)|how (does|do) (it|you|relève|releve) work|delegate|take (things|work|tasks) off my plate|start a search|interested in (relève|releve|your))\b/i;
+const NOT = /\b(resume|cv|curriculum|apply(ing)?|application|applicant|job (opening|posting|opportunity)|position|vacancy|looking for (work|a job|opportunities)|i am an? (va|virtual assistant|assistant)|my (portfolio|experience as)|hire me|seo|backlinks?|guest post|sponsor(ship)?|partnership|collaborat|lead generation|we help (businesses|agencies|companies)|our (agency|team) (can|helps|offers)|unsubscribe|invoice|receipt|payment (received|confirmation)|webinar)\b/i;
+
+export function looksLikeClientRequest(subject: string, snippet: string): boolean {
+  const text = `${subject}\n${snippet}`;
+  return WANTS.test(text) && !NOT.test(text);
+}

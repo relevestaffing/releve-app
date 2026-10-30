@@ -15,7 +15,9 @@ export const dynamic = 'force-dynamic';
    is on the page. It never shows an error page: the worst case is the
    account, which says what is still to do. */
 export async function GET(request: NextRequest) {
-  const origin = new URL(request.url).origin;
+  /* The configured address, never the one the request arrived on: behind
+     Netlify that can be a per-deploy hostname, not app.relevestaffing.com. */
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
   const to = (path: string) => NextResponse.redirect(new URL(path, origin));
 
   if (!configured()) return to('/app');

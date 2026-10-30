@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabaseServer, configured } from './supabase/server';
 import { upcomingCalendarEvents, calendarConfigured } from './calendar';
-import { recentInboxMessages, inboxConfigured } from './gmail';
+import { recentInboxMessages, inboxConfigured, looksLikeClientRequest } from './gmail';
+import { isClientRequestAI } from './ai';
 import { todayInPacific, addDaysISO } from './money-public';
 import { isOpenStage, followUpDue } from './prospects-public';
 import type { Prospect, ProspectStage, ProspectSource, Touch, TouchKind } from './prospects-public';
@@ -284,7 +285,8 @@ export async function importProspectsFromCalendar(
 }
 
 
-/* Strangers who email hello@ become leads, the way a website form does.
+/* People who email hello@ asking for service or a discovery call become
+   leads, the way a website form does. Everyone else is left alone.
    Anyone already known (team, talent, applicants, clients, an existing
    lead) is left alone, as is anything automated: newsletters, receipts,
    notifications and no-reply senders. Each new person is filed once, with
@@ -318,6 +320,10 @@ export async function importProspectsFromInbox(
   for (const m of [...messages].reverse()) {
     const email = m.fromEmail;
     if (known.has(email) || OWN.test(email) || m.bulk || MACHINE.test(email) || SERVICE_DOMAINS.test(email)) { skipped++; continue; }
+    /* Only real prospects: someone asking for service or a discovery call.
+       Claude decides when the key is set; otherwise a strict keyword rule. */
+    const ai = await isClientRequestAI({ from: `${m.fromName} <${email}>`, subject: m.subject, snippet: m.snippet });
+    if (!(ai ?? looksLikeClientRequest(m.subject, m.snippet))) { skipped++; continue; }
     const full_name = m.fromName && !/@/.test(m.fromName) ? m.fromName.slice(0, 120)
       : email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const note = [`Emailed hello@relevestaffing.com.`, m.subject ? `Subject: ${m.subject}` : '', m.snippet ? `\u201c${m.snippet}\u201d` : '']
