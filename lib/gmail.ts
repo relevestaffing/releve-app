@@ -2,7 +2,8 @@
    emails Relève from the website lands in the lead pipeline the same way a
    form does. Same service account and hand-signed JWT as lib/calendar.ts,
    asking for the Gmail readonly scope instead. Only headers and Gmail's own
-   short snippet are read, never bodies or attachments.
+   short snippet are read, plus a resume attachment when a job seeker
+   sends one (filed with their application). Never message bodies.
 
    Needs one thing beyond the calendar setup: in Google Workspace admin,
    Security → Access and data control → API controls → Domain-wide
@@ -21,6 +22,7 @@ export type InboxMessage = {
   fromName: string; fromEmail: string;
   subject: string; snippet: string; at: string;
   bulk: boolean;   // carries List-Unsubscribe or a bulk Precedence: a newsletter, not a person
+  hasResume: boolean;  // a PDF or Word file is attached
 };
 
 export function inboxConfigured() {
@@ -86,6 +88,10 @@ export async function recentInboxMessages(days = 3): Promise<{ messages: InboxMe
   const list = await fetch(`${base}/messages?maxResults=50&q=${encodeURIComponent(q)}`, { headers: auth, cache: 'no-store' });
   if (!list.ok) return { messages: [], reason: `Gmail would not list the inbox (${list.status}).` };
   const ids = ((await list.json()).messages ?? []) as { id: string }[];
+  /* Which of them carry a PDF or Word file, in one more list call. */
+  const withDoc = new Set<string>();
+  const docs = await fetch(`${base}/messages?maxResults=50&q=${encodeURIComponent(q + ' has:attachment (filename:pdf OR filename:doc OR filename:docx)')}`, { headers: auth, cache: 'no-store' });
+  if (docs.ok) for (const x of ((await docs.json()).messages ?? []) as { id: string }[]) withDoc.add(x.id);
   const out: InboxMessage[] = [];
   for (const { id } of ids) {
     const r = await fetch(`${base}/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=List-Unsubscribe&metadataHeaders=Precedence&metadataHeaders=Auto-Submitted`, { headers: auth, cache: 'no-store' });
@@ -99,19 +105,59 @@ export async function recentInboxMessages(days = 3): Promise<{ messages: InboxMe
       id: m.id, threadId: m.threadId, fromName: from.name, fromEmail: from.email,
       subject: h['subject'] ?? '', snippet: String(m.snippet ?? '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&'),
       at: new Date(Number(m.internalDate)).toISOString(),
+      hasResume: withDoc.has(m.id),
       bulk: !!h['list-unsubscribe'] || /bulk|list|junk/i.test(h['precedence'] ?? '') || /auto-/i.test(h['auto-submitted'] ?? '')
     });
   }
   return { messages: out };
 }
 
-/* The fallback when the AI is off: strict on purpose, so the CRM only gets
-   people asking for service or a call, never job seekers or vendors.
-   Both tests must pass: a clear request, and no sign of a candidate or a pitch. */
-const WANTS = /\b(hire|hiring|looking for (an? )?(assistant|va|virtual|executive|help|someone)|need (an? )?(assistant|va|help|virtual)|(virtual|executive|personal) assistant|\bva\b|staffing|discovery call|book(ing)? a call|schedule (a )?call|consult(ation)?|pricing|price|rates?|quote|your (services?|plans?)|how (does|do) (it|you|relève|releve) work|delegate|take (things|work|tasks) off my plate|start a search|interested in (relève|releve|your))\b/i;
-const NOT = /\b(resume|cv|curriculum|apply(ing)?|application|applicant|job (opening|posting|opportunity)|position|vacancy|looking for (work|a job|opportunities)|i am an? (va|virtual assistant|assistant)|my (portfolio|experience as)|hire me|seo|backlinks?|guest post|sponsor(ship)?|partnership|collaborat|lead generation|we help (businesses|agencies|companies)|our (agency|team) (can|helps|offers)|unsubscribe|invoice|receipt|payment (received|confirmation)|webinar)\b/i;
+/* The fallback when the AI is off: strict on purpose. A client must make
+   a clear request with no sign of a candidate or a pitch; an applicant must
+   clearly be looking for work or send a resume, with no sign of a pitch. */
+const WANTS = /\b(hire|hiring|looking for (an? )?(assistant|va|virtual|executive|help|someone)|need (an? )?(assistant|va|help|virtual)|(virtual|executive|personal) assistant|va|staffing|discovery call|book(ing)? a call|schedule (a )?call|consult(ation)?|pricing|price|rates?|quote|your (services?|plans?)|how (does|do) (it|you|relève|releve) work|delegate|take (things|work|tasks) off my plate|start a search|interested in (relève|releve|your))\b/i;
+const SEEKS = /\b(resume|résumé|cv|curriculum|apply(ing)?|application|applicant|job (opening|posting|opportunity)|open (role|position)|position|vacancy|looking for (work|a job|opportunities|a role)|i am an? (va|virtual assistant|assistant|executive assistant)|i'?m an? (va|virtual assistant|assistant|executive assistant)|my (portfolio|experience as)|hire me|join your (team|talent)|work with relève as)\b/i;
+const PITCH = /\b(seo|backlinks?|guest post|sponsor(ship)?|partnership|collaborat|lead generation|we help (businesses|agencies|companies)|our (agency|team|company) (can|helps|offers|provides)|unsubscribe|invoice|receipt|payment (received|confirmation)|webinar)\b/i;
 
-export function looksLikeClientRequest(subject: string, snippet: string): boolean {
+export type InboxKindGuess = 'client' | 'applicant' | 'other';
+export function guessInboxKind(subject: string, snippet: string, hasResume: boolean): InboxKindGuess {
   const text = `${subject}\n${snippet}`;
-  return WANTS.test(text) && !NOT.test(text);
+  if (PITCH.test(text)) return 'other';
+  if (hasResume || SEEKS.test(text)) return 'applicant';
+  if (WANTS.test(text)) return 'client';
+  return 'other';
+}
+
+const RESUME_MIME = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+const RESUME_EXT = /\.(pdf|docx?)$/i;
+
+/* The first PDF or Word attachment on a message, up to 5MB, or null. */
+export async function resumeAttachment(messageId: string): Promise<{ name: string; mime: string; bytes: Buffer } | null> {
+  const { token } = await accessToken();
+  if (!token) return null;
+  const auth = { authorization: `Bearer ${token}` };
+  const base = `https://gmail.googleapis.com/gmail/v1/users/${encodeURIComponent(MAILBOX())}/messages/${messageId}`;
+  try {
+    const r = await fetch(`${base}?format=full`, { headers: auth, cache: 'no-store' });
+    if (!r.ok) return null;
+    const m = await r.json();
+    const stack: any[] = [m.payload];
+    while (stack.length) {
+      const part = stack.shift();
+      if (!part) continue;
+      if (Array.isArray(part.parts)) stack.push(...part.parts);
+      const name = String(part.filename ?? '');
+      const aid = part.body?.attachmentId;
+      const size = Number(part.body?.size ?? 0);
+      if (!aid || !name || size > 5 * 1024 * 1024) continue;
+      if (!RESUME_EXT.test(name) && !RESUME_MIME.includes(part.mimeType)) continue;
+      const a = await fetch(`${base}/attachments/${aid}`, { headers: auth, cache: 'no-store' });
+      if (!a.ok) return null;
+      const data = String((await a.json()).data ?? '').replace(/-/g, '+').replace(/_/g, '/');
+      const mime = /\.pdf$/i.test(name) ? 'application/pdf' : /\.doc$/i.test(name) ? 'application/msword'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      return { name: name.slice(0, 160), mime, bytes: Buffer.from(data, 'base64') };
+    }
+  } catch { /* no resume is no reason to drop the applicant */ }
+  return null;
 }

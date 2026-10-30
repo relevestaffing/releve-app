@@ -36,8 +36,8 @@ export async function POST(req: Request) {
        good calendar pull. */
     try {
       const cal = await importProspectsFromCalendar();
-      const mail = await importProspectsFromInbox().catch((e: any) => ({ added: 0, skipped: 0, reason: safeMessage(e) }));
-      return NextResponse.json({ ok: true, added: cal.added, reason: cal.reason, inboxAdded: mail.added, inboxReason: mail.reason });
+      const mail = await importProspectsFromInbox().catch((e: any) => ({ added: 0, applicants: 0, skipped: 0, reason: safeMessage(e) }));
+      return NextResponse.json({ ok: true, added: cal.added, reason: cal.reason, inboxAdded: mail.added, inboxApplicants: mail.applicants, inboxReason: mail.reason });
     }
     catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }

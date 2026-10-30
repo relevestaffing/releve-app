@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabaseServer, configured } from './supabase/server';
 import { upcomingCalendarEvents, calendarConfigured } from './calendar';
-import { recentInboxMessages, inboxConfigured, looksLikeClientRequest } from './gmail';
-import { isClientRequestAI } from './ai';
+import { recentInboxMessages, inboxConfigured, guessInboxKind, resumeAttachment } from './gmail';
+import { classifyInboxEmailAI } from './ai';
+import { looksLike } from './filetype';
 import { todayInPacific, addDaysISO } from './money-public';
 import { isOpenStage, followUpDue } from './prospects-public';
 import type { Prospect, ProspectStage, ProspectSource, Touch, TouchKind } from './prospects-public';
@@ -298,11 +299,11 @@ const SERVICE_DOMAINS = /@([a-z0-9-]+\.)*(google|googlemail|calendly|netlify|str
 
 export async function importProspectsFromInbox(
   client?: SupabaseClient
-): Promise<{ added: number; skipped: number; reason?: string }> {
-  if (!configured()) return { added: 0, skipped: 0, reason: 'preview' };
-  if (!inboxConfigured()) return { added: 0, skipped: 0, reason: 'The Google service account is not set.' };
+): Promise<{ added: number; applicants: number; skipped: number; reason?: string }> {
+  if (!configured()) return { added: 0, applicants: 0, skipped: 0, reason: 'preview' };
+  if (!inboxConfigured()) return { added: 0, applicants: 0, skipped: 0, reason: 'The Google service account is not set.' };
   const { messages, reason } = await recentInboxMessages(3);
-  if (reason) return { added: 0, skipped: 0, reason };
+  if (reason) return { added: 0, applicants: 0, skipped: 0, reason };
   const sb = client ?? await supabaseServer();
 
   const known = new Set<string>();
@@ -315,17 +316,46 @@ export async function importProspectsFromInbox(
   for (const rows of [prof, pend, apps, pros])
     for (const r of (rows ?? []) as any[]) if (r.email) known.add(String(r.email).toLowerCase());
 
-  let added = 0, skipped = 0;
+  let added = 0, applicants = 0, skipped = 0;
   /* Oldest first, so a person who wrote twice is filed with their first note. */
   for (const m of [...messages].reverse()) {
     const email = m.fromEmail;
     if (known.has(email) || OWN.test(email) || m.bulk || MACHINE.test(email) || SERVICE_DOMAINS.test(email)) { skipped++; continue; }
-    /* Only real prospects: someone asking for service or a discovery call.
+    /* Only real prospects reach the CRM, and job seekers go to Applications.
        Claude decides when the key is set; otherwise a strict keyword rule. */
-    const ai = await isClientRequestAI({ from: `${m.fromName} <${email}>`, subject: m.subject, snippet: m.snippet });
-    if (!(ai ?? looksLikeClientRequest(m.subject, m.snippet))) { skipped++; continue; }
+    const kind = (await classifyInboxEmailAI({ from: `${m.fromName} <${email}>`, subject: m.subject, snippet: m.snippet, hasResume: m.hasResume }))
+      ?? guessInboxKind(m.subject, m.snippet, m.hasResume);
+    if (kind === 'other') { skipped++; continue; }
     const full_name = m.fromName && !/@/.test(m.fromName) ? m.fromName.slice(0, 120)
       : email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    if (kind === 'applicant') {
+      /* An application, as if they had used the Careers form: general (no
+         posting), with their resume attached when they sent one. */
+      let resume_path: string | null = null, resume_name: string | null = null;
+      if (m.hasResume) {
+        const file = await resumeAttachment(m.id);
+        if (file && looksLike('document', file.bytes)) {
+          const ext = file.mime === 'application/pdf' ? 'pdf' : file.mime === 'application/msword' ? 'doc' : 'docx';
+          const path = `general/${crypto.randomUUID()}.${ext}`;
+          const { error: upErr } = await sb.storage.from('applications').upload(path, file.bytes, { contentType: file.mime, upsert: false });
+          if (!upErr) { resume_path = path; resume_name = file.name; }
+        }
+      }
+      const appNote = [`Emailed hello@relevestaffing.com rather than using the Careers form.`, m.subject ? `Subject: ${m.subject}` : '', m.snippet ? `\u201c${m.snippet}\u201d` : '']
+        .filter(Boolean).join('\n').slice(0, 4000);
+      const appName = m.fromName && !/@/.test(m.fromName) ? m.fromName.slice(0, 120)
+        : email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const { error } = await sb.from('job_applications').insert({
+        post_id: null, full_name: appName, email, note: appNote, heard_via: 'Emailed hello@', resume_path, resume_name
+      });
+      if (error) {
+        if (resume_path) await sb.storage.from('applications').remove([resume_path]).then(() => {}, () => {});
+        skipped++; continue;
+      }
+      known.add(email);
+      applicants++;
+      continue;
+    }
     const note = [`Emailed hello@relevestaffing.com.`, m.subject ? `Subject: ${m.subject}` : '', m.snippet ? `\u201c${m.snippet}\u201d` : '']
       .filter(Boolean).join('\n').slice(0, 4000);
     const { error } = await sb.from('prospects').insert({
@@ -335,5 +365,5 @@ export async function importProspectsFromInbox(
     known.add(email);
     added++;
   }
-  return { added, skipped };
+  return { added, applicants, skipped };
 }
