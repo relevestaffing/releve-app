@@ -91,7 +91,7 @@ async function accessToken(): Promise<string | null> {
 /* Everything from now through `daysAhead` days out, soonest first. Never
    throws — a Google outage or a missing key should shrink the calendar
    widget to its empty state, not take the console page down with it. */
-export async function upcomingCalendarEvents(daysAhead = 14): Promise<CalendarEvent[]> {
+export async function upcomingCalendarEvents(daysAhead = 14, fresh = false): Promise<CalendarEvent[]> {
   const token = await accessToken();
   if (!token) return [];
 
@@ -106,7 +106,11 @@ export async function upcomingCalendarEvents(daysAhead = 14): Promise<CalendarEv
 
   let res: Response;
   try {
-    res = await fetch(url, { headers: { authorization: `Bearer ${token}` }, next: { revalidate: 120 } });
+    /* fresh skips the two-minute cache, for the import a new booking sets off,
+       which has to see the event Calendly wrote seconds ago. */
+    res = await fetch(url, fresh
+      ? { headers: { authorization: `Bearer ${token}` }, cache: 'no-store' }
+      : { headers: { authorization: `Bearer ${token}` }, next: { revalidate: 120 } });
   } catch (e) {
     console.error('[calendar] events request threw', e);
     return [];

@@ -65,13 +65,23 @@ export async function POST(req: Request) {
     /* eq on the lowercased address, not ilike: in ilike an underscore or a
        percent sign in the typed address is a wildcard, and j_doe@ would
        match jadoe@ and send the deposit link to the wrong account. */
-    const { data: profile } = await sb.from('profiles').select('id').eq('email', email).maybeSingle();
+    const { data: profile } = await sb.from('profiles').select('id, full_name').eq('email', email).maybeSingle();
     if (profile) clientId = (profile as any).id;
+    /* One name everywhere: the letter, the account and the agreement. An
+       account that already exists keeps its own name (it is theirs), and the
+       email then uses that same name rather than the one just typed. A
+       pending record has no account yet, so it takes the name typed here. */
+    const accountName = String((profile as any)?.full_name ?? '').trim();
+    const greetName = accountName || name;
+    const renamed = Boolean(accountName) && accountName.toLowerCase() !== name.toLowerCase();
 
     if (!clientId) {
       const { data: pending } = await sb.from('pending_people')
         .select('id').eq('email', email).is('claimed_by', null).maybeSingle();
-      if (pending) pendingId = (pending as any).id;
+      if (pending) {
+        pendingId = (pending as any).id;
+        await sb.from('pending_people').update({ full_name: name }).eq('id', pendingId);
+      }
     }
 
     if (!clientId && !pendingId) {
@@ -115,13 +125,15 @@ export async function POST(req: Request) {
 
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app/billing`;
     const sent = await send(email, templates.depositReady({
-      name: firstName(name, ''), payUrl, cents, docsUrl
+      name: firstName(greetName, ''), payUrl, cents, docsUrl
     }));
 
     return NextResponse.json({
       ok: true, emailed: sent,
-      warning: canLink ? undefined
-        : 'Sent without a pay-by-link (DEPOSIT_LINK_SECRET is not set in Netlify), so the button in their email opens their billing page instead.'
+      warning: [
+        canLink ? '' : 'Sent without a pay-by-link (DEPOSIT_LINK_SECRET is not set in Netlify), so the button in their email opens their billing page instead.',
+        renamed ? `They already have an account under the name ${accountName}, so the email uses that name to match.` : ''
+      ].filter(Boolean).join(' ') || undefined
     });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });

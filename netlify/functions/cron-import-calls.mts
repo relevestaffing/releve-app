@@ -1,9 +1,9 @@
-/* New discovery calls off hello@'s calendar become leads, every six hours.
-   A call booked through Calendly lands on the calendar well before anyone
-   opens the console, so this imports each upcoming call with an outside
-   attendee as a booked lead, once, keyed on the event id. Six-hourly keeps
-   the board current without hammering the calendar API. Added 28 October
-   2026. */
+/* New discovery calls off hello@'s calendar become leads, every hour.
+   A booking made on the website is also filed within seconds by
+   /api/interest/booked; this is the catch-all for calls booked any other
+   way. Imports each upcoming call with an outside attendee as a booked
+   lead, once, keyed on the event id. Six-hourly from 28 October 2026,
+   hourly from 29 October 2026. */
 /* Netlify's scheduler cannot set a header, and the app's cron routes want
    the shared secret in one. This function is that caller: it wakes on its
    schedule and makes the single authenticated request. The logic stays in
@@ -44,4 +44,4 @@ async function callCron(path: string) {
 }
 
 export default async () => callCron('/api/cron/import-calls');
-export const config = { schedule: '0 */6 * * *' };
+export const config = { schedule: '0 * * * *' };

@@ -2993,3 +2993,42 @@ a.pill.crit{ text-decoration:none; }
 .check-line{display:flex;align-items:center;gap:9px;margin:2px 0 16px;font-size:14px;color:var(--body);cursor:pointer}
 .check-line input{width:16px;height:16px;flex:none}
 .audit-editor .audit-text{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;line-height:1.6;width:100%}
+
+
+/* ════ Finishing touches from the website's /discovery page (29 Oct 2026) ════
+   Sage: "I loved the animations, I loved how modern it was", carry it into
+   the app. Square corners stay, by her call. Paired with components/
+   Flourish.tsx, which counts figures up, replays the title rise and moves
+   the light. Decoration only: nothing here hides content. */
+
+/* primary buttons: a light sweep crosses on hover */
+.btn.solid::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.26) 50%,transparent 70%);
+  transform:translateX(-120%);transition:transform .9s cubic-bezier(.2,.7,.1,1)}
+.btn.solid:not(:disabled):hover::after{transform:translateX(120%)}
+
+/* the page title rises in on every page change */
+@keyframes titleRise{
+  from{opacity:0;transform:translateY(22px);clip-path:inset(0 0 100% 0)}
+  to{opacity:1;transform:none;clip-path:inset(0 0 -20% 0)}
+}
+.topbar h1.title-rise{animation:titleRise .95s cubic-bezier(.2,.7,.1,1) both}
+.topbar .crumb{animation:crumbIn .8s .1s cubic-bezier(.2,.7,.1,1) both}
+@keyframes crumbIn{from{opacity:0;letter-spacing:.6em}to{opacity:1}}
+
+/* a soft light follows the cursor across the fern header (desktop) */
+@media (min-width:901px){
+  .topbar.lit{
+    background:
+      radial-gradient(520px circle at var(--gx,50%) var(--gy,50%), rgba(176,196,178,.16), transparent 65%),
+      radial-gradient(70% 60% at 50% 30%, rgba(243,239,230,.08) 0%, rgba(243,239,230,0) 65%),
+      linear-gradient(180deg,#1F2B25 0%,#2B382F 40%,#33423A 75%,#26322B 100%)}
+}
+
+/* figures being counted keep their width steady */
+.founder-n,.founder-t-n,.money-stat .n,.card.stat .score,.fb-score .n{font-variant-numeric:tabular-nums}
+
+@media (prefers-reduced-motion:reduce){
+  .topbar h1.title-rise,.topbar .crumb{animation:none}
+  .btn.solid::after{display:none}
+}

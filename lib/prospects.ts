@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabaseServer, configured } from './supabase/server';
 import { upcomingCalendarEvents, calendarConfigured } from './calendar';
+import { recentInboxMessages, inboxConfigured } from './gmail';
 import { todayInPacific, addDaysISO } from './money-public';
 import { isOpenStage, followUpDue } from './prospects-public';
 import type { Prospect, ProspectStage, ProspectSource, Touch, TouchKind } from './prospects-public';
@@ -222,11 +223,11 @@ export async function markProspectWon(email: string, pendingId: string | null) {
    one ("Discovery Call: Elena Marsh and Sage Jackson"), otherwise from the
    address, and Sage tidies them on the page. */
 export async function importProspectsFromCalendar(
-  client?: SupabaseClient
+  client?: SupabaseClient, fresh = false
 ): Promise<{ added: number; skipped: number; reason?: string }> {
   if (!configured()) return { added: 0, skipped: 0, reason: 'preview' };
   if (!calendarConfigured()) return { added: 0, skipped: 0, reason: 'The calendar is not connected.' };
-  const events = await upcomingCalendarEvents(45);
+  const events = await upcomingCalendarEvents(45, fresh);
   /* The signed-in session normally, but the daily cron has no session, so it
      passes the service-role client: the calendar is read over its own
      service-account JWT either way, and the writes then run under the role
@@ -241,15 +242,33 @@ export async function importProspectsFromCalendar(
     sb.from('profiles').select('email'),
     sb.from('pending_people').select('email'),
     sb.from('job_applications').select('email'),
-    sb.from('prospects').select('email')
+    sb.from('prospects').select('id, email, stage, call_at')
   ]);
   for (const rows of [prof, pend, apps, pros])
     for (const r of (rows ?? []) as any[]) if (r.email) known.add(String(r.email).toLowerCase());
+
+  /* A lead who filled in a website form first and then booked is already a
+     prospect, so the old rule skipped them and their call never showed. An
+     early-stage lead with no call on file is moved to booked with the call
+     time instead (29 October 2026). */
+  const early = new Map<string, string>();
+  for (const r of (pros ?? []) as any[])
+    if (r.email && !r.call_at && ['new', 'contacted', 'nurturing'].includes(r.stage))
+      early.set(String(r.email).toLowerCase(), r.id);
 
   let added = 0, skipped = 0;
   for (const e of events) {
     const outside = e.attendees.filter(a => !OWN.test(a)).map(a => a.toLowerCase());
     if (!outside.length || e.allDay) { skipped++; continue; }
+    const lead = outside.find(a => early.has(a));
+    if (lead) {
+      const { error } = await sb.from('prospects')
+        .update({ stage: 'booked', call_at: e.start, calendar_event_id: e.id, last_touched_at: new Date().toISOString() })
+        .eq('id', early.get(lead)!);
+      early.delete(lead);
+      if (error) skipped++; else added++;
+      continue;
+    }
     const email = outside.find(a => !known.has(a));
     if (!email) { skipped++; continue; }
     const full_name = nameFromTitle(e.title, email);
@@ -258,6 +277,55 @@ export async function importProspectsFromCalendar(
       calendar_event_id: e.id, stage: 'booked'
     });
     if (error) { skipped++; continue; }   // this event was imported before
+    known.add(email);
+    added++;
+  }
+  return { added, skipped };
+}
+
+
+/* Strangers who email hello@ become leads, the way a website form does.
+   Anyone already known (team, talent, applicants, clients, an existing
+   lead) is left alone, as is anything automated: newsletters, receipts,
+   notifications and no-reply senders. Each new person is filed once, with
+   the subject and Gmail's short preview as the note, due to be followed up
+   today. Runs hourly from the cron, and from the console on demand.
+   Added 29 October 2026. */
+const MACHINE = /^(no-?reply|do-?not-?reply|notifications?|alerts?|mailer-daemon|postmaster|bounces?|receipts?|newsletters?)[@+._-]/i;
+const SERVICE_DOMAINS = /@([a-z0-9-]+\.)*(google|googlemail|calendly|netlify|stripe|paypal|wise|zoom|supabase|github|resend|squarespace|linkedin|facebookmail|instagram|meta|apple|amazon|intuit|docusign|monday|zapier|make|slack|notion|canva|kajabi|webinarjam)\.[a-z.]+$/i;
+
+export async function importProspectsFromInbox(
+  client?: SupabaseClient
+): Promise<{ added: number; skipped: number; reason?: string }> {
+  if (!configured()) return { added: 0, skipped: 0, reason: 'preview' };
+  if (!inboxConfigured()) return { added: 0, skipped: 0, reason: 'The Google service account is not set.' };
+  const { messages, reason } = await recentInboxMessages(3);
+  if (reason) return { added: 0, skipped: 0, reason };
+  const sb = client ?? await supabaseServer();
+
+  const known = new Set<string>();
+  const [{ data: prof }, { data: pend }, { data: apps }, { data: pros }] = await Promise.all([
+    sb.from('profiles').select('email'),
+    sb.from('pending_people').select('email'),
+    sb.from('job_applications').select('email'),
+    sb.from('prospects').select('email')
+  ]);
+  for (const rows of [prof, pend, apps, pros])
+    for (const r of (rows ?? []) as any[]) if (r.email) known.add(String(r.email).toLowerCase());
+
+  let added = 0, skipped = 0;
+  /* Oldest first, so a person who wrote twice is filed with their first note. */
+  for (const m of [...messages].reverse()) {
+    const email = m.fromEmail;
+    if (known.has(email) || OWN.test(email) || m.bulk || MACHINE.test(email) || SERVICE_DOMAINS.test(email)) { skipped++; continue; }
+    const full_name = m.fromName && !/@/.test(m.fromName) ? m.fromName.slice(0, 120)
+      : email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const note = [`Emailed hello@relevestaffing.com.`, m.subject ? `Subject: ${m.subject}` : '', m.snippet ? `\u201c${m.snippet}\u201d` : '']
+      .filter(Boolean).join('\n').slice(0, 4000);
+    const { error } = await sb.from('prospects').insert({
+      full_name, email, source: 'website', stage: 'new', note, next_follow_up: todayInPacific()
+    });
+    if (error) { skipped++; continue; }
     known.add(email);
     added++;
   }

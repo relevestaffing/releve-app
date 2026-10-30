@@ -4,6 +4,7 @@ import { configured } from '@/lib/supabase/server';
 import { saveCalendar } from '@/lib/store';
 import { send, templates } from '@/lib/email';
 import { noteSigninTrouble } from '@/lib/signin-watch';
+import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,6 +82,22 @@ export async function GET(request: NextRequest) {
          "Hello," instead of their own. Never worth failing sign-in over: a
          slow or unreachable mail host should not stand between someone and
          the first look at their own account. */
+      /* The name Relève typed when it onboarded this person is the name on
+         their account. Sign-in (Google especially) hands over whatever name
+         is on that Google profile, and claim_pending() lets it win, so an
+         invitation to "Jose" could open an account called something else.
+         Put the typed name back, so the email, the account and the
+         agreement all say the same thing. */
+      if (hasServiceKey()) {
+        try {
+          const ad = adminClient();
+          const { data: pend } = await ad.from('pending_people')
+            .select('full_name').eq('claimed_by', user.id).maybeSingle();
+          const typed = String((pend as any)?.full_name ?? '').trim();
+          if (typed) await ad.from('profiles').update({ full_name: typed }).eq('id', user.id);
+        } catch { /* never worth failing sign-in over */ }
+      }
+
       if (user.email) {
         const { data: fresh } = await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
         await send(user.email, templates.profileWelcome((fresh as any)?.full_name ?? null));
@@ -94,6 +111,13 @@ export async function GET(request: NextRequest) {
   if (user && refresh) {
     await saveCalendar(user.id, refresh, user.email ?? null);
     if (searchParams.get('calendar') === '1') return go('/app/availability?calendar=connected');
+  }
+  /* "Sign agreement" in the onboarding email: they were sent to sign in
+     first, so carry on to the agreement now. Only that one path is honoured. */
+  if (request.cookies.get('rel_next')?.value === '/agreement') {
+    const res = go('/agreement');
+    res.cookies.set('rel_next', '', { path: '/', maxAge: 0 });
+    return res;
   }
   return go('/app');
 }

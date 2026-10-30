@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import {
   saveProspect, setProspectStage, setProspectOwner, setProspectFollowUp,
-  logTouch, listTouches, importProspectsFromCalendar
+  logTouch, listTouches, importProspectsFromCalendar, importProspectsFromInbox
 } from '@/lib/prospects';
 import { safeMessage } from '@/lib/errors';
 
@@ -31,7 +31,14 @@ export async function POST(req: Request) {
   const g = await guard(); if (g.error) return g.error;
   const b = await req.json().catch(() => ({}));
   if (b.action === 'import') {
-    try { return NextResponse.json({ ok: true, ...(await importProspectsFromCalendar()) }); }
+    /* The calendar and hello@'s inbox, together. The inbox is reported
+       separately so a Gmail permission still to be granted never hides a
+       good calendar pull. */
+    try {
+      const cal = await importProspectsFromCalendar();
+      const mail = await importProspectsFromInbox().catch((e: any) => ({ added: 0, skipped: 0, reason: safeMessage(e) }));
+      return NextResponse.json({ ok: true, added: cal.added, reason: cal.reason, inboxAdded: mail.added, inboxReason: mail.reason });
+    }
     catch (e: any) { return NextResponse.json({ error: safeMessage(e) }, { status: 400 }); }
   }
   if (b.action === 'touch') {

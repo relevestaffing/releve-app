@@ -1,4 +1,4 @@
-import { money, DEPOSIT_CENTS, PLANS } from '@/lib/money-public';
+import { money, DEPOSIT_CENTS } from '@/lib/money-public';
 
 /* The body of "How Relève works", as a fragment so it renders the same whether
    it sits inside the page (in Shell) or as a step in the first-run tour. No
@@ -23,7 +23,7 @@ const METHOD: { t: string; d: string }[] = [
   { t: 'Prepared, then presented',
     d: 'Briefed on your tools and standards before you meet. Your calendar, your terms, your decision.' },
   { t: 'Handled from there',
-    d: 'Your Client Success Manager and their Talent Success Manager carry the weekly reports, coaching and cover.' }
+    d: 'Your Client Success Manager and your person\'s Talent Success Manager take care of the weekly reports, the coaching and the cover. You stay out of it.' }
 ];
 
 export default function HowContent() {
@@ -92,17 +92,12 @@ export default function HowContent() {
         <div className="money-strip">
           <div className="money-stat">
             <div className="n">{money(DEPOSIT_CENTS)}</div>
-            <div className="k">To open your search</div>
-          </div>
-          <div className="money-stat">
-            <div className="n">{money(PLANS.essential.monthlyCents)}–{money(PLANS.specialist.monthlyCents).replace('$', '')}</div>
-            <div className="k">Monthly, unlimited hours. Starter: $950 a month, or $2,500 for three months, up to fifteen hours a week</div>
+            <div className="k">Deposit to open your search</div>
           </div>
         </div>
         <p className="small muted" style={{ marginTop: 4, maxWidth: 560 }}>
-          The {money(DEPOSIT_CENTS)} opens your search and is credited in full against
-          your first month. The retainer begins when your placement does, and there is
-          no placement fee.
+          Your {money(DEPOSIT_CENTS)} deposit opens the search. It is credited in full
+          toward your first month once you are placed.
         </p>
       </div>
     </>

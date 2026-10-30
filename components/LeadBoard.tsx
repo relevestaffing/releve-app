@@ -324,7 +324,9 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
     setPulling(false);
     if (!r.ok) { toast.bad(d.error ?? 'Could not read the calendar.'); return; }
     if (d.reason) { toast.bad(d.reason); return; }
-    toast.saved(d.added ? `${d.added} added from the calendar` : 'Nothing new on the calendar');
+    const parts = [d.added ? `${d.added} from the calendar` : '', d.inboxAdded ? `${d.inboxAdded} from hello@` : ''].filter(Boolean);
+    toast.saved(parts.length ? `${parts.join(' and ')} added` : 'Nothing new on the calendar or in hello@');
+    if (d.inboxReason && d.inboxReason !== 'preview') toast.bad(d.inboxReason);
     router.refresh();
   }
 

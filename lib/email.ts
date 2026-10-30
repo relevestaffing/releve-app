@@ -244,7 +244,7 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Sign your Client Services Agreement', href: o.docsUrl ?? SITE, cta: 'Sign agreement' },
+      { n: 1, label: 'Sign your Client Services Agreement', href: o.docsUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
     ];
