@@ -18,8 +18,8 @@ type State = 'not_started' | 'submitted' | 'verified' | 'rejected';
 export default function ClientAgreementStatus({ state }: { state: State }) {
   const copy: Record<Exclude<State, 'verified'>, { head: string; body: string }> = {
     not_started: {
-      head: 'Your Client Services Agreement',
-      body: 'Your Client Success Manager sends this to you to sign. Nothing to do here yet.'
+      head: 'Sign your Client Services Agreement',
+      body: 'Read it and sign in your account. It takes a few minutes, and a copy is emailed to you.'
     },
     submitted: {
       head: 'Agreement signed',
@@ -37,8 +37,9 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
         <span className="pill good"><span className="dot" />Signed and filed</span>
       </div>
       <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>
-        Countersigned by Relève and on file. Your Client Success Manager can send you a copy any time.
+        Signed and on file. A copy was emailed to you, and you can download it any time.
       </p>
+      <a className="btn sm ghost" href="/api/agreement/copy" style={{ marginTop: 6 }}>Download your copy</a>
     </div>
   );
   const { head, body } = copy[state];
@@ -49,12 +50,13 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
         <h3>{head}</h3>
         <span className={`pill ${state === 'submitted' ? 'good' : 'warn'}`}>
           <span className="dot" />
-          {state === 'submitted' ? 'With Relève' : state === 'rejected' ? 'Needs a look' : 'Not yet sent'}
+          {state === 'submitted' ? 'With Relève' : state === 'rejected' ? 'Needs a look' : 'To sign'}
         </span>
       </div>
       <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>
         {body} Questions any time: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
       </p>
+      {state === 'not_started' && <a className="btn solid" href="/app/agreement" style={{ marginTop: 8 }}>Read and sign</a>}
     </div>
   );
 }

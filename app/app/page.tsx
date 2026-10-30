@@ -174,6 +174,9 @@ export default async function AppHome() {
       <Shell profile={profile} active="/app"
         title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
         crumb={profile.org_name ?? 'Executive'}>
+        {clientAgreement?.state !== 'verified' && (
+          <ClientAgreementStatus state={(clientAgreement?.state ?? 'not_started') as any} />
+        )}
         <ExecOnboarding deposit={deposit} stripeOn={stripeReady()} manager={manager} />
       </Shell>
     );

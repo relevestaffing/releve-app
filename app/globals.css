@@ -3039,3 +3039,13 @@ a.pill.crit{ text-decoration:none; }
 .tb-lab{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:14.5px;color:var(--body)}
 .tb-lab output{font-family:Marcellus,serif;font-size:22px;color:var(--fern);white-space:nowrap}
 .tb-rng input[type=range]{width:100%;accent-color:var(--fern);height:28px;cursor:pointer}
+
+/* the Client Services Agreement, read in the account */
+.agr-read{padding:34px 40px;max-width:760px}
+.agr-read p{font-size:15.5px;line-height:1.75;margin:0 0 12px;color:var(--body)}
+.agr-read .agr-sec{font-family:Marcellus,serif;font-size:19px;letter-spacing:.04em;margin:30px 0 10px;color:var(--ink,var(--fern))}
+.agr-read .agr-h{font-family:Marcellus,serif;font-size:16px;margin:16px 0 4px}
+.agr-read .agr-b{position:relative;padding-left:18px}
+.agr-read .agr-b::before{content:"";position:absolute;left:4px;top:.8em;width:5px;height:5px;background:var(--sage)}
+.agr-sign{max-width:760px}
+@media (max-width:760px){.agr-read{padding:22px 20px}}

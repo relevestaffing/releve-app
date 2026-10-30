@@ -140,6 +140,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
         { href: '/app/delegate', label: 'What to delegate' },
         { href: '/app/value', label: 'The value' }
       ]},
+      { items: [{ href: '/app/agreement', label: 'Your agreement' }] },
       { items: [{ href: '/app/messages', label: 'Messages' }] }
     ];
   }

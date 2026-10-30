@@ -46,7 +46,8 @@ function transport() {
 /* One built message. Every template returns this shape, and `kind` is the
    template's own name — added automatically at the bottom of this file, so a
    new template cannot be added without also being loggable. */
-export type Message = { subject: string; text: string; html: string; kind: string; from?: string };
+export type Attachment = { filename: string; content: Buffer; contentType: string };
+export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[] };
 
 /* Every attempt leaves a row behind.
    ---------------------------------
@@ -91,7 +92,7 @@ export async function sendOrThrow(to: string, msg: Message) {
   }
   try {
     const info = await transport().sendMail({
-      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html
+      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments
     });
     await record(msg.kind, to, msg.subject, true);
     return info;
@@ -112,7 +113,7 @@ export async function send(to: string, msg: Message) {
     return false;
   }
   try {
-    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html });
+    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments });
     await record(msg.kind, to, msg.subject, true);
     return true;
   } catch (e: any) {
@@ -413,13 +414,35 @@ const rawTemplates = {
      sent the moment Relève (or the client themselves) starts the DocuSign
      envelope, since an embedded envelope is never emailed by DocuSign
      itself. */
+  /* The signed copy, for the client's own records, sent the moment they sign
+     in the app. The PDF rides on the message itself (see send()). */
+  clientAgreementSigned: (name: string) => ({
+    subject: 'Your signed Relève Client Services Agreement',
+    text: `${name},\n\nThank you. Your Client Services Agreement is signed, and your copy is attached for your records. It is also kept in your Relève account.\n\nNext: pay your $500 deposit to open your search.\n\n${SITE}/app\n\nRelève`,
+    html: shell('Your agreement is signed',
+      p(`${esc(name)},`) +
+      p('Thank you. Your Client Services Agreement is signed, and your copy is attached for your records. It is also kept in your Relève account.') +
+      p('Next: pay your $500 deposit to open your search.'),
+      { label: 'Open your account', href: `${SITE}/app` })
+  }),
+
+  /* The team's note that an executive signed, with the same copy attached. */
+  clientAgreementSignedTeam: (o: { name: string; email: string }) => ({
+    subject: `${o.name} signed the Client Services Agreement`,
+    text: `${o.name} (${o.email}) signed the Client Services Agreement in the app. The signed copy is attached and filed on their row in People.\n\n${SITE}/console/people\n\nRelève`,
+    html: shell('An agreement was signed',
+      p(`<b>${esc(o.name)}</b> (${esc(o.email)}) signed the Client Services Agreement in the app.`) +
+      p('The signed copy is attached and filed on their row in People.'),
+      { label: 'Open People', href: `${SITE}/console/people` })
+  }),
+
   clientAgreementReady: (name: string) => ({
     subject: 'Your Client Services Agreement is ready to sign',
-    text: `${name},\n\nYour Relève Client Services Agreement is ready. Sign it in your account. It takes about two minutes.\n\n${SITE}/app\n\nRelève`,
+    text: `${name},\n\nYour Relève Client Services Agreement is ready. Sign it in your account. It takes about two minutes.\n\n${SITE}/agreement\n\nRelève`,
     html: shell('Ready to sign',
       p(`${name},`) +
       p('Your Client Services Agreement is ready. Sign it in your account. It takes about two minutes.'),
-      { label: 'Sign your agreement', href: `${SITE}/app` })
+      { label: 'Sign your agreement', href: `${SITE}/agreement` })
   }),
 
   /* Sent once BOTH signatures are on file — the client's and Sage's
