@@ -2,8 +2,19 @@
    Text taken verbatim from Releve-Client-Agreement-DOCUSIGN-READY.docx
    (Sage's draft, 27 September 2026; attorney review still pending).
    Change the wording only together with AGREEMENT_VERSION, so every signed copy
-   says exactly which text it carries. */
-export const AGREEMENT_VERSION = 'csa-2026-10-30';
+   says exactly which text it carries.
+
+   KEEP IN STEP WITH THE TERMS: whenever Nona changes prices, plans, terms of
+   commitment, guarantees, the deposit, or how a placement works, update this
+   text to match in the same piece of work, bump AGREEMENT_VERSION, and tell
+   her what changed. The live Terms of Service (relevestaffing.com/terms) and the
+   Relève Book carry the same terms. Version history:
+   csa-2026-10-30   first in-app text, from Sage's 27 September draft.
+   csa-2026-10-30.2 plans and prices (Essential, Specialist, Starter, eLIVate
+     discount), deposit refund exception, 6/3-month terms with 3-month renewals,
+     30 days' notice before a term ends, two replacements, Starter buyout figure,
+     talent on US business hours with an NDA. */
+export const AGREEMENT_VERSION = 'csa-2026-10-30.2';
 export const AGREEMENT_TITLE = 'Client Services Agreement';
 export type AgItem = { p?: string; sub?: string; bullet?: string };
 export const AGREEMENT_INTRO: string[] = [
@@ -26,7 +37,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "1.2 Talent’s Status"
    },
    {
-    "p": "Talent Relève introduces to Client are independent contractors engaged by Relève. Talent are not Client’s employees, and Client shall not treat, describe, or hold out any Talent as Client’s employee."
+    "p": "Talent Relève introduces to Client are independent contractors engaged by Relève. Talent are not Client’s employees, and Client shall not treat, describe, or hold out any Talent as Client’s employee. Talent work on US business hours and sign a non-disclosure and confidentiality agreement with Relève."
    },
    {
     "sub": "1.3 Direction and Control of Work"
@@ -67,7 +78,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "2.4 Remedy"
    },
    {
-    "p": "If Client breaches this Section, Client shall pay Relève a fee equal to twelve (12) months of the monthly rate applicable to that Talent’s Placement. This reflects what Relève would reasonably have earned had the Placement continued through Relève, plus the cost of the sourcing, vetting, and matching work already performed — it is a genuine pre-estimate of Relève’s loss, not a penalty — and is in addition to any amounts already owed."
+    "p": "If Client breaches this Section, Client shall pay Relève a fee equal to twelve (12) months of the monthly rate applicable to that Talent’s Placement (on the Starter plan, $11,400). This reflects what Relève would reasonably have earned had the Placement continued through Relève, plus the cost of the sourcing, vetting, and matching work already performed — it is a genuine pre-estimate of Relève’s loss, not a penalty — and is in addition to any amounts already owed."
    },
    {
     "sub": "2.5 Enforceability"
@@ -84,37 +95,37 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "3.1 Deposit"
    },
    {
-    "p": "A deposit of $500 is due when Client opens a search for Talent. The deposit is non-refundable and is credited against Client’s first monthly invoice for the resulting Placement. Relève may, at its discretion, waive or reduce the deposit for a specific search."
+    "p": "A deposit of $500 is due before Relève begins a search for Talent, and Client’s account opens once it is paid. It covers the sourcing and assessment work that begins immediately, and is credited against Client’s first invoice for the resulting Placement. The deposit is non-refundable, with one exception: if Relève does not present any candidate for Client’s role, it is refunded in full. Relève may, at its discretion, waive or reduce the deposit for a specific search."
    },
    {
-    "sub": "3.2 Monthly Fee"
+    "sub": "3.2 Plans and Fees"
    },
    {
-    "p": "Client will pay Relève a monthly retainer of between $2,500 and $4,500, depending on the scope, seniority, and hours of the Placement, as set out in the applicable Placement Schedule."
+    "p": "Relève offers three plans. Essential is $2,500 per month for unlimited hours from a dedicated, non-specialized professional, on a six-month commitment. Specialist is $4,500 per month for unlimited hours from a dedicated, specialized expert, on a six-month commitment. Starter is $950 per month, or $2,500 paid in full for each three-month term, on a three-month commitment, with the professional’s hours capped at fifteen (15) per week. “Unlimited hours” means a dedicated, full-time professional. eLIVate Club members receive $500 off the monthly fee for the first three (3) months on the Essential or Specialist plan. Every plan includes sourcing, vetting and matching, a Client Success Manager and a Talent Success Manager, the Relève platform, and payment of the professional through Relève. Essential adds pre-placement training from Relève on the role’s specifics, with continuous management. Specialist adds a vetted specialist professional, biweekly training, a review of Client’s business by Relève’s business specialist to design the role around it, and monthly Client Success Manager calls. Client’s plan and rate are confirmed in the applicable Placement Schedule before the Placement starts and do not change during the initial term."
    },
    {
     "sub": "3.3 Invoicing"
    },
    {
-    "p": "Relève will invoice Client on the first Monday of each month. Invoices are due on receipt."
+    "p": "Relève will invoice Client on the first Monday of each month, and invoices are due on receipt. A Starter plan paid in full is invoiced once, at the start of each three-month term."
    },
    {
     "sub": "3.4 Minimum Term"
    },
    {
-    "p": "Each Placement has a minimum term of three (3) months. If Client ends a Placement before the end of the minimum term, Client remains responsible for the full fees for the remainder of the minimum term."
+    "p": "Each Placement has a minimum term from its start date: six (6) months on the Essential and Specialist plans, and three (3) months on the Starter plan. If Client ends a Placement before the end of the minimum term, Client remains responsible for the full fees for the remainder of the minimum term."
    },
    {
     "sub": "3.5 Continuation"
    },
    {
-    "p": "After the minimum term, a Placement continues on a month-to-month basis until either party gives thirty (30) days’ written notice to end it, effective at the end of the following billing month."
+    "p": "After the minimum term, a Placement renews in three-month terms, and Client may move to a different plan at the end of any term. Either party may choose not to renew by giving thirty (30) days’ written notice before the current term ends."
    },
    {
     "sub": "3.6 Non-Payment"
    },
    {
-    "p": "If an invoice remains unpaid for fourteen (14) days after its due date, Client’s account locks: Client may still view messages and billing, but other account features become unavailable until the invoice is paid."
+    "p": "If an invoice remains unpaid for fourteen (14) days after its due date, Relève may suspend the Placement and lock Client’s account: Client may still view messages and billing, but other account features become unavailable until the invoice is paid."
    },
    {
     "sub": "3.7 Proration"
@@ -137,7 +148,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "4.2 Replacement Guarantee"
    },
    {
-    "p": "If a Placement ends within the first ninety (90) days of the Talent’s start date, for reasons other than Client’s breach of this Agreement, Relève will search for and present a replacement candidate at no additional placement fee. Client’s monthly fee continues to apply to any active Placement, and a replacement does not restart the three-month minimum term. This guarantee applies once per search. It does not apply where Client has failed to pay amounts owed, has materially changed the role from what was described at the start of the search, or has otherwise acted in a way that made the Placement unworkable."
+    "p": "If a Placement ends within the first ninety (90) days of the Talent’s start date, for reasons other than Client’s breach of this Agreement, Relève will search for and present a replacement candidate at no additional placement fee. Client’s monthly fee continues to apply to any active Placement, and a replacement does not restart the minimum term. This guarantee covers up to two (2) replacements per search. It does not apply where Client has failed to pay amounts owed, has materially changed the role from what was described at the start of the search, or has otherwise acted in a way that made the Placement unworkable."
    }
   ]
  },
