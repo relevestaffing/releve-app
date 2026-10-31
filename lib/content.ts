@@ -160,7 +160,7 @@ async function askClaude(system: string, brief: string, maxTokens = 16000): Prom
   const end = text.lastIndexOf('}');
   if (start < 0 || end < start) throw new Error('The AI sent back something that was not a set of posts.');
   try { return JSON.parse(text.slice(start, end + 1)); }
-  catch { throw new Error('The AI sent back posts that could not be read.'); }
+  catch { throw new Error(data?.stop_reason === 'max_tokens' ? 'The AI ran out of room before finishing the posts.' : 'The AI sent back posts that could not be read.'); }
 }
 
 type Drafted = {
@@ -253,10 +253,22 @@ async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 
     extra,
     hooks.length ? `Recent hooks. Do not repeat their angle, wording or shape:\n- ${hooks.slice(0, 40).join('\n- ')}` : ''
   ].filter(Boolean).join('\n\n');
-  const j = await askClaude(system, brief);
-  const posts: any[] = Array.isArray(j?.posts) ? j.posts : [];
-  if (posts.length < formats.length) throw new Error(`The AI wrote ${posts.length} of ${formats.length} ${CHANNELS[channel].label} posts.`);
-  return formats.map((f, i) => normalize(channel, posts[i], f));
+  /* Opus designs every slide, so a full week in one answer runs long. The
+     week is written in parts of up to three posts; each later part is told
+     what the earlier ones already covered, so the week still varies. */
+  const out: Drafted[] = [];
+  for (let at = 0; at < formats.length; at += 3) {
+    const part = formats.slice(at, at + 3);
+    const done = out.length
+      ? `\n\nYou are writing posts ${at + 1} to ${at + part.length} of ${formats.length} for this week. Already written this week (use different topics, layouts and next steps, and cover the weekly minimums the earlier posts did not):\n- ${out.map(d => `${d.topic} | layouts: ${[d.card?.layout, ...(d.slides ?? []).map((x: any) => x.layout)].filter(Boolean).join(', ') || d.format}`).join('\n- ')}`
+      : formats.length > 3 ? `\n\nYou are writing posts 1 to ${part.length} of ${formats.length} for this week; the rest are written next.` : '';
+    const partBrief = brief.replace(`Write ${formats.length} posts, in this order of format: ${formats.join(', ')}.`, `Write ${part.length} posts, in this order of format: ${part.join(', ')}.`) + done;
+    const j = await askClaude(system, partBrief);
+    const posts: any[] = Array.isArray(j?.posts) ? j.posts : [];
+    if (posts.length < part.length) throw new Error(`The AI wrote ${posts.length} of ${part.length} ${CHANNELS[channel].label} posts.`);
+    part.forEach((f, i) => out.push(normalize(channel, posts[i], f)));
+  }
+  return out;
 }
 
 function statusFor(channel: Channel, format: Format) {
