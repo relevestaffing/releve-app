@@ -25,7 +25,11 @@ export async function GET(req: Request) {
   return new NextResponse(new Uint8Array(body), {
     headers: {
       'content-type': jpg ? 'image/jpeg' : 'image/png',
+      /* Netlify's CDN keys its cache on the path alone unless told to vary
+         on the query, which served one slide for every slide (31 Oct). */
       'cache-control': 'public, max-age=300',
+      'netlify-vary': 'query',
+      'netlify-cdn-cache-control': 'no-store',
       'content-disposition': `inline; filename="releve-${post.slot}-${n + 1}.${jpg ? 'jpg' : 'png'}"`
     }
   });

@@ -32,6 +32,6 @@ export async function GET(req: Request) {
   const bytes = await doc.save();
   const name = (post.hook || post.slot).replace(/[^\w\s-]/g, '').trim().slice(0, 60) || 'Releve carousel';
   return new NextResponse(new Uint8Array(bytes), {
-    headers: { 'content-type': 'application/pdf', 'content-disposition': `attachment; filename="${name}.pdf"`, 'cache-control': 'private, max-age=60' }
+    headers: { 'content-type': 'application/pdf', 'content-disposition': `attachment; filename="${name}.pdf"`, 'cache-control': 'private, max-age=60', 'netlify-vary': 'query', 'netlify-cdn-cache-control': 'no-store' }
   });
 }
