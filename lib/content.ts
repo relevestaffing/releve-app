@@ -251,6 +251,11 @@ Extra post types that are landing on LinkedIn now, to mix in with everything els
 - Tweet screenshot or news headline: react to a real post or headline the audience cares about, agreeing or disagreeing, with useful commentary. Leave [Sage: screenshot] for the image.
 - Bad tactic callout: call out a bad hiring or delegation tactic going around, and why it fails.
 - "If I were": walk through exactly what Sage would do, step by step, in a specific owner's shoes.
+HOOK TEMPLATES (from a saved list of hooks that travel well on LinkedIn; use as openers for some posts, fill every bracket with a real Relève detail, vary them week to week, and never reuse the same one twice in a week):
+1. "Underrated benefit of [topic/thing]: [hack]" (e.g. an underrated benefit of handing off your calendar first).
+2. "[Topic] [skill] tip I use to [do desired/hard thing]" (a tip Sage really uses to get something hard done).
+3. "[Timeframe] ago I made [income an hour] [doing job]" (only with true figures and a true job from Sage's own history; otherwise leave [Sage: add real figure]).
+4. "If you read any [topic] posts today, read this one." (use sparingly, only for a post with a concrete, specific payoff).
 Before writing each post, settle four things: the one point it makes, the best package for that point, only the information that supports it, and the order (hook, setup, development, support, ending). The hook names something specific and leaves useful information for later, without false suspense.
 Across a week, aim for roughly 40% posts that reach the right audience, 40% that teach, 20% that prove and invite (only these carry an offer).
 Writing habits from this playbook: plain words, complete connected sentences, mobile-friendly paragraphs, no bold, no em dashes. Avoid "It's not X, it's Y" reversals, stacked one-word fragments, repeated sentence openings, rhetorical questions (a question must expect a real answer), sentences that open with "Most", and the phrases "Here's the thing", "Here's why", "The secret?", "The best part?", "Let me explain". Never invent numbers, results, stories or quotes; if a real detail is needed, leave [Sage: add real example].`;
