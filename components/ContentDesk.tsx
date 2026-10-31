@@ -167,35 +167,35 @@ function DayTabs({ days, today, posts, showSkipped, setShowSkipped, render }: {
   const skipped = ofDay.filter(p => p.status === 'skipped');
   const list = showSkipped ? ofDay : ofDay.filter(p => p.status !== 'skipped');
   const short = (d: string) => d.split(',')[0].slice(0, 3);
-  const date = (d: string) => d.split(', ')[1] ?? '';
+  const date = (d: string) => (d.split(', ')[1] ?? '').replace(/^(\w{3})\w*/, '$1');
   return (
-    <div className="card" style={{ padding: 0 }}>
-      <div role="tablist" aria-label="Days of the week" style={{ display: 'flex', overflowX: 'auto', borderBottom: '1px solid var(--line)' }}>
-        {days.map(d => {
+    <div className="stack" style={{ gap: 16 }}>
+      <div role="tablist" aria-label="Days of the week" className="card" style={{ display: 'grid', gridTemplateColumns: `repeat(${days.length}, minmax(76px, 1fr))`, padding: 0, marginBottom: 0, overflowX: 'auto' }}>
+        {days.map((d, i) => {
           const n = posts.filter(p => p.day === d && p.status !== 'skipped').length;
           const needs = posts.filter(p => p.day === d && ['needs_image', 'needs_video', 'failed', 'held'].includes(p.status)).length;
           const on = d === current;
           return (
             <button key={d} role="tab" aria-selected={on} onClick={() => setDay(d)}
-              style={{ flex: '1 0 auto', minWidth: 92, padding: '14px 16px', background: on ? 'var(--panel, transparent)' : 'transparent', border: 'none',
-                borderBottom: on ? '2px solid var(--ink, currentColor)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'inherit' }}>
-              <div style={{ fontWeight: on ? 600 : 400 }}>{short(d)}{d === today ? ' · today' : ''}</div>
-              <div className="xs muted">{date(d)} · {n} post{n === 1 ? '' : 's'}{needs ? ` · ${needs} need you` : ''}</div>
+              style={{ minWidth: 0, padding: '14px 10px 12px', background: on ? 'var(--fern, #35443A)' : 'transparent', color: on ? '#F3EFE6' : 'inherit',
+                border: 'none', borderLeft: i ? '1px solid var(--line)' : 'none', cursor: 'pointer', textAlign: 'center', font: 'inherit', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: 15, letterSpacing: 2, textTransform: 'uppercase' }}>{d === today ? 'Today' : short(d)}</div>
+              <div style={{ fontSize: 12, opacity: 0.8, marginTop: 2 }}>{date(d)}</div>
+              <div style={{ fontSize: 12, marginTop: 6, opacity: 0.9 }}>{n} post{n === 1 ? '' : 's'}</div>
+              {needs ? <div style={{ fontSize: 11, marginTop: 2, color: on ? '#F3EFE6' : 'var(--fern, #35443A)' }}>{needs} need you</div> : <div style={{ fontSize: 11, marginTop: 2, opacity: 0 }}>·</div>}
             </button>
           );
         })}
       </div>
-      <div style={{ padding: 18 }}>
-        <div className="row between" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
-          <h2 style={{ margin: 0 }}>{current}</h2>
-          {skipped.length > 0 && (
-            <button className="btn sm ghost" onClick={() => setShowSkipped(!showSkipped)}>
-              {showSkipped ? 'Hide skipped' : `Show skipped (${skipped.length})`}
-            </button>
-          )}
-        </div>
-        {list.length ? render(list) : <p className="small muted" style={{ margin: 0 }}>Nothing posts this day.</p>}
+      <div className="row between" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
+        <h2 style={{ margin: 0 }}>{current}</h2>
+        {skipped.length > 0 && (
+          <button className="btn sm ghost" onClick={() => setShowSkipped(!showSkipped)}>
+            {showSkipped ? 'Hide skipped' : `Show skipped (${skipped.length})`}
+          </button>
+        )}
       </div>
+      {list.length ? render(list) : <p className="small muted" style={{ margin: 0 }}>Nothing posts this day.</p>}
     </div>
   );
 }
