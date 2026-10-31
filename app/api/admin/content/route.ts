@@ -104,8 +104,9 @@ export async function POST(req: Request) {
         if ('caption' in b) patch.caption = nodash(b.caption, 3000);
         if ('caption_fb' in b) patch.caption_fb = nodash(b.caption_fb, 2000) || null;
         if ('hook' in b) patch.hook = nodash(b.hook, 300);
-        if (b.card && typeof b.card === 'object') patch.card = { kicker: nodash(b.card.kicker, 40), quote: nodash(b.card.quote, 200), sub: nodash(b.card.sub, 160) || undefined };
-        if (Array.isArray(b.slides)) patch.slides = (b.slides as Slide[]).map(s => ({ title: nodash(s?.title, 140), body: nodash(s?.body, 420) })).filter(s => s.title).slice(0, 10);
+        /* Edits change the words; the layout and its figures stay as designed. */
+        if (b.card && typeof b.card === 'object') patch.card = { ...(post.card ?? {}), kicker: nodash(b.card.kicker, 40), quote: nodash(b.card.quote, 200), sub: nodash(b.card.sub, 200) || undefined };
+        if (Array.isArray(b.slides)) patch.slides = (b.slides as Slide[]).map((s, i) => ({ ...((post.slides ?? [])[i] ?? {}), title: nodash(s?.title, 140), body: nodash(s?.body, 420) })).filter(s => s.title).slice(0, 10);
         if (b.script && typeof b.script === 'object') patch.script = {
           hook: nodash(b.script.hook, 300), close: nodash(b.script.close, 400),
           beats: (b.script.beats ?? []).map((x: unknown) => nodash(x, 500)).filter(Boolean).slice(0, 8),

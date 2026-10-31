@@ -6,8 +6,10 @@ export type Channel = 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers' | 
 export type Format = 'text' | 'card' | 'carousel' | 'video';
 export type PostStatus = 'needs_image' | 'needs_video' | 'scheduled' | 'held' | 'manual' | 'publishing' | 'posted' | 'failed' | 'skipped';
 
-export type Slide = { title: string; body: string };
-export type Card = { kicker: string; quote: string; sub?: string };
+/* Design fields (layout, rows, number, facts, left/right, bars, messages,
+   chips) ride along inside card and slides; see lib/content-render.tsx. */
+export type Slide = { title: string; body: string; layout?: string; [k: string]: any };
+export type Card = { kicker: string; quote: string; sub?: string; layout?: string; [k: string]: any };
 export type Script = { hook: string; beats: string[]; close: string; onscreen: string[] };
 
 export type ContentPost = {

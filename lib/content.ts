@@ -88,33 +88,53 @@ const FACTS = `About Relève: a premium virtual executive staffing agency. It pl
 
 Positioning: trust and relief, the feeling of "Consider it handled." The real fears are "can I trust someone with this?" and "will they add work instead of removing it?" Hires rarely fail on skill; they fail on fit: the right resume, the wrong working style. Owners get their time back for the work that grows the business. Never lead with cost, cheapness, offshore savings or "fix your inbox"; 14 days and 30% are supporting facts only.
 
-Hard rules for every word: no em dashes or en dashes (use commas, periods or colons). No prices or plan names. No invented clients, testimonials, quotes, names or statistics; composite stories read as illustrative ("Picture a founder who..."). Always make clear the staff are virtual. Say "prepared" rather than "trained", "supported" rather than "managed" when describing talent. American English. No emojis except at most one in an Instagram caption. Never name anyone other than Sage. Never threaten or shame the reader; point toward the better outcome. Every post must be different from the others in the week and from the recent hooks listed.`;
+Hard rules for every word: no em dashes or en dashes (use commas, periods or colons). No prices or plan names. No invented clients, testimonials, quotes, names or statistics; composite situations are framed as typical, never as a real client. Always make clear the staff are virtual. Say "prepared" rather than "trained", "supported" rather than "managed" when describing talent. American English. No emojis except at most one in an Instagram caption. Never name anyone other than Sage. Never threaten or shame the reader; point toward the better outcome. Every post must be different from the others in the week and from the recent hooks listed.`;
 
 const SAGE = `You are writing as Sage Jackson, founder of Relève, on her personal LinkedIn. Her story: seven years as an executive personal assistant and house manager to CEOs and ultra-high-net-worth entrepreneurs, anticipating needs before they were spoken; then carrying that instinct into scaling businesses: she has helped scale four businesses past seven figures, built out their operations, and hand built the CRM and recruiting system for a $50M company; she helps run a multi-seven-figure mastermind of 49+ business owners; she saw the same failure again and again (the resume matched, the working style did not) and built Relève to fix it. She runs every discovery call herself and gives a free live VA business audit on the call. Voice: first person, calm, sharp, specific, a little contrarian, generous with real lessons. Short lines and white space, the way strong LinkedIn posts read. A scroll-stopping first line. No hashtags except up to three at the very end. No links in the text. End with a question that invites comments, or a quiet invitation to message her.`;
 
-const PILLARS = `Rotate across these pillars so the week covers several: delegation lessons from the EA chair; the fit problem (resume vs working style); what a prepared virtual professional actually takes off a founder's plate (inbox, calendar, social, email marketing, lead follow-up, client experience, admin and billing, operations, life admin, AI and automation); founder time and burnout turned toward growth; how to brief, onboard and work with a VA; behind the scenes of how Relève vets and matches; the mission (the families behind the talent, told with dignity, never poverty imagery); myths about offshore and virtual staff; leadership and trust.`;
+const PILLARS = `The job of every post: make an established owner (1 to 10 people, at least $30k a month, still doing too much themselves; coaches and consultants, agency owners, real estate, e-commerce, professional services, health and wellness practices) think "these people know exactly how my week works", and move them one step closer to booking a discovery call with Sage, where she gives a free live audit of what to delegate.
+
+The quality bar, which every post must clear (Nona rejected a whole week of generic posts, so this is the most important instruction):
+- High end and modern: the voice of a top operator who has run founders' lives, not a marketer. Calm, exact, confident. Never cute, never motivational, never a fortune-cookie line.
+- Real-world applicable: every post hands the reader something they can use today: a rule they can copy, a script word for word, a checklist, a decision test, a template, the exact handoff steps, the numbers. Name real tools where natural (Gmail, Google Calendar, Calendly, Slack, Notion, Asana, Loom, HubSpot, QuickBooks, Shopify, ChatGPT and other AI tools).
+- Specific beats general: real situations (the 11 pm inbox, the Sunday calendar shuffle, the client onboarding that stalls, the invoice nobody sent, the lead that went cold in 48 hours), real times, real numbers. Math is welcome when it is plain arithmetic the reader can check (for example, "10 hours a week of admin at a $250 hourly value is $2,500 a week"). Never invent statistics, studies, clients, results or testimonials.
+- One idea per post, fully delivered. No filler, no throat clearing, no "In today's fast-paced world", no "Here's the thing", no "Let that sink in", no "game changer", no rhetorical question openers, no "Picture a founder who".
+
+Directions that pull clients (mix them across the week, never two of the same kind in a row): the exact first 5 tasks to hand off at your revenue level; a before and after of one real working week; the handoff playbook for one area (inbox, calendar, client onboarding, lead follow-up, invoicing, social, CRM hygiene, travel, life admin) with the steps; the scripts (what to say to your assistant, the rules doc, the weekly sync agenda); the hidden cost math of doing it yourself; the hiring mistake that makes owners say "VAs don't work" and how to avoid it (the resume matched, the working style did not); objections answered straight (trust, time zones, quality, security and access, "I tried it before"); behind the scenes of how Relève vets, matches with the Signature assessment and prepares someone before day one; what a prepared executive assistant does in the first 30, 60, 90 days; AI plus a person (what to automate, what still needs a human); decision tests (should you hire, who first, part time or full time); the mission, told with dignity: real careers for skilled professionals in the Philippines and Latin America.
+
+Every client-facing post ends with one clear next step: book a discovery call (Sage audits what to delegate, live, free) at relevestaffing.com/discovery, or for the groups the free training. Scarcity is true and quiet: Relève opens only ten new client spots a year.`;
+
+const DESIGN = `You also design each graphic. The house look is a clean, modern "ledger": Marcellus headlines, figures and text in a modern sans, fine rules, the real working artifact on the page. You choose a layout for every single graphic and every carousel slide, and you fill its fields. Layouts:
+- "statement": a headline that lands on its own, plus a short line under it. Use sparingly, at most once a week per account.
+- "number": one big figure the reader can check ("number":"$2,500"), the headline is its label, "facts":[{"value":"10 h","label":"admin a week"},...] up to 3 showing the arithmetic.
+- "rules": a headline plus "rows":[3 to 5 short lines] that the reader can copy as is (rules, a checklist, the steps, the settings).
+- "compare": a headline plus "left":{"label":"Before","items":[3 to 4]} and "right":{"label":"After","items":[3 to 4]} (before and after, myth and reality, doing it yourself and handing it off).
+- "chart": a headline plus "bars":[{"label":"Your week now","parts":[{"pct":38,"label":"Admin"},{"pct":37,"label":"Client work"},{"pct":25,"label":"Growth"}]},{"label":"After the handoff","parts":[...]}] and a "note" that marks it illustrative.
+- "message": a headline plus "messages":[{"from":"you","text":"..."},{"from":"assistant","text":"..."}], the exact words to send or the reply a prepared assistant gives (2 or 3 messages).
+- Carousels only: "cover" for slide 1 (a concrete promise as title, the subtitle as body, optional "chips":[2 to 4 one-word labels]), "step" for a teaching slide (title plus a body under 45 words), "cta" for the last slide.
+Every slide in a carousel can use a different layout: mix step with rules, number, compare, chart and message so the reader sees the real thing. Across the week use at least five different layouts and never the same layout on two posts in a row. Keep every figure honest arithmetic or clearly illustrative. Headlines under 70 characters, rows under 70, no em dashes.`;
 
 const FORMAT_RULES: Record<string, string> = {
   li_personal: `Return JSON: {"posts":[{"topic":"...","hook":"first line","text":"the full post, 900 to 1500 characters, line breaks as \\n","image_idea":"one sentence: the kind of photo Sage could pair with it (her own photo, a workspace, a moment)"}]}`,
-  li_group: `These go to four LinkedIn groups of business owners as free training. Pure value, no sales pitch; the only invitation is a soft line at the end of the caption pointing to the free training at relevestaffing.com/training. Each teaches one concrete thing a founder can do this week, usually how to hand a specific area of the business to a virtual professional and what changes. Return JSON: {"posts":[{"topic":"...","hook":"...","format":"carousel","caption":"LinkedIn caption, 500 to 1100 characters, \\n for breaks","slides":[{"title":"...","body":"..."}]} ...]}. A carousel has 7 or 8 slides: slide 1 is the cover (a bold promise as title, a short subtitle as body), the middle slides each teach one step (title under 8 words, body under 45 words), the last slide sums up and invites them to the free training (title + body, body mentions relevestaffing.com/training). For the one post marked video, return instead {"topic","hook","format":"video","caption","script":{"hook":"the first sentence said to camera","beats":["4 to 6 short spoken beats"],"close":"the closing line and invitation","onscreen":["3 to 5 short on-screen text lines"]}}; it should run 60 to 90 seconds spoken, in Sage's first person voice.`,
-  ig_client: `For the Relève Instagram and Facebook. Return JSON: {"posts":[...]} where each post is {"topic","hook","format":"card"|"carousel","caption_ig":"Instagram caption: a contrarian hook first line, then three short actionable steps, then why it matters, then exclusivity (ten new clients a year) and the call to book a discovery call (link in bio). 500 to 1200 characters, \\n for breaks, up to 5 relevant hashtags at the end","caption_fb":"Facebook version: casual and conversational, speaking straight to the reader, 300 to 700 characters, ends with relevestaffing.com/discovery","caption_li":"LinkedIn page version: professional, 400 to 900 characters, ends with relevestaffing.com/discovery","card":{"kicker":"2 to 4 word label in the @relevestaffing style, e.g. THE REAL RISK","quote":"the line on the graphic, under 120 characters","sub":"optional short second line"} for a card, or "slides":[{"title","body"}] with 5 to 7 slides for a carousel (cover first, last slide invites them to book a discovery call)}.`,
-  ig_careers: `For the Relève Careers Instagram and Facebook, talking to experienced remote professionals in the Philippines and Latin America who want a real career with a US executive. Tagline "Take the watch." but always say plainly what Relève Careers is: remote careers supporting US founders and executives, matched to how they work, prepared for the role before day one, supported by a Talent Success Manager. Respect and aspiration, never pity. Calls to action point to applying on relevestaffing.com (Careers). Return JSON: {"posts":[...]} each {"topic","hook","format":"card"|"carousel","caption_ig":"300 to 900 characters, up to 5 hashtags","caption_fb":"conversational, 200 to 600 characters","caption_li":"professional, 300 to 700 characters","card":{"kicker","quote","sub"} or "slides":[{"title","body"}] with 5 to 7 slides}.`
+  li_group: `These go to four LinkedIn groups of business owners as free training. Pure value, no sales pitch; the only invitation is a soft line at the end of the caption pointing to the free training at relevestaffing.com/training. Each teaches one concrete thing a founder can do this week, usually how to hand a specific area of the business to a virtual professional and what changes. Return JSON: {"posts":[{"topic":"...","hook":"...","format":"carousel","caption":"LinkedIn caption, 500 to 1100 characters, \\n for breaks","slides":[{"title":"...","body":"..."}]} ...]}. A carousel has 7 or 8 slides, each {"layout","title","body", plus the layout's own fields}: slide 1 is a "cover" (a specific, concrete promise as title, for example the outcome and the time it takes; a short subtitle as body), the middle slides each teach one step and show the real thing (mix step, rules, number, compare, chart and message), the last slide is a "cta" that sums up and invites them to the free training (body mentions relevestaffing.com/training). For the one post marked video, return instead {"topic","hook","format":"video","caption","script":{"hook":"the first sentence said to camera","beats":["4 to 6 short spoken beats"],"close":"the closing line and invitation","onscreen":["3 to 5 short on-screen text lines"]}}; it should run 60 to 90 seconds spoken, in Sage's first person voice.`,
+  ig_client: `For the Relève Instagram and Facebook. Return JSON: {"posts":[...]} where each post is {"topic","hook","format":"card"|"carousel","caption_ig":"Instagram caption: a contrarian hook first line, then three short actionable steps, then why it matters, then exclusivity (ten new clients a year) and the call to book a discovery call (link in bio). 500 to 1200 characters, \\n for breaks, up to 5 relevant hashtags at the end","caption_fb":"Facebook version: casual and conversational, speaking straight to the reader, 300 to 700 characters, ends with relevestaffing.com/discovery","caption_li":"LinkedIn page version: professional, 400 to 900 characters, ends with relevestaffing.com/discovery","card":{"layout":"one of the layouts","kicker":"2 to 4 word label naming what it is, e.g. THE INBOX RULE, HANDOFF SCRIPT, THE MATH","quote":"the headline, under 70 characters","sub":"one short line that makes it concrete (the tool, the time, the result), plus the layout's own fields"} for a card, or "slides":[{"layout","title","body", plus the layout's own fields}] with 6 to 8 slides for a carousel (cover first, last slide a cta inviting them to book a discovery call)}.`,
+  ig_careers: `For the Relève Careers Instagram and Facebook, talking to experienced remote professionals in the Philippines and Latin America who want a real career with a US executive. Tagline "Take the watch." but always say plainly what Relève Careers is: remote careers supporting US founders and executives, matched to how they work, prepared for the role before day one, supported by a Talent Success Manager. Respect and aspiration, never pity. Calls to action point to applying on relevestaffing.com (Careers). Return JSON: {"posts":[...]} each {"topic","hook","format":"card"|"carousel","caption_ig":"300 to 900 characters, up to 5 hashtags","caption_fb":"conversational, 200 to 600 characters","caption_li":"professional, 300 to 700 characters","card":{"layout","kicker","quote","sub", plus the layout's fields} or "slides":[{"layout","title","body", plus the layout's fields}] with 5 to 7 slides}.`
 };
 
 function clean(s: unknown, max: number) {
   return String(s ?? '').replace(/[–—]/g, ', ').replace(/[ \t]+\n/g, '\n').trim().slice(0, max);
 }
 
-async function askClaude(system: string, brief: string, maxTokens = 12000): Promise<any> {
+async function askClaude(system: string, brief: string, maxTokens = 16000): Promise<any> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error('Add ANTHROPIC_API_KEY in Netlify so Claude can write the posts.');
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 240000);
+  const timer = setTimeout(() => ctl.abort(), 600000);
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: process.env.ANTHROPIC_CONTENT_MODEL || process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5',
+      model: process.env.ANTHROPIC_CONTENT_MODEL || 'claude-opus-5-5',
       max_tokens: maxTokens, system, messages: [{ role: 'user', content: brief }]
     }),
     signal: ctl.signal
@@ -138,10 +158,29 @@ type Drafted = {
   card?: Card | null; slides?: Slide[]; script?: Script | null; image_idea?: string;
 };
 
+const LAYOUTS = ['statement', 'number', 'rules', 'compare', 'chart', 'message', 'cover', 'step', 'cta'];
+/* The design half of a card or slide, cleaned: only known layouts and
+   fields, every string trimmed, nothing that could break a graphic. */
+function design(x: any) {
+  const out: any = {};
+  if (LAYOUTS.includes(x?.layout)) out.layout = x.layout;
+  if (x?.kicker) out.kicker = clean(x.kicker, 40);
+  if (x?.number) out.number = clean(x.number, 12);
+  const arr = (a: any, n: number) => (Array.isArray(a) ? a : []).slice(0, n);
+  if (Array.isArray(x?.facts)) out.facts = arr(x.facts, 3).map((f: any) => ({ value: clean(f?.value, 14), label: clean(f?.label, 50) })).filter((f: any) => f.value);
+  if (Array.isArray(x?.rows)) out.rows = arr(x.rows, 5).map((r: any) => clean(r, 110)).filter(Boolean);
+  for (const k of ['left', 'right']) if (x?.[k]?.label) out[k] = { label: clean(x[k].label, 30), items: arr(x[k].items, 5).map((i: any) => clean(i, 90)).filter(Boolean) };
+  if (Array.isArray(x?.bars)) out.bars = arr(x.bars, 3).map((b: any) => ({ label: clean(b?.label, 40), parts: arr(b?.parts, 3).map((p: any) => ({ pct: Math.max(0, Math.min(100, Number(p?.pct) || 0)), label: clean(p?.label, 24) })) })).filter((b: any) => b.parts.length);
+  if (x?.note) out.note = clean(x.note, 90);
+  if (Array.isArray(x?.messages)) out.messages = arr(x.messages, 3).map((m: any) => ({ from: m?.from === 'you' ? 'you' : 'assistant', text: clean(m?.text, 260) })).filter((m: any) => m.text);
+  if (Array.isArray(x?.chips)) out.chips = arr(x.chips, 4).map((c: any) => clean(c, 24)).filter(Boolean);
+  return out;
+}
+
 function normalize(channel: Channel, raw: any, wanted: Format): Drafted {
-  const slides = (Array.isArray(raw?.slides) ? raw.slides : []).map((s: any) => ({ title: clean(s?.title, 140), body: clean(s?.body, 420) }))
+  const slides = (Array.isArray(raw?.slides) ? raw.slides : []).map((s: any) => ({ ...design(s), title: clean(s?.title, 140), body: clean(s?.body, 420) }))
     .filter((s: Slide) => s.title).slice(0, 10);
-  const card = raw?.card?.quote ? { kicker: clean(raw.card.kicker, 40), quote: clean(raw.card.quote, 200), sub: clean(raw.card.sub, 160) || undefined } : null;
+  const card = raw?.card?.quote ? { ...design(raw.card), kicker: clean(raw.card.kicker, 40), quote: clean(raw.card.quote, 200), sub: clean(raw.card.sub, 200) || undefined } : null;
   const script = raw?.script?.hook ? {
     hook: clean(raw.script.hook, 300), close: clean(raw.script.close, 400),
     beats: (raw.script.beats ?? []).map((b: unknown) => clean(b, 500)).filter(Boolean).slice(0, 8),
@@ -164,8 +203,31 @@ async function recentHooks(): Promise<string[]> {
   return (data ?? []).map((r: any) => r.hook).filter(Boolean);
 }
 
+/* What is going on in a US owner's year that week, so the posts stay
+   current: the season, the money calendar, the holidays. */
+function seasonFor(monday: string) {
+  const d = new Date(`${monday}T12:00:00Z`);
+  const m = d.getUTCMonth(), day = d.getUTCDate();
+  const notes: Record<number, string> = {
+    0: 'January: new-year planning, owners deciding what they will stop doing themselves this year, Q1 hiring.',
+    1: 'February: Q1 is underway, tax documents are arriving, Valentine\'s week for consumer brands.',
+    2: 'March: end of Q1, tax season pressure, spring launches.',
+    3: 'April: US tax deadline mid month, Q2 planning, spring busy season.',
+    4: 'May: Mother\'s Day for consumer brands, Memorial Day, summer planning.',
+    5: 'June: half-year review, summer schedules and owner vacations.',
+    6: 'July: Fourth of July, owners trying to take real time off, Q3 starts.',
+    7: 'August: back to school, Q4 planning starts, end of summer.',
+    8: 'September: Labor Day, Q4 push, budgets for next year.',
+    9: 'October: Q4 in full swing, holiday season preparation, next-year planning begins.',
+    10: 'November: Thanksgiving week, Black Friday and Cyber Monday for e-commerce, year-end client gifts, planning 2027 and who to hire before January.',
+    11: 'December: year-end close, holidays, owners wanting a real break, January hiring and the 2027 plan.'
+  };
+  const week = `This is the week of ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}.`;
+  return `${week} ${notes[m] ?? ''} Use it where it fits naturally; never force it. Use the AI tools owners are actually talking about now when relevant (assistants that work alongside AI, not instead of it).`;
+}
+
 /* Draft one channel's posts for a week, in one request. */
-async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers', formats: Format[], hooks: string[], extra = '') {
+async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers', formats: Format[], hooks: string[], extra = '', season = '') {
   const system = channel === 'li_personal' ? `${SAGE}\n\n${FACTS}` : `You write Relève's social content.\n\n${FACTS}`;
   /* The team's own notes on how this account's posts should be built (a
      reference post or reel, a structure to follow), set in the Content tab. */
@@ -174,7 +236,9 @@ async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 
     style ? `How these posts should be built (the team's reference, follow it closely for structure, pacing and tone, but keep every fact and rule above):\n${style}` : '',
     `Write ${formats.length} posts, in this order of format: ${formats.join(', ')}.`,
     PILLARS,
+    channel === 'li_personal' ? '' : DESIGN,
     FORMAT_RULES[channel],
+    season ? `Keep Relève current. ${season}` : '',
     extra,
     hooks.length ? `Recent hooks. Do not repeat their angle, wording or shape:\n- ${hooks.slice(0, 40).join('\n- ')}` : ''
   ].filter(Boolean).join('\n\n');
@@ -204,11 +268,17 @@ export async function draftWeek(monday: string) {
   const families: ('li_personal' | 'li_group' | 'ig_client' | 'ig_careers')[] =
     careersOn ? ['li_personal', 'li_group', 'ig_client', 'ig_careers'] : ['li_personal', 'li_group', 'ig_client'];
 
-  for (const ch of families) {
-    const plan = WEEK_PLAN.filter(s => s.channel === ch && !existing.has(`${monday}-${ch}-${DAY_KEYS[s.day]}`));
+  /* All four accounts are written at once (Opus is slower than Sonnet, and
+     the worker has 15 minutes), then saved in order. */
+  const plans = families.map(ch => WEEK_PLAN.filter(s => s.channel === ch && !existing.has(`${monday}-${ch}-${DAY_KEYS[s.day]}`)));
+  const written = await Promise.all(families.map((ch, k) => plans[k].length
+    ? draftChannel(ch, plans[k].map(s => s.format), hooks,
+        ch === 'li_group' ? 'One of these is the week\'s face-to-camera video (the one marked video). The rest are carousels.' : '', seasonFor(monday))
+    : Promise.resolve([])));
+  for (const [k, ch] of families.entries()) {
+    const plan = plans[k];
     if (!plan.length) continue;
-    const drafts = await draftChannel(ch, plan.map(s => s.format), hooks,
-      ch === 'li_group' ? 'One of these is the week\'s face-to-camera video (the one marked video). The rest are carousels.' : '');
+    const drafts = written[k];
     for (let i = 0; i < plan.length; i++) {
       const s = plan[i], d = drafts[i];
       const slot = `${monday}-${ch}-${DAY_KEYS[s.day]}`;
