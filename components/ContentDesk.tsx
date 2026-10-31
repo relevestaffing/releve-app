@@ -123,7 +123,7 @@ export default function ContentDesk(props: Props) {
       {props.draftNext?.status === 'failed' && <p className="small" style={{ margin: '-18px 0 0' }}><span className="pill crit">Drafting stopped</span> {props.draftNext.error}</p>}
 
       <div className="grid-4">
-        <div className="card stat"><div className="eyebrow">This week</div><div className="score">{posts.length}</div></div>
+        <div className="card stat"><div className="eyebrow">This week</div><div className="score">{count(p => p.status !== 'skipped')}</div></div>
         <div className="card stat"><div className="eyebrow">Posts itself</div><div className="score">{count(p => p.status === 'scheduled')}</div></div>
         <div className="card stat"><div className="eyebrow">Needs you</div><div className="score">{needsYou}</div></div>
         <div className="card stat"><div className="eyebrow">Posted</div><div className="score">{count(p => p.status === 'posted')}</div></div>
