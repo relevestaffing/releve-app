@@ -45,7 +45,7 @@ const LOOKS: Record<Look['key'], Look> = {
 
 /* The rotation: four Ledger posts to every two guests, shifted by account
    and by week so the same weekday does not always look the same. */
-const ORDER: Look['key'][] = ['paper', 'ink', 'desk', 'mist', 'night', 'paper', 'ink', 'mist'];
+const ORDER: Look['key'][] = ['paper', 'ink', 'mist', 'desk', 'paper', 'night', 'mist', 'ink'];
 function lookFor(slot: string): Look {
   const m = /^(\d{4})-(\d{2})-(\d{2})-([a-z_]+)-(mon|tue|wed|thu|fri|sat|sun)/.exec(slot);
   if (!m) { let h = 0; for (const ch of slot) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return LOOKS[ORDER[h % ORDER.length]]; }
