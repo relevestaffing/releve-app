@@ -238,6 +238,23 @@ function seasonFor(monday: string) {
 }
 
 /* Draft one channel's posts for a week, in one request. */
+/* A reference for LinkedIn (31 Oct 2026, Nona): Christian Di Bratto's public
+   Hat Tip LinkedIn playbook (github.com/ChristianDiBratto25/hattip-linkedin-os,
+   MIT). Added as one source among the rest, to widen the range, not replace it. */
+const LI_REFERENCE = `One reference among several (use it to widen the range of posts, never to make them all alike): a LinkedIn ghostwriter's playbook (6,000+ founder posts).
+Extra post types that are landing on LinkedIn now, to mix in with everything else:
+- Strategic tag: a process or idea written for one named, real person or company, tagged naturally. Only tag real people and leave the tag as [Sage: tag] for her to fill in.
+- Industry prediction: a non-obvious, plausible prediction about hiring, assistants, AI at work or small business, justified.
+- Borrowed authority teardown: break down how a well-known founder or brand delegates or runs operations, then show what an owner can copy. Only use facts that are public and certain.
+- Tech stack: the tools a great assistant runs a founder's week on, with each company tagged.
+- Unique mechanism: a named process with the outcome promised in the first line. Only name processes Relève really uses.
+- Tweet screenshot or news headline: react to a real post or headline the audience cares about, agreeing or disagreeing, with useful commentary. Leave [Sage: screenshot] for the image.
+- Bad tactic callout: call out a bad hiring or delegation tactic going around, and why it fails.
+- "If I were": walk through exactly what Sage would do, step by step, in a specific owner's shoes.
+Before writing each post, settle four things: the one point it makes, the best package for that point, only the information that supports it, and the order (hook, setup, development, support, ending). The hook names something specific and leaves useful information for later, without false suspense.
+Across a week, aim for roughly 40% posts that reach the right audience, 40% that teach, 20% that prove and invite (only these carry an offer).
+Writing habits from this playbook: plain words, complete connected sentences, mobile-friendly paragraphs, no bold, no em dashes. Avoid "It's not X, it's Y" reversals, stacked one-word fragments, repeated sentence openings, rhetorical questions (a question must expect a real answer), sentences that open with "Most", and the phrases "Here's the thing", "Here's why", "The secret?", "The best part?", "Let me explain". Never invent numbers, results, stories or quotes; if a real detail is needed, leave [Sage: add real example].`;
+
 async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers', formats: Format[], hooks: string[], extra = '', season = '') {
   const system = channel === 'li_personal' ? `${SAGE}\n\n${FACTS}` : `You write Relève's social content.\n\n${FACTS}`;
   /* The team's own notes on how this account's posts should be built (a
@@ -247,6 +264,7 @@ async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 
     style ? `How these posts should be built (the team's reference, follow it closely for structure, pacing and tone, but keep every fact and rule above):\n${style}` : '',
     `Write ${formats.length} posts, in this order of format: ${formats.join(', ')}.`,
     PILLARS,
+    channel === 'li_personal' || channel === 'li_group' ? LI_REFERENCE : '',
     channel === 'li_personal' ? '' : DESIGN,
     FORMAT_RULES[channel],
     season ? `Keep Relève current. ${season}` : '',
