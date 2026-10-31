@@ -16,7 +16,8 @@ import type { ContentPost } from './content-model';
 export const W = 1080, H = 1350;
 
 /* ---------- design data (lives inside card / slides jsonb) ---------- */
-export type Layout = 'statement' | 'number' | 'rules' | 'compare' | 'chart' | 'message' | 'cover' | 'step' | 'cta';
+export type Layout = 'statement' | 'number' | 'rules' | 'compare' | 'chart' | 'message' | 'cover' | 'step' | 'cta'
+  | 'notes' | 'search' | 'flags' | 'quiz' | 'comment';
 export type Design = {
   layout?: Layout; kicker?: string;
   number?: string; facts?: { value: string; label: string }[];
@@ -24,7 +25,7 @@ export type Design = {
   left?: { label: string; items: string[] }; right?: { label: string; items: string[] };
   bars?: { label: string; parts: { pct: number; label: string }[] }[]; note?: string;
   messages?: { from: 'you' | 'assistant'; text: string }[];
-  chips?: string[];
+  chips?: string[]; keyword?: string;
 };
 type CardD = Design & { quote: string; sub?: string };
 type SlideD = Design & { title: string; body: string };
@@ -261,6 +262,110 @@ function Chips({ L, chips }: { L: Look; chips?: string[] }) {
   );
 }
 
+/* ---------- the feed-native and client-pulling layouts (31 Oct) ---------- */
+
+/* An iPhone Notes page, in Relève colours. */
+function NotesCard({ L, title, rows, date }: { L: Look; title: string; rows: string[]; date?: string }) {
+  const dark = L.key === 'ink' || L.key === 'night';
+  const paper = dark ? '#1E2A24' : '#FFFFFF', ink = dark ? '#EEF1EC' : '#1B1F1C', soft = dark ? '#9DAAA2' : '#8A928D', accent = dark ? '#B0C4B2' : '#35443A';
+  return (
+    <div style={col({ background: paper, borderRadius: 34, padding: '34px 44px 40px', boxShadow: dark ? 'none' : '0 30px 70px rgba(18,26,22,0.14)', border: dark ? `1px solid ${L.line}` : 'none' })}>
+      <div style={flex({ justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Geist', fontSize: 26, color: accent })}>
+        <span>‹ Notes</span><span style={{ fontWeight: 600 }}>Done</span>
+      </div>
+      <span style={{ fontFamily: 'Geist', fontSize: 20, color: soft, marginTop: 22, alignSelf: 'center' }}>{date || 'Today at 9:41 AM'}</span>
+      <div style={flex({ fontFamily: 'Geist', fontWeight: 600, fontSize: size(title, [[40, 44], [70, 38]], 34), lineHeight: 1.2, color: ink, marginTop: 22 })}>{title}</div>
+      <div style={col({ marginTop: 18 })}>
+        {rows.slice(0, 7).map((r, i) => (
+          <div key={i} style={flex({ alignItems: 'flex-start', marginTop: 14, fontFamily: 'Geist', fontSize: size(r, [[45, 31], [80, 28]], 26), lineHeight: 1.35, color: ink })}>
+            <span style={{ color: accent, width: 40, flexShrink: 0 }}>{`${i + 1}.`}</span><span style={{ display: 'flex' }}>{r}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* A search box with the owner's own question and the suggestions under it. */
+function SearchCard({ L, query, rows }: { L: Look; query: string; rows: string[] }) {
+  const dark = L.key === 'ink' || L.key === 'night';
+  const box = dark ? '#22302A' : '#FFFFFF', ink = dark ? '#EEF1EC' : '#1B1F1C', soft = dark ? '#9DAAA2' : '#7A837E';
+  const glass = (
+    <div style={flex({ width: 34, height: 34, position: 'relative', flexShrink: 0 })}>
+      <div style={{ position: 'absolute', left: 0, top: 0, width: 24, height: 24, borderRadius: 12, border: `3px solid ${soft}` }} />
+      <div style={{ position: 'absolute', left: 21, top: 22, width: 12, height: 3, background: soft, transform: 'rotate(45deg)' }} />
+    </div>
+  );
+  return (
+    <div style={col({ background: box, borderRadius: 34, boxShadow: dark ? 'none' : '0 30px 70px rgba(18,26,22,0.14)', border: dark ? `1px solid ${L.line}` : `1px solid ${L.line}`, overflow: 'hidden' })}>
+      <div style={flex({ alignItems: 'center', gap: 24, padding: '32px 36px', borderBottom: rows.length ? `1px solid ${dark ? L.line : '#E6E9E6'}` : 'none' })}>
+        {glass}
+        <span style={{ fontFamily: 'Geist', fontSize: size(query, [[34, 38], [55, 33]], 29), color: ink, lineHeight: 1.3 }}>{query}</span>
+        <div style={{ width: 3, height: 40, background: L.accent }} />
+      </div>
+      {rows.slice(0, 4).map((r, i) => (
+        <div key={i} style={flex({ alignItems: 'center', gap: 24, padding: '22px 36px', fontFamily: 'Geist', fontSize: 27, color: soft })}>
+          {glass}<span style={{ display: 'flex' }}>{r}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Red flags and green flags, the semantic colours kept quiet. */
+function Flags({ L, d }: { L: Look; d: Design }) {
+  const dark = L.key === 'ink' || L.key === 'night';
+  const red = dark ? '#D9907E' : '#A4513F', green = dark ? '#9FC2A4' : '#3E6B4A';
+  const flag = (c: string) => (
+    <div style={flex({ width: 28, height: 34, position: 'relative', flexShrink: 0, marginRight: 20, marginTop: 2 })}>
+      <div style={{ position: 'absolute', left: 0, top: 0, width: 3, height: 34, background: c }} />
+      <div style={{ position: 'absolute', left: 3, top: 0, width: 22, height: 16, background: c }} />
+    </div>
+  );
+  const side = (s: { label: string; items: string[] } | undefined, c: string) => (
+    <div style={col({ marginTop: 30 })}>
+      <span style={{ fontFamily: 'Geist', fontWeight: 600, fontSize: 22, letterSpacing: 3, color: c, marginBottom: 6 }}>{(s?.label ?? '').toUpperCase()}</span>
+      {(s?.items ?? []).slice(0, 4).map((it, i) => (
+        <div key={i} style={flex({ alignItems: 'flex-start', padding: '16px 0', borderBottom: `1px solid ${L.line}`, fontFamily: 'Geist', fontSize: size(it, [[50, 29], [80, 26]], 24), lineHeight: 1.35, color: L.ink })}>{flag(c)}<span style={{ display: 'flex' }}>{it}</span></div>
+      ))}
+    </div>
+  );
+  return <div style={col({ marginTop: 6 })}>{side(d.left ?? { label: 'Red flags', items: [] }, red)}{side(d.right ?? { label: 'Green flags', items: [] }, green)}</div>;
+}
+
+/* A self-score: empty boxes to tick, then what the score means. */
+function Quiz({ L, rows, note }: { L: Look; rows: string[]; note?: string }) {
+  return (
+    <div style={col({ marginTop: 36 })}>
+      {rows.slice(0, 7).map((r, i) => (
+        <div key={i} style={flex({ alignItems: 'center', padding: '16px 0', borderBottom: `1px solid ${L.line}`, fontFamily: 'Geist', fontSize: size(r, [[50, 29], [80, 26]], 24), color: L.ink })}>
+          <div style={{ width: 34, height: 34, border: `2px solid ${L.accent}`, borderRadius: 7, marginRight: 22, flexShrink: 0 }} />
+          <span style={{ display: 'flex', flexGrow: 1 }}>{r}</span>
+          <span style={{ fontFamily: 'Geist Mono', fontSize: 20, color: L.soft, marginLeft: 16 }}>+1</span>
+        </div>
+      ))}
+      {note ? <div style={flex({ marginTop: 24, background: L.fill, color: L.ink, padding: '20px 24px', fontFamily: 'Geist', fontWeight: 500, fontSize: 25, lineHeight: 1.4 })}>{note}</div> : null}
+    </div>
+  );
+}
+
+/* "Comment HANDLED": the comment box, the keyword, what they get. */
+function CommentCta({ L, keyword, body }: { L: Look; keyword: string; body?: string }) {
+  const dark = L.key === 'ink' || L.key === 'night';
+  return (
+    <div style={col({ marginTop: 40 })}>
+      <div style={flex({ alignItems: 'center', gap: 22, background: dark ? '#22302A' : '#FFFFFF', border: `1px solid ${L.line}`, borderRadius: 999, padding: '20px 26px 20px 20px', boxShadow: dark ? 'none' : '0 20px 50px rgba(18,26,22,0.12)' })}>
+        <div style={flex({ width: 60, height: 60, borderRadius: 30, background: L.accent, color: L.onAccent, alignItems: 'center', justifyContent: 'center', fontFamily: 'Marcellus', fontSize: 30 })}>Y</div>
+        <span style={{ fontFamily: 'Geist', fontWeight: 600, fontSize: 52, letterSpacing: 2, color: L.ink }}>{keyword.toUpperCase()}</span>
+        <div style={{ width: 3, height: 50, background: L.accent }} />
+        <div style={flex({ flexGrow: 1 })} />
+        <span style={{ fontFamily: 'Geist', fontWeight: 600, fontSize: 26, color: L.accent }}>Post</span>
+      </div>
+      {body ? <div style={flex({ marginTop: 34, fontFamily: 'Geist', fontSize: bodySize(body), lineHeight: 1.45, color: L.soft })}>{body}</div> : null}
+    </div>
+  );
+}
+
 /* One page: the layout decides what sits under the headline. */
 function Page({ L, d, title, body, big }: { L: Look; d: Design; title: string; body?: string; big?: boolean }) {
   switch (d.layout) {
@@ -274,6 +379,16 @@ function Page({ L, d, title, body, big }: { L: Look; d: Design; title: string; b
       return (<div style={col({})}><Kicker L={L} text={d.kicker} /><Head L={L} text={title} /><Body L={L} text={body} top={24} /><Chart L={L} d={d} /></div>);
     case 'message':
       return (<div style={col({})}><Kicker L={L} text={d.kicker} /><Head L={L} text={title} /><Messages L={L} d={d} /><Body L={L} text={body} /></div>);
+    case 'notes':
+      return (<div style={col({})}><Kicker L={L} text={d.kicker} /><NotesCard L={L} title={title} rows={d.rows ?? []} date={d.note} /><Body L={L} text={body} /></div>);
+    case 'search':
+      return (<div style={col({})}><Kicker L={L} text={d.kicker} /><SearchCard L={L} query={title} rows={d.rows ?? []} /><Body L={L} text={body} top={40} strong /></div>);
+    case 'flags':
+      return (<div style={col({})}><Kicker L={L} text={d.kicker} /><Head L={L} text={title} /><Flags L={L} d={d} /><Body L={L} text={body} /></div>);
+    case 'quiz':
+      return (<div style={col({})}><Kicker L={L} text={d.kicker} /><Head L={L} text={title} /><Quiz L={L} rows={d.rows ?? []} note={d.note} /></div>);
+    case 'comment':
+      return (<div style={col({})}><Kicker L={L} text={d.kicker} /><Head L={L} text={title} big /><CommentCta L={L} keyword={d.keyword || 'HANDLED'} body={body} /></div>);
     case 'cover':
       return (<div style={col({})}><Kicker L={L} text={d.kicker} /><Head L={L} text={title} big /><Body L={L} text={body} /><Chips L={L} chips={d.chips} /></div>);
     default: // statement, step, cta
@@ -288,7 +403,7 @@ function cardEl(p: Drawable, L: Look) {
   const d: Design = { ...c, layout: c.layout && c.layout !== 'cover' && c.layout !== 'step' ? c.layout : 'statement' };
   const kick = c.kicker ? c.kicker.toUpperCase() : '';
   return (
-    <Frame L={L} head={[`WEEK ${weekNo(p.slot)}`, kick]} foot={[isCareers(p) ? 'RELÈVE CAREERS' : 'RELEVESTAFFING.COM', isCareers(p) ? 'APPLY · RELEVESTAFFING.COM' : 'BOOK A DELEGATION AUDIT']}>
+    <Frame L={L} head={[`WEEK ${weekNo(p.slot)}`, kick]} foot={[isCareers(p) ? 'RELÈVE CAREERS' : 'RELEVESTAFFING.COM', d.layout === 'comment' ? 'COMMENT BELOW' : isCareers(p) ? 'APPLY · RELEVESTAFFING.COM' : 'CONSIDER IT HANDLED.']}>
       <Page L={L} d={{ ...d, kicker: undefined }} title={c.quote} body={c.sub} big />
     </Frame>
   );
