@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
 import { supabaseBrowser } from '@/lib/supabase/client';
@@ -211,6 +211,7 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   const [card, setCard] = useState(p.card ?? { kicker: '', quote: '', sub: '' });
   const [slidesText, setSlidesText] = useState((p.slides ?? []).map(s => `${s.title}\n${s.body}`).join('\n\n'));
   const [uploading, setUploading] = useState(false);
+  const [view, setView] = useState<number | null>(null);
   const done = p.status === 'posted' || p.status === 'publishing';
   const isCopy = Boolean(p.parent_id);
 
@@ -280,9 +281,12 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
         <div style={{ marginTop: 18 }}>
           {p.images.length > 0 && (
             <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 6, marginBottom: 14 }}>
-              {p.images.map((src, i) => <a key={i} href={src} target="_blank" rel="noreferrer"><img src={src} alt={`Graphic ${i + 1}`} width={162} height={203} loading="lazy" style={{ display: 'block', border: '1px solid var(--line)' }} /></a>)}
+              {p.images.map((src, i) => <button key={i} type="button" onClick={() => setView(i)} aria-label={`Open graphic ${i + 1} of ${p.images.length}`}
+                style={{ padding: 0, border: 0, background: 'none', cursor: 'zoom-in', flex: '0 0 auto' }}>
+                <img src={src} alt={`Graphic ${i + 1}`} width={162} height={203} loading="lazy" style={{ display: 'block', border: '1px solid var(--line)' }} /></button>)}
             </div>
           )}
+          {view !== null && <Viewer images={p.images} start={view} onClose={() => setView(null)} />}
 
           {p.channel === 'li_personal' && (
             <div className="ff">
@@ -438,6 +442,61 @@ function Groups({ groups, run, busy }: { groups: { name: string; url: string }[]
         </div>
       ))}
       <button className="btn sm solid" disabled={!!busy} onClick={() => run('groups', 'groups', { list }, 'Groups saved')}>Save the groups</button>
+    </div>
+  );
+}
+
+/* ---------- full-size viewer: arrows, swipe, keyboard ---------- */
+
+function Viewer({ images, start, onClose }: { images: string[]; start: number; onClose: () => void }) {
+  const [i, setI] = useState(start);
+  const n = images.length;
+  const go = (d: number) => setI(x => Math.min(n - 1, Math.max(0, x + d)));
+  const touch = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') go(1);
+      else if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', key);
+    const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', key); document.body.style.overflow = prev; };
+  }, []);
+
+  const arrow = (d: number, show: boolean) => (
+    <button type="button" aria-label={d < 0 ? 'Previous graphic' : 'Next graphic'} disabled={!show}
+      onClick={e => { e.stopPropagation(); go(d); }}
+      style={{ position: 'absolute', top: '50%', [d < 0 ? 'left' : 'right']: 12, transform: 'translateY(-50%)', width: 48, height: 48,
+        borderRadius: 24, border: 0, background: 'rgba(243,239,230,.92)', color: '#2A332D', fontSize: 24, lineHeight: '48px',
+        cursor: show ? 'pointer' : 'default', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>{d < 0 ? '\u2039' : '\u203A'}</button>
+  );
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={`Graphic ${i + 1} of ${n}`} onClick={onClose}
+      onTouchStart={e => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; }}
+      onTouchEnd={e => {
+        const s = touch.current; touch.current = null; if (!s) return;
+        const t = e.changedTouches[0]; const dx = t.clientX - s.x; const dy = t.clientY - s.y;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+      }}
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(20,24,21,.92)', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', padding: '56px 16px 28px' }}>
+      <button type="button" aria-label="Close" onClick={onClose}
+        style={{ position: 'absolute', top: 12, right: 12, width: 44, height: 44, borderRadius: 22, border: 0,
+          background: 'rgba(243,239,230,.92)', color: '#2A332D', fontSize: 22, cursor: 'pointer' }}>{'\u00D7'}</button>
+      <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center', color: '#F3EFE6', fontSize: 13, letterSpacing: 2 }}>{i + 1} / {n}</div>
+      <img src={images[i]} alt={`Graphic ${i + 1} of ${n}`} onClick={e => e.stopPropagation()}
+        style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 120px)', objectFit: 'contain', display: 'block', userSelect: 'none' }} draggable={false} />
+      {n > 1 && arrow(-1, i > 0)}
+      {n > 1 && arrow(1, i < n - 1)}
+      {n > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }} onClick={e => e.stopPropagation()}>
+          {images.map((_, k) => <button key={k} type="button" aria-label={`Graphic ${k + 1}`} onClick={() => setI(k)}
+            style={{ width: 8, height: 8, padding: 0, borderRadius: 4, border: 0, cursor: 'pointer', background: k === i ? '#F3EFE6' : 'rgba(243,239,230,.35)' }} />)}
+        </div>
+      )}
     </div>
   );
 }
