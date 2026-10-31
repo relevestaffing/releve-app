@@ -23,6 +23,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ provide
     url = linkedinAuthUrl(redirect, state);
   } else return NextResponse.redirect(`${APP()}/console/content`);
   const res = NextResponse.redirect(url);
-  res.cookies.set(`rel_oauth_${provider}`, state, { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 600 });
+  res.cookies.set(`rel_oauth_${provider}`, state, { httpOnly: true, secure: true, sameSite: 'lax', path: '/', maxAge: 1800 });
   return res;
 }

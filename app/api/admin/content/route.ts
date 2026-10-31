@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
 import {
-  getPost, updatePost, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups
+  getPost, updatePost, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA
 } from '@/lib/content';
 import { isManual, type ContentPost, type Slide } from '@/lib/content-model';
 import { pageAccess } from '@/lib/social-linkedin';
@@ -47,6 +47,12 @@ export async function POST(req: Request) {
         const made = await draftWeek(week);                     // no worker (local dev): do it here
         await putSetting(`draft:${week}`, { status: 'done', at: new Date().toISOString() });
         return ok({ made: made.length });
+      }
+      case 'send_va': {
+        const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : weekStart(new Date(), 1);
+        await putSetting(`va:${week}`, { status: 'sending', at: new Date().toISOString() });
+        if (await kick('va_export', { week })) return ok({ queued: true });
+        return ok(await exportForVA(week, true));
       }
       case 'groups': {
         const list = (Array.isArray(b.list) ? b.list : []).slice(0, 4).map((x: any) => ({

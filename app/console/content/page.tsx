@@ -25,14 +25,15 @@ export default async function Content({ searchParams }: { searchParams: Promise<
   const shift = (w: string, d: number) => { const t = new Date(`${w}T12:00:00Z`); t.setUTCDate(t.getUTCDate() + d); return t.toISOString().slice(0, 10); };
 
   const ready = await tablesReady();
-  const [posts, groups, meta, li, draftNext, style] = ready
+  const [posts, groups, meta, li, draftNext, style, va] = ready
     ? await Promise.all([
         listWeek(week), getGroups(),
         getSetting<MetaConn>('conn:meta'), getSetting<LinkedInConn>('conn:linkedin'),
         getSetting<{ status: string; at: string; error?: string }>(`draft:${weekStart(new Date(), 1)}`),
-        getSetting<{ text: string }>('style:li_personal')
+        getSetting<{ text: string }>('style:li_personal'),
+        getSetting<{ status: string; at: string; error?: string; files?: number }>(`va:${week}`)
       ])
-    : [[], [], null, null, null, null];
+    : [[], [], null, null, null, null, null];
 
   const rows = posts.map(p => ({
     ...p,
@@ -53,6 +54,7 @@ export default async function Content({ searchParams }: { searchParams: Promise<
         setup={{ ready, metaApp: metaAppReady(), linkedinApp: linkedinAppReady(), pageAccess: pageAccess(), ai: Boolean(process.env.ANTHROPIC_API_KEY) }}
         draftNext={draftNext}
         sageStyle={style?.text ?? ''}
+        va={va}
         flash={{ connected: sp.connected ?? null, error: sp.error ?? null, setup: sp.setup ?? null }}
       />
     </Shell>

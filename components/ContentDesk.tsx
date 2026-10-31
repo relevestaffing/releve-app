@@ -19,6 +19,7 @@ type Props = {
   linkedin: { name: string; expires_at: string; pages: boolean } | null;
   setup: { ready: boolean; metaApp: boolean; linkedinApp: boolean; pageAccess: boolean; ai: boolean };
   draftNext: { status: string; at: string; error?: string } | null;
+  va: { status: string; at: string; error?: string; files?: number } | null;
   sageStyle: string;
   flash: { connected: string | null; error: string | null; setup: string | null };
 };
@@ -94,6 +95,20 @@ export default function ContentDesk(props: Props) {
           {drafting ? 'Writing the week…' : posts.length ? 'Fill any empty slots' : 'Write this week now'}
         </button>
       </div>
+      {posts.some(p => p.channel === 'li_group' || p.channel.startsWith('li_page')) && (
+        <div className="row between" style={{ gap: 12, flexWrap: 'wrap', margin: '-10px 0 0' }}>
+          <span className="small muted">
+            {props.va?.status === 'done' ? `Sent to the VA's Doc and Drive folder ${new Date(props.va.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`
+              : props.va?.status === 'sending' ? 'Sending to the VA…'
+              : props.va?.status === 'failed' ? <><span className="pill crit">Not sent to the VA</span> {props.va.error}</>
+              : "The VA's captions and files go to her Google Doc and Drive folder every Sunday at 8:00 AM Pacific."}
+          </span>
+          <button className="btn sm ghost" disabled={!!busy || props.va?.status === 'sending'}
+            onClick={() => run('va', 'send_va', { week: props.week }, 'Sending to the VA. It takes a minute.')}>
+            {props.va?.status === 'done' ? 'Send again' : 'Send to the VA'}
+          </button>
+        </div>
+      )}
       {props.draftNext?.status === 'failed' && <p className="small" style={{ margin: '-18px 0 0' }}><span className="pill crit">Drafting stopped</span> {props.draftNext.error}</p>}
 
       <div className="grid-4">
@@ -291,6 +306,7 @@ function Connections({ meta, linkedin, liDays, setup, run, busy }: {
                 </select></div>
               <button className="btn sm" disabled={!!busy} onClick={() => run('map', 'map_meta', { client: client || null, careers: careers || null }, 'Saved')}>Save</button>
             </div>
+            {!meta.careers && <span className="xs muted" style={{ display: 'block' }}>Careers posts are paused. Choose a careers page here and they start again with the next week Claude writes.</span>}
             <span className="xs muted">Connected{meta.user ? ` by ${meta.user}` : ''}. <a href="/api/content/connect/meta">Reconnect</a></span>
           </>
         ) : setup.metaApp ? <a className="btn sm solid" href="/api/content/connect/meta">Connect Instagram + Facebook</a>

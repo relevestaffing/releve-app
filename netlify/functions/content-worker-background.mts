@@ -1,4 +1,4 @@
-import { tick, draftWeek, previewWeek, redraftPost, getPost, publishDue, putSetting, weekStart } from '../../lib/content';
+import { tick, draftWeek, previewWeek, redraftPost, getPost, publishDue, putSetting, weekStart, exportForVA } from '../../lib/content';
 
 /* The content engine's worker (30 October 2026). Netlify runs a
    "-background" function for up to 15 minutes and answers its caller at once,
@@ -27,6 +27,11 @@ export default async (req: Request) => {
       case 'redraft': {
         const post = await getPost(String(b.id ?? ''));
         if (post) await redraftPost(post);
+        break;
+      }
+      case 'va_export': {
+        const monday = typeof b.week === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.week) ? b.week : weekStart(new Date(), 1);
+        console.log('[content] va', JSON.stringify(await exportForVA(monday, true)));
         break;
       }
       case 'publish_due':

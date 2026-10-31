@@ -7,6 +7,7 @@ import {
 } from './content-model';
 import { igPublishImages, igStartReel, igFinishReel, fbPublishImages, fbPublishVideo, type MetaConn } from './social-meta';
 import { linkedinPost, pageAccess, orgFor, type LinkedInConn } from './social-linkedin';
+import { vaConfigured, folderIn, upload, appendToDoc } from './google-va';
 
 /* Relève's content engine (30 October 2026).
    -----------------------------------------
@@ -197,7 +198,11 @@ export async function draftWeek(monday: string) {
   const existing = new Set((await listWeek(monday)).map(r => r.slot));
   const hooks = await recentHooks();
   const made: string[] = [];
-  const families: ('li_personal' | 'li_group' | 'ig_client' | 'ig_careers')[] = ['li_personal', 'li_group', 'ig_client', 'ig_careers'];
+  /* Careers posts are paused until a careers Facebook page is chosen in the
+     Content tab (31 Oct 2026: the careers page did not come through Meta). */
+  const careersOn = Boolean((await getSetting<MetaConn>('conn:meta'))?.careers);
+  const families: ('li_personal' | 'li_group' | 'ig_client' | 'ig_careers')[] =
+    careersOn ? ['li_personal', 'li_group', 'ig_client', 'ig_careers'] : ['li_personal', 'li_group', 'ig_client'];
 
   for (const ch of families) {
     const plan = WEEK_PLAN.filter(s => s.channel === ch && !existing.has(`${monday}-${ch}-${DAY_KEYS[s.day]}`));
@@ -464,11 +469,87 @@ export async function tick(now = new Date()) {
       }
     }
   }
+  /* The VA (on US hours) gets the coming week on Sunday from 8:00 AM
+     Pacific, so any edits made after Thursday's draft are in what she
+     receives. Once per week. */
+  if (pt.wd === 0 && pt.h >= 8) {
+    try { out.va = await exportForVA(weekStart(now, 1)); } catch (e: any) { out.vaError = e?.message ?? String(e); }
+  }
   return out;
 }
 
 /* Hand a job to the background worker. Answers at once (202). Returns false
    when there is no worker to call (local dev, or CRON_SECRET missing). */
+/* ---------- the VA's Doc and Drive folder (31 October 2026) ----------
+   Sage's VA posts what no tool can: the four LinkedIn groups, and the Relève
+   LinkedIn page until LinkedIn grants page access. Once a week is written,
+   its captions go into the VA's Google Doc and its files (carousel PDFs,
+   graphics) into a "Week of ..." folder in the VA's Google Drive. */
+
+export const VA_DEFAULT = {
+  doc: '1jLmnBqWyFTVg1WboxdOBUHkBg1bJLyFWaOYNP76ITf8', tab: 't.o4lut0ptt95r',
+  folder: '1EYqjU7ECpEcm2KvtqeZswxXkAgr_EBvl'
+};
+type VaPlace = typeof VA_DEFAULT;
+export const vaPlace = async (): Promise<VaPlace> => ({ ...VA_DEFAULT, ...((await getSetting<Partial<VaPlace>>('va')) ?? {}) });
+
+const forVA = (p: ContentPost) => p.status !== 'skipped' && p.status !== 'posted' && (
+  p.channel === 'li_group' || ((p.channel === 'li_page_client' || p.channel === 'li_page_careers') && !pageAccess()));
+
+export async function exportForVA(monday: string, force = false) {
+  const key = `va:${monday}`;
+  const prev = await getSetting<{ status: string; at: string }>(key);
+  if (prev?.status === 'done' && !force) return { skipped: true };
+  if (!vaConfigured()) throw new Error('The Google service account is not set up.');
+  const posts = (await listWeek(monday)).filter(forVA).sort((a, b) => a.publish_at.localeCompare(b.publish_at));
+  if (!posts.length) { await putSetting(key, { status: 'done', at: new Date().toISOString(), files: 0 }); return { files: 0 }; }
+  await putSetting(key, { status: 'sending', at: new Date().toISOString() });
+  try {
+    const place = await vaPlace();
+    const weekName = `Week of ${new Date(`${monday}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
+    const folder = await folderIn(place.folder, weekName);
+    const groups = (await getGroups()).filter(g => g.name || g.url);
+    const short = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: '2-digit', weekday: 'short' });
+
+    const parts: string[] = [`\n\n${weekName.toUpperCase()}\nFiles: Google Drive folder "${weekName}"\n`];
+    if (groups.length) parts.push(`The four groups:\n${groups.map((g, i) => `${i + 1}. ${g.name || 'Group'}${g.url ? ` ${g.url}` : ''}`).join('\n')}\n`);
+    let files = 0;
+    for (const p of posts) {
+      const where = p.channel === 'li_group' ? 'LinkedIn groups (post in all four)' : CHANNELS[p.channel].label;
+      const base = `${short(p.publish_at)} - ${p.channel === 'li_group' ? 'Groups' : 'LinkedIn page'} - ${p.format}`.replace(/[,/]/g, '');
+      let file = '';
+      if (p.format === 'carousel' && imageCount(p)) {
+        const { bytes } = await fetchBytes(pdfUrl(p.id));
+        await upload(folder, `${base}.pdf`, 'application/pdf', bytes); file = `${base}.pdf`; files++;
+      } else if (p.format === 'card' && imageCount(p)) {
+        const { bytes } = await fetchBytes(imageUrl(p.id, 0, 'jpg'));
+        await upload(folder, `${base}.jpg`, 'image/jpeg', bytes); file = `${base}.jpg`; files++;
+      } else if (p.format === 'video' && p.video_path) {
+        const { bytes, type } = await fetchBytes(mediaUrl(p.video_path));
+        const ext = /quicktime/.test(type) ? 'mov' : 'mp4';
+        await upload(folder, `${base}.${ext}`, type, bytes); file = `${base}.${ext}`; files++;
+      }
+      const lines = [`\n${whenLabel(p.publish_at).toUpperCase()} · ${where}`];
+      lines.push(file ? `File: ${file}` : p.format === 'video' ? 'Video: Sage records it from the script below; it goes in this folder when it is uploaded.' : 'Text only.');
+      if (p.format === 'carousel' && p.channel === 'li_group') lines.push('Post the PDF as a document (carousel) and give it the title of the first slide.');
+      lines.push('', 'Caption:', p.caption.trim());
+      if (p.script) {
+        const sc = p.script;
+        lines.push('', 'Video script:', `Hook: ${sc.hook}`, ...sc.beats.map((b, i) => `${i + 1}. ${b}`), `Close: ${sc.close}`);
+        if (sc.onscreen?.length) lines.push(`On screen: ${sc.onscreen.join(' / ')}`);
+      }
+      lines.push('', '────────');
+      parts.push(lines.join('\n'));
+    }
+    await appendToDoc(place.doc, place.tab, parts.join('\n') + '\n');
+    await putSetting(key, { status: 'done', at: new Date().toISOString(), files, posts: posts.length });
+    return { files, posts: posts.length };
+  } catch (e: any) {
+    await putSetting(key, { status: 'failed', at: new Date().toISOString(), error: String(e?.message ?? e).slice(0, 300) });
+    throw e;
+  }
+}
+
 export async function kick(job: string, extra: Record<string, unknown> = {}) {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
