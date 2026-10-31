@@ -48,6 +48,17 @@ export async function POST(req: Request) {
         await putSetting(`draft:${week}`, { status: 'done', at: new Date().toISOString() });
         return ok({ made: made.length });
       }
+      case 'approve_week': {
+        /* Nona approves a week: every held post goes back to its schedule,
+           and the VA's Doc and Drive get the approved week. */
+        const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : '';
+        if (!week) return bad('Which week?');
+        const { data: held } = await adminClient().from('content_posts').select('*').eq('week_start', week).eq('status', 'held');
+        for (const p of (held ?? []) as ContentPost[]) await updatePost(p.id, { status: readyStatus(p), hold_reason: null, error: null } as any);
+        const va = await getSetting<{ status: string; note?: string }>(`va:${week}`);
+        if (va?.note?.startsWith('paused')) { await putSetting(`va:${week}`, { status: 'sending', at: new Date().toISOString() }); await kick('va_export', { week }); }
+        return ok({ released: (held ?? []).length });
+      }
       case 'send_va': {
         const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : weekStart(new Date(), 1);
         await putSetting(`va:${week}`, { status: 'sending', at: new Date().toISOString() });

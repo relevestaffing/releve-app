@@ -19,7 +19,9 @@ type Props = {
   linkedin: { name: string; expires_at: string; pages: boolean } | null;
   setup: { ready: boolean; metaApp: boolean; linkedinApp: boolean; pageAccess: boolean; ai: boolean };
   draftNext: { status: string; at: string; error?: string } | null;
-  va: { status: string; at: string; error?: string; files?: number } | null;
+  va: { status: string; at: string; error?: string; files?: number; when?: string } | null;
+  liDays: number | null;
+  today: string;
   sageStyle: string;
   flash: { connected: string | null; error: string | null; setup: string | null };
 };
@@ -41,6 +43,7 @@ export default function ContentDesk(props: Props) {
   const { posts, setup, meta, linkedin } = props;
   const [busy, setBusy] = useState('');
   const [open, setOpen] = useState<string | null>(null);
+  const [showSkipped, setShowSkipped] = useState(false);
 
   async function run(key: string, action: string, body: Record<string, unknown> = {}, okText?: string) {
     setBusy(key);
@@ -52,7 +55,7 @@ export default function ContentDesk(props: Props) {
   const count = (f: (p: Row) => boolean) => posts.filter(f).length;
   const needsYou = count(p => ['needs_image', 'needs_video', 'manual', 'failed'].includes(p.status));
   const days = Array.from(new Set(posts.map(p => p.day)));
-  const liDays = linkedin ? Math.floor((new Date(linkedin.expires_at).getTime() - Date.now()) / 86400000) : null;
+  const liDays = props.liDays;  // worked out on the server, so the page hydrates cleanly
   const drafting = props.draftNext?.status === 'drafting';
 
   /* What is left to set up, in order. Each line disappears once done. */
@@ -98,7 +101,7 @@ export default function ContentDesk(props: Props) {
       {posts.some(p => p.channel === 'li_group' || p.channel.startsWith('li_page')) && (
         <div className="row between" style={{ gap: 12, flexWrap: 'wrap', margin: '-10px 0 0' }}>
           <span className="small muted">
-            {props.va?.status === 'done' ? `Sent to the VA's Doc and Drive folder ${new Date(props.va.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.`
+            {props.va?.status === 'done' ? `Sent to the VA's Doc and Drive folder ${props.va.when ?? ''}.`
               : props.va?.status === 'sending' ? 'Sending to the VA…'
               : props.va?.status === 'failed' ? <><span className="pill crit">Not sent to the VA</span> {props.va.error}</>
               : "The VA's captions and files go to her Google Doc and Drive folder every Sunday at 8:00 AM Pacific."}
@@ -106,6 +109,14 @@ export default function ContentDesk(props: Props) {
           <button className="btn sm ghost" disabled={!!busy || props.va?.status === 'sending'}
             onClick={() => run('va', 'send_va', { week: props.week }, 'Sending to the VA. It takes a minute.')}>
             {props.va?.status === 'done' ? 'Send again' : 'Send to the VA'}
+          </button>
+        </div>
+      )}
+      {posts.some(p => p.status === 'held') && (
+        <div className="card tight row between" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span className="small">{posts.filter(p => p.status === 'held').length} posts this week are held and will not post until released.</span>
+          <button className="btn sm solid" disabled={!!busy} onClick={() => run('approve', 'approve_week', { week: props.week }, 'Approved. Everything is back on schedule.')}>
+            {busy === 'approve' ? 'Approving…' : 'Approve the week'}
           </button>
         </div>
       )}
@@ -125,17 +136,17 @@ export default function ContentDesk(props: Props) {
         </p></div>
       )}
 
-      {days.map(day => (
-        <div key={day}>
-          <h2 style={{ margin: '0 0 12px' }}>{day}</h2>
-          <div className="stack" style={{ gap: 12 }}>
-            {posts.filter(p => p.day === day).map(p => (
-              <PostCard key={p.id} p={p} open={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)}
-                groups={props.groups} busy={busy} run={run} />
-            ))}
-          </div>
-        </div>
-      ))}
+      {posts.length > 0 && (
+        <DayTabs days={days} today={props.today} posts={posts} showSkipped={showSkipped} setShowSkipped={setShowSkipped}
+          render={(list) => (
+            <div className="stack" style={{ gap: 12 }}>
+              {list.map(p => (
+                <PostCard key={`${p.id}-${p.updated_at}`} p={p} open={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)}
+                  onClose={() => setOpen(null)} groups={props.groups} busy={busy} run={run} />
+              ))}
+            </div>
+          )} />
+      )}
 
       <Connections meta={meta} linkedin={linkedin} liDays={liDays} setup={setup} run={run} busy={busy} />
       <Style text={props.sageStyle} run={run} busy={busy} />
@@ -144,10 +155,55 @@ export default function ContentDesk(props: Props) {
   );
 }
 
+/* ---------- the week, one tab per day ---------- */
+
+function DayTabs({ days, today, posts, showSkipped, setShowSkipped, render }: {
+  days: string[]; today: string; posts: Row[]; showSkipped: boolean; setShowSkipped: (v: boolean) => void;
+  render: (list: Row[]) => React.ReactNode;
+}) {
+  const [day, setDay] = useState(days.includes(today) ? today : days[0]);
+  const current = days.includes(day) ? day : days[0];
+  const ofDay = posts.filter(p => p.day === current);
+  const skipped = ofDay.filter(p => p.status === 'skipped');
+  const list = showSkipped ? ofDay : ofDay.filter(p => p.status !== 'skipped');
+  const short = (d: string) => d.split(',')[0].slice(0, 3);
+  const date = (d: string) => d.split(', ')[1] ?? '';
+  return (
+    <div className="card" style={{ padding: 0 }}>
+      <div role="tablist" aria-label="Days of the week" style={{ display: 'flex', overflowX: 'auto', borderBottom: '1px solid var(--line)' }}>
+        {days.map(d => {
+          const n = posts.filter(p => p.day === d && p.status !== 'skipped').length;
+          const needs = posts.filter(p => p.day === d && ['needs_image', 'needs_video', 'failed', 'held'].includes(p.status)).length;
+          const on = d === current;
+          return (
+            <button key={d} role="tab" aria-selected={on} onClick={() => setDay(d)}
+              style={{ flex: '1 0 auto', minWidth: 92, padding: '14px 16px', background: on ? 'var(--panel, transparent)' : 'transparent', border: 'none',
+                borderBottom: on ? '2px solid var(--ink, currentColor)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'inherit' }}>
+              <div style={{ fontWeight: on ? 600 : 400 }}>{short(d)}{d === today ? ' · today' : ''}</div>
+              <div className="xs muted">{date(d)} · {n} post{n === 1 ? '' : 's'}{needs ? ` · ${needs} need you` : ''}</div>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ padding: 18 }}>
+        <div className="row between" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+          <h2 style={{ margin: 0 }}>{current}</h2>
+          {skipped.length > 0 && (
+            <button className="btn sm ghost" onClick={() => setShowSkipped(!showSkipped)}>
+              {showSkipped ? 'Hide skipped' : `Show skipped (${skipped.length})`}
+            </button>
+          )}
+        </div>
+        {list.length ? render(list) : <p className="small muted" style={{ margin: 0 }}>Nothing posts this day.</p>}
+      </div>
+    </div>
+  );
+}
+
 /* ---------- one post ---------- */
 
-function PostCard({ p, open, onToggle, groups, busy, run }: {
-  p: Row; open: boolean; onToggle: () => void; groups: { name: string; url: string }[];
+function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
+  p: Row; open: boolean; onToggle: () => void; onClose: () => void; groups: { name: string; url: string }[];
   busy: string; run: (k: string, a: string, b?: Record<string, unknown>, ok?: string) => Promise<any>;
 }) {
   const [caption, setCaption] = useState(p.caption);
@@ -177,11 +233,35 @@ function PostCard({ p, open, onToggle, groups, busy, run }: {
     if (p.format === 'carousel') body.slides = slidesText.split(/\n\s*\n/).map(b => {
       const [title, ...rest] = b.trim().split('\n'); return { title: title ?? '', body: rest.join(' ') } as Slide;
     });
-    return run('save' + p.id, 'edit', body, 'Saved');
+    return run('save' + p.id, 'edit', body, 'Saved').then(j => { if (j) onClose(); });
   }
 
+  /* Files are made on request (a carousel PDF takes a few seconds), so the
+     button says so while it works, then the download starts. */
+  const [getting, setGetting] = useState('');
+  async function download(url: string, name: string, key: string) {
+    setGetting(key);
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`status ${r.status}`);
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    } catch (e: any) { toast.bad(`The file did not download. ${e?.message ?? ''}`); }
+    setGetting('');
+  }
+  const label = (key: string, idle: string, working: string) => busy === key + p.id ? working : idle;
+
   function copy(text: string) {
-    navigator.clipboard?.writeText(text).then(() => toast.ok('Copied'), () => toast.bad('Could not copy.'));
+    const fallback = () => {
+      const t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); toast.ok('Copied'); } catch { toast.bad('Could not copy. Select the text and copy it.'); }
+      t.remove();
+    };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(() => toast.ok('Copied'), fallback);
+    else fallback();
   }
 
   const ticks = p.results?.groups ?? {};
@@ -261,16 +341,19 @@ function PostCard({ p, open, onToggle, groups, busy, run }: {
           )}
 
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-            {!done && <button className="btn sm solid" disabled={!!busy} onClick={save}>Save</button>}
+            {!done && <button className="btn sm solid" disabled={!!busy} onClick={save}>{label('save', 'Save', 'Saving…')}</button>}
             <button className="btn sm ghost" onClick={() => copy(caption)}>Copy the words</button>
-            {p.pdf && <a className="btn sm ghost" href={p.pdf}>Download PDF</a>}
-            {p.images.length === 1 && <a className="btn sm ghost" href={p.images[0].replace('fmt=png', 'fmt=jpg')} download>Download graphic</a>}
-            {!done && !isCopy && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('re' + p.id, 'redraft', { id: p.id }, 'Rewriting. Refresh in a minute.')}>Rewrite it</button>}
-            {['scheduled', 'needs_image', 'needs_video', 'manual'].includes(p.status) && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('h' + p.id, 'hold', { id: p.id }, 'Held')}>Hold</button>}
-            {p.status === 'held' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('r' + p.id, 'resume', { id: p.id }, 'Back on schedule')}>Release the hold</button>}
-            {(p.status === 'scheduled' || p.status === 'failed') && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('n' + p.id, p.status === 'failed' ? 'retry' : 'post_now', { id: p.id }, 'Posting now')}>{p.status === 'failed' ? 'Try again' : 'Post now'}</button>}
-            {p.status === 'manual' && p.channel !== 'li_group' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('m' + p.id, 'mark_posted', { id: p.id }, 'Marked as posted')}>Mark as posted</button>}
-            {!done && p.status !== 'skipped' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('s' + p.id, 'skip', { id: p.id }, 'Skipped')}>Skip</button>}
+            {p.pdf && <button className="btn sm ghost" disabled={!!getting} onClick={() => download(p.pdf!, `releve-${p.slot}.pdf`, 'pdf')}>{getting === 'pdf' ? 'Preparing the PDF…' : 'Download PDF'}</button>}
+            {p.images.length > 0 && <button className="btn sm ghost" disabled={!!getting} onClick={async () => {
+              for (let i = 0; i < p.images.length; i++) await download(p.images[i].replace('fmt=png', 'fmt=jpg'), `releve-${p.slot}-${i + 1}.jpg`, 'img');
+            }}>{getting === 'img' ? 'Preparing…' : p.images.length === 1 ? 'Download graphic' : `Download ${p.images.length} graphics`}</button>}
+            {!done && !isCopy && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('re' + p.id, 'redraft', { id: p.id }, 'Opus is rewriting this post. It updates here in about two minutes.').then(() => setTimeout(() => window.location.reload(), 120000))}>{label('re', 'Rewrite it', 'Starting…')}</button>}
+            {['scheduled', 'needs_image', 'needs_video', 'manual'].includes(p.status) && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('h' + p.id, 'hold', { id: p.id }, 'Held')}>{label('h', 'Hold', 'Holding…')}</button>}
+            {p.status === 'held' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('r' + p.id, 'resume', { id: p.id }, 'Back on schedule')}>{label('r', 'Release the hold', 'Releasing…')}</button>}
+            {(p.status === 'scheduled' || p.status === 'failed') && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('n' + p.id, p.status === 'failed' ? 'retry' : 'post_now', { id: p.id }, 'Posting now')}>{label('n', p.status === 'failed' ? 'Try again' : 'Post now', 'Posting…')}</button>}
+            {p.status === 'manual' && p.channel !== 'li_group' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('m' + p.id, 'mark_posted', { id: p.id }, 'Marked as posted')}>{label('m', 'Mark as posted', 'Saving…')}</button>}
+            {!done && p.status !== 'skipped' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('s' + p.id, 'skip', { id: p.id }, 'Skipped')}>{label('s', 'Skip', 'Skipping…')}</button>}
+            <button className="btn sm ghost" onClick={onClose}>Close</button>
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>{CHANNELS[p.channel].where}. {p.written_by === 'team' ? 'Edited by the team.' : 'Written by Claude.'}</p>
         </div>

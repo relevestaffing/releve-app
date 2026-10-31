@@ -54,7 +54,9 @@ export default async function Content({ searchParams }: { searchParams: Promise<
         setup={{ ready, metaApp: metaAppReady(), linkedinApp: linkedinAppReady(), pageAccess: pageAccess(), ai: Boolean(process.env.ANTHROPIC_API_KEY) }}
         draftNext={draftNext}
         sageStyle={style?.text ?? ''}
-        va={va}
+        va={va ? { ...va, when: new Date(va.at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' PT' } : null}
+        liDays={li ? Math.floor((new Date(li.expires_at).getTime() - Date.now()) / 86400000) : null}
+        today={dayLabel(new Date().toISOString())}
         flash={{ connected: sp.connected ?? null, error: sp.error ?? null, setup: sp.setup ?? null }}
       />
     </Shell>
