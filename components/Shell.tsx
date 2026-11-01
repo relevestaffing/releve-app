@@ -20,6 +20,8 @@ import { firstName } from '@/lib/words';
 import { teamUnreadCount, unreadTotal } from '@/lib/experience';
 import UnreadSync from './UnreadSync';
 import UnreadBadge from './UnreadBadge';
+import AskWidget from './AskWidget';
+import { isOwner } from '@/lib/money';
 import './experience.css';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
@@ -76,7 +78,7 @@ const NAV: Record<string, NavGroup[]> = {
       { href: '/app/checkin', label: 'End of week report' },
       { href: '/app/pay', label: 'Your pay' }
     ]},
-    { items: [{ href: '/app/messages', label: 'Messages' }, { href: '/app/ask', label: 'Ask Relève' }] }
+    { items: [{ href: '/app/messages', label: 'Messages' }] }
   ],
 
   /* Nineteen entries in six groups became eight (Sage, 25 October 2026:
@@ -102,8 +104,7 @@ const NAV: Record<string, NavGroup[]> = {
     /* Looked at monthly, not daily, so it sits apart rather than competing
        with the seven above. */
     { items: [
-      { href: '/console/business', label: 'The business' },
-      { href: '/console/ask', label: 'Ask Relève' }
+      { href: '/console/business', label: 'The business' }
     ]}
   ]
 };
@@ -192,7 +193,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
     nav.push({ group: 'Working together', items: [{ href: '/app/billing', label: 'Billing' }] });
   }
 
-  nav.push({ items: [{ href: '/app/messages', label: 'Messages' }, { href: '/app/ask', label: 'Ask Relève' }] });
+  nav.push({ items: [{ href: '/app/messages', label: 'Messages' }] });
   /* The vision screens recede here once the deposit is in — out of the daily
      menu, but one link away for a client who wants to revisit them. */
   nav.push({ items: [{ href: '/app/how', label: 'How Relève works' }] });
@@ -211,6 +212,14 @@ async function talentNav(profile: Profile): Promise<NavGroup[]> {
   return NAV.talent.map(g => g.group === 'Working'
     ? { ...g, items: g.items.filter(i => !['/app/log', '/app/brief', '/app/checkin', '/app/pay'].includes(i.href)) }
     : g);
+}
+
+function askStarters(role: string, founder: boolean): string[] {
+  if (role === 'client') return ['How does the matching work?', 'What happens after I approve a candidate?', 'When is my first invoice?', 'What does the guarantee cover?'];
+  if (role === 'talent') return ['What is left on my checklist?', 'How is The Watch scored?', 'How am I paid?', 'What happens once I am placed?'];
+  return founder
+    ? ['What is waiting on me today?', 'Show me this week\u2019s posts', 'Which invoices are open?', 'Hold next Tuesday\u2019s Letter']
+    : ['What is waiting on the team today?', 'Which interviews are coming up?', 'What does the Book say about releases?'];
 }
 
 async function unreadCount(profile: Profile): Promise<number> {
@@ -263,6 +272,7 @@ export default async function Shell({
       number={unpaid.number} failed={unpaid.failed} name={profile.full_name} />;
   }
 
+  const founder = profile.role === 'admin' && await isOwner().catch(() => false);
   const nav = profile.role === 'client'
     ? await clientNav(profile)
     : profile.role === 'talent'
@@ -364,6 +374,11 @@ export default async function Shell({
           </div>
         </main>
       </div>
+      {/* Ask Relève, in the corner of every page except its own full page. */}
+      {active !== '/app/ask' && active !== '/console/ask' && (
+        <AskWidget who={profile.role} founder={founder} starters={askStarters(profile.role, founder)}
+          managerHref={profile.role === 'admin' ? '/console/messages' : '/app/messages'} />
+      )}
     </>
   );
 }

@@ -16,8 +16,8 @@ type Proposal = { id: string; kind: string; summary: string; status: 'proposed' 
 
 const KEY = 'releve_ask_v1';
 
-export default function AskReleve({ who, founder, starters, managerHref }: {
-  who: 'client' | 'talent' | 'admin'; founder: boolean; starters: string[]; managerHref: string;
+export default function AskReleve({ who, founder, starters, managerHref, compact = false }: {
+  who: 'client' | 'talent' | 'admin'; founder: boolean; starters: string[]; managerHref: string; compact?: boolean;
 }) {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState('');
@@ -65,7 +65,7 @@ export default function AskReleve({ who, founder, starters, managerHref }: {
   const label = who === 'admin' ? (founder ? 'Ask, or tell it what to fix.' : 'Ask about anything in the console.') : 'Ask anything about Relève or your account.';
 
   return (
-    <div className="card chat-card ask">
+    <div className={compact ? 'ask ask-compact' : 'card chat-card ask'}>
       <div className="thread" style={{ padding: '4px 2px 10px' }}>
         {!msgs.length && (
           <div className="ask-empty">
