@@ -127,6 +127,8 @@ export async function requestTimeOff(a: {
 }) {
   if (!configured()) return;
   if (a.ends_on < a.starts_on) throw new Error('The last day cannot be before the first.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a.starts_on) || !/^\d{4}-\d{2}-\d{2}$/.test(a.ends_on)) throw new Error('Pick both days.');
+  if (a.ends_on < new Date().toISOString().slice(0, 10)) throw new Error('Those days have already passed. Time off is asked for ahead of time.');
   const sb = await supabaseServer();
   const { data, error } = await sb.from('time_off').insert({
     placement_id: a.placement_id, starts_on: a.starts_on, ends_on: a.ends_on,

@@ -40,7 +40,7 @@ export default function PlacementProgress({ steps, startedOn, planHref, today: t
       <div className="xs muted" style={{ marginBottom: 8 }}>Day {dayNumber} of {totalDays}</div>
       <p className="small" style={{ margin: 0 }}>
         Next: <b>{next.title}</b>
-        {overdue && <span className="pill warn" style={{ marginLeft: 8 }}>Overdue</span>}
+        {overdue && <span className="pill" style={{ marginLeft: 8 }}>With Relève</span>}
       </p>
 
       <div className="row" style={{ marginTop: 16 }}>

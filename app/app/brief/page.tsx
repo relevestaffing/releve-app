@@ -38,8 +38,12 @@ export default async function BriefPage({ searchParams }: { searchParams: Promis
   const placements = await listPlacementsFor(profile.id);
 
   if (!placements.length) return (
-    <Shell profile={profile} active="/app/brief" title="Your briefing" crumb="How your executive works">
-      <Empty of={{
+    <Shell profile={profile} active="/app/brief" title={profile.role === 'client' ? 'The briefing' : 'Your briefing'} crumb={profile.role === 'client' ? 'How you like things done' : 'How your executive works'}>
+      <Empty of={profile.role === 'client' ? {
+        title: 'The briefing opens with your placement',
+        body: 'Once someone starts with you, this is where you write down your tools, the access they will have and how you like things done. It is theirs to read before day one.',
+        cta: { label: 'Back to your dashboard', href: '/app' }
+      } : {
         title: 'Your briefing arrives with your placement',
         body: 'Your executive writes down their tools, the access you will have and how they like things done. It appears here before your first day.',
         cta: { label: 'Back to your dashboard', href: '/app' }

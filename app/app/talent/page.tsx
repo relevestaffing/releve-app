@@ -138,7 +138,7 @@ export default async function TalentProfile() {
       )}
 
       <div className="card">
-        <div className="card-head"><h3>Your results in full</h3><span className="pill">{WORDS.moreDetail}</span></div>
+        <div className="card-head"><h3>Your results in full</h3></div>
         <p className="small muted">Most people never need this. It is here because it is your data.</p>
         <details className="more">
           <summary>{WORDS.moreDetail}</summary>

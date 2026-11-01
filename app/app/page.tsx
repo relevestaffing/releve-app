@@ -29,7 +29,7 @@ import GuaranteeBadge from '@/components/GuaranteeBadge';
 import { depositGateFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { firstName, WORDS } from '@/lib/words';
-import { docusignClientReady } from '@/lib/docusign';
+import { docusignClientReady, docusignReady } from '@/lib/docusign';
 import { getClientAgreement } from '@/lib/agreement';
 import ClientAgreementCard from '@/components/ClientAgreementCard';
 import ClientAgreementStatus from '@/components/ClientAgreementStatus';
@@ -150,6 +150,7 @@ export default async function AppHome() {
         vettingTotal: 2,
         vettingSent: vetting.filter(v => v.state === 'submitted').length,
         hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
+        agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
         hasPayout: payoutReady(payoutRow),
         hasIntroVideo: !!self.intro_video_url
       });
@@ -360,7 +361,7 @@ export default async function AppHome() {
   return (
     <Shell profile={profile} active="/app"
       title={myName || 'Your account'}
-      crumb={self.headline ?? 'Talent'}>
+      crumb={self.headline ?? 'Your account'}>
 
       {offer && <OfferCard offer={offer} side="talent" />}
 

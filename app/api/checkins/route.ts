@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
-import { listCheckins, saveCheckin, teamEmails, weekEnding } from '@/lib/work';
+import { listCheckins, saveCheckin, teamEmails, weekEnding, listPlacementsFor } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { safeMessage } from '@/lib/errors';
 
@@ -17,13 +17,17 @@ export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   if (me.role !== 'talent') return NextResponse.json({ error: 'the end-of-week report is filed by talent' }, { status: 403 });
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
   if (!b.placement_id) return NextResponse.json({ error: 'which placement?' }, { status: 400 });
+  const mine = await listPlacementsFor(me.id);
+  if (!mine.some(p => p.id === String(b.placement_id)))
+    return NextResponse.json({ error: 'That placement is not one of yours.' }, { status: 403 });
+  const week = typeof b.week_ending === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.week_ending) ? b.week_ending : weekEnding();
   try {
     await saveCheckin({
-      placement_id: b.placement_id,
+      placement_id: String(b.placement_id),
       talent_id: me.id,
-      week_ending: b.week_ending || weekEnding(),
+      week_ending: week,
       shipped: b.shipped, blocked: b.blocked,
       hours: b.hours == null || b.hours === '' ? null
            : Number.isFinite(Number(b.hours)) ? Math.max(0, Math.min(168, Number(b.hours))) : null,

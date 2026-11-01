@@ -96,7 +96,14 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
 
   if (!env || hidden) return null;
   // Nothing we can do on a browser with no push support: stay quiet rather than nag.
-  if (!env.supported && !(env.plat === 'ios' && !env.standalone)) return null;
+  if (!env.supported && !(env.plat === 'ios' && !env.standalone)) {
+    if (compact) return null;
+    return (
+      <p style={{ fontSize: 14.5, lineHeight: 1.6, margin: 0, color: '#516053' }}>
+        This browser cannot show notifications. Nothing to do here: open Relève on your phone later and we will walk you through it there.
+      </p>
+    );
+  }
 
   const wrap: React.CSSProperties = compact
     ? { border: '1px solid #D8DED6', background: '#F7F5EF', padding: '16px 18px' }

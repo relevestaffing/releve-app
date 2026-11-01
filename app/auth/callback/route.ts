@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
       }
 
       if (user.email) {
-        const { data: fresh } = await sb.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
-        await send(user.email, templates.profileWelcome((fresh as any)?.full_name ?? null));
+        const { data: fresh } = await sb.from('profiles').select('full_name, role').eq('id', user.id).maybeSingle();
+        await send(user.email, templates.profileWelcome((fresh as any)?.full_name ?? null, (fresh as any)?.role ?? null));
       }
     }
   }

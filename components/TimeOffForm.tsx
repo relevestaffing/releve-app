@@ -51,9 +51,9 @@ export default function TimeOffForm({ placementId, existing }: {
           </p>
           <div className="grid-2" style={{ gap: 14 }}>
             <div className="ff"><label htmlFor={`${fid}-1`}>First day away</label>
-              <input id={`${fid}-1`} type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
+              <input id={`${fid}-1`} type="date" min={new Date().toISOString().slice(0, 10)} value={from} onChange={e => setFrom(e.target.value)} /></div>
             <div className="ff"><label htmlFor={`${fid}-2`}>Last day away</label>
-              <input id={`${fid}-2`} type="date" value={to} onChange={e => setTo(e.target.value)} /></div>
+              <input id={`${fid}-2`} type="date" min={from || new Date().toISOString().slice(0, 10)} value={to} onChange={e => setTo(e.target.value)} /></div>
           </div>
           {bad && <div className="err">The last day cannot be before the first.</div>}
           {from && to && !bad &&

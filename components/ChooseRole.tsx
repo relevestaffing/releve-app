@@ -47,6 +47,9 @@ export default function ChooseRole({ name }: { name?: string | null }) {
         <div className="welcome-card">
           <h1>{name ? `Welcome, ${firstName(name)}` : 'Welcome to Relève'}</h1>
           <p className="lede">First, which of these describes you?</p>
+          <p className="small" style={{ marginTop: 14 }}>
+            Invited by Relève already? This is not your account. Sign out below and sign in with the address your invitation was sent to.
+          </p>
         </div>
 
         <div className="choose-grid">
@@ -68,7 +71,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
             <span className="choose-go">Talk to us →</span>
           </a>
 
-          <button className="choose-card" disabled={!!busy} onClick={() => choose('talent')}>
+          <button className="choose-card" disabled={!!busy} onClick={() => { if (confirm('Set this account up as talent, someone looking to be placed? This cannot be switched from inside the account afterwards.')) choose('talent'); }}>
             <div className="eyebrow">I am looking to be placed</div>
             <h3>Talent</h3>
             <p>

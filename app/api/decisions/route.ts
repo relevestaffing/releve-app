@@ -18,6 +18,13 @@ export async function POST(req: Request) {
   if (me.role !== 'client' && me.role !== 'admin')
     return NextResponse.json({ error: 'executives only' }, { status: 403 });
   if (!b.talent_id || !b.state) return NextResponse.json({ error: 'missing a decision' }, { status: 400 });
+  /* An executive approves or passes. Interviewing and hired are recorded by
+     Relève as the process moves, never set from the client's own screen. */
+  const allowed = me.role === 'admin' ? ['shortlisted', 'passed', 'interviewing', 'hired'] : ['shortlisted', 'passed'];
+  if (!allowed.includes(String(b.state))) return NextResponse.json({ error: 'That is not a decision you can record here.' }, { status: 400 });
+  if (!/^[0-9a-f-]{36}$/i.test(String(b.talent_id))) return NextResponse.json({ error: 'which candidate?' }, { status: 400 });
+  const reason = b.reason == null ? b.reason : String(b.reason).slice(0, 200);
+  const note = b.note == null ? b.note : String(b.note).slice(0, 2000);
 
   const onBehalf = me.role === 'admin';
   const clientId = onBehalf ? String(b.client_id ?? '') : me.id;
@@ -25,8 +32,8 @@ export async function POST(req: Request) {
 
   try {
     await setDecision({
-      client_id: clientId, talent_id: b.talent_id, state: b.state,
-      reason: b.reason, note: b.note, recorded_by: onBehalf ? me.id : null
+      client_id: clientId, talent_id: String(b.talent_id), state: b.state,
+      reason, note, recorded_by: onBehalf ? me.id : null
     });
 
     /* Relève hears both answers. Not when Relève wrote it down themselves. */

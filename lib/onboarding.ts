@@ -15,7 +15,7 @@ export function talentSteps(o: {
   vettingDone?: number; vettingTotal?: number;
   /* Their own identity document: submitted, and verified. The agreement is
      Relève's to issue, so it is deliberately not part of their checklist. */
-  vettingSent?: number; hasIdentity?: boolean;
+  vettingSent?: number; hasIdentity?: boolean; agreementPending?: boolean;
   hasPayout?: boolean;
   hasIntroVideo?: boolean;
   /* Taking The Watch: the real-work test built from the disciplines they
@@ -34,14 +34,19 @@ export function talentSteps(o: {
      outstanding forever — through no fault of theirs, on the screen that tells
      them what is left to do. */
   const idDone = o.hasIdentity ?? (cleared >= needed);
+  /* With DocuSign on, the agreement is theirs to sign in the app, so the step
+     stays open until that signature is in. */
+  const signLeft = idDone && !!o.agreementPending;
   return [
-    { key: 'vetting', title: 'Verify who you are', href: '/app/vetting', minutes: '5 min',
-      blurb: idDone
-        ? 'Verified. The signed agreement is ours to send and file. There is nothing more for you to do.'
-        : sent > 0
-          ? 'Sent, and with us. We check documents within one working day and will email you either way.'
-          : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',
-      done: idDone, critical: true },
+    { key: 'vetting', title: signLeft ? 'Sign your agreement' : 'Verify who you are', href: '/app/vetting', minutes: signLeft ? '3 min' : '5 min',
+      blurb: signLeft
+        ? 'Your identity is verified. One signature left: your talent agreement is ready to sign on the Verification page.'
+        : idDone
+          ? 'Verified. The signed agreement is ours to send and file. There is nothing more for you to do.'
+          : sent > 0
+            ? 'Sent, and with us. We check documents within one working day and will email you either way.'
+            : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',
+      done: idDone && !signLeft, critical: true },
     { key: 'signature', title: o.signatureInvalid ? 'Retake the Talent Signature' : 'Take the Talent Signature',
       href: o.signatureInvalid ? '/app/signature?retake=1' : '/app/signature', minutes: '20 to 25 min',
       blurb: o.signatureInvalid

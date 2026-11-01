@@ -8,7 +8,8 @@ export async function POST(req: Request) {
   const profile = await currentProfile();
   if (!profile) return NextResponse.json({ error: 'sign in first' }, { status: 401 });
   if (await depositLocked(profile)) return NextResponse.json({ error: 'Your deposit comes first. Once it is in, this opens.' }, { status: 403 });
-  const { side, answers, pairs, timings, conditions } = await req.json();
+  const { side: asked, answers, pairs, timings, conditions } = await req.json().catch(() => ({} as any));
+  const side = profile.role === 'admin' ? asked : profile.role;   // the account decides the instrument
   if (side !== 'client' && side !== 'talent')
     return NextResponse.json({ error: 'unknown instrument' }, { status: 400 });
 

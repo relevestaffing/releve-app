@@ -73,7 +73,7 @@ export default function FirstFortnight({ steps, startedOn, side, today: todayPro
                 <b className="small">{s.title}</b>
                 <span className="xs muted">
                   {s.day === 0 ? 'Day one' : `Day ${s.day}`}
-                  {late && <span className="pill warn" style={{ marginLeft: 8 }}>Overdue</span>}
+                  {late && side === 'admin' && <span className="pill warn" style={{ marginLeft: 8 }}>Overdue</span>}
                 </span>
               </div>
               {s.detail && <p className="xs muted" style={{ marginTop: 4 }}>{s.detail}</p>}

@@ -93,7 +93,7 @@ export default function PlacementReveal({
         </button>
       </div>
 
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .rv-screen {
           position: relative;
           min-height: 100vh;
@@ -257,7 +257,7 @@ export default function PlacementReveal({
             padding: 22px 20px;
           }
         }
-      `}</style>
+      ` }} />
     </div>
   );
 }

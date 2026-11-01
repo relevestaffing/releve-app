@@ -23,8 +23,12 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
      directly rather than useSearchParams, which would force this whole
      page out of static rendering. */
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('signed') === '1') {
-      toast.saved('Signed. We will verify it shortly');
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('signed') === '1') {
+      const ev = q.get('event') ?? 'signing_complete';
+      if (ev === 'signing_complete') toast.saved('Signed. We will verify it shortly');
+      else if (ev === 'decline') toast.bad('The agreement was declined, so it is still waiting. Message your Talent Success Manager if something in it needs discussing.');
+      else toast.bad('The agreement is still waiting for your signature. Press Sign now when you are ready.');
       router.replace('/app/vetting');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

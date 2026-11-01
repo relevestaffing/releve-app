@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { send, templates } from '@/lib/email';
-import { personEmail, teamEmails } from '@/lib/work';
+import { personEmail, teamEmails, listDecisions } from '@/lib/work';
 import { currentProfile } from '@/lib/supabase/server';
 import { createInterview, setInterviewStatus, listInterviews, getInterview, getAvailability } from '@/lib/store';
 import { createZoomMeeting, zoomConfigured, cancelZoomMeeting } from '@/lib/zoom';
@@ -71,6 +71,12 @@ export async function POST(req: Request) {
      unannounced to the talent, just by knowing or guessing an id. */
   if (p.role === 'client' && !talent)
     return NextResponse.json({ error: 'That candidate has not been released to you yet.' }, { status: 403 });
+  /* Released is not approved: the Interviews page only offers candidates the
+     executive has said yes to, and the route holds the same line. */
+  if (p.role === 'client') {
+    const ok = (await listDecisions(cid)).some(d => d.talent_id === talentId && (d.state === 'shortlisted' || d.state === 'interviewing'));
+    if (!ok) return NextResponse.json({ error: 'Approve this candidate first, then book the conversation.' }, { status: 403 });
+  }
 
   /* When Relève books on someone's behalf, the executive's name has to be
      looked up. It used to be recorded as the literal word "Client". */

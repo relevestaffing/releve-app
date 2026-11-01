@@ -119,6 +119,11 @@ export async function POST(req: Request) {
          right type had landed in a bucket. */
       verified: byTeam && !!signedOn
     } as any);
+    /* The team promised a decision within a working day; tell them it is waiting. */
+    if (!byTeam && kind === 'identity') {
+      const team = await teamEmails().catch(() => [] as string[]);
+      for (const to of team) await send(to, templates.identityUploaded({ talent: me.full_name || me.email || 'A candidate' })).catch(() => false);
+    }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });

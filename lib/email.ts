@@ -227,16 +227,15 @@ const rawTemplates = {
   },
 
   clientInvite: (name: string, o?: { docsUrl?: string }) => {
-    const links = [{ label: "Set up how you'll be invoiced", href: `${SITE}/app/billing` },
-      ...(o?.docsUrl ? [{ label: 'Sign your paperwork', href: o.docsUrl }] : [])];
+    const links = o?.docsUrl ? [{ label: 'Sign your paperwork', href: o.docsUrl }] : [];
     return {
       subject: 'Your Relève account is open',
-      text: `${name ? name + ',' : 'Hello,'}\n\nYour Relève account is open at ${SITE}. Sign in with this address. There is no password; we send a link.\n\nTwo things from you: the Executive Signature, which takes about fifteen minutes, and your availability. Everything after that is ours.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
+      text: `${name ? name + ',' : 'Hello,'}\n\nYour Relève account is open at ${SITE}/app. Sign in with this address. There is no password; we send a link.\n\nYour account walks you through the rest in order: the search deposit, then the Executive Signature, about fifteen minutes, and your availability. Everything after that is ours.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
       html: shell('Your account is open',
         p(`${name ? name + ',' : 'Hello,'}`) +
         p('Everything about your search runs through here. Sign in with this address. There is no password; we send you a link.') +
-        p('Two things from you: the Executive Signature, about fifteen minutes, and your availability. Every candidate you see will have been scored against that profile before their name reaches you.'),
-        { label: 'Open your account', href: SITE }, links)
+        p('Your account walks you through the rest in order: the search deposit, then the Executive Signature, about fifteen minutes, and your availability. Every candidate you see will have been scored against that profile before their name reaches you.'),
+        { label: 'Open your account', href: `${SITE}/app` }, links)
     };
   },
 
@@ -343,18 +342,18 @@ const rawTemplates = {
      Two things belong in it and nothing else: that it worked, and how to put
      it on their home screen, since a bookmark in a browser tab is not what a
      high-end candidate or client experience should look like on a phone. */
-  profileWelcome: (name: string | null) => ({
-    subject: 'Your profile is live',
-    text: `${name ? name + ',' : 'Hello,'}\n\nYour Relève profile is up and running.\n\nOne thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.\n\nOn iPhone: open ${SITE}/app in Safari, tap the Share icon, then "Add to Home Screen."\nOn Android: open it in Chrome, tap the menu (⋮), then "Install app" (or "Add to Home Screen").\n\n${SITE}/app\n\nRelève`,
-    html: shell('Your profile is live',
+  profileWelcome: (name: string | null, role: 'client' | 'talent' | 'admin' | null = null) => ({
+    subject: role === 'client' ? 'Your Relève account is open' : 'Your profile is live',
+    text: `${name ? name + ',' : 'Hello,'}\n\n${role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.'}\n\nOne thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.\n\nOn iPhone: open ${SITE}/app in Safari, tap the Share icon, then "Add to Home Screen."\nOn Android: open it in Chrome, tap the menu (⋮), then "Install app" (or "Add to Home Screen").\n\n${SITE}/app\n\nRelève`,
+    html: shell(role === 'client' ? 'Your Relève account is open' : 'Your profile is live',
       p(`${name ? name + ',' : 'Hello,'}`) +
-      p('Your Relève profile is up and running.') +
+      p(role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.') +
       p('One thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.') +
       `<div style="margin:0 0 12px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On iPhone</div>` +
       `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Safari, tap the Share icon, then "Add to Home Screen."</p></div>` +
       `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On Android</div>` +
       `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Chrome, tap the menu (⋮), then "Install app."</p></div>`,
-      { label: 'Open your profile', href: `${SITE}/app` })
+      { label: role === 'client' ? 'Open Relève' : 'Open your profile', href: `${SITE}/app` })
   }),
 
   interviewBooked: (o: { name: string; withWhom: string; when: string; url: string | null }) => ({
@@ -776,6 +775,20 @@ const rawTemplates = {
   },
 
   /* ---- time off ---- */
+  identityUploaded: (o: { talent: string }) => ({
+    subject: `Identity document to check: ${o.talent}`,
+    text: `${o.talent} has uploaded their proof of identity. The checklist promises a decision within one working day.\n\n${SITE}/console/vetting\n\nRelève`,
+    html: shell('Identity document to check',
+      p(`<b>${esc(o.talent)}</b> has uploaded their proof of identity. The checklist promises a decision within one working day.`),
+      { label: 'Open Verification', href: `${SITE}/console/vetting` })
+  }),
+  watchSubmitted: (o: { talent: string; discipline: string }) => ({
+    subject: `Watch submitted: ${o.talent}, ${o.discipline}`,
+    text: `${o.talent} has submitted Taking The Watch for ${o.discipline}. The checklist promises a review within two working days.\n\n${SITE}/console/watch\n\nRelève`,
+    html: shell('Watch submitted',
+      p(`<b>${esc(o.talent)}</b> has submitted Taking The Watch for <b>${esc(o.discipline)}</b>. The checklist promises a review within two working days.`),
+      { label: 'Open the Watch queue', href: `${SITE}/console/watch` })
+  }),
   timeOffRequested: (o: { talent: string; from: string; to: string; reason?: string | null }) => ({
     subject: `Time off requested: ${o.talent}, ${o.from} to ${o.to}`,
     text: `${o.talent} has asked for time off from ${o.from} to ${o.to}.${o.reason ? `\n\n“${o.reason}”` : ''}\n\nApprove it and record who covers from Care.\n\n${SITE}/console/care\n\nRelève`,

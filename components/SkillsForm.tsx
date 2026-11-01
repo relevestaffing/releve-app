@@ -42,7 +42,8 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
   const first = useRef(true);
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    if (!picked.length) return;
+    /* An empty pick saves as well: a discipline the talent removed must not
+       keep being asked about by the Watch and the checklist. */
     const t = setTimeout(async () => {
       try {
         const r = await fetch('/api/roles', {

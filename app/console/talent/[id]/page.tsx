@@ -9,6 +9,7 @@ import { talentSelfLines } from '@/lib/plain';
 import { L1, L2 } from '@/lib/signature/model';
 import { getSkills, DISCIPLINE, compsOf, PROFS, skillsComplete } from '@/lib/roles';
 import { listVetting, benchPay } from '@/lib/work';
+import { docusignReady } from '@/lib/docusign';
 import { getAvailability, getSelfProfile } from '@/lib/store';
 import { getPayout, listPayments } from '@/lib/payout';
 import { payoutReady, PAYOUT_METHODS, periodLabel } from '@/lib/payout-public';
@@ -91,6 +92,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     vettingTotal: 2,
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: identity?.state === 'verified',
+    agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
     hasPayout: payoutReady(payout)
   });
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);
