@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Shell from '@/components/Shell';
+import ConsoleTabs from '@/components/ConsoleTabs';
 import ContentDesk from '@/components/ContentDesk';
 import { currentProfile } from '@/lib/supabase/server';
 import {
@@ -46,6 +47,10 @@ export default async function Content({ searchParams }: { searchParams: Promise<
 
   return (
     <Shell profile={profile} active="/console/content" title="Content" crumb="Every account, every week">
+      <ConsoleTabs active="/console/content" items={[
+        { href: '/console/content', label: 'Posts' },
+        { href: '/console/campaigns', label: 'Email' }
+      ]} />
       <ContentDesk
         week={week} thisWeek={thisWeek} prevWeek={shift(week, -7)} nextWeek={shift(week, 7)}
         posts={rows as any} groups={groups}

@@ -95,7 +95,8 @@ const NAV: Record<string, NavGroup[]> = {
       { href: '/console/matching', label: 'Matching' },
       { href: '/console/placements', label: 'Placements' },
       { href: '/console/money', label: 'Billing' },
-      { href: '/console/messages', label: 'Messages' }
+      { href: '/console/messages', label: 'Messages' },
+      { href: '/console/content', label: 'Content' }
     ] },
     /* Looked at monthly, not daily, so it sits apart rather than competing
        with the seven above. */
@@ -141,7 +142,8 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
         { href: '/app/value', label: 'The value' }
       ]},
       { items: [{ href: '/app/agreement', label: 'Your agreement' }] },
-      { items: [{ href: '/app/messages', label: 'Messages' }] }
+      { items: [{ href: '/app/messages', label: 'Messages' }] },
+      { items: [{ href: '/app/resources', label: 'Free resources' }] }
     ];
   }
 
@@ -192,6 +194,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
   /* The vision screens recede here once the deposit is in — out of the daily
      menu, but one link away for a client who wants to revisit them. */
   nav.push({ items: [{ href: '/app/how', label: 'About Relève' }] });
+  nav.push({ items: [{ href: '/app/resources', label: 'Free resources' }] });
   return nav;
 }
 
@@ -273,7 +276,7 @@ export default async function Shell({
   const placedOnly = !!clientStage && clientStage.placed && !clientStage.hiring;
   const clientTour = profile.role === 'client' ? await execInTour(profile.id) : false;
   const home = HOME[profile.role] ?? '/app';
-  const profileHref = PROFILE[profile.role];
+  const profileHref = clientTour ? undefined : PROFILE[profile.role];
   /* Sage, 19 October: the console greets her by name, not the shared inbox. */
   const shownName = profile.role === 'admin' && (!profile.full_name || profile.full_name.includes('@'))
     ? 'Sage' : (profile.full_name ?? 'Your account');

@@ -47,7 +47,7 @@ function transport() {
    template's own name — added automatically at the bottom of this file, so a
    new template cannot be added without also being loggable. */
 export type Attachment = { filename: string; content: Buffer; contentType: string };
-export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[] };
+export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[]; headers?: Record<string, string> };
 
 /* Every attempt leaves a row behind.
    ---------------------------------
@@ -92,7 +92,7 @@ export async function sendOrThrow(to: string, msg: Message) {
   }
   try {
     const info = await transport().sendMail({
-      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments
+      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers
     });
     await record(msg.kind, to, msg.subject, true);
     return info;
@@ -113,7 +113,7 @@ export async function send(to: string, msg: Message) {
     return false;
   }
   try {
-    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments });
+    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers });
     await record(msg.kind, to, msg.subject, true);
     return true;
   } catch (e: any) {
@@ -154,11 +154,11 @@ export function shell(
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;padding:40px 16px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FFFFFF;">
-  <tr><td style="padding:0 4px 22px;border-bottom:1px solid #E4E9E3;text-align:center;">
+  <tr><td style="padding:0 4px 22px;border-bottom:1px solid #D3E0D4;text-align:center;">
     <div style="font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:6px;text-transform:uppercase;color:#35443A;">Relève</div>
-    <div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#5F7163;margin-top:6px;">Executive Staffing</div>
+    <div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#35443A;margin-top:6px;">Executive Staffing</div>
   </td></tr>
-  <tr><td style="padding:32px 4px 30px;font-family:Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.65;color:#3F4C43;">
+  <tr><td style="padding:32px 4px 30px;font-family:Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.65;color:#35443A;">
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:24px;line-height:1.3;color:#35443A;margin:0 0 18px;">${headline}</h1>
     ${inner}
     ${cta ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 6px;">
@@ -166,11 +166,11 @@ export function shell(
         <a href="${cta.href}" style="display:inline-block;padding:14px 30px;color:#FFFFFF;text-decoration:none;font-size:14px;letter-spacing:0.6px;">${cta.label}</a>
       </td></tr></table>` : ''}
     ${links.map(s => `<p style="margin:16px 0 0;font-size:13.5px;">
-      <a href="${s.href}" style="color:#4C594F;">${s.label} →</a>
+      <a href="${s.href}" style="color:#35443A;">${s.label} →</a>
     </p>`).join('')}
   </td></tr>
-  <tr><td style="padding:20px 4px 0;border-top:1px solid #E4E9E3;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#5F7163;">
-    Relève Executive Staffing · <a href="https://relevestaffing.com" style="color:#5F7163;">relevestaffing.com</a><br>
+  <tr><td style="padding:20px 4px 0;border-top:1px solid #D3E0D4;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;line-height:1.6;color:#35443A;">
+    Relève Executive Staffing · <a href="https://relevestaffing.com" style="color:#35443A;">relevestaffing.com</a><br>
     Replies to this address reach a person, not a mailbox nobody reads.
   </td></tr>
 </table></td></tr></table></body></html>`;
@@ -254,9 +254,9 @@ const rawTemplates = {
        The boxed cards with a solid button each read as three competing ads;
        this reads as a letter. */
     const stepRow = (s: typeof steps[number], i: number) => `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #E4E9E3;${i === steps.length - 1 ? 'border-bottom:1px solid #E4E9E3;' : ''}">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #D3E0D4;${i === steps.length - 1 ? 'border-bottom:1px solid #D3E0D4;' : ''}">
         <tr>
-          <td style="width:34px;padding:18px 0;vertical-align:top;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#7A8A7D;">${s.n}</td>
+          <td style="width:34px;padding:18px 0;vertical-align:top;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#4E6B57;">${s.n}</td>
           <td style="padding:18px 0;vertical-align:top;font-family:Helvetica,Arial,sans-serif;">
             <div style="font-size:15.5px;color:#35443A;">${s.label}</div>
             <div style="margin-top:5px;font-size:13.5px;"><a href="${s.href}" style="color:#35443A;text-decoration:underline;">${s.cta} &rarr;</a></div>
@@ -272,7 +272,7 @@ const rawTemplates = {
         p(`Lovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then manage them after, so you don't have to.`) +
         p(`To open the search, sign the Client Services Agreement, pay your ${amount} deposit, and set up your Relève account.`) +
         steps.map((st, i) => stepRow(st, i)).join('') +
-        `<p style="margin:20px 0 0;font-size:13px;color:#5F7163;">Your deposit is credited in full toward your first month once you are placed.</p>` +
+        `<p style="margin:20px 0 0;font-size:13px;color:#35443A;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you. Talk soon.</p>` +
         `<p style="margin:14px 0 0;">Relève</p>`)
     };
@@ -288,7 +288,7 @@ const rawTemplates = {
     html: shell('Someone could not sign in',
       p(`Someone could not sign in${o.email ? `, <b>${esc(o.email)}</b>` : ''}.`) +
       p(`Where it stopped: <b>${esc(o.where)}</b>.`) +
-      (o.detail ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;">${esc(o.detail)}</p>` : '') +
+      (o.detail ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #B0C4B2;">${esc(o.detail)}</p>` : '') +
       p('They were told their account could not be set up, so they are waiting on someone. The sign-in log, under The business then Team, has every attempt.'),
       { label: 'Open the sign-in log', href: `${SITE}/console/team` })
   }),
@@ -316,10 +316,10 @@ const rawTemplates = {
         p(`${o.name ? esc(o.name) + ',' : 'Hello,'}`) +
         p(`Here is ${esc(first)}'s week, ending ${ending}, in one place.`) +
         (o.hours != null ? `<p style="margin:0 0 15px;"><b>${o.hours} hours</b></p>` : '') +
-        (o.accomplished ? `<p style="margin:0 0 6px;color:#5F7163;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Done this week</p><p style="margin:0 0 15px;white-space:pre-wrap;">${esc(o.accomplished)}</p>` : '') +
-        (o.win ? `<p style="margin:0 0 6px;color:#5F7163;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">A win</p><p style="margin:0 0 15px;">${esc(o.win)}</p>` : '') +
-        (o.highlights.length ? `<p style="margin:0 0 6px;color:#5F7163;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Shared with you</p>` +
-          o.highlights.map(h => `<p style="margin:0 0 10px;"><span style="color:#5F7163;">${esc(h.date)}</span> &nbsp;${esc(h.text)}</p>`).join('') : '') +
+        (o.accomplished ? `<p style="margin:0 0 6px;color:#35443A;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Done this week</p><p style="margin:0 0 15px;white-space:pre-wrap;">${esc(o.accomplished)}</p>` : '') +
+        (o.win ? `<p style="margin:0 0 6px;color:#35443A;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">A win</p><p style="margin:0 0 15px;">${esc(o.win)}</p>` : '') +
+        (o.highlights.length ? `<p style="margin:0 0 6px;color:#35443A;font-size:12px;letter-spacing:.12em;text-transform:uppercase;">Shared with you</p>` +
+          o.highlights.map(h => `<p style="margin:0 0 10px;"><span style="color:#35443A;">${esc(h.date)}</span> &nbsp;${esc(h.text)}</p>`).join('') : '') +
         p('Anything you want more of, or less of, tell your Client Success Manager and it is handled.'),
         { label: 'See the full month', href: `${SITE}/app/report` })
     };
@@ -337,10 +337,10 @@ const rawTemplates = {
       p(`${name ? name + ',' : 'Hello,'}`) +
       p('Your Relève profile is up and running.') +
       p('One thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.') +
-      `<div style="margin:0 0 12px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7C8B7E;margin-bottom:5px;">On iPhone</div>` +
-      `<p style="margin:0;padding:12px 16px;background:#F3EFE6;border-left:2px solid #B0C4B2;">Open this in Safari, tap the Share icon, then "Add to Home Screen."</p></div>` +
-      `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7C8B7E;margin-bottom:5px;">On Android</div>` +
-      `<p style="margin:0;padding:12px 16px;background:#F3EFE6;border-left:2px solid #B0C4B2;">Open this in Chrome, tap the menu (⋮), then "Install app."</p></div>`,
+      `<div style="margin:0 0 12px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On iPhone</div>` +
+      `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Safari, tap the Share icon, then "Add to Home Screen."</p></div>` +
+      `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On Android</div>` +
+      `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Chrome, tap the menu (⋮), then "Install app."</p></div>`,
       { label: 'Open your profile', href: `${SITE}/app` })
   }),
 
@@ -393,7 +393,7 @@ const rawTemplates = {
     html: shell('Almost there: one document needs a retake',
       p(`${esc(name)},`) +
       p(`We could not accept the ${esc(item.toLowerCase())} you sent.`) +
-      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;">${esc(reason)}</p>` +
+      `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #B0C4B2;">${esc(reason)}</p>` +
       p('Nothing else is affected. Send another when you have a moment.'),
       { label: 'Upload another', href: `${SITE}/app/vetting` })
   }),
@@ -416,13 +416,13 @@ const rawTemplates = {
      itself. */
   /* The signed copy, for the client's own records, sent the moment they sign
      in the app. The PDF rides on the message itself (see send()). */
-  clientAgreementSigned: (name: string) => ({
+  clientAgreementSigned: (name: string, depositDue = true) => ({
     subject: 'Your signed Relève Client Services Agreement',
-    text: `${name},\n\nThank you. Your Client Services Agreement is signed, and your copy is attached for your records. It is also kept in your Relève account.\n\nNext: pay your $500 deposit to open your search.\n\n${SITE}/app\n\nRelève`,
+    text: `${name},\n\nThank you. Your Client Services Agreement is signed, and your copy is attached for your records. It is also kept in your Relève account.${depositDue ? '\n\nNext: pay your $500 deposit to open your search.' : ''}\n\n${SITE}/app\n\nRelève`,
     html: shell('Your agreement is signed',
       p(`${esc(name)},`) +
       p('Thank you. Your Client Services Agreement is signed, and your copy is attached for your records. It is also kept in your Relève account.') +
-      p('Next: pay your $500 deposit to open your search.'),
+      (depositDue ? p('Next: pay your $500 deposit to open your search.') : ''),
       { label: 'Open your account', href: `${SITE}/app` })
   }),
 
@@ -483,7 +483,7 @@ const rawTemplates = {
       text: `${o.name},\n\n${lead}\n\n"${o.preview}"\n\nRead and reply: ${href}\n\nRelève`,
       html: shell(esc(head),
         p(`${esc(o.name)},`) + p(esc(lead)) +
-        `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;font-style:italic;">${esc(o.preview)}</p>`,
+        `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #B0C4B2;font-style:italic;">${esc(o.preview)}</p>`,
         { label: 'Read and reply', href })
     };
   },
@@ -545,8 +545,8 @@ const rawTemplates = {
        field should produce ugly text in the team's inbox, never a link, an
        image, or markup that changes how the message renders. */
     const block = (label: string, v: string | null | undefined) => v
-      ? `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7C8B7E;margin-bottom:5px;">${esc(label)}</div>` +
-        `<p style="margin:0;padding:12px 16px;background:#F3EFE6;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${esc(v)}</p></div>`
+      ? `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">${esc(label)}</div>` +
+        `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${esc(v)}</p></div>`
       : '';
     const textAnswers = [
       ...APPLY_QUESTIONS.map(q => o.answers[q.key] ? `${q.label}\n${o.answers[q.key]}\n` : ''),
@@ -610,7 +610,7 @@ const rawTemplates = {
     html: shell(o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
       p(`${o.name || 'Hello'},`) +
       p('Thank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.') +
-      (o.docsUrl ? p(`Before you get started, you are welcome to sign your <a href="${o.docsUrl}" style="color:#4C594F;">NDA and contractor agreement</a> whenever suits you.`) : '') +
+      (o.docsUrl ? p(`Before you get started, you are welcome to sign your <a href="${o.docsUrl}" style="color:#35443A;">NDA and contractor agreement</a> whenever suits you.`) : '') +
       p('Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature (twenty to twenty-five minutes, saved as you go), followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.') +
       p('Set it up and it will walk you through the rest, one step at a time.'),
       { label: 'Create your account', href: SITE })
@@ -647,7 +647,7 @@ const rawTemplates = {
       p(`${o.name},`) +
       p(`<b>${o.who}</b> has declined <b>${o.candidate}</b>.`) +
       (o.reason || o.note
-        ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #9A7B3F;">${o.reason ? `<b>${esc(o.reason)}</b>` : ''}${o.reason && o.note ? '<br>' : ''}${o.note ? `“${esc(o.note)}”` : ''}</p>`
+        ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #9A7B3F;">${o.reason ? `<b>${esc(o.reason)}</b>` : ''}${o.reason && o.note ? '<br>' : ''}${o.note ? `“${esc(o.note)}”` : ''}</p>`
         : '') +
       p('The candidate has not been told. Release the next person from Matching.'),
       { label: 'Open Matching', href: `${SITE}/console/matching` })
@@ -699,7 +699,7 @@ const rawTemplates = {
     text: `${o.client}'s ${o.amount}${o.number ? ` (invoice ${o.number})` : ''} was declined.${o.reason ? ` Reason: ${o.reason}` : ''}\n\nThey have already been emailed with a retry link. Worth a follow-up if it is still open in a few days.\n\n${SITE}/console/money\n\nRelève`,
     html: shell('Payment failed',
       p(`<b>${o.client}</b>'s <b>${o.amount}</b>${o.number ? ` (invoice <b>${o.number}</b>)` : ''} was declined.`) +
-      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #8C4A3F;">${esc(o.reason)}</p>` : '') +
+      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #8C4A3F;">${esc(o.reason)}</p>` : '') +
       p('They have already been emailed with a retry link. Worth a follow-up if it is still open in a few days.'),
       { label: 'Open Billing', href: `${SITE}/console/money` })
   }),
@@ -742,7 +742,7 @@ const rawTemplates = {
         ? p(`Both sides have accepted the offer for <b>${o.role}</b>.`) +
           p('Make the placement from Matching, Offers. That opens their shared task list, the 30/60/90 plan and the end of week reports.')
         : p(`<b>${o.who}</b> (${o.side}) said <b>${o.answer}</b> to the offer for <b>${o.role}</b>.`) +
-          (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #9A7B3F;">${o.reason}</p>` : '') +
+          (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #9A7B3F;">${o.reason}</p>` : '') +
           p(o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.')),
       { label: 'Open Offers', href: `${SITE}/console/offers` })
   }),
@@ -768,7 +768,7 @@ const rawTemplates = {
     text: `${o.talent} has asked for time off from ${o.from} to ${o.to}.${o.reason ? `\n\n“${o.reason}”` : ''}\n\nApprove it and record who covers from Care.\n\n${SITE}/console/care\n\nRelève`,
     html: shell('Time off requested',
       p(`<b>${o.talent}</b> has asked for time off from <b>${o.from}</b> to <b>${o.to}</b>.`) +
-      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #35443A;">“${esc(o.reason)}”</p>` : '') +
+      (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #35443A;">“${esc(o.reason)}”</p>` : '') +
       p('Approve it and record who covers from Care.'),
       { label: 'Open Care', href: `${SITE}/console/care` })
   }),
@@ -824,7 +824,7 @@ const rawTemplates = {
       p(o.cleared
         ? `Your Taking The Watch for <b>${o.discipline}</b> has been reviewed and you cleared it. You are now eligible to be put forward for ${o.discipline} roles.`
         : `Your Taking The Watch for <b>${o.discipline}</b> has been reviewed and did not clear this time.`) +
-      (o.feedback ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #35443A;">${o.feedback}</p>` : ''),
+      (o.feedback ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #35443A;">${o.feedback}</p>` : ''),
       { label: 'Open Taking The Watch', href: `${SITE}/app/watch` })
   }),
 
@@ -881,7 +881,7 @@ const rawTemplates = {
         p(`${n === 1 ? 'One lead is' : `<b>${n}</b> leads are`} due a follow-up today, most overdue first.`) +
         o.leads.map(l =>
           `<p style="margin:0 0 10px;"><b style="color:#35443A;">${esc(l.name)}</b>${l.company ? `, ${esc(l.company)}` : ''}` +
-          `<br><span style="color:#5F7163;font-size:13.5px;">${esc(l.stage)} · ${esc(l.overdue)}</span></p>`).join(''),
+          `<br><span style="color:#35443A;font-size:13.5px;">${esc(l.stage)} · ${esc(l.overdue)}</span></p>`).join(''),
         { label: 'Open your leads', href: `${SITE}/console/prospects` })
     };
   },
@@ -891,7 +891,7 @@ const rawTemplates = {
     text: `${o.talent}'s end of week report needs a closer look.\n\n${o.why}\n\n${SITE}/console/checkins\n\nRelève`,
     html: shell('An end of week report needs a look',
       p(`<b>${esc(o.talent)}</b>'s end of week report needs a closer look.`) +
-      `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #7A2E26;">${esc(o.why)}</p>`,
+      `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #7A2E26;">${esc(o.why)}</p>`,
       { label: 'Open end of week reports', href: `${SITE}/console/checkins` })
   })
 };
@@ -953,5 +953,39 @@ export function pulseNudge(name: string, month: string, placementId: string): Me
       p('Five taps and two boxes. It takes about a minute.') +
       p('<b>This comes to us, never to the person you work with.</b> If something is not right, this is the cheapest possible moment to say so.'),
       { label: 'File this month', href: `${SITE}/app/care` })
+  };
+}
+
+/* The free training's welcome (29 Oct 2026, Nona: "new sign ups get an
+   automatic welcome email"). Sent by /api/interest the moment someone opens
+   The Handled Business at relevestaffing.com/training, or asks for it on the
+   /discovery exit window. They are on the list from then on, so the message
+   carries the list's unsubscribe link and headers. Signed by the brand. */
+export function trainingWelcome(o: { name: string; unsubscribeUrl?: string; headers?: Record<string, string> }): Message {
+  const first = (o.name || '').trim().split(/\s+/)[0] || 'Hello';
+  /* One link, on our own domain, with no tracking parameters: on a young
+     sending domain every extra outside link and tracking tag counts
+     against the inbox. */
+  const link = 'https://relevestaffing.com/training';
+  const book = 'https://calendly.com/hello-relevestaffing/30min';   /* Nona, 29 Oct: keep this second link */
+  const body = shell('Your training is ready.',
+      p(`${esc(first)},`) +
+      p('Thank you for starting <b>The Handled Business</b>: sixteen short lessons on where a virtual professional steps into every part of a business, what your week looks like before and after, and where the new revenue comes from.') +
+      p('Go at your own pace. Start with the first lesson. It takes five minutes and shows where your week really goes.') +
+      p('Twice a week you will also receive the Relève letter: short, practical notes on building a business that runs without you. Consider it handled.'),
+      { label: 'Open your training', href: link },
+      { label: 'Or book a discovery call now', href: book });
+  /* The unsubscribe link sits in the footer, under the button, where people
+     look for it. */
+  const FOOT = 'not a mailbox nobody reads.';
+  const html = o.unsubscribeUrl && body.includes(FOOT)
+    ? body.replace(FOOT, `${FOOT}<br>You are receiving this because you signed up for The Handled Business. <a href="${o.unsubscribeUrl}" style="color:inherit;">Unsubscribe</a>`)
+    : body;
+  return {
+    kind: 'trainingWelcome',
+    subject: 'Your Handled Business training',
+    text: `${first},\n\nThank you for starting The Handled Business: sixteen short lessons on where a virtual professional steps into every part of a business, what your week looks like before and after, and where the new revenue comes from.\n\nGo at your own pace. Start with the first lesson. It takes five minutes and shows where your week really goes.\n\nOpen your training: ${link}\n\nTwice a week you will also receive the Relève letter: short, practical notes on building a business that runs without you.\n\nOr book a discovery call now: ${book}\n\nConsider it handled.\nRelève${o.unsubscribeUrl ? `\n\nUnsubscribe: ${o.unsubscribeUrl}` : ''}`,
+    html,
+    headers: o.headers
   };
 }

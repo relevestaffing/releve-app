@@ -7,7 +7,7 @@ import { shell, esc, p, type Message } from './email';
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 
 const quote = (s: string) =>
-  `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;font-style:italic;">${esc(s)}</p>`;
+  `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #B0C4B2;font-style:italic;">${esc(s)}</p>`;
 
 const list = (items: string[]) => items.length
   ? `<ul style="margin:0 0 15px;padding-left:18px;">${items.map(i => `<li style="margin:0 0 6px;">${esc(i)}</li>`).join('')}</ul>`

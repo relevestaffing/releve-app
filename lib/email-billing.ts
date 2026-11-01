@@ -12,9 +12,9 @@ import { NOTICE_TERMS } from './money-public';
 
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 
-const quiet = (s: string) => `<p style="margin:18px 0 0;font-size:13px;color:#5F7163;">${s}</p>`;
+const quiet = (s: string) => `<p style="margin:18px 0 0;font-size:13px;color:#35443A;">${s}</p>`;
 const boxed = (s: string, edge = '#35443A') =>
-  `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid ${edge};">${s}</p>`;
+  `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid ${edge};">${s}</p>`;
 
 const SIGN = '\n\nRelève';
 const BILLING = `${SITE}/app/billing`;

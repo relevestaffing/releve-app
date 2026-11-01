@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { hasServiceKey, adminClient } from '@/lib/supabase/admin';
 import { corsHeaders, preflight } from '@/lib/cors';
-import { send, shell, p, esc } from '@/lib/email';
+import { send, shell, p, esc, trainingWelcome } from '@/lib/email';
+import { unsubscribeUrl, listUnsubscribeHeaders } from '@/lib/subscribers';
 import { teamEmails } from '@/lib/work';
 import { todayInPacific } from '@/lib/money-public';
 import type { ProspectSource } from '@/lib/prospects-public';
@@ -24,6 +25,50 @@ function one(v: unknown, max: number): string {
   return String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+/* A free-training signup: the /training gate, or the /discovery exit window.
+   Same test as is_training_note() in part53-subscribers.sql. */
+function isTraining(note: string | null) {
+  const n = (note || '').toLowerCase();
+  return n.startsWith('free training signup') || n.includes('opted in: free training');
+}
+
+/* Send the welcome with this address's own unsubscribe link. The list row
+   is written by a trigger on prospects; for someone who was already a lead
+   it may be missing, so it is added here. Never throws. */
+async function welcome(name: string, email: string) {
+  try {
+    const sb = adminClient();
+    let { data: sub } = await sb.from('subscribers').select('id, unsubscribe_token, training_at, subscribed')
+      .ilike('email', email.replace(/[\\%_]/g, m => '\\' + m)).maybeSingle();
+    if (!sub) {
+      const ins = await sb.from('subscribers')
+        .insert({ email, full_name: name, origin: 'training', training_at: new Date().toISOString() })
+        .select('id, unsubscribe_token, training_at, subscribed').maybeSingle();
+      sub = ins.data ?? null;
+    } else {
+      /* Signing up again is fresh consent: put them back on the list. One
+         welcome per address: a second signup does not send it again. */
+      /* The prospects trigger (part 53) stamps training_at the instant this
+         signup's lead row is written, a moment before this runs. So only a
+         stamp from an earlier visit means they were already welcomed. */
+      const already = Boolean(sub.training_at) && Date.now() - new Date(sub.training_at).getTime() > 10 * 60 * 1000;
+      const fix: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (!sub.training_at) fix.training_at = new Date().toISOString();
+      if (sub.subscribed === false) { fix.subscribed = true; fix.unsubscribed_at = null; }
+      await sb.from('subscribers').update(fix).eq('id', sub.id);
+      if (already) return;
+    }
+    const token = sub?.unsubscribe_token as string | undefined;
+    await send(email, trainingWelcome({
+      name,
+      unsubscribeUrl: token ? unsubscribeUrl(token) : undefined,
+      headers: token ? listUnsubscribeHeaders(token) : undefined
+    }));
+  } catch (e) {
+    console.error('[interest] training welcome failed:', e);
+  }
+}
+
 export async function OPTIONS(req: Request) { return preflight(req); }
 
 export async function POST(req: Request) {
@@ -32,6 +77,12 @@ export async function POST(req: Request) {
     NextResponse.json({ error }, { status, headers: cors });
 
   if (!hasServiceKey()) return fail('This form is not switched on yet.', 503);
+
+  /* Browsers always send Origin on a cross-site POST. One that names a site
+     other than ours is not our form (QA, 30 Oct 2026). */
+  const origin = req.headers.get('origin');
+  if (origin && !/^https:\/\/((www|app)\.)?relevestaffing\.com$/i.test(origin) && !/^http:\/\/localhost(:\d+)?$/i.test(origin))
+    return fail('Not permitted.', 403);
 
   let body: any;
   try { body = await req.json(); }
@@ -64,6 +115,7 @@ export async function POST(req: Request) {
         .eq('id', open.id)
         .then(() => {}, () => {});   // last_touched_at may not exist pre-migration
       await notify(name, email, org, need);
+      if (isTraining(need)) await welcome(name, email);
       return NextResponse.json({ ok: true }, { headers: cors });
     }
   } catch { /* a failed lookup is no reason to turn a lead away */ }
@@ -87,6 +139,7 @@ export async function POST(req: Request) {
   }
 
   await notify(name, email, org, need);
+  if (isTraining(need)) await welcome(name, email);
   return NextResponse.json({ ok: true }, { headers: cors });
 }
 
@@ -103,7 +156,7 @@ async function notify(name: string, email: string, org: string | null, need: str
       html: shell('New lead from the website',
         p(`<b>${esc(name)}</b> said they are interested.`) +
         p(`<a href="mailto:${esc(email)}">${esc(email)}</a>${org ? ` · ${esc(org)}` : ''}`) +
-        (need ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F3EFE6;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${esc(need)}</p>` : '') +
+        (need ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${esc(need)}</p>` : '') +
         p('They are in the lead pipeline, due to be followed up today.'))
     };
     for (const addr of addrs) await send(addr, msg);
