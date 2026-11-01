@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
 import SWRegister from '@/components/SWRegister';
+import SplashGate from '@/components/SplashGate';
 
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 const TITLE = 'Relève';
@@ -53,13 +54,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             to load — renders the whole app visible rather than blank. */}
         <script dangerouslySetInnerHTML={{ __html:
           "var d=document.documentElement;d.classList.add('js');" +
-          "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},2200)"
+          "window.__rvSplashStart=Date.now();" +
+          "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},2200);" +
+          "setTimeout(function(){var s=document.getElementById('rv-splash');if(s){s.classList.add('rv-splash-done');setTimeout(function(){if(s)s.remove()},600)}},8000)"
         }} />
+        <style dangerouslySetInnerHTML={{ __html: `
+          #rv-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FBF8F1;opacity:1;transition:opacity .5s ease}
+          #rv-splash.rv-splash-done{opacity:0;pointer-events:none}
+          #rv-splash .rv-word{font-family:"Marcellus",Georgia,serif;font-size:clamp(40px,12vw,64px);letter-spacing:1px;color:#35443A;line-height:1;position:relative;opacity:0;animation:rvFade .9s ease .1s forwards}
+          #rv-splash .rv-word .rv-sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.85) 50%,transparent 58%);background-size:260% 100%;background-position:160% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rvSweep 1.5s ease 1s forwards}
+          #rv-splash .rv-sub{margin-top:16px;font-family:"Tenor Sans","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:#6E7F71;opacity:0;animation:rvFadeUp .8s ease .55s forwards}
+          #rv-splash .rv-bar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:rgba(53,68,58,.12)}
+          #rv-splash .rv-bar i{display:block;height:100%;width:0;background:#35443A;animation:rvFill 2.6s cubic-bezier(.4,.1,.2,1) .2s forwards}
+          @keyframes rvFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+          @keyframes rvFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:.95;transform:none}}
+          @keyframes rvSweep{from{background-position:160% 0}to{background-position:-60% 0}}
+          @keyframes rvFill{0%{width:0}70%{width:82%}100%{width:100%}}
+          @media (prefers-reduced-motion: reduce){#rv-splash .rv-word,#rv-splash .rv-sub{animation:none;opacity:1}#rv-splash .rv-word .rv-sheen{display:none}#rv-splash .rv-bar i{animation:none;width:40%}}
+        ` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=WindSong:wght@500&family=Tenor+Sans&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}<Toaster /><SWRegister /></body>
+      <body>
+        <div id="rv-splash" aria-hidden="true">
+          <div className="rv-word">RELÈVE<span className="rv-sheen" aria-hidden="true">RELÈVE</span></div>
+          <div className="rv-sub">Executive Staffing</div>
+          <div className="rv-bar"><i></i></div>
+        </div>
+        {children}<Toaster /><SWRegister /><SplashGate />
+      </body>
     </html>
   );
 }
