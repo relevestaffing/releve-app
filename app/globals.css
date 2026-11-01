@@ -3194,3 +3194,14 @@ a.pill.crit{ text-decoration:none; }
 .pill.good{background:rgba(78,122,92,.10);padding:5px 11px}
 .pill.warn{background:rgba(133,106,53,.12);padding:5px 11px}
 .pill.crit{background:rgba(140,74,63,.11);padding:5px 11px}
+
+/* ===== Ask Relève ===== */
+.ask .thread{min-height:260px}
+.ask .bubble{border-radius:0}
+.ask .bubble.mine{border-radius:0}
+.ask-empty{padding:18px 4px 8px}
+.ask-proposal{border:1px solid var(--line);background:#F7F5EF;padding:12px 14px}
+.bubble.mine .ask-proposal{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.ask-compose{border-top:1px solid var(--line);padding-top:14px;margin-top:8px}
+.ask-compose textarea{width:100%;resize:vertical;min-height:58px;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);background:#fff;border-radius:0}
+.ask-compose textarea:focus{outline:none;border-color:var(--fern)}

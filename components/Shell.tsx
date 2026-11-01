@@ -76,7 +76,7 @@ const NAV: Record<string, NavGroup[]> = {
       { href: '/app/checkin', label: 'End of week report' },
       { href: '/app/pay', label: 'Your pay' }
     ]},
-    { items: [{ href: '/app/messages', label: 'Messages' }] }
+    { items: [{ href: '/app/messages', label: 'Messages' }, { href: '/app/ask', label: 'Ask Relève' }] }
   ],
 
   /* Nineteen entries in six groups became eight (Sage, 25 October 2026:
@@ -102,7 +102,8 @@ const NAV: Record<string, NavGroup[]> = {
     /* Looked at monthly, not daily, so it sits apart rather than competing
        with the seven above. */
     { items: [
-      { href: '/console/business', label: 'The business' }
+      { href: '/console/business', label: 'The business' },
+      { href: '/console/ask', label: 'Ask Relève' }
     ]}
   ]
 };
@@ -191,7 +192,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
     nav.push({ group: 'Working together', items: [{ href: '/app/billing', label: 'Billing' }] });
   }
 
-  nav.push({ items: [{ href: '/app/messages', label: 'Messages' }] });
+  nav.push({ items: [{ href: '/app/messages', label: 'Messages' }, { href: '/app/ask', label: 'Ask Relève' }] });
   /* The vision screens recede here once the deposit is in — out of the daily
      menu, but one link away for a client who wants to revisit them. */
   nav.push({ items: [{ href: '/app/how', label: 'How Relève works' }] });
