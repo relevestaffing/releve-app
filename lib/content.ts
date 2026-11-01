@@ -171,6 +171,34 @@ async function askClaude(system: string, brief: string, maxTokens = 16000): Prom
   catch { throw new Error(data?.stop_reason === 'max_tokens' ? 'The AI ran out of room before finishing the posts.' : 'The AI sent back posts that could not be read.'); }
 }
 
+async function askClaudeVision(system: string, brief: string, image: { bytes: Buffer; type: string }, maxTokens = 4000): Promise<any> {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) throw new Error('Add ANTHROPIC_API_KEY in Netlify so Claude can write the posts.');
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 120000);
+  const media = /png/i.test(image.type) ? 'image/png' : /webp/i.test(image.type) ? 'image/webp' : 'image/jpeg';
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({
+      model: process.env.ANTHROPIC_CONTENT_MODEL || 'claude-opus-5-5',
+      max_tokens: maxTokens, system,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: media, data: image.bytes.toString('base64') } },
+        { type: 'text', text: brief }
+      ] }]
+    }),
+    signal: ctl.signal
+  }).catch(() => null).finally(() => clearTimeout(timer));
+  if (!res) throw new Error('Could not reach the AI service.');
+  if (!res.ok) { let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch { /* */ } throw new Error(`The AI service refused the request (${res.status})${detail ? `: ${detail}` : ''}.`); }
+  const data: any = await res.json();
+  const text = (data?.content ?? []).filter((b: any) => b?.type === 'text').map((b: any) => b.text).join('');
+  const start = text.indexOf('{'); const end = text.lastIndexOf('}');
+  if (start < 0 || end < start) throw new Error('The AI sent back something unreadable.');
+  try { return JSON.parse(text.slice(start, end + 1)); } catch { throw new Error('The AI sent back a post that could not be read.'); }
+}
+
 type Drafted = {
   topic: string; hook: string; format: Format; caption: string; caption_fb?: string; caption_li?: string;
   card?: Card | null; slides?: Slide[]; script?: Script | null; image_idea?: string;
@@ -319,8 +347,10 @@ export async function draftWeek(monday: string) {
   /* Careers posts are paused until a careers Facebook page is chosen in the
      Content tab (31 Oct 2026: the careers page did not come through Meta). */
   const careersOn = Boolean((await getSetting<MetaConn>('conn:meta'))?.careers);
-  const families: ('li_personal' | 'li_group' | 'ig_client' | 'ig_careers')[] =
-    careersOn ? ['li_personal', 'li_group', 'ig_client', 'ig_careers'] : ['li_personal', 'li_group', 'ig_client'];
+  /* li_personal is photo-first (written from Sage's uploaded photo), so it is
+     NOT drafted here. The other channels are written by Opus as before. */
+  const families: ('li_group' | 'ig_client' | 'ig_careers')[] =
+    careersOn ? ['li_group', 'ig_client', 'ig_careers'] : ['li_group', 'ig_client'];
 
   /* All four accounts are written at once (Opus is slower than Sonnet, and
      the worker has 15 minutes), then saved in order. */
@@ -365,6 +395,22 @@ export async function draftWeek(monday: string) {
       }
     }
   }
+  /* Open this week's six personal slots for photos. Each is written when Sage
+     uploads a candid picture to it. A push tells her they are ready. */
+  const liPlan = WEEK_PLAN.filter(sl => sl.channel === 'li_personal' && !existing.has(`${monday}-li_personal-${DAY_KEYS[sl.day]}`));
+  let liMade = 0;
+  for (const sl of liPlan) {
+    const slot = `${monday}-li_personal-${DAY_KEYS[sl.day]}`;
+    const at = slotTime(monday, sl.day, sl.hour, sl.minute).toISOString();
+    const { error } = await sb().from('content_posts').insert({
+      slot, week_start: monday, channel: 'li_personal', format: 'text', publish_at: at, status: 'needs_image',
+      topic: null, hook: null, caption: '', image_idea: 'Upload a candid photo from your week; the post is written around it.'
+    });
+    if (!error) { made.push(slot); liMade++; }
+    else if (!/duplicate/i.test(error.message)) throw new Error(error.message);
+  }
+  if (liMade) await remindUploadPhotos(monday, liMade);
+
   return made;
 }
 
@@ -382,6 +428,46 @@ export async function redraftPost(post: ContentPost) {
 }
 
 /* ---------- publishing ---------- */
+
+/* Photo-first personal posts: Sage uploads a candid photo, Claude writes the
+   post around what the photo actually shows, in her voice. */
+export async function writePostFromImage(post: ContentPost): Promise<void> {
+  if (post.channel !== 'li_personal' || !post.image_path) return;
+  try {
+  const img = await fetchBytes(mediaUrl(post.image_path));
+  const system = `${SAGE}\n\n${FACTS}\n\n${LI_REFERENCE}`;
+  const brief = [
+    "The image above is a real, candid photo from Sage's own life that she has chosen for this post.",
+    'Write ONE LinkedIn post built entirely around THIS photo, following the style rules exactly. The very first line must name the real moment the photo actually shows (what is literally in the image) and turn it into the point. Then the lesson for a business owner, in Sage\'s voice. End with a question or a quiet comment-to-DM invitation (for example a free Zoom-coffee delegation audit by DM). No links.',
+    'Keep it universal: the lesson must apply to ANY business owner, not one industry.',
+    'Return JSON only: {"hook":"the first line","text":"the full post, 900 to 1500 characters, line breaks as \\n","image_idea":"one sentence describing what this photo actually shows"}'
+  ].join('\n\n');
+  const raw = await askClaudeVision(system, brief, img, 4000);
+  const caption = clean(raw?.text, 3000);
+  if (!caption) throw new Error('No post text came back.');
+  await updatePost(post.id, {
+    hook: clean(raw?.hook, 300) || null, caption,
+    image_idea: raw?.image_idea ? clean(raw.image_idea, 300) : post.image_idea,
+    status: 'held', hold_reason: 'Written from your photo. Edit if you like, then approve the week.'
+  } as any);
+  } catch (e: any) {
+    /* Never leave the post stuck on "Writing\u2026". Hand it back so she can retry. */
+    await updatePost(post.id, { status: 'needs_image', hold_reason: 'Could not write from that photo. Try another picture, or the Write from this photo button.' } as any).catch(() => {});
+  }
+}
+
+async function remindUploadPhotos(monday: string, n: number) {
+  try {
+    const { sendPushToEmail } = await import('@/lib/push');
+    const admins = await teamEmailsAdmin();
+    const when = new Date(`${monday}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+    await Promise.all(admins.map(e => sendPushToEmail(e, {
+      title: 'Time to upload your photos',
+      body: `Your ${n} personal LinkedIn posts for the week of ${when} are ready. Upload a candid photo for each and the post writes itself.`,
+      url: '/console/content', tag: 'photo-upload'
+    })));
+  } catch { /* best-effort */ }
+}
 
 async function imagesFor(post: ContentPost): Promise<string[]> {
   const n = imageCount(post);

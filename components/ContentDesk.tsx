@@ -255,6 +255,7 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   const [view, setView] = useState<number | null>(null);
   const done = p.status === 'posted' || p.status === 'publishing';
   const isCopy = Boolean(p.parent_id);
+  const photoFirst = p.channel === 'li_personal' && !(p.caption ?? '').trim();
 
   async function upload(file: File, kind: 'image' | 'video') {
     setUploading(true);
@@ -263,7 +264,7 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
       const path = `${p.id}/${Date.now()}.${ext}`;
       const { error } = await supabaseBrowser().storage.from('content').upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw new Error(error.message);
-      await run('up' + p.id, kind === 'image' ? 'set_image' : 'set_video', { id: p.id, path }, kind === 'image' ? 'Picture added. It posts on schedule.' : 'Video added. Its Instagram and LinkedIn copies are ready.');
+      await run('up' + p.id, kind === 'image' ? 'set_image' : 'set_video', { id: p.id, path }, kind === 'image' ? (photoFirst ? 'Got it. Writing your post from the photo, refresh in a moment.' : 'Picture added. It posts on schedule.') : 'Video added. Its Instagram and LinkedIn copies are ready.');
     } catch (e: any) { toast.bad(`The upload did not finish. ${e?.message ?? ''}`); }
     setUploading(false);
   }
@@ -334,11 +335,17 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
 
           {p.channel === 'li_personal' && (
             <div className="ff">
-              <label>Your picture</label>
+              <label>{photoFirst ? 'Upload a photo, and the post writes itself' : 'Your picture'}</label>
+              {photoFirst && !p.imageSrc && <span className="xs muted" style={{ marginBottom: 6 }}>Pick a real, candid photo from your week. Claude writes the post around what the photo actually shows, in your voice, for you to approve.</span>}
               {p.imageSrc ? <img src={p.imageSrc} alt="Chosen picture" style={{ maxWidth: 260, display: 'block', marginBottom: 8, border: '1px solid var(--line)' }} /> : null}
-              {p.image_idea && <span className="xs muted">Idea: {p.image_idea}</span>}
+              {!photoFirst && p.image_idea && <span className="xs muted">Idea: {p.image_idea}</span>}
               {!done && <input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading}
                 onChange={e => { const f = e.target.files?.[0]; if (f) upload(f, 'image'); e.target.value = ''; }} />}
+              {!done && p.image_path && <button className="btn sm ghost" style={{ marginTop: 8 }} disabled={!!busy || uploading}
+                onClick={() => run('wi' + p.id, 'write_image', { id: p.id }, 'Writing your post from the photo, refresh in a moment.')}>
+                {(p.caption ?? '').trim() ? 'Rewrite from this photo' : 'Write from this photo'}
+              </button>}
+              {uploading && <span className="xs muted">Uploading, keep this open\u2026</span>}
             </div>
           )}
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
 import {
-  getPost, updatePost, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA
+  getPost, updatePost, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA, writePostFromImage
 } from '@/lib/content';
 import { isManual, type ContentPost, type Slide } from '@/lib/content-model';
 import { pageAccess } from '@/lib/social-linkedin';
@@ -131,9 +131,23 @@ export async function POST(req: Request) {
         if (done) return bad('This one has already gone out.', 409);
         if (!(await kick('redraft', { id: post.id }))) await redraftPost(post);
         return ok({ queued: true });
+      case 'write_image': {
+        if (post.channel !== 'li_personal') return bad('Only personal LinkedIn posts are written from a photo.');
+        if (!post.image_path) return bad('Add a photo first.');
+        await updatePost(post.id, { status: 'held', hold_reason: 'Writing your post from the photo\u2026' } as any);
+        if (!(await kick('write_image', { id: post.id }))) await writePostFromImage(post);
+        return ok({ writing: true });
+      }
       case 'set_image': {
         const path = String(b.path ?? '');
         if (!path.startsWith(`${post.id}/`)) return bad('That picture did not upload.');
+        /* Photo-first personal posts (no caption yet): write the post from the
+           photo she just uploaded, then hold it for her approval. */
+        if (post.channel === 'li_personal' && !(post.caption ?? '').trim() && !done) {
+          await updatePost(post.id, { image_path: path, status: 'held', hold_reason: 'Writing your post from the photo\u2026' } as any);
+          if (!(await kick('write_image', { id: post.id }))) await writePostFromImage({ ...post, image_path: path } as any);
+          return ok({ writing: true });
+        }
         const next = { ...post, image_path: path };
         await updatePost(post.id, { image_path: path, status: post.status === 'held' || done ? post.status : readyStatus(next) } as any);
         break;
