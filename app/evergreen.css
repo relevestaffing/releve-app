@@ -341,3 +341,22 @@ html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layou
   html.js .page-body > *:not(.in),html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout) > *:not(.in){transform:none}
 }
 html.rv-off .page-body > *:not(.in),html.rv-off .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout) > *:not(.in){transform:none}
+
+
+/* ───────────────────────── the velvet rail (Nona, 1 Nov 2026: "I actually really like the left panel") ─────────────────────────
+   From the materials board: the rail in a soft fern velvet, a hairline of
+   brushed brass along its edge, and the page you are on marked in brass. */
+:root{--velvet:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .58 0 0 0 0 .4 .45 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23v%29'/%3E%3C/svg%3E");--velvet-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23n%29'/%3E%3C/svg%3E");
+  --brass-line:linear-gradient(115deg,#7A5A26 0%,#C9A45C 30%,#F3DDA0 48%,#B88A3E 62%,#8E6A2E 100%);--brass-text:#EFD496}
+@media (min-width:901px){
+  aside.side{background:var(--velvet),var(--velvet-grain),linear-gradient(180deg,#2A3830,#22302A);border-right:0;box-shadow:inset -1px 0 0 rgba(201,164,92,.35)}
+  aside.side::before{display:none}
+  .shell{background:linear-gradient(90deg,#22302A 0 var(--sidebar),var(--paper) var(--sidebar))}
+  nav.side-nav a.active,nav.side-nav a.active:hover{color:var(--brass-text)}
+  nav.side-nav a::before{background:var(--brass-line);height:2px}
+  .skel-side{background:var(--velvet),var(--velvet-grain),linear-gradient(180deg,#2A3830,#22302A)!important;box-shadow:inset -1px 0 0 rgba(201,164,92,.35)}
+}
+@media (max-width:900px){
+  .nav-drawer{background:var(--velvet),var(--velvet-grain),linear-gradient(180deg,#2A3830,#22302A);box-shadow:inset -1px 0 0 rgba(201,164,92,.35)}
+  .nav-drawer nav.side-nav a.active{color:var(--brass-text)}
+}
