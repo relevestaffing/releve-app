@@ -61,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <style dangerouslySetInnerHTML={{ __html: `
           #rv-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FBF8F1;opacity:1;transition:opacity .5s ease}
           #rv-splash.rv-splash-done{opacity:0;pointer-events:none}
+          html:not(.js) #rv-splash{display:none}
           #rv-splash .rv-word{font-family:"Marcellus",Georgia,serif;font-size:clamp(40px,12vw,64px);letter-spacing:1px;color:#35443A;line-height:1;position:relative;opacity:0;animation:rvFade .9s ease .1s forwards}
           #rv-splash .rv-word .rv-sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.85) 50%,transparent 58%);background-size:260% 100%;background-position:160% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rvSweep 1.5s ease 1s forwards}
           #rv-splash .rv-sub{margin-top:16px;font-family:"Tenor Sans","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:#6E7F71;opacity:0;animation:rvFadeUp .8s ease .55s forwards}

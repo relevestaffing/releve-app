@@ -478,7 +478,7 @@ export async function writePostFromImage(post: ContentPost): Promise<void> {
 
 async function remindUploadPhotos(monday: string, n: number) {
   try {
-    const { sendPushToEmail } = await import('@/lib/push');
+    const { sendPushToEmail } = await import('./push');
     const admins = await teamEmailsAdmin();
     const when = new Date(`${monday}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
     await Promise.all(admins.map(e => sendPushToEmail(e, {

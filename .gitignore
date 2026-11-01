@@ -25,3 +25,4 @@ supabase/.temp/
 # local-only push VAPID keys (never commit)
 VAPID-KEYS-paste-into-netlify.txt
 .vapid*
+*.pre-audit-fix

@@ -55,7 +55,7 @@ export type Message = { subject: string; text: string; html: string; kind: strin
 async function pushMirror(to: string, msg: Message) {
   if (/^campaign/i.test(msg.kind || '')) return;
   try {
-    const { sendPushToEmail } = await import('@/lib/push');
+    const { sendPushToEmail } = await import('./push');
     await sendPushToEmail(to, { title: msg.subject || 'Relève', url: '/app', tag: msg.kind || undefined });
   } catch { /* push is best-effort */ }
 }

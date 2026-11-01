@@ -7,12 +7,17 @@ import { useEffect } from 'react';
 export default function SWRegister() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
-    window.addEventListener('load', () => {
+    const register = () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {
-        // Best-effort only — a page that never gets the cache benefit is
+        // Best-effort only: a page that never gets the cache benefit is
         // no worse off than before this existed.
       });
-    });
+    };
+    /* The effect can run after the load event has already fired (client-side
+       navigation, a fast cache hit), in which case a listener would never
+       fire and the worker would never register on that visit. */
+    if (document.readyState === 'complete') register();
+    else window.addEventListener('load', register, { once: true });
   }, []);
   return null;
 }

@@ -6,7 +6,7 @@
    must never be the reason an email, a save or a request fails, so callers
    fire-and-forget and every path swallows its own errors. */
 import webpush from 'web-push';
-import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
+import { adminClient, hasServiceKey } from './supabase/admin';
 
 /* Public VAPID key (not a secret). Baked in so the only thing the server must
    be given is the private key; env still wins if set, for rotation. */
@@ -45,6 +45,7 @@ export async function sendPushToUser(userId: string, payload: PushPayload): Prom
     } catch (e: any) {
       const code = e?.statusCode;
       if (code === 404 || code === 410) { try { await sb.from('push_subscriptions').delete().eq('endpoint', s.endpoint); } catch { /* */ } }
+      else console.error('[push] send failed', code ?? '', String(e?.body ?? e?.message ?? e).slice(0, 200));
     }
   }));
 }

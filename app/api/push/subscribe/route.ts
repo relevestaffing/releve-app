@@ -17,7 +17,9 @@ export async function POST(req: Request) {
   const endpoint = sub?.endpoint;
   const p256dh = sub?.keys?.p256dh;
   const auth = sub?.keys?.auth;
-  if (!endpoint || !p256dh || !auth) return NextResponse.json({ error: 'That subscription was incomplete.' }, { status: 400 });
+  const str = (v: unknown, max: number) => typeof v === 'string' && v.length > 0 && v.length <= max;
+  if (!str(endpoint, 1024) || !String(endpoint).startsWith('https://') || !str(p256dh, 256) || !str(auth, 256))
+    return NextResponse.json({ error: 'That subscription was incomplete.' }, { status: 400 });
 
   const { error } = await adminClient().from('push_subscriptions').upsert({
     user_id: me.id, endpoint, p256dh, auth,

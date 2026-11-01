@@ -46,13 +46,29 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     setEnv(e);
     if (compact) { try { if (localStorage.getItem('releve_push_nudge_dismissed') === '1') setHidden(true); } catch {} }
     if (e.supported && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      // already granted on this device; make sure we have a live subscription
-      ensureSubscribed().then(ok => { if (ok) setState('on'); }).catch(() => {});
+      /* Already granted on this device. If the current subscription is the one
+         we last synced, say so without another write; otherwise sync once. */
+      (async () => {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          const sub = await reg?.pushManager.getSubscription();
+          let synced = ''; try { synced = localStorage.getItem('releve_push_endpoint') || ''; } catch {}
+          if (sub && synced && sub.endpoint === synced) { setState('on'); return; }
+          if (await ensureSubscribed()) setState('on');
+        } catch { /* leave the prompt up */ }
+      })();
     }
   }, []);
 
   async function ensureSubscribed(): Promise<boolean> {
-    const reg = await navigator.serviceWorker.ready;
+    /* .ready only resolves once a worker is active, and nothing else here
+       guarantees one was registered on this visit, so register (idempotent)
+       and refuse to wait more than ten seconds. */
+    try { await navigator.serviceWorker.register('/sw.js'); } catch { /* unsupported or already registered */ }
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<ServiceWorkerRegistration>((_, rej) => setTimeout(() => rej(new Error('No service worker')), 10000))
+    ]);
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC) });
@@ -61,6 +77,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ subscription: sub.toJSON() })
     });
+    if (r.ok) { try { localStorage.setItem('releve_push_endpoint', sub.endpoint); } catch {} }
     return r.ok;
   }
 
@@ -82,11 +99,11 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   if (!env.supported && !(env.plat === 'ios' && !env.standalone)) return null;
 
   const wrap: React.CSSProperties = compact
-    ? { border: '1px solid #D8DED6', background: '#F7F5EF', borderRadius: 14, padding: '16px 18px' }
-    : { background: '#35443A', color: '#F3EFE6', borderRadius: 18, padding: '26px 24px' };
-  const head: React.CSSProperties = { fontFamily: "Georgia,'Times New Roman',serif", fontSize: compact ? 17 : 22, margin: '0 0 6px', color: compact ? '#26312B' : '#FBF8F1' };
+    ? { border: '1px solid #D8DED6', background: '#F7F5EF', padding: '16px 18px' }
+    : { background: '#35443A', color: '#F3EFE6', padding: '26px 24px' };
+  const head: React.CSSProperties = { fontFamily: "'Marcellus',Georgia,serif", fontSize: compact ? 17 : 22, margin: '0 0 6px', color: compact ? '#26312B' : '#FBF8F1' };
   const sub: React.CSSProperties = { fontSize: 14.5, lineHeight: 1.6, margin: '0 0 14px', color: compact ? '#516053' : '#CBD4CC' };
-  const btn: React.CSSProperties = { display: 'inline-block', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', padding: '13px 24px', borderRadius: 10, background: compact ? '#35443A' : '#FBF8F1', color: compact ? '#FBF8F1' : '#35443A' };
+  const btn: React.CSSProperties = { display: 'inline-block', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', padding: '13px 24px', background: compact ? '#35443A' : '#FBF8F1', color: compact ? '#FBF8F1' : '#35443A' };
   const stepList: React.CSSProperties = { margin: '0 0 14px', padding: 0, listStyle: 'none', fontSize: 14.5, lineHeight: 1.7, color: compact ? '#3A463D' : '#E7ECE6' };
 
   if (state === 'on') {
@@ -127,7 +144,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     <div style={wrap}>
       <div style={head}>Turn on notifications</div>
       <p style={sub}>
-        Hear the moment something needs you: a new candidate, a message, an interview or a reminder.
+        Hear the moment something needs you: a message, an update on your placement, an interview or a reminder.
         {env.plat === 'android' ? ' You can also add Relève to your home screen from your browser menu, for one-tap access.' : ''}
       </p>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
