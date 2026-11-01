@@ -17,7 +17,7 @@ export default function TermsGate({ name, side }: {
   side?: 'client' | 'talent';
 }) {
   const [agreed, setAgreed] = useState(false);
-  const [signed, setSigned] = useState('');
+  const [signed, setSigned] = useState((name ?? '').trim().replace(/\s+/g, ' '));
   const [busy, setBusy] = useState(false);
   const [fixing, setFixing] = useState(false);
   const [rightName, setRightName] = useState('');

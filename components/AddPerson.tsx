@@ -1,4 +1,5 @@
 'use client';
+import Overlay from './Overlay';
 import { useState, useId } from 'react';
 import { toast } from '@/components/Toast';
 import { zoneLabel, ZONES } from '@/lib/words';
@@ -47,7 +48,7 @@ export default function AddPerson() {
   if (!open) return <button className="btn sm solid" onClick={() => setOpen(true)}>Add talent</button>;
 
   return (
-    <div className="card" style={{ marginBottom: 22 }}>
+    <Overlay onClose={() => setOpen(false)} label="Add talent">
       <div className="card-head">
         <h3>Add talent</h3>
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
@@ -86,6 +87,6 @@ export default function AddPerson() {
         {msg && <p className="small" style={{ marginTop: 14, color: 'var(--good)' }}>{msg}</p>}
         {err && <div className="err">{err}</div>}
       </form>
-    </div>
+    </Overlay>
   );
 }

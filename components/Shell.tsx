@@ -359,7 +359,7 @@ export default async function Shell({
                 seen well before the fourteen-day gate. */}
             {profile.role === 'client' && <BillingBanner clientId={profile.id} />}
             {profile.role !== 'admin' && !clientTour && (
-              <div style={{ marginBottom: 16 }}><PushSetup compact /></div>
+              <PushSetup compact />
             )}
             {children}
             {/* Last in the DOM, first on the screen: both carry order:-2 in the

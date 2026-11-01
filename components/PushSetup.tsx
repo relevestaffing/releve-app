@@ -139,6 +139,16 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   }
 
   // Android / desktop / installed iOS: enable directly.
+  if (compact) return (
+    <div className="push-bar" role="note">
+      <span className="push-bar-text">Turn on notifications and hear the moment something needs you.</span>
+      <span className="push-bar-actions">
+        <button className="push-bar-on" onClick={enable} disabled={state === 'working'}>{state === 'working' ? 'One moment…' : 'Turn on'}</button>
+        <button className="push-bar-dismiss" onClick={() => { setHidden(true); try { localStorage.setItem('releve_push_nudge_dismissed', '1'); } catch {} }}>Not now</button>
+      </span>
+      {state === 'denied' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>Notifications are blocked for this site in your browser settings.</span>}
+    </div>
+  );
   return (
     <div style={wrap}>
       <div style={head}>Turn on notifications</div>

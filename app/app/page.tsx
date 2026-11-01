@@ -233,7 +233,7 @@ export default async function AppHome() {
       <div className="card tight">
         <p className="small muted">
           {side === 'client'
-            ? 'Your search is open and your deposit is in. The Signature is the last thing we need from you: every candidate is scored against it before their name reaches you. Your Client Success Manager is already sourcing.'
+            ? 'Your search is open and your deposit is in. Start with the Signature: every candidate is scored against it before their name reaches you. Your Client Success Manager is already sourcing.'
             : 'Nothing is matched until your Signature exists. Once these are done, we do the work, and your Talent Success Manager will come to you when a role fits.'}
         </p>
       </div>

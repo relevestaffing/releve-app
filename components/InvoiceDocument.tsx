@@ -23,7 +23,7 @@ export default function InvoiceDocument({ inv, actions }: {
 
   const lines: { what: string; detail?: string; cents: number }[] = [];
   if (inv.kind === 'deposit') {
-    lines.push({ what: 'Search deposit', detail: 'Non-refundable. Credited against your first monthly invoice.', cents: inv.amount_cents });
+    lines.push({ what: 'Search deposit', detail: 'Credited against your first monthly invoice. Refunded in full if no candidate is presented.', cents: inv.amount_cents });
   } else {
     lines.push({
       what: `Monthly retainer, ${monthLabel(inv.period_start)}`,

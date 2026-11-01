@@ -62,6 +62,26 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
   }, [side, attempt]);
 
   useEffect(() => { shown.current = Date.now(); }, [qi]);
+  /* The letters on the buttons are real keys: A to E answers a statement,
+     A or B picks a pair, the arrows move back and forward. Typing in the
+     conditions form is left alone. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!data || e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const k = e.key.toLowerCase();
+      if (qi >= data.itemCount + data.pairs.length) return;
+      if (qi >= data.itemCount) { if (k === 'a' || k === 'b') { e.preventDefault(); choose(k); } return; }
+      const n = ['a', 'b', 'c', 'd', 'e'].indexOf(k);
+      if (n >= 0) { e.preventDefault(); answer(n + 1); return; }
+      if (e.key === 'ArrowLeft' && qi > 0) setQi(qi - 1);
+      if (e.key === 'ArrowRight' && answers[qi] != null) advance(qi + 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qi, data, answers, pairs, timings]);
 
   function note(msg: string) { setChip(msg); setTimeout(() => setChip(null), 2000); }
 
