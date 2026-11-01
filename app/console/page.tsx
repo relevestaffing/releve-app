@@ -290,7 +290,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               <Link className="money-stat" href="/console/bench"><div className="n">{vitals.talent}</div><div className="k">Talent</div></Link>
               <Link className="money-stat" href="/console/vetting"><div className="n">{vitals.verified}</div><div className="k">Fully verified</div></Link>
               <Link className="money-stat" href="/console/bench">
-                <div className="n">{vitals.available}</div><div className="k">Assessed, not placed</div></Link>
+                <div className="n">{vitals.available}</div><div className="k">On the roster, not placed</div></Link>
               <Link className="money-stat" href="/console/placements"><div className="n">{vitals.placementsLive}</div><div className="k">In seat</div></Link>
             </div>
           </div>

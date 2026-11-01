@@ -221,11 +221,16 @@ export async function getSearch(clientKey: string): Promise<RoleBrief | null> {
 export async function setSearchOpen(clientId: string, open: boolean, reason?: 'withdrawn' | 'on_hold') {
   if (!configured()) return;
   const sb = await supabaseServer();
+  /* Only the newest search changes. Reopening used to un-close every row
+     for the client, including the historic Placed search of a repeat hire. */
+  const { data: target } = await sb.from('searches').select('id').eq('client_id', clientId)
+    .order('opened_at', { ascending: false, nullsFirst: false }).limit(1).maybeSingle();
+  if (!target) return;
   const { error } = await sb.from('searches').update(
     open
       ? { closed_at: null, closed_reason: null, stage: 'Sourcing' }
       : { closed_at: new Date().toISOString(), closed_reason: reason ?? 'withdrawn', stage: 'On hold' }
-  ).eq('client_id', clientId);
+  ).eq('id', (target as any).id);
   if (error) throw new Error(error.message);
 }
 
@@ -240,8 +245,16 @@ export async function saveSearch(clientKey: string, patch: Partial<RoleBrief>, p
   }
   const sb = await supabaseServer();
   const key: Record<string, string> = pending ? { pending_id: clientKey } : { client_id: clientKey };
-  const { data } = await sb.from('searches').select('id')
-    .or(`client_id.eq.${clientKey},pending_id.eq.${clientKey}`).maybeSingle();
+  /* The open search, or failing that the newest one. A repeat client has a
+     closed Placed search as well as the open one; .maybeSingle() on both rows
+     used to error, the error was dropped, and a third search was inserted. */
+  const find = () => sb.from('searches').select('id')
+    .or(`client_id.eq.${clientKey},pending_id.eq.${clientKey}`)
+    .order('opened_at', { ascending: false, nullsFirst: false }).limit(1);
+  let { data, error: findErr } = await find().is('closed_at', null).maybeSingle();
+  if (findErr) throw new Error(findErr.message);
+  if (!data) ({ data, error: findErr } = await find().maybeSingle());
+  if (findErr) throw new Error(findErr.message);
   /* target_at is a real date column — an empty string from a cleared date
      picker is not null, and Postgres rejects it the same way it used to
      reject the free-text "Within six weeks" this field asked for. */

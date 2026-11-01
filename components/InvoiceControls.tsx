@@ -70,6 +70,8 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
       onChange={e => {
         const next = e.target.value as InvoiceStatus;
         if (next === 'paid' || next === 'void' || next === 'sent') { setAsk(next); return; }
+        if (next === 'failed' && !confirm('Mark this invoice failed by hand? Stripe sets this on its own when a charge is declined; use it only for a payment that failed outside Stripe.')) { setValue(inv.status); return; }
+        if (next === 'draft' && inv.status !== 'draft' && !confirm('Move this invoice back to draft? If the client was already emailed a pay link, that link keeps working.')) { setValue(inv.status); return; }
         apply(next);
       }}>
       {INVOICE_STATUS.filter(s => MANUAL_STATUSES.includes(s.key)).map(s =>

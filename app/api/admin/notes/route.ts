@@ -6,7 +6,7 @@ import { safeMessage } from '@/lib/errors';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const b = await req.json();
+  const b = await req.json().catch(() => ({}));
   const body = String(b.body ?? '').trim();
   if (!b.placement_id || !body) return NextResponse.json({ error: 'nothing to note' }, { status: 400 });
   try {

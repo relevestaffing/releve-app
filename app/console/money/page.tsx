@@ -327,7 +327,7 @@ export default async function ConsoleMoney() {
         <div className="card">
           <div className="card-head">
             <h3>Search deposits</h3>
-            <span className="xs muted">$500 once a search begins · refunded only if no candidate is presented · marking paid or waived is the owner&rsquo;s</span>
+            <span className="xs muted">Due once a search begins · refunded only if no candidate is presented · marking paid or waived is the owner&rsquo;s</span>
           </div>
           <table className="data">
             <thead><tr>

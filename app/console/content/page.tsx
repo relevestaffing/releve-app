@@ -49,7 +49,8 @@ export default async function Content({ searchParams }: { searchParams: Promise<
     <Shell profile={profile} active="/console/content" title="Content" crumb="Every account, every week">
       <ConsoleTabs active="/console/content" items={[
         { href: '/console/content', label: 'Posts' },
-        { href: '/console/campaigns', label: 'Email' }
+        { href: '/console/campaigns', label: 'Email' },
+        { href: '/console/email-list', label: 'Email list' }
       ]} />
       <ContentDesk
         week={week} thisWeek={thisWeek} prevWeek={shift(week, -7)} nextWeek={shift(week, 7)}

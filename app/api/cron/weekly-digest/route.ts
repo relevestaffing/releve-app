@@ -63,11 +63,17 @@ export async function POST(req: Request) {
     const hours = r?.hours != null ? Number(r.hours)
       : ((logs ?? []) as any[]).reduce((s, l) => s + (Number(l.hours) || 0), 0) || null;
 
+    /* Once per placement per week: a second run (a retry, a re-fired
+       schedule) must not send the same letter twice. */
+    const stampKey = `digest:${p.id}:${week}`;
+    const { data: already } = await sb.from('content_settings').select('key').eq('key', stampKey).maybeSingle();
+    if (already) { skipped++; continue; }
     const ok = await send(to, templates.weeklyDigest({
       name: execName, talent: talentName, week,
       hours, accomplished: r?.shipped ?? null, win: r?.win ?? null, highlights
     }));
-    if (ok) sent++; else skipped++;
+    if (ok) { sent++; await sb.from('content_settings').upsert({ key: stampKey, value: { sent_at: new Date().toISOString() }, updated_at: new Date().toISOString() }); }
+    else skipped++;
   }
   return NextResponse.json({ ok: true, week, sent, skipped });
 }

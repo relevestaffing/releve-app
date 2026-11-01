@@ -65,7 +65,9 @@ export async function POST(req: Request) {
     /* eq on the lowercased address, not ilike: in ilike an underscore or a
        percent sign in the typed address is a wildcard, and j_doe@ would
        match jadoe@ and send the deposit link to the wrong account. */
-    const { data: profile } = await sb.from('profiles').select('id, full_name').eq('email', email).maybeSingle();
+    const { data: profile } = await sb.from('profiles').select('id, full_name, role').eq('email', email).maybeSingle();
+    if (profile && (profile as any).role !== 'client')
+      return NextResponse.json({ error: `That email belongs to ${(profile as any).role === 'talent' ? 'a talent' : 'a team'} account, so it cannot be onboarded as a client.` }, { status: 409 });
     if (profile) clientId = (profile as any).id;
     /* One name everywhere: the letter, the account and the agreement. An
        account that already exists keeps its own name (it is theirs), and the

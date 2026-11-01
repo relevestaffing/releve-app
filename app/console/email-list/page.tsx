@@ -25,9 +25,10 @@ export default async function EmailList() {
 
   return (
     <Shell profile={profile} active="/console/content" title="Content" crumb="Email list">
-      <ConsoleTabs active="/console/campaigns" items={[
+      <ConsoleTabs active="/console/email-list" items={[
         { href: '/console/content', label: 'Posts' },
-        { href: '/console/campaigns', label: 'Email' }
+        { href: '/console/campaigns', label: 'Email' },
+        { href: '/console/email-list', label: 'Email list' }
       ]} />
       <SubscriberList rows={rows} />
     </Shell>

@@ -23,7 +23,8 @@ export default async function Campaigns() {
     <Shell profile={profile} active="/console/content" title="Content" crumb="Email">
       <ConsoleTabs active="/console/campaigns" items={[
         { href: '/console/content', label: 'Posts' },
-        { href: '/console/campaigns', label: 'Email' }
+        { href: '/console/campaigns', label: 'Email' },
+        { href: '/console/email-list', label: 'Email list' }
       ]} />
 
       <div className="card tight">

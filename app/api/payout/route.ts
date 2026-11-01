@@ -78,6 +78,8 @@ export async function POST(req: Request) {
     if (b.action === 'payment') {
       if (!b.id || !['due', 'sent', 'failed'].includes(b.state))
         return NextResponse.json({ error: 'which payment, and what happened to it?' }, { status: 400 });
+      if (b.state === 'sent' && !(await isOwner()))
+        return NextResponse.json({ error: 'Recording money as sent is the owner\u2019s call.' }, { status: 403 });
       const cents = (v: unknown) => {
         if (v === undefined || v === null || v === '') return null;
         const n = Math.round(Number(v));

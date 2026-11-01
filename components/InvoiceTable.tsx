@@ -43,6 +43,7 @@ export default function InvoiceTable({ invoices, stripeOn, methods, owner = fals
 
   async function sendSelected() {
     if (!selected.size) return;
+    if (!confirm(`Email ${selected.size} invoice${selected.size === 1 ? '' : 's'} to ${selected.size === 1 ? 'the client' : 'their clients'} now, and collect from the bank where a mandate is on file?`)) return;
     setBusy(true);
     try {
       const r = await fetch('/api/admin/money', {

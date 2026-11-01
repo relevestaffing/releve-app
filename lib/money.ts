@@ -89,6 +89,13 @@ export async function setDeposit(searchId: string, status: DepositStatus, paidOn
     ...(opensNow ? { opened_at: settledOn } : {})
   }).eq('id', searchId);
   if (error) throw new Error(error.message);
+  /* A waived deposit must not leave an open invoice asking for it. Only
+     unpaid, unsent-to-bank invoices are voided; anything Stripe is holding
+     is left for Stripe to report on. */
+  if (status === 'waived') {
+    await sb.from('invoices').update({ status: 'void', paid_on: null })
+      .eq('search_id', searchId).eq('kind', 'deposit').in('status', ['draft', 'sent', 'failed']);
+  }
 }
 
 /* The deposit is invoiced once, when the search opens. Returns the invoice

@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
 
-  const { attemptId, accuracy, judgment, communication, time_management, overall_result, reviewer_notes, talent_feedback } = await req.json();
+  const { attemptId, accuracy, judgment, communication, time_management, overall_result, reviewer_notes, talent_feedback } = await req.json().catch(() => ({}));
   if (!attemptId) return NextResponse.json({ error: 'missing attempt' }, { status: 400 });
   if (!['cleared', 'needs_retake'].includes(overall_result))
     return NextResponse.json({ error: 'pick a result' }, { status: 400 });

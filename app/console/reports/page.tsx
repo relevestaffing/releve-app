@@ -4,6 +4,7 @@ import ConsoleTabs from '@/components/ConsoleTabs';
 import { currentProfile, supabaseServer, configured } from '@/lib/supabase/server';
 import { moneySummary, moneyReports, money, monthLabel } from '@/lib/money';
 import { calibration } from '@/lib/care';
+import { archivingIsLive } from '@/lib/archive';
 import Shell from '@/components/Shell';
 
 export const metadata = { title: 'Reports' };
@@ -29,7 +30,10 @@ async function counts(): Promise<Counts> {
   const sb = await supabaseServer();
   const c = { ...zero };
 
-  const { data: people } = await sb.from('profiles').select('id, role');
+  const archivingOn = await archivingIsLive();
+  const { data: people } = await (archivingOn
+    ? sb.from('profiles').select('id, role').is('archived_at', null)
+    : sb.from('profiles').select('id, role'));
   for (const p of (people ?? []) as any[]) {
     if (p.role === 'client') c.clients++;
     if (p.role === 'talent') c.talent++;

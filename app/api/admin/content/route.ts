@@ -44,6 +44,10 @@ export async function POST(req: Request) {
         const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : weekStart(new Date(), 1);
         await putSetting(`draft:${week}`, { status: 'drafting', at: new Date().toISOString() });
         if (await kick('draft_week', { week })) return ok({ queued: true });
+        if (process.env.NETLIFY) {                               // on Netlify the worker must take it: a week of Opus does not fit in one request
+          await putSetting(`draft:${week}`, { status: 'failed', at: new Date().toISOString(), error: 'The background worker could not be reached. Check CRON_SECRET in Netlify.' });
+          return bad('The background worker could not be reached. Check CRON_SECRET in Netlify, then try again.', 503);
+        }
         const made = await draftWeek(week);                     // no worker (local dev): do it here
         await putSetting(`draft:${week}`, { status: 'done', at: new Date().toISOString() });
         return ok({ made: made.length });
