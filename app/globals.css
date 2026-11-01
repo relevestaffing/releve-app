@@ -3175,3 +3175,22 @@ a.pill.crit{ text-decoration:none; }
   .cd-va{flex-direction:column;align-items:flex-start}
   .cd-more > summary{padding:16px 16px}
 }
+
+/* ─────────────────────────────────────────────────────────────
+   PREMIUM POLISH (1 November 2026). Refinement within the system:
+   square corners and warm paper kept. The app already carried
+   tabular figures, table-row hover and focus rings, so the net-new
+   here is standalone-card depth, solid-button finesse, and tinted
+   status pills. Appended last on purpose, so it is easy to find and
+   to lift back out. Nested, stat and dark cards keep their own look.
+   ───────────────────────────────────────────────────────────── */
+.card:not(.stat):not(.dark){
+  box-shadow:0 1px 1px rgba(34,48,42,.03), 0 18px 40px -34px rgba(34,48,42,.42);
+}
+.btn{transition:background .3s,color .3s,border-color .3s,box-shadow .25s ease,transform .12s ease}
+.btn.solid{box-shadow:0 1px 1px rgba(34,48,42,.08), inset 0 1px 0 rgba(255,255,255,.07)}
+.btn.solid:not(:disabled):hover{box-shadow:0 8px 20px -10px rgba(34,48,42,.5)}
+.btn:not(:disabled):active{transform:translateY(1px)}
+.pill.good{background:rgba(78,122,92,.10);padding:5px 11px}
+.pill.warn{background:rgba(133,106,53,.12);padding:5px 11px}
+.pill.crit{background:rgba(140,74,63,.11);padding:5px 11px}
