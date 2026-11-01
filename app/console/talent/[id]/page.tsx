@@ -92,7 +92,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     vettingTotal: 2,
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: identity?.state === 'verified',
-    agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
+    agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && (v.state === 'verified' || v.state === 'submitted')),
     hasPayout: payoutReady(payout)
   });
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);

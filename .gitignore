@@ -26,3 +26,5 @@ supabase/.temp/
 VAPID-KEYS-paste-into-netlify.txt
 .vapid*
 *.pre-audit-fix
+.qa-tonight.diff
+.qa-src.tgz

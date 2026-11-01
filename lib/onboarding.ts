@@ -42,7 +42,7 @@ export function talentSteps(o: {
       blurb: signLeft
         ? 'Your identity is verified. One signature left: your talent agreement is ready to sign on the Verification page.'
         : idDone
-          ? 'Verified. The signed agreement is ours to send and file. There is nothing more for you to do.'
+          ? 'Verified. Your agreement is with Relève to countersign and file. There is nothing more for you to do.'
           : sent > 0
             ? 'Sent, and with us. We check documents within one working day and will email you either way.'
             : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',

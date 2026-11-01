@@ -15,7 +15,9 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
   const router = useRouter();
   const [picked, setPicked] = useState<string[]>(initial?.disciplines ?? []);
   const [needs, setNeeds] = useState<Record<string, Need>>(initial?.needs ?? {});
-  const [details, setDetails] = useState<Record<string, string>>(initial?.details ?? {});
+  /* Choice options were renamed from '50–150' to '50 to 150'; answers saved
+     under the old spelling still select the right button. */
+  const [details, setDetails] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial?.details ?? {}).map(([k, v]) => [k, String(v).replace(/\s*[\u2013\u2014]\s*/g, ' to ')])));
   const [priorities, setPriorities] = useState(initial?.priorities ?? '');
   const [never, setNever] = useState(initial?.never ?? '');
   const [tools, setTools] = useState(initial?.tools ?? '');

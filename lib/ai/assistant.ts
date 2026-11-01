@@ -56,14 +56,13 @@ async function accountSummary(p: Profile): Promise<string> {
       if (open.length) lines.push('Open invoices: ' + open.map(i => `${i.number ?? 'invoice'} ${money(i.amount_cents)} ${i.status}${i.due_on ? `, due ${i.due_on}` : ''}`).join('; ') + '.');
       else lines.push('Open invoices: none.');
     }
-    const pl = await listPlacementsFor(p.id).catch(() => []);
-    const live = pl.filter((x: any) => !x.ended_on);
+    const live = await listPlacementsFor(p.id).catch(() => []);   // live placements only
     if (live.length) lines.push('Placements: ' + live.map((x: any) => p.role === 'client'
-      ? `${x.talent?.full_name ?? 'talent'} since ${x.started_on}`
-      : `with ${x.client?.full_name ?? 'an executive'}${x.client?.org_name ? ` (${x.client.org_name})` : ''} since ${x.started_on}`).join('; ') + '.');
+      ? `${x.talent_name ?? 'talent'} since ${x.started_on}`
+      : `with ${x.client_name ?? 'an executive'}${x.org_name ? ` (${x.org_name})` : ''} since ${x.started_on}`).join('; ') + '.');
     const iv = await listInterviews(p.role === 'client' ? { clientId: p.id } : { talentId: p.id }).catch(() => []);
     const soon = iv.filter(i => String(i.status) !== 'Cancelled' && String(i.status) !== 'cancelled' && new Date(i.starts_at).getTime() > Date.now() - 3600000).slice(0, 3);
-    if (soon.length) lines.push('Interviews: ' + soon.map(i => `${fmtWhen(i.starts_at)} with ${p.role === 'client' ? i.talent_name : i.client_name} (${i.status})`).join('; ') + '.');
+    if (soon.length) lines.push('Interviews: ' + soon.map(i => `${fmtWhen(i.starts_at, 'America/Los_Angeles')} with ${p.role === 'client' ? i.talent_name : i.client_name} (${i.status})`).join('; ') + '.');
   } catch { /* a summary is a convenience; the answer still stands without it */ }
   return lines.join('\n');
 }
@@ -120,7 +119,7 @@ const LOOKUPS: Record<string, { description: string; input: any; run: (a: any) =
     run: async () => {
       const rows = await listInterviews();
       const soon = rows.filter(i => String(i.status) !== 'Cancelled' && String(i.status) !== 'cancelled' && new Date(i.starts_at).getTime() > Date.now() - 3600000 && new Date(i.starts_at).getTime() < Date.now() + 14 * 86400000);
-      return soon.map(i => `${fmtWhen(i.starts_at)} ${i.client_name} with ${i.talent_name} (${i.status}) id=${i.id}`).join('\n') || 'None in the next two weeks.';
+      return soon.map(i => `${fmtWhen(i.starts_at, 'America/Los_Angeles')} ${i.client_name} with ${i.talent_name} (${i.status}) id=${i.id}`).join('\n') || 'None in the next two weeks.';
     }
   },
   queues: {
@@ -131,7 +130,7 @@ const LOOKUPS: Record<string, { description: string; input: any; run: (a: any) =
       const [v, w, a, h, c] = await Promise.all([
         sb.from('vetting').select('talent_id', { count: 'exact', head: true }).eq('state', 'submitted'),
         sb.from('taking_the_watch_attempts').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
-        sb.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'new'),
+        sb.from('job_applications').select('id', { count: 'exact', head: true }).eq('state', 'new'),
         sb.from('content_posts').select('id', { count: 'exact', head: true }).eq('status', 'held'),
         sb.from('campaigns').select('id', { count: 'exact', head: true }).eq('status', 'held')
       ]);
@@ -207,6 +206,7 @@ You are talking with a team member, not the founder. You may use the lookup tool
 export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error('The assistant is not switched on yet. Add ANTHROPIC_API_KEY in Netlify.');
+  const started = Date.now();
   const founder = p.role === 'admin' && await isOwner();
   const account = p.role === 'admin' ? `Signed in as ${p.full_name ?? p.email}, ${founder ? 'founder' : 'team'}.` : await accountSummary(p);
   const system = systemFor(p, founder, account);
@@ -225,11 +225,11 @@ export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
     });
   }
 
-  const trimmed = history.slice(-14).map(m => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
+  let trimmed = history.slice(-14).map(m => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
+  while (trimmed.length && trimmed[0].role !== 'user') trimmed = trimmed.slice(1);   // the API needs a user turn first
   const messages: any[] = trimmed.length ? trimmed : [{ role: 'user', content: 'Hello' }];
   const proposals: Proposal[] = [];
   let reply = '';
-  const started = Date.now();
 
   for (let round = 0; round < 5; round++) {
     const left = BUDGET_MS - (Date.now() - started);

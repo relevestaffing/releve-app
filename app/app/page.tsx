@@ -150,7 +150,7 @@ export default async function AppHome() {
         vettingTotal: 2,
         vettingSent: vetting.filter(v => v.state === 'submitted').length,
         hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
-        agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
+        agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && (v.state === 'verified' || v.state === 'submitted')),
         hasPayout: payoutReady(payoutRow),
         hasIntroVideo: !!self.intro_video_url
       });
@@ -165,10 +165,11 @@ export default async function AppHome() {
      below, which from here on only ever catches talent, and clients who have
      already paid and still owe their Signature. A placed executive never
      enters here. */
-  /* Only a deposit that is paid, or marked received or waived in the console,
-     opens the account. A bank transfer still clearing keeps the welcome
-     screens, which say so, until it lands. */
-  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived';
+  /* A deposit that is paid, marked received or waived, or committed by bank
+     and clearing opens the account (the same rule as execInTour in
+     lib/stage.ts, so the menu and the dashboard agree). A clearing deposit
+     is noted below rather than locking a new client out for days. */
+  const depositSettled = deposit?.status === 'paid' || deposit?.status === 'waived' || deposit?.status === 'processing';
   const manager = await primaryManager(profile);
   if (side === 'client' && !stage.placed && !depositSettled) {
     return (
@@ -343,6 +344,14 @@ export default async function AppHome() {
              so this is the between-deposit-and-placement view: the guarantee
              countdown and whatever needs them. */
           <>
+            {deposit?.status === 'processing' && (
+              <div className="card tight">
+                <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
+                  <span className="small"><b>Your deposit is clearing.</b> Bank transfers take a few business days to settle; your search is open in the meantime and nothing more is needed from you.</span>
+                  <span className="pill"><span className="dot" />Clearing</span>
+                </div>
+              </div>
+            )}
             {brief?.opened_at && <GuaranteeBadge openedAt={brief.opened_at} firstCandidateOn={brief.first_candidate_on ?? null}
               guaranteeDays={(brief as { guarantee_days?: number | null }).guarantee_days ?? 14} today={today} />}
             {needsAttention}

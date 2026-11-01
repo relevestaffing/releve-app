@@ -57,7 +57,7 @@ export default function CampaignDesk({ campaigns, me, ready }: { campaigns: Row[
             <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
               {!done && c.status !== 'held' && <button className="btn solid" disabled={!!busy} onClick={() => act('hold', { id: c.id })}>Hold this email</button>}
               {!done && c.status === 'held' && <button className="btn solid" disabled={!!busy} onClick={() => { if (new Date(c.send_at).getTime() > Date.now() || confirm('Its send time has passed, so this goes to every subscriber right now. Send it?')) act('resume', { id: c.id }); }}>{new Date(c.send_at).getTime() > Date.now() ? 'Send on schedule' : 'Send it now'}</button>}
-              {!done && c.status === 'cancelled' && <button className="btn solid" disabled={!!busy} onClick={() => act('resume', { id: c.id })}>Put it back</button>}
+              {!done && c.status === 'cancelled' && <button className="btn solid" disabled={!!busy} onClick={() => { if (new Date(c.send_at).getTime() > Date.now() || confirm('Its send time has passed, so putting it back sends it to every subscriber right now. Send it?')) act('resume', { id: c.id }); }}>{new Date(c.send_at).getTime() > Date.now() ? 'Put it back' : 'Put it back and send now'}</button>}
               {!done && <button className="btn" disabled={!!busy} onClick={() => setEditing(c.id)}>Edit</button>}
               {!done && <button className="btn" disabled={!!busy} onClick={() => act('redraft', { id: c.id })}>{busy === 'redraft' + c.id ? 'Rewriting…' : 'Rewrite it'}</button>}
               <button className="btn" disabled={!!busy} onClick={() => act('test', { id: c.id, to: me })}>Send me a test</button>

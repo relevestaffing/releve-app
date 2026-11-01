@@ -17,7 +17,9 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
   const [picked, setPicked] = useState<string[]>(initial?.disciplines ?? []);
   const [primary, setPrimary] = useState(initial?.primary ?? '');
   const [levels, setLevels] = useState<Record<string, Prof>>(initial?.levels ?? {});
-  const [details, setDetails] = useState<Record<string, string>>(initial?.details ?? {});
+  /* Choice options were renamed from '50–150' to '50 to 150'; answers saved
+     under the old spelling still select the right button. */
+  const [details, setDetails] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial?.details ?? {}).map(([k, v]) => [k, String(v).replace(/\s*[\u2013\u2014]\s*/g, ' to ')])));
   const [years, setYears] = useState<Record<string, number>>(initial?.years ?? {});
   const [best, setBest] = useState(initial?.best ?? '');
   const [growing, setGrowing] = useState(initial?.growing ?? '');

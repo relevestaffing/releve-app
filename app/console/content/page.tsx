@@ -30,7 +30,7 @@ export default async function Content({ searchParams }: { searchParams: Promise<
     ? await Promise.all([
         listWeek(week), getGroups(),
         getSetting<MetaConn>('conn:meta'), getSetting<LinkedInConn>('conn:linkedin'),
-        getSetting<{ status: string; at: string; error?: string }>(`draft:${weekStart(new Date(), 1)}`),
+        getSetting<{ status: string; at: string; error?: string }>(`draft:${week}`),
         getSetting<{ text: string }>('style:li_personal'),
         getSetting<{ status: string; at: string; error?: string; files?: number }>(`va:${week}`)
       ])

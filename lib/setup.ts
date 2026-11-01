@@ -66,7 +66,7 @@ export async function setupFor(profile: Profile): Promise<Step[]> {
     vettingTotal: 2,
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
-    agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
+    agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && (v.state === 'verified' || v.state === 'submitted')),
     hasPayout: payoutReady(payout)
   });
 }

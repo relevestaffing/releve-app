@@ -46,17 +46,10 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     setEnv(e);
     if (compact) { try { if (localStorage.getItem('releve_push_nudge_dismissed') === '1') setHidden(true); } catch {} }
     if (e.supported && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      /* Already granted on this device. If the current subscription is the one
-         we last synced, say so without another write; otherwise sync once. */
-      (async () => {
-        try {
-          const reg = await navigator.serviceWorker.getRegistration();
-          const sub = await reg?.pushManager.getSubscription();
-          let synced = ''; try { synced = localStorage.getItem('releve_push_endpoint') || ''; } catch {}
-          if (sub && synced && sub.endpoint === synced) { setState('on'); return; }
-          if (await ensureSubscribed()) setState('on');
-        } catch { /* leave the prompt up */ }
-      })();
+      /* Already granted on this device: sync the subscription to this account
+         once per page. One idempotent upsert, so a sign-out (which removes the
+         rows) followed by a sign-in on the same device is covered. */
+      ensureSubscribed().then(ok => { if (ok) setState('on'); }).catch(() => {});
     }
   }, []);
 
@@ -77,7 +70,6 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ subscription: sub.toJSON() })
     });
-    if (r.ok) { try { localStorage.setItem('releve_push_endpoint', sub.endpoint); } catch {} }
     return r.ok;
   }
 
