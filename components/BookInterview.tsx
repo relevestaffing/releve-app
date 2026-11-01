@@ -70,9 +70,16 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
   );
 
   if (!open) return (
-    <button className="btn solid" onClick={() => setOpen(true)} disabled={!slots.length}>
-      {slots.length ? 'Book an interview' : 'No shared availability'}
-    </button>
+    <div className="stack" style={{ gap: 8 }}>
+      <button className="btn solid" onClick={() => setOpen(true)} disabled={!slots.length}>
+        {slots.length ? 'Book an interview' : 'No shared availability'}
+      </button>
+      {!slots.length && (
+        <p className="xs muted" style={{ margin: 0 }}>
+          Your hours and theirs do not overlap this week. Relève will arrange it: <a href="/app/messages" style={{ textDecoration: 'underline' }}>message your Client Success Manager</a> with a time that suits you.
+        </p>
+      )}
+    </div>
   );
 
   return (

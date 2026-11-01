@@ -77,7 +77,7 @@ export function talentSteps(o: {
       blurb: 'The hours you can genuinely take a call. Without this, no executive can book you.',
       done: o.hasAvailability, critical: true },
     { key: 'profile', title: 'Complete your profile', href: '/app/talent/edit', minutes: '5 min',
-      blurb: 'Skills, experience and a short introduction. This is what an executive reads first.',
+      blurb: 'Your role, experience and a short introduction. This is what an executive reads first.',
       done: o.hasProfile },
     { key: 'payout', title: 'Say how you want to be paid', href: '/app/pay', minutes: '2 min',
       blurb: 'Relève pays you directly each month. Doing this now means the first payment is not held up while we ask.',

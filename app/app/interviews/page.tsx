@@ -117,7 +117,7 @@ export default async function Interviews() {
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
             <b>Your availability is not set</b>, so times here are shown in {tzLabel} and{' '}
-            {isClient ? 'nobody can be booked from times you are both free' : 'no executive can book you'}.{' '}
+            {isClient ? 'no interview can be booked at a time you are both free' : 'no executive can book you'}.{' '}
             <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set your availability</Link>. It takes two minutes.
           </p>
         </div>

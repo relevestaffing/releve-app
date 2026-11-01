@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/Toast';
 import { CONTACT_EMAIL } from '@/lib/experience-public';
+import { sameSigner } from '@/lib/words';
 
 /* The signing step under the agreement: confirm you have read it, type your
    full name, sign. The name has to be the one on the account. A copy is
@@ -17,7 +18,7 @@ export default function AgreementSign({ name, email, version }: { name: string |
 
   const tidy = (v: string) => v.trim().replace(/\s+/g, ' ');
   const onFile = tidy(name ?? '');
-  const nameOk = tidy(signed).length >= 3 && (!onFile || tidy(signed).toLowerCase() === onFile.toLowerCase());
+  const nameOk = tidy(signed).length >= 3 && (!onFile || sameSigner(tidy(signed), onFile));
   const mismatch = tidy(signed).length >= 3 && !nameOk;
   const ready = agreed && nameOk && !busy;
 

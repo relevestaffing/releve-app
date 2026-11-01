@@ -47,7 +47,8 @@ export async function getGroups(): Promise<Group[]> {
 /* ---------- links ---------- */
 
 export function sign(id: string, n: number | string) {
-  return createHmac('sha256', process.env.CRON_SECRET || 'releve').update(`${id}:${n}`).digest('hex').slice(0, 24);
+  const secret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || 'releve-dev-only';
+  return createHmac('sha256', secret).update(`${id}:${n}`).digest('hex').slice(0, 24);
 }
 export function imageUrl(id: string, n: number, fmt: 'jpg' | 'png' = 'jpg') {
   return `${APP()}/api/content/render?id=${id}&n=${n}&fmt=${fmt}&t=${sign(id, n)}`;

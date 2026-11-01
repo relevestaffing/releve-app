@@ -7,6 +7,7 @@ import { send, templates } from '@/lib/email';
 import { safeMessage } from '@/lib/errors';
 import { depositLocked } from '@/lib/stage';
 import { CONTACT_EMAIL } from '@/lib/experience-public';
+import { sameSigner } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   if (signed.length < 3)
     return NextResponse.json({ error: 'Please type your full name as your signature.' }, { status: 400 });
   const onFile = String(me.full_name ?? '').trim().replace(/\s+/g, ' ');
-  if (onFile && signed.toLowerCase() !== onFile.toLowerCase())
+  if (onFile && !sameSigner(signed, onFile))
     return NextResponse.json({
       error: `That does not match the name on your account (${onFile}). Sign as yourself, or write to ${CONTACT_EMAIL} and we will correct the name first.`
     }, { status: 400 });

@@ -41,6 +41,21 @@ export const WORDS = {
 /* One mark for "nothing here": a figure with no value yet, an empty field, a
    date not set. The audit found three ('–', '·', '—') on the same screens;
    the en dash is the one, everywhere. */
+
+/* Does a typed signature belong to the name on file? Exact match, or the
+   same person with a title, middle name or initial added or dropped: every
+   word of the shorter name appears in the longer one, and the surnames agree.
+   "Dr. Elena Marsh" signs for "Elena Marsh"; "E. Marsh" does not. */
+export function sameSigner(signed: string, onFile: string) {
+  const words = (v: string) => v.toLowerCase().replace(/[.,]/g, ' ').split(/\s+/).filter(w => w && !['dr', 'mr', 'mrs', 'ms', 'mx', 'jr', 'sr', 'ii', 'iii'].includes(w));
+  const a = words(signed), b = words(onFile);
+  if (!a.length || !b.length) return false;
+  if (a.join(' ') === b.join(' ')) return true;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  if (short.length < 2) return false;
+  return short[short.length - 1] === long[long.length - 1] && short.every(w => long.includes(w));
+}
+
 export const DASH = '·';
 
 /* ---------- dates ---------- */

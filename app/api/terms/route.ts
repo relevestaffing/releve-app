@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { recordAcceptance, TERMS_VERSION } from '@/lib/money';
 import { safeMessage } from '@/lib/errors';
+import { sameSigner } from '@/lib/words';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,9 @@ export async function POST(req: Request) {
     if (signed.length < 3)
       return NextResponse.json({ error: 'Please type your full name as your signature.' }, { status: 400 });
     const onFile = String(me.full_name ?? '').trim().replace(/\s+/g, ' ');
-    if (onFile && signed.toLowerCase() !== onFile.toLowerCase())
+    if (onFile && !sameSigner(signed, onFile))
       return NextResponse.json({
-        error: `that does not match the name on the account (${onFile}). Sign as yourself, or ask us to correct the name first`
+        error: `That does not match the name on your account (${onFile}). Sign as yourself, or ask us to correct the name first.`
       }, { status: 400 });
   }
 

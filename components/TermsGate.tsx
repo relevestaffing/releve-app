@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { TERMS_VERSION } from '@/lib/money-public';
 import { toast } from '@/components/Toast';
 import { CONTACT_EMAIL, REPLY_PROMISE } from '@/lib/experience-public';
-import { firstName } from '@/lib/words';
+import { firstName, sameSigner } from '@/lib/words';
 
 /* Shown once, before anything else, to an account that has never accepted the
    current terms. It is a gate rather than a banner on purpose: an agreement
@@ -30,7 +30,7 @@ export default function TermsGate({ name, side }: {
   const onFile = tidy(name ?? '');
   const nameOk = !signs
     || (tidy(signed).length >= 3
-        && (!onFile || tidy(signed).toLowerCase() === onFile.toLowerCase()));
+        && (!onFile || sameSigner(tidy(signed), onFile)));
   const mismatch = signs && tidy(signed).length >= 3 && !nameOk;
   const ready = agreed && nameOk;
 

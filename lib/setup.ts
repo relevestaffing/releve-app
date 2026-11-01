@@ -7,6 +7,7 @@ import { talentSteps, clientSteps, type Step } from '@/lib/onboarding';
 import { getPayout } from '@/lib/payout';
 import { payoutReady } from '@/lib/payout-public';
 import { myWatchStatus } from '@/lib/watch';
+import { executiveStage } from '@/lib/stage';
 import { docusignReady } from '@/lib/docusign';
 
 /* Where Taking The Watch stands across every discipline they claim, for
@@ -36,12 +37,14 @@ export async function setupFor(profile: Profile): Promise<Step[]> {
   const hasAvailability = !!avail.timezone && (avail.windows?.length ?? 0) > 0;
 
   if (side === 'client') {
-    const role = await getRoleBreakdown(profile.id);
+    const [role, stage] = await Promise.all([getRoleBreakdown(profile.id), executiveStage(profile.id)]);
+    /* With no search open there is no role to describe; the dashboard drops
+       the step and the NextStep card on the other pages follows suit. */
     return clientSteps({
       hasSignature: !!sig, hasAvailability,
       hasIntro: !!(self.bio && self.photo_url),
       hasRole: roleComplete(role)
-    });
+    }).filter(st => stage.hiring || st.key !== 'role');
   }
 
   const [vetting, skills, payout] = await Promise.all([
