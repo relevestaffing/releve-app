@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
 import SWRegister from '@/components/SWRegister';
-import SplashGate from '@/components/SplashGate';
+import Splash from '@/components/Splash';
 
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 const TITLE = 'Relève';
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "var d=document.documentElement;d.classList.add('js');" +
           "window.__rvSplashStart=Date.now();" +
           "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},2200);" +
-          "setTimeout(function(){var s=document.getElementById('rv-splash');if(s){s.classList.add('rv-splash-done');setTimeout(function(){if(s)s.remove()},600)}},8000)"
+          "setTimeout(function(){var s=document.getElementById('rv-splash');if(s){s.style.display='none'}},8000)"
         }} />
         <style dangerouslySetInnerHTML={{ __html: `
           #rv-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FBF8F1;opacity:1;transition:opacity .5s ease}
@@ -77,12 +77,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=WindSong:wght@500&family=Tenor+Sans&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <div id="rv-splash" aria-hidden="true">
-          <div className="rv-word">RELÈVE<span className="rv-sheen" aria-hidden="true">RELÈVE</span></div>
-          <div className="rv-sub">Executive Staffing</div>
-          <div className="rv-bar"><i></i></div>
-        </div>
-        {children}<Toaster /><SWRegister /><SplashGate />
+        <Splash />
+        {children}<Toaster /><SWRegister />
       </body>
     </html>
   );
