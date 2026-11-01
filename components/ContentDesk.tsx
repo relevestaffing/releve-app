@@ -5,9 +5,13 @@ import { toast } from './Toast';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { CHANNELS, STATUS_LABEL, STATUS_PILL, type ContentPost, type Slide } from '@/lib/content-model';
 
-/* The Content tab (30 October 2026). One week at a time: everything Claude
-   drafted, what posts itself, and what needs a person, with the connections
-   and the four LinkedIn groups set up at the top. */
+/* The Content tab. One week at a time: the week at a glance, the day you are
+   looking at, and every post for that day as a card you open in place. The
+   one-time setup (connections, Sage's style, the four groups) lives folded
+   away at the bottom, because the day-to-day job is reading and releasing the
+   week, not configuring it. Rebuilt 1 November 2026 for a calmer, more
+   finished feel: thumbnails on every row, a day rail that lifts, and an
+   editor that opens with the app's own motion. */
 
 type Row = ContentPost & {
   when: string; day: string; images: string[]; pdf: string | null; imageSrc: string | null; videoSrc: string | null;
@@ -38,6 +42,9 @@ function fmtWeek(w: string) {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
 }
 
+const NEEDS = ['needs_image', 'needs_video', 'manual', 'failed'];
+const needsDot = (s: string) => ['needs_image', 'needs_video', 'failed', 'held'].includes(s);
+
 export default function ContentDesk(props: Props) {
   const router = useRouter();
   const { posts, setup, meta, linkedin } = props;
@@ -53,10 +60,12 @@ export default function ContentDesk(props: Props) {
   }
 
   const count = (f: (p: Row) => boolean) => posts.filter(f).length;
-  const needsYou = count(p => ['needs_image', 'needs_video', 'manual', 'failed'].includes(p.status));
+  const needsYou = count(p => NEEDS.includes(p.status));
+  const held = count(p => p.status === 'held');
   const days = Array.from(new Set(posts.map(p => p.day)));
   const liDays = props.liDays;  // worked out on the server, so the page hydrates cleanly
   const drafting = props.draftNext?.status === 'drafting';
+  const hasVa = posts.some(p => p.channel === 'li_group' || p.channel.startsWith('li_page'));
 
   /* What is left to set up, in order. Each line disappears once done. */
   const todo: { text: React.ReactNode; action?: React.ReactNode }[] = [];
@@ -68,8 +77,10 @@ export default function ContentDesk(props: Props) {
   else if (!linkedin) todo.push({ text: "Connect Sage's LinkedIn.", action: <a className="btn sm solid" href="/api/content/connect/linkedin">Connect LinkedIn</a> });
   if (!props.groups.some(g => g.name || g.url)) todo.push({ text: 'Add the four LinkedIn groups below, so the morning email links straight to each one.' });
 
+  const needsSetup = todo.length > 0 || !meta || !linkedin;
+
   return (
-    <div className="stack">
+    <div className="stack cd">
       {props.flash.connected && <div className="card tight"><p className="small" style={{ margin: 0 }}>{props.flash.connected === 'meta' ? 'Instagram and Facebook are connected.' : 'LinkedIn is connected.'}</p></div>}
       {props.flash.error && <div className="card tight"><p className="small" style={{ margin: 0 }}><span className="pill crit">Not connected</span>&nbsp; {props.flash.error}</p></div>}
 
@@ -84,13 +95,15 @@ export default function ContentDesk(props: Props) {
         </div>
       )}
 
-      <div className="row between" style={{ flexWrap: 'wrap', gap: 12 }}>
-        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-          <a className="btn sm ghost" href={`/console/content?week=${props.prevWeek}`}>&larr; Earlier</a>
-          <span className="small" style={{ minWidth: 190, textAlign: 'center' }}>
-            Week of {fmtWeek(props.week)}{props.week === props.thisWeek ? ' (this week)' : ''}
-          </span>
-          <a className="btn sm ghost" href={`/console/content?week=${props.nextWeek}`}>Later &rarr;</a>
+      {/* ---- the week, and the one action ---- */}
+      <div className="card cd-top">
+        <div className="cd-weeknav">
+          <a className="cd-nudge" aria-label="Earlier week" href={`/console/content?week=${props.prevWeek}`}>{'‹'}</a>
+          <div className="cd-wk">
+            <span className="crumb">{props.week === props.thisWeek ? 'This week' : (props.week > props.thisWeek ? 'Upcoming' : 'Earlier')}</span>
+            <span className="wk-name">Week of {fmtWeek(props.week)}</span>
+          </div>
+          <a className="cd-nudge" aria-label="Later week" href={`/console/content?week=${props.nextWeek}`}>{'›'}</a>
         </div>
         <button className="btn sm" disabled={!!busy || drafting || !setup.ready}
           onClick={() => run('draft', 'draft_week', { week: props.week === props.thisWeek ? props.nextWeek : props.week },
@@ -98,10 +111,58 @@ export default function ContentDesk(props: Props) {
           {drafting ? 'Writing the week…' : posts.length ? 'Fill any empty slots' : 'Write this week now'}
         </button>
       </div>
-      {posts.some(p => p.channel === 'li_group' || p.channel.startsWith('li_page')) && (
-        <div className="row between" style={{ gap: 12, flexWrap: 'wrap', margin: '-10px 0 0' }}>
+
+      {/* ---- the week at a glance ---- */}
+      <div className="grid-4">
+        <div className="card stat"><div className="eyebrow">This week</div><div className="score">{count(p => p.status !== 'skipped')}</div></div>
+        <div className="card stat"><div className="eyebrow">Posts itself</div><div className="score">{count(p => p.status === 'scheduled')}</div></div>
+        <div className="card stat"><div className="eyebrow">Needs you</div><div className="score">{needsYou}</div></div>
+        <div className="card stat"><div className="eyebrow">Posted</div><div className="score">{count(p => p.status === 'posted')}</div></div>
+      </div>
+
+      {/* ---- the one thing to do: release the held week ---- */}
+      {held > 0 && (
+        <div className="card dark cd-approve">
+          <div>
+            <div className="crumb" style={{ color: 'var(--pale)' }}>Waiting on you</div>
+            <h3 style={{ margin: '4px 0 0' }}>{held} {held === 1 ? 'post is' : 'posts are'} held</h3>
+            <p className="small" style={{ margin: '8px 0 0', color: '#D9DDD4', maxWidth: '52ch' }}>
+              Nothing posts, and the group and page posts do not go to the VA, until you release the week. Read through the days below, then approve.
+            </p>
+          </div>
+          <button className="btn on-dark" disabled={!!busy} onClick={() => run('approve', 'approve_week', { week: props.week }, 'Approved. Everything is back on schedule.')}>
+            {busy === 'approve' ? 'Approving…' : 'Approve the week'}
+          </button>
+        </div>
+      )}
+      {props.draftNext?.status === 'failed' && <p className="small" style={{ margin: '-8px 0 0' }}><span className="pill crit">Drafting stopped</span> {props.draftNext.error}</p>}
+
+      {/* ---- the week ---- */}
+      {posts.length > 0 ? (
+        <DayRail days={days} today={props.today} posts={posts} showSkipped={showSkipped} setShowSkipped={setShowSkipped}
+          render={(list) => (
+            <div className="cd-list">
+              {list.map(p => (
+                <PostCard key={`${p.id}-${p.updated_at}`} p={p} open={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)}
+                  onClose={() => setOpen(null)} groups={props.groups} busy={busy} run={run} />
+              ))}
+            </div>
+          )} />
+      ) : (
+        <div className="card cd-empty">
+          <div className="empty-mark" aria-hidden="true" />
+          <p className="small muted" style={{ margin: '14px 0 0' }}>
+            Nothing drafted for this week yet. Claude writes each week on Thursday morning and emails you the preview.
+            {setup.ready ? ' You can also write it now with the button above.' : ''}
+          </p>
+        </div>
+      )}
+
+      {/* ---- the VA's weekly delivery (quiet line) ---- */}
+      {hasVa && (
+        <div className="cd-va">
           <span className="small muted">
-            {props.va?.status === 'done' ? `Sent to the VA's Doc and Drive folder ${props.va.when ?? ''}.`
+            {props.va?.status === 'done' ? `Group and page posts sent to the VA's Doc and Drive ${props.va.when ?? ''}.`
               : props.va?.status === 'sending' ? 'Sending to the VA…'
               : props.va?.status === 'failed' ? <><span className="pill crit">Not sent to the VA</span> {props.va.error}</>
               : "The VA's captions and files go to her Google Doc and Drive folder every Sunday at 8:00 AM Pacific."}
@@ -112,52 +173,23 @@ export default function ContentDesk(props: Props) {
           </button>
         </div>
       )}
-      {posts.some(p => p.status === 'held') && (
-        <div className="card tight row between" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span className="small">{posts.filter(p => p.status === 'held').length} posts this week are held and will not post until released.</span>
-          <button className="btn sm solid" disabled={!!busy} onClick={() => run('approve', 'approve_week', { week: props.week }, 'Approved. Everything is back on schedule.')}>
-            {busy === 'approve' ? 'Approving…' : 'Approve the week'}
-          </button>
+
+      {/* ---- one-time setup, folded away ---- */}
+      <details className="cd-more" open={needsSetup}>
+        <summary><span className="crumb">Setup</span><span className="sum-title">Connections, Sage{'’'}s style, and the four groups</span><span className="sum-caret" aria-hidden="true">{'›'}</span></summary>
+        <div className="stack" style={{ marginTop: 16, gap: 16 }}>
+          <Connections meta={meta} linkedin={linkedin} liDays={liDays} setup={setup} run={run} busy={busy} />
+          <Style text={props.sageStyle} run={run} busy={busy} />
+          <Groups groups={props.groups} run={run} busy={busy} />
         </div>
-      )}
-      {props.draftNext?.status === 'failed' && <p className="small" style={{ margin: '-18px 0 0' }}><span className="pill crit">Drafting stopped</span> {props.draftNext.error}</p>}
-
-      <div className="grid-4">
-        <div className="card stat"><div className="eyebrow">This week</div><div className="score">{count(p => p.status !== 'skipped')}</div></div>
-        <div className="card stat"><div className="eyebrow">Posts itself</div><div className="score">{count(p => p.status === 'scheduled')}</div></div>
-        <div className="card stat"><div className="eyebrow">Needs you</div><div className="score">{needsYou}</div></div>
-        <div className="card stat"><div className="eyebrow">Posted</div><div className="score">{count(p => p.status === 'posted')}</div></div>
-      </div>
-
-      {!posts.length && (
-        <div className="card tight"><p className="small muted" style={{ margin: 0 }}>
-          Nothing drafted for this week. Claude writes each week on Thursday morning and emails you the preview.
-          {setup.ready ? ' You can also write it now.' : ''}
-        </p></div>
-      )}
-
-      {posts.length > 0 && (
-        <DayTabs days={days} today={props.today} posts={posts} showSkipped={showSkipped} setShowSkipped={setShowSkipped}
-          render={(list) => (
-            <div className="stack" style={{ gap: 12 }}>
-              {list.map(p => (
-                <PostCard key={`${p.id}-${p.updated_at}`} p={p} open={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)}
-                  onClose={() => setOpen(null)} groups={props.groups} busy={busy} run={run} />
-              ))}
-            </div>
-          )} />
-      )}
-
-      <Connections meta={meta} linkedin={linkedin} liDays={liDays} setup={setup} run={run} busy={busy} />
-      <Style text={props.sageStyle} run={run} busy={busy} />
-      <Groups groups={props.groups} run={run} busy={busy} />
+      </details>
     </div>
   );
 }
 
 /* ---------- the week, one tab per day ---------- */
 
-function DayTabs({ days, today, posts, showSkipped, setShowSkipped, render }: {
+function DayRail({ days, today, posts, showSkipped, setShowSkipped, render }: {
   days: string[]; today: string; posts: Row[]; showSkipped: boolean; setShowSkipped: (v: boolean) => void;
   render: (list: Row[]) => React.ReactNode;
 }) {
@@ -169,38 +201,47 @@ function DayTabs({ days, today, posts, showSkipped, setShowSkipped, render }: {
   const short = (d: string) => d.split(',')[0].slice(0, 3);
   const date = (d: string) => (d.split(', ')[1] ?? '').replace(/^(\w{3})\w*/, '$1');
   return (
-    <div className="stack" style={{ gap: 16 }}>
-      <div role="tablist" aria-label="Days of the week" className="card" style={{ display: 'grid', gridTemplateColumns: `repeat(${days.length}, minmax(76px, 1fr))`, padding: 0, marginBottom: 0, overflowX: 'auto' }}>
-        {days.map((d, i) => {
+    <div className="stack" style={{ gap: 18 }}>
+      <div className="cd-railwrap"><div role="tablist" aria-label="Days of the week" className="cd-rail">
+        {days.map(d => {
           const n = posts.filter(p => p.day === d && p.status !== 'skipped').length;
-          const needs = posts.filter(p => p.day === d && ['needs_image', 'needs_video', 'failed', 'held'].includes(p.status)).length;
+          const needs = posts.filter(p => p.day === d && needsDot(p.status)).length;
           const on = d === current;
           return (
-            <button key={d} role="tab" aria-selected={on} onClick={() => setDay(d)}
-              style={{ minWidth: 0, padding: '14px 10px 12px', background: on ? 'var(--fern, #35443A)' : 'transparent', color: on ? '#F3EFE6' : 'inherit',
-                border: 'none', borderLeft: i ? '1px solid var(--line)' : 'none', cursor: 'pointer', textAlign: 'center', font: 'inherit', whiteSpace: 'nowrap' }}>
-              <div style={{ fontSize: 15, letterSpacing: 2, textTransform: 'uppercase' }}>{d === today ? 'Today' : short(d)}</div>
-              <div style={{ fontSize: 12, opacity: 0.8, marginTop: 2 }}>{date(d)}</div>
-              <div style={{ fontSize: 12, marginTop: 6, opacity: 0.9 }}>{n} post{n === 1 ? '' : 's'}</div>
-              {needs ? <div style={{ fontSize: 11, marginTop: 2, color: on ? '#F3EFE6' : 'var(--fern, #35443A)' }}>{needs} need you</div> : <div style={{ fontSize: 11, marginTop: 2, opacity: 0 }}>·</div>}
+            <button key={d} role="tab" aria-selected={on} className="cd-day" onClick={() => setDay(d)}>
+              {needs ? <span className="cd-day-dot" aria-label={`${needs} need you`} /> : null}
+              <span className="dow">{d === today ? 'Today' : short(d)}</span>
+              <span className="dt">{date(d)}</span>
+              <span className="ct">{n} post{n === 1 ? '' : 's'}</span>
             </button>
           );
         })}
-      </div>
+      </div></div>
       <div className="row between" style={{ gap: 12, flexWrap: 'wrap', alignItems: 'baseline' }}>
-        <h2 style={{ margin: 0 }}>{current}</h2>
+        <h2 className="cd-dayhead" style={{ margin: 0 }}>{current}</h2>
         {skipped.length > 0 && (
           <button className="btn sm ghost" onClick={() => setShowSkipped(!showSkipped)}>
             {showSkipped ? 'Hide skipped' : `Show skipped (${skipped.length})`}
           </button>
         )}
       </div>
-      {list.length ? render(list) : <p className="small muted" style={{ margin: 0 }}>Nothing posts this day.</p>}
+      <div key={current} className="cd-dayfade">
+        {list.length ? render(list) : <p className="small muted" style={{ margin: 0 }}>Nothing posts this day.</p>}
+      </div>
     </div>
   );
 }
 
 /* ---------- one post ---------- */
+
+function Thumb({ p }: { p: Row }) {
+  const src = p.images[0] ?? p.imageSrc ?? null;
+  if (src) return <span className="cd-thumb" style={{ backgroundImage: `url(${src})` }} aria-hidden="true">
+    {p.format === 'carousel' && p.images.length > 1 ? <span className="cd-thumb-n">{p.images.length}</span> : null}
+  </span>;
+  const glyph = p.format === 'video' ? '▶' : p.format === 'carousel' ? '☰' : p.channel === 'li_personal' ? '✎' : '▭';
+  return <span className="cd-thumb ph" aria-hidden="true">{glyph}</span>;
+}
 
 function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   p: Row; open: boolean; onToggle: () => void; onClose: () => void; groups: { name: string; url: string }[];
@@ -266,24 +307,27 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   }
 
   const ticks = p.results?.groups ?? {};
+  const sub = `${p.when.replace(/^\w+, /, '')} · ${CHANNELS[p.channel].label}${p.format === 'video' ? ' · video' : p.format === 'carousel' ? ` · carousel of ${p.slides.length}` : ''}`;
   return (
-    <div className="card" style={{ marginBottom: 0 }}>
-      <div className="row between" style={{ gap: 16, cursor: 'pointer', alignItems: 'flex-start' }} onClick={onToggle}>
-        <div style={{ minWidth: 0 }}>
-          <div className="eyebrow">{p.when.replace(/^\w+, /, '')} · {CHANNELS[p.channel].label}{p.format === 'video' ? ' · video' : p.format === 'carousel' ? ` · carousel of ${p.slides.length}` : ''}</div>
-          <div style={{ fontSize: 17, marginTop: 4 }}>{p.hook || p.topic}</div>
-          {p.error && p.status !== 'posted' && <div className="small" style={{ marginTop: 4 }}>{p.error}</div>}
+    <div className={`cd-row${open ? ' open' : ''}${p.status === 'skipped' ? ' faded' : ''}`}>
+      <div className="cd-rowhead" onClick={onToggle} role="button" aria-expanded={open}>
+        <Thumb p={p} />
+        <div className="cd-rowmain">
+          <div className="cd-rowmeta">{sub}</div>
+          <div className="cd-rowhook">{p.hook || p.topic}</div>
+          {p.error && p.status !== 'posted' && <div className="small" style={{ marginTop: 4, color: 'var(--crit)' }}>{p.error}</div>}
         </div>
-        <span className={STATUS_PILL[p.status]}>{STATUS_LABEL[p.status]}</span>
+        <span className={`${STATUS_PILL[p.status]} cd-rowpill`}>{STATUS_LABEL[p.status]}</span>
+        <span className="cd-caret" aria-hidden="true">{'›'}</span>
       </div>
 
-      {open && (
-        <div style={{ marginTop: 18 }}>
+      <div className="cd-exp">
+        <div className="cd-exp-in">
+          <div className="cd-body">
           {p.images.length > 0 && (
-            <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 6, marginBottom: 14 }}>
-              {p.images.map((src, i) => <button key={i} type="button" onClick={() => setView(i)} aria-label={`Open graphic ${i + 1} of ${p.images.length}`}
-                style={{ padding: 0, border: 0, background: 'none', cursor: 'zoom-in', flex: '0 0 auto' }}>
-                <img src={src} alt={`Graphic ${i + 1}`} width={162} height={203} loading="lazy" style={{ display: 'block', border: '1px solid var(--line)' }} /></button>)}
+            <div className="cd-strip">
+              {p.images.map((src, i) => <button key={i} type="button" onClick={() => setView(i)} aria-label={`Open graphic ${i + 1} of ${p.images.length}`} className="cd-tile">
+                <img src={src} alt={`Graphic ${i + 1}`} width={162} height={203} loading="lazy" /></button>)}
             </div>
           )}
           {view !== null && <Viewer images={p.images} start={view} onClose={() => setView(null)} />}
@@ -360,8 +404,9 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
             <button className="btn sm ghost" onClick={onClose}>Close</button>
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>{CHANNELS[p.channel].where}. {p.written_by === 'team' ? 'Edited by the team.' : 'Written by Claude.'}</p>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -470,7 +515,7 @@ function Viewer({ images, start, onClose }: { images: string[]; start: number; o
       onClick={e => { e.stopPropagation(); go(d); }}
       style={{ position: 'absolute', top: '50%', [d < 0 ? 'left' : 'right']: 12, transform: 'translateY(-50%)', width: 48, height: 48,
         borderRadius: 24, border: 0, background: 'rgba(243,239,230,.92)', color: '#2A332D', fontSize: 24, lineHeight: '48px',
-        cursor: show ? 'pointer' : 'default', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>{d < 0 ? '\u2039' : '\u203A'}</button>
+        cursor: show ? 'pointer' : 'default', opacity: show ? 1 : 0, pointerEvents: show ? 'auto' : 'none' }}>{d < 0 ? '‹' : '›'}</button>
   );
 
   return (
@@ -481,11 +526,12 @@ function Viewer({ images, start, onClose }: { images: string[]; start: number; o
         const t = e.changedTouches[0]; const dx = t.clientX - s.x; const dy = t.clientY - s.y;
         if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
       }}
+      className="cd-viewer"
       style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(20,24,21,.92)', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', padding: '56px 16px 28px' }}>
       <button type="button" aria-label="Close" onClick={onClose}
         style={{ position: 'absolute', top: 12, right: 12, width: 44, height: 44, borderRadius: 22, border: 0,
-          background: 'rgba(243,239,230,.92)', color: '#2A332D', fontSize: 22, cursor: 'pointer' }}>{'\u00D7'}</button>
+          background: 'rgba(243,239,230,.92)', color: '#2A332D', fontSize: 22, cursor: 'pointer' }}>{'×'}</button>
       <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center', color: '#F3EFE6', fontSize: 13, letterSpacing: 2 }}>{i + 1} / {n}</div>
       <img src={images[i]} alt={`Graphic ${i + 1} of ${n}`} onClick={e => e.stopPropagation()}
         style={{ maxWidth: '100%', maxHeight: 'calc(100dvh - 120px)', objectFit: 'contain', display: 'block', userSelect: 'none' }} draggable={false} />

@@ -3049,3 +3049,129 @@ a.pill.crit{ text-decoration:none; }
 .agr-read .agr-b::before{content:"";position:absolute;left:4px;top:.8em;width:5px;height:5px;background:var(--sage)}
 .agr-sign{max-width:760px}
 @media (max-width:760px){.agr-read{padding:22px 20px}}
+
+/* ======================================================================
+   Content tab (rebuilt 1 November 2026)
+   The week at a glance, a day rail that lifts, post rows that show the
+   real graphic, and an editor that opens with the app's own motion. Built
+   on the same tokens, easing and mosaic the rest of the console uses, so
+   it reads as one product.
+   ====================================================================== */
+
+/* every flex wrapper in the tab can shrink below its content, so the day
+   rail and graphic strips scroll inside the page instead of widening it */
+.cd,.cd .stack{min-width:0}
+
+/* header: the week, and the one action */
+.cd-top{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:20px 28px}
+.cd-weeknav{display:flex;align-items:center;gap:16px}
+.cd-nudge{display:flex;align-items:center;justify-content:center;width:42px;height:42px;flex:none;
+  border:1px solid var(--line);color:var(--fern);font-size:22px;line-height:1;text-decoration:none;
+  background:var(--white);transition:transform .35s cubic-bezier(.22,.61,.36,1),background .25s,color .25s,border-color .25s}
+.cd-nudge:hover{background:var(--fern);color:var(--cream);border-color:var(--fern);transform:translateY(-2px)}
+.cd-wk{display:flex;flex-direction:column;gap:3px;min-width:210px;text-align:center}
+.cd-wk .wk-name{font-family:var(--display);font-size:24px;color:var(--ink);line-height:1.05}
+
+/* release the held week: the one thing waiting on her */
+.cd-approve{display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;
+  box-shadow:0 30px 70px -44px rgba(34,48,42,.7)}
+.cd-approve h3{font-size:22px}
+.cd-approve .btn{flex:none}
+
+/* the day rail — a mosaic of days, the current one filled, the ones that
+   need her marked with a quiet dot */
+/* a plain block that scrolls horizontally, so the flex rail inside can keep
+   its cells at full size and scroll instead of ever widening the page */
+.cd-railwrap{overflow-x:auto;min-width:0;max-width:100%;scrollbar-width:none;box-shadow:0 26px 60px -42px rgba(34,48,42,.45)}
+.cd-railwrap::-webkit-scrollbar{display:none}
+.cd-rail{display:flex;gap:1px;background:var(--line);width:max-content;min-width:100%}
+.cd-day{flex:1 0 76px;position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:var(--paper);border:0;padding:16px 10px 15px;cursor:pointer;font:inherit;color:var(--body);
+  transition:transform .4s cubic-bezier(.22,.61,.36,1),background .35s,color .35s,box-shadow .4s}
+.cd-day:hover{transform:translateY(-3px);z-index:2;box-shadow:0 20px 42px -30px rgba(34,48,42,.4)}
+.cd-day .dow{font-family:var(--display);font-size:16px;letter-spacing:.06em;line-height:1}
+.cd-day .dt{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage)}
+.cd-day .ct{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--sage);margin-top:5px}
+.cd-day-dot{position:absolute;top:10px;right:11px;width:6px;height:6px;border-radius:50%;background:var(--warn)}
+.cd-day[aria-selected="true"]{background:var(--fern);color:var(--cream)}
+.cd-day[aria-selected="true"] .dt,.cd-day[aria-selected="true"] .ct{color:var(--pale)}
+.cd-day[aria-selected="true"] .dow{color:var(--cream)}
+.cd-day[aria-selected="true"] .cd-day-dot{background:var(--pale)}
+.cd-dayhead{font-family:var(--display);font-size:26px;color:var(--ink)}
+
+/* each day's posts re-rise when you switch days */
+.cd-dayfade{display:flex;flex-direction:column;gap:12px;min-width:0;animation:riseSm .42s cubic-bezier(.22,.61,.36,1)}
+.cd-list{display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* a post row: thumbnail, what and when, status, caret */
+.cd-row{background:var(--white);border:1px solid var(--line);
+  box-shadow:0 22px 52px -48px rgba(34,48,42,.5);
+  transition:box-shadow .4s cubic-bezier(.22,.61,.36,1),transform .4s cubic-bezier(.22,.61,.36,1)}
+.cd-row:hover{box-shadow:0 26px 56px -40px rgba(34,48,42,.42)}
+.cd-row.open{box-shadow:0 34px 70px -40px rgba(34,48,42,.5)}
+.cd-row.faded{opacity:.56}
+.cd-rowhead{display:flex;align-items:center;gap:16px;padding:16px 20px;cursor:pointer}
+.cd-thumb{width:54px;height:68px;flex:none;background:var(--mist) center/cover no-repeat;
+  border:1px solid var(--line);position:relative;display:block}
+.cd-thumb.ph{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--sage);background:var(--cream)}
+.cd-thumb-n{position:absolute;right:3px;bottom:3px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;
+  background:rgba(34,48,42,.82);color:var(--cream);font-size:10px;line-height:16px;text-align:center;font-family:'Tenor Sans',sans-serif}
+.cd-rowmain{flex:1;min-width:0}
+.cd-rowmeta{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);margin-bottom:5px}
+.cd-rowhook{font-size:16px;color:var(--ink);line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cd-rowpill{flex:none}
+.cd-caret{flex:none;font-size:20px;color:var(--sage);line-height:1;transition:transform .4s cubic-bezier(.22,.61,.36,1)}
+.cd-row.open .cd-caret{transform:rotate(90deg)}
+
+/* the editor opens by growing its own row, not by snapping open */
+.cd-exp{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s cubic-bezier(.22,.61,.36,1)}
+.cd-row.open .cd-exp{grid-template-rows:1fr}
+.cd-exp-in{overflow:hidden;min-height:0}
+.cd-body{padding:20px 22px 22px;border-top:1px solid var(--line)}
+.cd-body .ff:first-child{margin-top:0}
+
+/* the graphics, full size on tap */
+.cd-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;scrollbar-width:thin;min-width:0;max-width:100%}
+.cd-tile{flex:0 0 auto;padding:0;border:0;background:none;cursor:zoom-in;line-height:0;
+  transition:transform .35s cubic-bezier(.22,.61,.36,1),box-shadow .35s}
+.cd-tile:hover{transform:translateY(-3px);box-shadow:0 18px 36px -24px rgba(34,48,42,.5)}
+.cd-tile img{display:block;border:1px solid var(--line)}
+
+/* the VA's weekly delivery — a quiet footnote, not a banner */
+.cd-va{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:14px 2px 0;border-top:1px solid var(--line)}
+
+/* setup, folded away */
+.cd-more{border:0}
+.cd-more > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;
+  background:var(--white);border:1px solid var(--line);padding:18px 22px;
+  transition:border-color .25s,box-shadow .35s}
+.cd-more > summary::-webkit-details-marker{display:none}
+.cd-more > summary:hover{border-color:var(--line-strong)}
+.cd-more > summary .sum-title{font-family:var(--display);font-size:18px;color:var(--ink)}
+.cd-more > summary .sum-caret{margin-left:auto;font-size:20px;color:var(--sage);transition:transform .4s cubic-bezier(.22,.61,.36,1)}
+.cd-more[open] > summary .sum-caret{transform:rotate(90deg)}
+.cd-more[open] > summary{border-bottom-color:transparent}
+
+/* empty week */
+.cd-empty{text-align:center;padding:48px 34px}
+.cd-empty .empty-mark{margin:0 auto}
+
+@media (max-width:640px){
+  .cd-top{gap:14px}
+  .cd-weeknav{width:100%;justify-content:space-between}
+  .cd-top > .btn{width:100%}
+  .cd-wk .wk-name{font-size:21px}
+  .cd-approve{gap:16px}
+  .cd-approve .btn{width:100%}
+  .cd-day{flex:0 0 84px}
+  .cd-dayhead{font-size:22px}
+  .cd-rowhead{gap:12px;padding:14px 15px}
+  .cd-thumb{width:46px;height:58px}
+  .cd-rowhook{font-size:15px}
+  .cd-caret{display:none}
+  .cd-body{padding:16px 15px 18px}
+  .cd-va{flex-direction:column;align-items:flex-start}
+  .cd-more > summary{padding:16px 16px}
+}
