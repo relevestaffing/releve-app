@@ -31,16 +31,19 @@ function dayLabel(iso: string) {
 function clock(iso: string) { return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); }
 
 /* Plain text with the two things the assistant is allowed to format:
-   markdown links to pages in the app, and bare paths. Nothing else. */
+   links to pages in the app, and the odd emphasis. Nothing else. */
 function Rich({ text }: { text: string }) {
   const out: React.ReactNode[] = [];
-  const re = /\[([^\]]+)\]\((\/[^)\s]*|https?:\/\/[^)\s]+)\)/g;
+  const re = /\[([^\]]+)\]\((\/[^)\s]*|https?:\/\/[^)\s]+)\)|\*\*([^*\n]+)\*\*/g;
   let last = 0, m: RegExpExecArray | null, i = 0;
   while ((m = re.exec(text))) {
     if (m.index > last) out.push(text.slice(last, m.index));
-    const href = m[2];
-    const external = /^https?:/.test(href);
-    out.push(<a key={i++} href={href} className="ask-link" {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}>{m[1]}</a>);
+    if (m[3] != null) out.push(<b key={i++}>{m[3]}</b>);
+    else {
+      const href = m[2];
+      const external = /^https?:/.test(href);
+      out.push(<a key={i++} href={href} className="ask-link" {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}>{m[1]}</a>);
+    }
     last = m.index + m[0].length;
   }
   if (last < text.length) out.push(text.slice(last));
@@ -182,7 +185,7 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
               </div>
             </div>
           );
-          const typing = m.live && busy && i === msgs.length - 1 && !m.content;
+          const typing = m.live && busy && i === msgs.length - 1 && !m.content.trim();
           return (
             <div key={i}>
               {divider && <div className="ask-day"><span>{dayLabel(m.at)}</span></div>}

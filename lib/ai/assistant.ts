@@ -21,7 +21,8 @@ import { configured } from '@/lib/supabase/server';
 import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
 import { setupFor } from '@/lib/setup';
 import { executiveStage } from '@/lib/stage';
-import { listPlacementsFor } from '@/lib/work';
+import { listPlacementsFor, listTasks } from '@/lib/work';
+import { TASK_STATUSES } from '@/lib/experience-public';
 import { listInterviews } from '@/lib/store';
 import { listInvoicesFor, money, isOwner } from '@/lib/money';
 import { fmtWhen } from '@/lib/words';
@@ -65,6 +66,16 @@ async function accountSummary(p: Profile): Promise<string> {
     if (live.length) lines.push('Placements: ' + live.map((x: any) => p.role === 'client'
       ? `${x.talent_name ?? 'talent'} since ${x.started_on}`
       : `with ${x.client_name ?? 'an executive'}${x.org_name ? ` (${x.org_name})` : ''} since ${x.started_on}`).join('; ') + '.');
+    /* The task list on each live placement: what a placed person asks about most. */
+    for (const x of live.slice(0, 2) as any[]) {
+      const tasks = await listTasks(x.id).catch(() => []);
+      const open = tasks.filter(t => !t.done).slice(0, 10);
+      const who = p.role === 'client' ? (x.talent_name ?? 'your assistant') : (x.client_name ?? 'your executive');
+      const label = (st: string) => (TASK_STATUSES as any[]).find(o => o.key === st)?.[p.role === 'client' ? 'client' : 'talent'] ?? st;
+      lines.push(open.length
+        ? `Open tasks with ${who} (${open.length}): ` + open.map(t => `"${t.title}" (${label(String((t as any).status ?? 'todo'))}${t.due_on ? `, due ${t.due_on}` : ''}${t.priority === 'high' ? ', high priority' : ''})`).join('; ') + `. Finished: ${tasks.length - tasks.filter(t => !t.done).length}. The task page is /app/tasks.`
+        : `Open tasks with ${who}: none. Finished: ${tasks.length}. The task page is /app/tasks.`);
+    }
     const iv = await listInterviews(p.role === 'client' ? { clientId: p.id } : { talentId: p.id }).catch(() => []);
     const soon = iv.filter(i => String(i.status) !== 'Cancelled' && String(i.status) !== 'cancelled' && new Date(i.starts_at).getTime() > Date.now() - 3600000).slice(0, 3);
     if (soon.length) lines.push('Interviews: ' + soon.map(i => `${fmtWhen(i.starts_at, 'America/Los_Angeles')} with ${p.role === 'client' ? i.talent_name : i.client_name} (${i.status})`).join('; ') + '.');
@@ -251,7 +262,7 @@ export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL(), max_tokens: 900, system, messages, stream: true, ...(tools.length ? { tools } : {}) }),
+      body: JSON.stringify({ model: MODEL(), max_tokens: 1200, system, messages, stream: true, ...(tools.length ? { tools } : {}) }),
       signal: ctl.signal
     }).catch(() => null);
     if (!res) { clearTimeout(timer); throw new Error('The assistant did not answer in time. Try again.'); }
@@ -324,7 +335,7 @@ export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent
       results.push({ type: 'tool_result', tool_use_id: u.id, content: String(out).slice(0, 20000) });
     }
     messages.push({ role: 'user', content: results });
-    if (round < 4) emit({ t: 'text', d: '\n\n' });
+    if (round < 4 && roundText.trim()) emit({ t: 'text', d: '\n\n' });
   }
 
   let reply = parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
@@ -345,9 +356,10 @@ export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
 export async function greet(p: Profile): Promise<Greeting> {
   const hour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Los_Angeles' }).format(new Date()));
   const hello = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const first = (p.full_name ?? '').trim().split(/\s+/)[0] || '';
-  const name = first ? `${hello}, ${first}.` : `${hello}.`;
   const founder = p.role === 'admin' && await isOwner().catch(() => false);
+  const shown = p.role === 'admin' && (!p.full_name || p.full_name.includes('@')) ? 'Sage' : (p.full_name ?? '');
+  const first = shown.trim().split(/\s+/)[0] || '';
+  const name = first ? `${hello}, ${first}.` : `${hello}.`;
 
   try {
     if (p.role === 'admin') {
@@ -356,7 +368,7 @@ export async function greet(p: Profile): Promise<Greeting> {
       const snap = await consoleSnapshot().catch(() => null);
       const att = snap?.attention ?? [];
       if (att.length) {
-        const top = att.slice(0, 2).map(a => a.what.replace(/\.$/, '')).join(', and ');
+        const top = att.slice(0, 2).map(a => `${a.count > 0 ? `${a.count} ` : ''}${a.what.replace(/\.$/, '')}`).join(', and ');
         return { text: `${name} ${att.length === 1 ? 'One thing needs you' : `${att.length} things need you`} today: ${top}. Where would you like to start?`,
           chips: ['Walk me through what is waiting', 'Show me this week’s posts', 'Which invoices are open?', 'Hold next Tuesday’s Letter'] };
       }
