@@ -69,7 +69,7 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
       <div className="thread" style={{ padding: '4px 2px 10px' }}>
         {!msgs.length && (
           <div className="ask-empty">
-            <p className="small muted" style={{ margin: '0 0 14px' }}>{label}</p>
+            {!compact && <p className="small muted" style={{ margin: '0 0 14px' }}>{label}</p>}
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
               {starters.map(s => <button key={s} type="button" className="btn sm ghost" onClick={() => send(s)}>{s}</button>)}
             </div>
@@ -110,10 +110,12 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
         <div className="row between" style={{ gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
-          <span className="xs muted">
+          <span className="xs muted" style={compact ? { maxWidth: 240 } : undefined}>
             {who === 'admin'
-              ? (founder ? 'Changes are proposals until you confirm them. Every confirmed action is logged.' : 'Read-only here; changes are made from their console pages.')
-              : <>Answers come from Relève, not a person. For anything on your account, <a href={managerHref} style={{ textDecoration: 'underline' }}>message your Success Manager</a>.</>}
+              ? (founder ? (compact ? 'Proposals wait for your confirmation.' : 'Changes are proposals until you confirm them. Every confirmed action is logged.') : 'Read-only here; changes are made from their console pages.')
+              : compact
+                ? <>Not a person. For your account, <a href={managerHref} style={{ textDecoration: 'underline' }}>message your Success Manager</a>.</>
+                : <>Answers come from Relève, not a person. For anything on your account, <a href={managerHref} style={{ textDecoration: 'underline' }}>message your Success Manager</a>.</>}
           </span>
           <div className="row" style={{ gap: 8 }}>
             {msgs.length > 0 && <button type="button" className="btn sm ghost" disabled={busy} onClick={() => { setMsgs([]); try { sessionStorage.removeItem(KEY); } catch {} }}>Start over</button>}
