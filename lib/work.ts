@@ -503,6 +503,12 @@ export function alertsFor(input: {
   })();
   if (missedRun >= 2) out.push({ level: 'high', text: `${missedRun} of the last 3 end of week reports missing` });
 
+  const late = input.tasks.filter(t => !t.done && t.due_on && t.due_on < today && (t as any).status !== 'waiting' && (t as any).status !== 'review');
+  if (late.length) out.push({ level: late.some(t => t.due_on! < new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10)) ? 'high' : 'watch',
+    text: `${late.length} task${late.length === 1 ? '' : 's'} past ${late.length === 1 ? 'its' : 'their'} date: ${late.slice(0, 2).map(t => t.title).join(', ')}${late.length > 2 ? ', and more' : ''}` });
+  const waitingReview = input.tasks.filter(t => !t.done && (t as any).status === 'review');
+  if (waitingReview.length) out.push({ level: 'watch', text: `${waitingReview.length} finished task${waitingReview.length === 1 ? '' : 's'} waiting on the executive's review` });
+
   const flagged = input.checkins.filter(c => c.needs_attention).slice(0, 3);
   flagged.forEach(c => out.push({
     level: 'high',

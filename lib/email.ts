@@ -830,6 +830,49 @@ const rawTemplates = {
       p(`<b>${esc(o.from)}</b> added a task for you: <b>${esc(o.title)}</b>.${o.due ? ` Due <b>${esc(o.due)}</b>.` : ''}${o.priority ? ` Priority: ${esc(o.priority)}.` : ''}`),
       { label: 'Open your tasks', href: `${SITE}/app/tasks` })
   }),
+  taskReview: (o: { name: string; by: string; title: string }) => ({
+    subject: `Ready for your review: ${o.title}`,
+    text: `${o.name},\n\n${o.by} has finished ${o.title} and it is waiting for your review. Accept it, or send it back with a note.\n\n${SITE}/app/tasks\n\nRelève`,
+    html: shell('Ready for your review',
+      p(`${o.name},`) +
+      p(`<b>${esc(o.by)}</b> has finished <b>${esc(o.title)}</b>. It is waiting for your review: accept it, or send it back with a note.`),
+      { label: 'Review it', href: `${SITE}/app/tasks` })
+  }),
+  taskAccepted: (o: { name: string; by: string; title: string }) => ({
+    subject: `Accepted: ${o.title}`,
+    text: `${o.name},\n\n${o.by} accepted ${o.title}. It is done and off the list.\n\n${SITE}/app/tasks\n\nRelève`,
+    html: shell('Accepted',
+      p(`${o.name},`) +
+      p(`<b>${esc(o.by)}</b> accepted <b>${esc(o.title)}</b>. It is done and off the list.`),
+      { label: 'Your tasks', href: `${SITE}/app/tasks` })
+  }),
+  taskSentBack: (o: { name: string; by: string; title: string; note: string }) => ({
+    subject: `One more pass: ${o.title}`,
+    text: `${o.name},\n\n${o.by} sent ${o.title} back with a note:\n\n“${o.note}”\n\nIt is back on your list as in progress.\n\n${SITE}/app/tasks\n\nRelève`,
+    html: shell('One more pass',
+      p(`${o.name},`) +
+      p(`<b>${esc(o.by)}</b> sent <b>${esc(o.title)}</b> back with a note:`) +
+      `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #35443A;">“${esc(o.note)}”</p>` +
+      p('It is back on your list as in progress.'),
+      { label: 'Open the task', href: `${SITE}/app/tasks` })
+  }),
+  taskOverdue: (o: { name: string; title: string; due: string; executive: string }) => ({
+    subject: `Past its date: ${o.title}`,
+    text: `${o.name},\n\n${o.title} was due ${o.due} and is still open. If it is done, mark it finished; if something is in the way, ask ${o.executive} a question on the task so nobody is left wondering.\n\n${SITE}/app/tasks\n\nRelève`,
+    html: shell('Past its date',
+      p(`${o.name},`) +
+      p(`<b>${esc(o.title)}</b> was due ${esc(o.due)} and is still open. If it is done, mark it finished. If something is in the way, ask ${esc(o.executive)} a question on the task so nobody is left wondering.`),
+      { label: 'Open your tasks', href: `${SITE}/app/tasks` })
+  }),
+  tasksOverdueTeam: (o: { items: { talent: string; executive: string; title: string; due: string }[] }) => ({
+    subject: `${o.items.length === 1 ? 'A task is' : `${o.items.length} tasks are`} two days past due`,
+    text: `These tasks are two or more days past their date and still open:\n\n${o.items.map(i => `${i.talent} for ${i.executive}: ${i.title} (due ${i.due})`).join('\n')}\n\nThe talent was nudged the day after. Worth a word from the Talent Success Manager before the executive asks.\n\n${SITE}/console/placements\n\nRelève`,
+    html: shell('Two days past due',
+      p('These tasks are two or more days past their date and still open:') +
+      `<ul style="margin:0 0 15px;padding-left:18px;">${o.items.map(i => `<li style="margin:0 0 6px;"><b>${esc(i.talent)}</b> for ${esc(i.executive)}: ${esc(i.title)} (due ${esc(i.due)})</li>`).join('')}</ul>` +
+      p('The talent was nudged the day after. Worth a word from the Talent Success Manager before the executive asks.'),
+      { label: 'Open Placements', href: `${SITE}/console/placements` })
+  }),
   taskDone: (o: { name: string; by: string; title: string }) => ({
     subject: `Done: ${o.title}`,
     text: `${o.name},\n\n${o.by} marked a task done: ${o.title}.\n\n${SITE}/app/tasks\n\nRelève`,

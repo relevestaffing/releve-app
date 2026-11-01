@@ -56,6 +56,10 @@ export async function POST(req: Request) {
     if (question && me.role === 'talent' && !task.done) {
       try { await updateTaskChecked(taskId, { status: 'waiting' }, me.id); } catch { /* the question stands */ }
     }
+    /* The executive answering is what the talent was waiting for: back in motion. */
+    if (!question && me.role !== 'talent' && !task.done && task.status === 'waiting') {
+      try { await updateTaskChecked(taskId, { status: 'in_progress' }, me.id); } catch { /* the answer stands */ }
+    }
 
     /* The other side hears about it. Relève commenting tells both. */
     try {

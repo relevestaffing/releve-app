@@ -24,6 +24,7 @@ export type Task = {
   priority: Priority; due_on: string | null; origin: Origin; origin_note: string | null;
   created_by: string; done: boolean; done_at: string | null; done_by?: string | null; created_at: string;
   due_time?: string | null; repeat_weekly?: boolean; series_id?: string | null;
+  seen_at?: string | null; seen_by?: string | null; review_note?: string | null;
 };
 
 /* A link that opens Google Calendar with the task already filled in. No

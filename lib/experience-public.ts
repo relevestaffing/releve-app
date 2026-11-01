@@ -21,19 +21,25 @@ export const subjectThread = (id: string) => `subject:${id}` as ThreadKey;
 export const placementThread = (id: string) => `placement:${id}` as ThreadKey;
 
 /* ---------- tasks ---------- */
-export type TaskStatus = 'todo' | 'in_progress' | 'waiting' | 'done';
+export type TaskStatus = 'todo' | 'in_progress' | 'waiting' | 'review' | 'done';
 export const TASK_STATUSES: { key: TaskStatus; label: string; client: string; talent: string }[] = [
-  { key: 'todo',        label: 'To do',         client: 'To do',            talent: 'To do' },
-  { key: 'in_progress', label: 'In progress',   client: 'In progress',      talent: 'In progress' },
-  { key: 'waiting',     label: 'Waiting on you', client: 'Waiting on you',  talent: 'Waiting on the executive' },
-  { key: 'done',        label: 'Done',          client: 'Done',             talent: 'Done' }
+  { key: 'todo',        label: 'To do',          client: 'To do',                talent: 'To do' },
+  { key: 'in_progress', label: 'In progress',    client: 'In progress',          talent: 'In progress' },
+  { key: 'waiting',     label: 'Waiting on you', client: 'Waiting on you',       talent: 'Waiting on the executive' },
+  { key: 'review',      label: 'For review',     client: 'Ready for your review', talent: 'Finished, awaiting review' },
+  { key: 'done',        label: 'Done',           client: 'Done',                 talent: 'Done' }
 ];
 export function statusLabel(s: TaskStatus | null | undefined, side: 'client' | 'talent' | 'admin'): string {
   const row = TASK_STATUSES.find(x => x.key === (s ?? 'todo')) ?? TASK_STATUSES[0];
   if (side === 'client') return row.client;
   if (side === 'talent') return row.talent;
-  return row.key === 'waiting' ? 'Waiting on the executive' : row.label;
+  return row.key === 'waiting' ? 'Waiting on the executive' : row.key === 'review' ? 'Finished, awaiting the executive' : row.label;
 }
+
+export type TaskFile = {
+  id: string; task_id: string; uploaded_by: string; file_name: string;
+  content_type: string | null; size_bytes: number; created_at: string;
+};
 
 export type TaskComment = {
   id: string; task_id: string; author_id: string; body: string;

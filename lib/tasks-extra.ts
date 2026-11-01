@@ -6,11 +6,11 @@
 import { configured, supabaseServer } from './supabase/server';
 import type { Priority, Task } from './work-public';
 import { spawnNextOccurrence } from './work';
-import type { TaskComment, TaskStatus } from './experience-public';
+import type { TaskComment, TaskStatus, TaskFile } from './experience-public';
 
 export type TaskRow = Task & { status: TaskStatus; updated_at?: string };
 
-const STATUSES: TaskStatus[] = ['todo', 'in_progress', 'waiting', 'done'];
+const STATUSES: TaskStatus[] = ['todo', 'in_progress', 'waiting', 'review', 'done'];
 const PRIORITY_KEYS: Priority[] = ['urgent', 'high', 'normal', 'low'];
 
 export function isStatus(v: unknown): v is TaskStatus {
@@ -31,9 +31,11 @@ export async function getTask(id: string): Promise<TaskRow | null> {
 export async function updateTaskChecked(id: string, patch: {
   title?: unknown; detail?: unknown; priority?: unknown; due_on?: unknown;
   status?: unknown; done?: unknown; due_time?: unknown; repeat_weekly?: unknown;
+  review_note?: unknown;
 }, byUser: string): Promise<TaskRow> {
   const sb = await supabaseServer();
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if ('review_note' in patch) body.review_note = String(patch.review_note ?? '').trim().slice(0, 2000) || null;
 
   if ('title' in patch) {
     const t = String(patch.title ?? '').trim();
@@ -85,6 +87,35 @@ export async function updateTaskChecked(id: string, patch: {
     try { await spawnNextOccurrence(data as Task); } catch (e) { console.error('[tasks] next occurrence:', e); }
   }
   return data as TaskRow;
+}
+
+/* ---------- seen ----------
+   The talent opening their list is the acknowledgment: every task somebody
+   else gave them that they have not seen yet is stamped once. The executive
+   reads "Seen by Maria, Tuesday 9:12 AM" instead of wondering. */
+export async function markSeen(ids: string[], byUser: string): Promise<number> {
+  if (!configured() || !ids.length) return 0;
+  const sb = await supabaseServer();
+  const { data, error } = await sb.from('tasks')
+    .update({ seen_at: new Date().toISOString(), seen_by: byUser })
+    .in('id', ids.slice(0, 200)).is('seen_at', null).neq('created_by', byUser).select('id');
+  if (error) throw new Error(error.message);
+  return data?.length ?? 0;
+}
+
+/* ---------- files ---------- */
+
+export async function listFilesFor(placementId: string): Promise<Record<string, TaskFile[]>> {
+  if (!configured()) return {};
+  const sb = await supabaseServer();
+  const { data: tasks } = await sb.from('tasks').select('id').eq('placement_id', placementId);
+  const ids = ((tasks ?? []) as any[]).map(t => t.id);
+  if (!ids.length) return {};
+  const { data } = await sb.from('task_files').select('id, task_id, uploaded_by, file_name, content_type, size_bytes, created_at')
+    .in('task_id', ids).order('created_at', { ascending: true });
+  const out: Record<string, TaskFile[]> = {};
+  for (const f of (data ?? []) as TaskFile[]) (out[f.task_id] ??= []).push(f);
+  return out;
 }
 
 /* ---------- comments and questions ---------- */

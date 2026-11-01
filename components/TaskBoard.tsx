@@ -1,24 +1,36 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ORIGINS, PRIORITIES, googleCalendarLink, type Priority, type Task } from '@/lib/work-public';
 import {
-  TASK_STATUSES, addDays, dayIn, daysFrom, statusLabel, todayIn,
-  type TaskComment, type TaskStatus
+  TASK_STATUSES, addDays, daysFrom, statusLabel, todayIn,
+  type TaskComment, type TaskFile, type TaskStatus
 } from '@/lib/experience-public';
 import { saving, toast } from './Toast';
 import { fmtShortDay, fmtWhen } from '@/lib/words';
 import './experience.css';
 
+/* The task board.
+   --------------
+   One list, read at a glance, and one panel that opens beside it with
+   everything about a task: what it is, the files on it, the conversation,
+   and the one action that moves it on. Built for an executive handing work
+   to one person, not a team running a project:
+
+   - the executive sees whether the task was seen, when it is due, and when
+     it is ready for review; accepting or sending back is one tap
+   - the talent sees what is on their plate today, acknowledges by opening
+     the list, asks a question from the task itself, and finishes into review
+   - overdue sits at the top for both, and Relève's nudges run on their own
+
+   The board keeps the data; TaskPanel renders the open task from it. */
+
 type TaskX = Task & { status?: TaskStatus };
 type Summary = Record<string, { count: number; lastBy: string; question: boolean }>;
+type Files = Record<string, TaskFile[]>;
 type Side = 'client' | 'talent' | 'admin';
 
 const PRI_ORDER: Record<Priority, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
 
-/* The reader's timezone: the one on their profile when it is set, otherwise
-   whatever their browser says. Grouping by a UTC date while labelling in
-   local time put Thursday's tasks under "Due today" on a Wednesday evening
-   in Los Angeles. */
 function useViewerTz(profileTz?: string | null): string | null {
   const [tz, setTz] = useState<string | null>(profileTz ?? null);
   useEffect(() => {
@@ -28,29 +40,37 @@ function useViewerTz(profileTz?: string | null): string | null {
   return tz;
 }
 
-/* Overdue first regardless of priority: a low-priority task three days late
-   still needs to outrank a high-priority one due next month. Inside each
-   bucket, priority breaks the tie. */
-type Group = { label: string; tasks: TaskX[] };
-function groupTasks(tasks: TaskX[], today: string): Group[] {
+type Group = { key: string; label: string; tasks: TaskX[]; tone?: 'late' | 'warn' | 'review' };
+
+/* Overdue first regardless of priority; then what needs this reader's
+   answer; then by date. Inside each bucket, priority breaks the tie. */
+function groupTasks(tasks: TaskX[], today: string, side: Side): Group[] {
   const weekOut = addDays(today, 7);
-  const buckets = { overdue: [] as TaskX[], today: [] as TaskX[], week: [] as TaskX[], later: [] as TaskX[], none: [] as TaskX[] };
+  const b = {
+    late: [] as TaskX[], review: [] as TaskX[], waiting: [] as TaskX[],
+    today: [] as TaskX[], week: [] as TaskX[], later: [] as TaskX[], none: [] as TaskX[]
+  };
   for (const t of tasks) {
-    if (!t.due_on) buckets.none.push(t);
-    else if (t.due_on < today) buckets.overdue.push(t);
-    else if (t.due_on === today) buckets.today.push(t);
-    else if (t.due_on <= weekOut) buckets.week.push(t);
-    else buckets.later.push(t);
+    const st = t.status ?? 'todo';
+    if (st === 'review') b.review.push(t);
+    else if (st === 'waiting') b.waiting.push(t);
+    else if (t.due_on && t.due_on < today) b.late.push(t);
+    else if (!t.due_on) b.none.push(t);
+    else if (t.due_on === today) b.today.push(t);
+    else if (t.due_on <= weekOut) b.week.push(t);
+    else b.later.push(t);
   }
-  const byPriority = (a: TaskX, b: TaskX) =>
-    PRI_ORDER[a.priority] - PRI_ORDER[b.priority] || (a.due_on ?? '9999').localeCompare(b.due_on ?? '9999');
-  Object.values(buckets).forEach(g => g.sort(byPriority));
+  const byPriority = (a: TaskX, c: TaskX) =>
+    PRI_ORDER[a.priority] - PRI_ORDER[c.priority] || (a.due_on ?? '9999').localeCompare(c.due_on ?? '9999');
+  Object.values(b).forEach(g => g.sort(byPriority));
   return [
-    { label: 'Overdue', tasks: buckets.overdue },
-    { label: 'Due today', tasks: buckets.today },
-    { label: 'This week', tasks: buckets.week },
-    { label: 'Later', tasks: buckets.later },
-    { label: 'No date', tasks: buckets.none }
+    { key: 'late', label: 'Overdue', tasks: b.late, tone: 'late' as const },
+    { key: 'review', label: side === 'client' ? 'Ready for your review' : side === 'admin' ? 'Awaiting the executive' : 'Finished, awaiting review', tasks: b.review, tone: 'review' as const },
+    { key: 'waiting', label: side === 'client' ? 'Waiting on you' : 'Waiting on the executive', tasks: b.waiting, tone: 'warn' as const },
+    { key: 'today', label: 'Due today', tasks: b.today },
+    { key: 'week', label: 'This week', tasks: b.week },
+    { key: 'later', label: 'Later', tasks: b.later },
+    { key: 'none', label: 'No date', tasks: b.none }
   ].filter(g => g.tasks.length > 0);
 }
 
@@ -58,49 +78,55 @@ function dueLabel(d: string | null, today: string) {
   if (!d) return null;
   const days = daysFrom(today, d);
   const due = new Date(d + 'T00:00:00Z');
-  if (days < 0) return { text: days === -1 ? 'Yesterday' : `${-days} days late`, tone: 'late' };
-  if (days === 0) return { text: 'Today', tone: 'now' };
-  if (days === 1) return { text: 'Tomorrow', tone: 'now' };
+  if (days < 0) return { text: days === -1 ? 'Due yesterday' : `${-days} days late`, tone: 'late' };
+  if (days === 0) return { text: 'Due today', tone: 'now' };
+  if (days === 1) return { text: 'Due tomorrow', tone: 'now' };
   if (days <= 7) return { text: due.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' }), tone: '' };
   return { text: fmtShortDay(d), tone: '' };
 }
 
+const kb = (n: number) => n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`;
+
 export default function TaskBoard({ placementId, me, side, counterpart, limit, seeAllHref, tz: profileTz }: {
   placementId: string; me: string; side: Side; counterpart: string;
-  /* Cap how many open tasks render before the list hands off to a link: the
-     dashboard's glance view sets this; the full Tasks page shows everything. */
-  limit?: number; seeAllHref?: string;
-  /* The viewer's own timezone from their profile, when it is known. */
-  tz?: string | null;
+  limit?: number; seeAllHref?: string; tz?: string | null;
 }) {
   const [tasks, setTasks] = useState<TaskX[] | null>(null);
   const [summary, setSummary] = useState<Summary>({});
-  const [open, setOpen] = useState(false);
+  const [files, setFiles] = useState<Files>({});
+  const [composing, setComposing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const tz = useViewerTz(profileTz);
   const today = useMemo(() => todayIn(tz), [tz]);
+  const seenOnce = useRef(false);
 
   async function load() {
     setFailed(false);
     try {
-      const [r, s] = await Promise.all([
+      const [r, s, f] = await Promise.all([
         fetch(`/api/tasks?placement=${placementId}`, { cache: 'no-store' }),
-        fetch(`/api/tasks/comments?placement=${placementId}`, { cache: 'no-store' }).catch(() => null)
+        fetch(`/api/tasks/comments?placement=${placementId}`, { cache: 'no-store' }).catch(() => null),
+        fetch(`/api/tasks/files?placement=${placementId}`, { cache: 'no-store' }).catch(() => null)
       ]);
       if (!r.ok) throw new Error(String(r.status));
       const d = await r.json();
-      setTasks(d.tasks ?? []);
+      const list: TaskX[] = d.tasks ?? [];
+      setTasks(list);
       if (s && s.ok) setSummary((await s.json()).summary ?? {});
-    } catch {
-      setFailed(true);
-    }
+      if (f && f.ok) setFiles((await f.json()).files ?? {});
+      /* Opening the list is the acknowledgment. Once per visit. */
+      if (side === 'talent' && !seenOnce.current) {
+        seenOnce.current = true;
+        const unseen = list.filter(t => !t.done && !t.seen_at && t.created_by !== me).map(t => t.id);
+        if (unseen.length) fetch('/api/tasks/seen', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ids: unseen }) }).catch(() => null);
+      }
+    } catch { setFailed(true); }
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [placementId]);
-  /* The other side's activity showed up only on a manual refresh. Coming
-     back to the tab is the moment somebody expects to see what changed. */
   useEffect(() => {
     const onFocus = () => { if (document.visibilityState === 'visible') load(); };
     window.addEventListener('focus', onFocus);
@@ -108,6 +134,12 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
     return () => { window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onFocus); };
     /* eslint-disable-next-line */
   }, [placementId]);
+  useEffect(() => {
+    if (!openId) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenId(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openId]);
 
   async function add(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -123,13 +155,11 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
         due_time: f.get('due_time') || null, repeat_weekly: f.get('repeat_weekly') === 'on',
         origin: f.get('origin'), origin_note: f.get('origin_note')
       })
-    }), side === 'client' ? 'Task assigned' : 'Task added');
+    }), side === 'client' ? `Assigned to ${counterpart}` : 'Added');
     setBusy(false);
-    if (ok) { form.reset(); setOpen(false); load(); }
+    if (ok) { form.reset(); setComposing(false); load(); }
   }
 
-  /* Every change goes through /api/tasks/item, which reports a refusal as a
-     refusal: a tick that row level security turned down used to look saved. */
   async function patch(t: TaskX, body: Record<string, unknown>, word?: string): Promise<boolean> {
     try {
       const res = await fetch('/api/tasks/item', {
@@ -145,37 +175,48 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
       if (word) toast.saved(word);
       return true;
     } catch {
-      /* the connection dropped mid-request (common on a phone in Manila or
-         Bogotá); without this the optimistic change would stay on screen
-         while the server never heard. */
       toast.bad('No connection, so nothing was saved.');
       load();
       return false;
     }
   }
 
-  async function toggle(t: TaskX) {
+  /* The tick: for a talent finishing someone else's task, this is "send for
+     review"; for everyone else it closes the task. The server decides. */
+  async function finish(t: TaskX) {
     if (toggling) return;
     setToggling(t.id);
+    const toReview = side === 'talent' && t.created_by !== me && t.status !== 'review';
     setTasks(list => list!.map(x => x.id === t.id
-      ? { ...x, done: !x.done, status: !x.done ? 'done' : 'todo' } : x));
-    const ok = await patch(t, { done: !t.done }, !t.done ? 'Done' : undefined);
+      ? (toReview ? { ...x, status: 'review' } : { ...x, done: true, status: 'done' }) : x));
+    const ok = await patch(t, { status: 'done' }, toReview ? `Sent to ${counterpart} for review` : 'Done');
     if (ok) load();
     setToggling(null);
   }
-
+  async function reopen(t: TaskX) {
+    if (toggling) return;
+    setToggling(t.id);
+    setTasks(list => list!.map(x => x.id === t.id ? { ...x, done: false, status: 'todo' } : x));
+    const ok = await patch(t, { status: 'todo' }, 'Back on the list');
+    if (ok) load();
+    setToggling(null);
+  }
   async function setStatus(t: TaskX, status: TaskStatus) {
     setTasks(list => list!.map(x => x.id === t.id ? { ...x, status, done: status === 'done' } : x));
     const ok = await patch(t, { status }, status === 'done' ? 'Done' : 'Updated');
     if (ok) load();
   }
-
-  const [confirmId, setConfirmId] = useState<string | null>(null);
+  async function sendBack(t: TaskX, note: string) {
+    try {
+      const res = await fetch('/api/tasks/item', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: t.id, action: 'send_back', note }) });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.bad(d.error ?? 'That did not go back.'); return false; }
+      toast.saved(`Sent back to ${counterpart}`); load(); return true;
+    } catch { toast.bad('No connection, so nothing was saved.'); return false; }
+  }
   async function remove(t: TaskX) {
-    if (confirmId !== t.id) { setConfirmId(t.id); return; }
     const ok = await saving(() => fetch(`/api/tasks?id=${t.id}`, { method: 'DELETE' }), 'Task removed');
-    setConfirmId(null);
-    if (ok) load();
+    if (ok) { setOpenId(null); load(); }
   }
 
   if (failed) return (
@@ -186,14 +227,15 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
       </div>
     </div>
   );
-
-  if (!tasks) return <div className="empty"><span className="tick" /><p className="small">Loading…</p></div>;
+  if (!tasks) return <div className="card"><div className="empty"><span className="tick" /><p className="small">Loading…</p></div></div>;
 
   const live = tasks.filter(t => !t.done);
   const done = tasks.filter(t => t.done);
-  const groups = groupTasks(live, today);
+  const groups = groupTasks(live, today, side);
   const truncated = limit != null && live.length > limit;
   const waitingOnClient = live.filter(t => t.status === 'waiting').length;
+  const inReview = live.filter(t => t.status === 'review').length;
+  const overdue = live.filter(t => t.due_on && t.due_on < today && t.status !== 'review' && t.status !== 'waiting').length;
 
   const visibleGroups: Group[] = [];
   if (limit != null) {
@@ -201,75 +243,39 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
     for (const g of groups) {
       if (shown >= limit) break;
       const slice = g.tasks.slice(0, limit - shown);
-      visibleGroups.push({ label: g.label, tasks: slice });
+      visibleGroups.push({ ...g, tasks: slice });
       shown += slice.length;
     }
-  } else {
-    visibleGroups.push(...groups);
-  }
+  } else visibleGroups.push(...groups);
 
-  /* Who may rewrite what a task says: whoever wrote it, the executive, or
-     Relève. Moving it along (its status) is open to both sides. The same
-     rule is enforced in the database. */
   const canEdit = (t: TaskX) => t.created_by === me || side === 'client' || side === 'admin';
+  const openTask = openId ? tasks.find(t => t.id === openId) ?? null : null;
 
   return (
     <>
-      <div className="card">
-        <div className="card-head">
-          <h3>{side === 'client' ? 'What you have handed over' : 'Your work'}</h3>
-          <span className="row" style={{ gap: 8 }}>
-            {side === 'client' && waitingOnClient > 0 && (
-              <span className="pill warn"><span className="dot" />{waitingOnClient} waiting on you</span>
-            )}
+      <div className="card tb">
+        <div className="card-head tb-head">
+          <h3>{side === 'client' ? 'What you have handed over' : side === 'admin' ? 'The task list' : 'Your work'}</h3>
+          <span className="row tb-pills">
+            {overdue > 0 && <span className="pill crit"><span className="dot" />{overdue} overdue</span>}
+            {side === 'client' && inReview > 0 && <span className="pill good"><span className="dot" />{inReview} to review</span>}
+            {side === 'client' && waitingOnClient > 0 && <span className="pill warn"><span className="dot" />{waitingOnClient} waiting on you</span>}
             <span className="pill">{live.length} open</span>
           </span>
         </div>
 
-        {live.length === 0 ? (
-          <div className="empty"><span className="tick" />
-            <p className="small">
-              {side === 'client'
-                ? `Nothing on ${counterpart}'s list. Add the first thing you want off your plate.`
-                : 'Nothing open. Anything you pick up yourself can go on here too.'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <ul className="task-list">
-              {visibleGroups.flatMap(g => [
-                <li key={`h-${g.label}`} className="task-group">{g.label}</li>,
-                ...g.tasks.map(t => (
-                  <TaskRow key={t.id} t={t} me={me} side={side} counterpart={counterpart} today={today}
-                    summary={summary[t.id]} toggling={toggling === t.id} busy={busy}
-                    canEdit={canEdit(t)} confirming={confirmId === t.id}
-                    onToggle={() => toggle(t)} onStatus={s => setStatus(t, s)}
-                    onRemove={() => remove(t)} onKeep={() => setConfirmId(null)}
-                    onSaved={load}
-                    onEdit={async body => { const ok = await patch(t, body, 'Saved'); if (ok) load(); return ok; }} />
-                ))
-              ])}
-            </ul>
-
-            {truncated && seeAllHref && (
-              <a href={seeAllHref} className="btn sm ghost" style={{ marginTop: 4, marginBottom: 4 }}>
-                See all {live.length} open tasks →
-              </a>
-            )}
-          </>
-        )}
-
-        {!open ? (
-          <button className="btn solid" style={{ marginTop: 20 }} onClick={() => setOpen(true)}>
+        {!composing ? (
+          <button className="tb-add" onClick={() => setComposing(true)}>
+            <span className="tb-add-plus" aria-hidden="true">+</span>
             {side === 'client' ? `Assign something to ${counterpart}` : 'Add a task'}
           </button>
         ) : (
-          <form onSubmit={add} className="task-form">
+          <form onSubmit={add} className="task-form tb-compose">
             <div className="ff"><label htmlFor={`tf-title-${placementId}`}>What needs doing</label>
               <input id={`tf-title-${placementId}`} name="title" required autoFocus placeholder="Rebuild the board pack for Thursday" /></div>
-            <div className="ff"><label htmlFor={`tf-detail-${placementId}`}>Detail <span className="muted">(optional, but it saves a round trip)</span></label>
+            <div className="ff"><label htmlFor={`tf-detail-${placementId}`}>Detail <span className="muted">(what good looks like, where things are, who has seen it before)</span></label>
               <textarea id={`tf-detail-${placementId}`} name="detail" rows={3}
-                placeholder="Where the numbers come from, who has seen it before, what good looks like." /></div>
+                placeholder="The numbers come from the Stripe dashboard. Last month's version is in Drive under Board. One page, plain English." /></div>
             <div className="grid-2" style={{ gap: 14 }}>
               <div className="ff"><label htmlFor={`tf-pri-${placementId}`}>Priority</label>
                 <select id={`tf-pri-${placementId}`} name="priority" defaultValue="normal">
@@ -283,11 +289,9 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
                 <input id={`tf-time-${placementId}`} type="time" name="due_time" step="900" /></div>
               <label className="log-share" style={{ alignSelf: 'end', marginBottom: 14 }}>
                 <input type="checkbox" name="repeat_weekly" />
-                <span>Repeats every week. Finishing it brings next week&rsquo;s back on the list.</span>
+                <span>Repeats every week</span>
               </label>
             </div>
-            {/* "Where did this come from" is a talent-side question: it is how they
-               log a request that reached them by call, email or a check-in. */}
             {side !== 'client' && (
               <div className="grid-2" style={{ gap: 14 }}>
                 <div className="ff"><label htmlFor={`tf-origin-${placementId}`}>Where it came from</label>
@@ -298,152 +302,206 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
                   <input id={`tf-on-${placementId}`} name="origin_note" placeholder="Tuesday board call" /></div>
               </div>
             )}
-            <div className="row" style={{ gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
-              <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Add to the list'}</button>
-              <button type="button" className="btn ghost sm" onClick={() => setOpen(false)}>Cancel</button>
+            <p className="xs muted" style={{ margin: '-4px 0 10px' }}>Files can be attached once the task is on the list.</p>
+            <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+              <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : side === 'client' ? `Assign to ${counterpart}` : 'Add to the list'}</button>
+              <button type="button" className="btn ghost sm" onClick={() => setComposing(false)}>Cancel</button>
             </div>
           </form>
+        )}
+
+        {live.length === 0 ? (
+          <div className="empty" style={{ paddingTop: 10 }}><span className="tick" />
+            <p className="small">
+              {side === 'client'
+                ? `Nothing on ${counterpart}'s list yet. The first week goes best with three small, finishable things.`
+                : 'Nothing open. Anything you pick up yourself can go on here too.'}
+            </p>
+          </div>
+        ) : (
+          <ul className="tb-list">
+            {visibleGroups.flatMap(g => [
+              <li key={`h-${g.key}`} className={`tb-group ${g.tone ?? ''}`}>{g.label}<span className="tb-count">{g.tasks.length}</span></li>,
+              ...g.tasks.map(t => (
+                <TaskLine key={t.id} t={t} me={me} side={side} counterpart={counterpart} today={today} tz={tz}
+                  summary={summary[t.id]} fileCount={(files[t.id] ?? []).length}
+                  toggling={toggling === t.id} open={openId === t.id}
+                  onOpen={() => setOpenId(openId === t.id ? null : t.id)}
+                  onFinish={() => finish(t)} />
+              ))
+            ])}
+          </ul>
+        )}
+        {truncated && seeAllHref && (
+          <a href={seeAllHref} className="btn sm ghost" style={{ marginTop: 10 }}>See all {live.length} open tasks →</a>
         )}
       </div>
 
       {done.length > 0 && (
-        <div className="card">
+        <div className="card tb">
           <div className="card-head">
             <h3>Finished</h3>
-            <button className="btn ghost sm" onClick={() => setShowDone(!showDone)}>
-              {showDone ? 'Hide' : `Show ${done.length}`}
-            </button>
+            <button className="btn ghost sm" onClick={() => setShowDone(!showDone)}>{showDone ? 'Hide' : `Show ${done.length}`}</button>
           </div>
           {showDone && (
-            <ul className="task-list done">
+            <ul className="tb-list done">
               {done.map(t => (
-                <li key={t.id} className="task">
-                  <button disabled={toggling === t.id} className="task-check on" onClick={() => toggle(t)} aria-label={`Reopen ${t.title}`}>✓</button>
-                  <div className="task-body">
-                    <span className="task-title">{t.title}</span>
-                    {/* Who finished it, and when. */}
-                    <div className="task-meta xs">
-                      <span className="muted">
-                        Done{t.done_by ? (t.done_by === me ? ' by you' : ` by ${counterpart}`) : ''}
-                        {t.done_at ? `, ${fmtWhen(t.done_at, tz)}` : ''}
-                      </span>
-                    </div>
-                  </div>
+                <li key={t.id} className="tb-row done">
+                  <button disabled={toggling === t.id} className="tb-check on" onClick={() => reopen(t)} aria-label={`Reopen ${t.title}`}>✓</button>
+                  <button className="tb-main" onClick={() => setOpenId(openId === t.id ? null : t.id)}>
+                    <span className="tb-title">{t.title}</span>
+                    <span className="tb-sub">Done{t.done_by ? (t.done_by === me ? ' by you' : ` by ${counterpart}`) : ''}{t.done_at ? `, ${fmtWhen(t.done_at, tz)}` : ''}</span>
+                  </button>
                 </li>
               ))}
             </ul>
           )}
         </div>
       )}
+
+      {openTask && (
+        <TaskPanel t={openTask} me={me} side={side} counterpart={counterpart} today={today} tz={tz}
+          files={files[openTask.id] ?? []} canEdit={canEdit(openTask)}
+          onClose={() => setOpenId(null)} onChanged={load}
+          onFinish={() => finish(openTask)} onReopen={() => reopen(openTask)}
+          onStatus={s => setStatus(openTask, s)} onSendBack={note => sendBack(openTask, note)}
+          onRemove={() => remove(openTask)}
+          onEdit={async body => { const ok = await patch(openTask, body, 'Saved'); if (ok) load(); return ok; }} />
+      )}
     </>
   );
 }
 
-/* One open task: tick, status, edit, and its comments. */
-function TaskRow({
-  t, me, side, counterpart, today, summary, toggling, busy, canEdit, confirming,
-  onToggle, onStatus, onRemove, onKeep, onEdit, onSaved
-}: {
-  t: TaskX; me: string; side: Side; counterpart: string; today: string;
-  summary?: { count: number; lastBy: string; question: boolean };
-  toggling: boolean; busy: boolean; canEdit: boolean; confirming: boolean;
-  onToggle: () => void; onStatus: (s: TaskStatus) => void;
-  onRemove: () => void; onKeep: () => void;
+/* One line in the list: tick, title, the two or three things worth seeing
+   before opening it. The whole line opens the panel. */
+function TaskLine({ t, me, side, counterpart, today, tz, summary, fileCount, toggling, open, onOpen, onFinish }: {
+  t: TaskX; me: string; side: Side; counterpart: string; today: string; tz: string | null;
+  summary?: { count: number; lastBy: string; question: boolean }; fileCount: number;
+  toggling: boolean; open: boolean; onOpen: () => void; onFinish: () => void;
+}) {
+  const due = dueLabel(t.due_on, today);
+  const status: TaskStatus = t.status ?? 'todo';
+  const theyAsked = !!summary?.question && summary.lastBy !== me;
+  const mine = t.created_by === me;
+  const seenLine = side === 'client' && mine
+    ? (t.seen_at ? `Seen ${fmtWhen(t.seen_at, tz)}` : 'Not seen yet')
+    : side === 'admin' && !mine && t.seen_at ? `Seen ${fmtWhen(t.seen_at, tz)}` : null;
+  return (
+    <li className={`tb-row${open ? ' open' : ''}${status === 'review' ? ' review' : ''}`}>
+      <button disabled={toggling || status === 'review'} className={`tb-check${status === 'review' ? ' half' : ''}`}
+        onClick={onFinish} aria-label={status === 'review' ? `${t.title} is awaiting review` : `Mark ${t.title} finished`} />
+      <button className="tb-main" onClick={onOpen} aria-expanded={open}>
+        <span className="tb-titlerow">
+          {(t.priority === 'urgent' || t.priority === 'high') && <span className={`pri ${t.priority}`}>{t.priority}</span>}
+          <span className="tb-title">{t.title}</span>
+        </span>
+        <span className="tb-sub">
+          {due && <span className={`due ${due.tone}`}>{due.text}{t.due_time ? ` · ${String(t.due_time).slice(0, 5)}` : ''}</span>}
+          {status === 'in_progress' && <span>In progress</span>}
+          {status === 'review' && <span className="tb-review">{side === 'client' ? 'Ready for your review' : 'Awaiting review'}</span>}
+          {theyAsked && <span className="tb-q">{side === 'client' ? `${counterpart} asked a question` : side === 'admin' ? 'A question is waiting' : 'A question for you'}</span>}
+          {seenLine && <span className="muted">{seenLine}</span>}
+          {!mine && side !== 'admin' && <span className="muted">From {counterpart}</span>}
+          {side === 'admin' && <span className="muted">{mine ? 'Added by Relève' : 'From the placement'}</span>}
+        </span>
+      </button>
+      <span className="tb-marks" aria-hidden="true">
+        {fileCount > 0 && <span className="tb-mark" title={`${fileCount} file${fileCount === 1 ? '' : 's'}`}>&#9741; {fileCount}</span>}
+        {(summary?.count ?? 0) > 0 && <span className="tb-mark" title={`${summary!.count} comment${summary!.count === 1 ? '' : 's'}`}>&#9643; {summary!.count}</span>}
+      </span>
+    </li>
+  );
+}
+
+/* Everything about one task, beside the list. */
+function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClose, onChanged, onFinish, onReopen, onStatus, onSendBack, onRemove, onEdit }: {
+  t: TaskX; me: string; side: Side; counterpart: string; today: string; tz: string | null;
+  files: TaskFile[]; canEdit: boolean;
+  onClose: () => void; onChanged: () => void; onFinish: () => void; onReopen: () => void;
+  onStatus: (s: TaskStatus) => void; onSendBack: (note: string) => Promise<boolean>; onRemove: () => void;
   onEdit: (body: Record<string, unknown>) => Promise<boolean>;
-  onSaved: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
-  const [talk, setTalk] = useState<null | 'comment' | 'question'>(null);
+  const [asking, setAsking] = useState(false);
+  const [sendingBack, setSendingBack] = useState(false);
+  const [note, setNote] = useState('');
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const status: TaskStatus = t.status ?? 'todo';
   const due = dueLabel(t.due_on, today);
   const origin = ORIGINS.find(o => o.key === t.origin);
-  const status: TaskStatus = t.status ?? 'todo';
-  const count = summary?.count ?? 0;
-  const theyAsked = !!summary?.question && summary.lastBy !== me;
+  const mine = t.created_by === me;
+  const executiveSide = side === 'client' || side === 'admin';
+
+  useEffect(() => { setEditing(false); setAsking(false); setSendingBack(false); setNote(''); setConfirmRemove(false); }, [t.id]);
 
   async function saveEdit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (savingEdit) return;   // a second Enter or click while the first PATCH is out
+    if (savingEdit) return;
     const f = new FormData(e.currentTarget);
     setSavingEdit(true);
     const ok = await onEdit({
-      title: f.get('title'), detail: f.get('detail'),
-      priority: f.get('priority'), due_on: f.get('due_on'),
+      title: f.get('title'), detail: f.get('detail'), priority: f.get('priority'), due_on: f.get('due_on'),
       due_time: f.get('due_time') || null, repeat_weekly: f.get('repeat_weekly') === 'on'
     });
     setSavingEdit(false);
     if (ok) setEditing(false);
   }
 
+  async function upload(list: FileList | null) {
+    if (!list || !list.length) return;
+    setUploading(true);
+    for (const file of Array.from(list)) {
+      const fd = new FormData(); fd.append('task_id', t.id); fd.append('file', file);
+      try {
+        const r = await fetch('/api/tasks/files', { method: 'POST', body: fd });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) toast.bad(d.error ?? `${file.name} did not upload.`);
+        else toast.saved(`${file.name} attached`);
+      } catch { toast.bad('No connection. Nothing was uploaded.'); }
+    }
+    setUploading(false);
+    if (fileInput.current) fileInput.current.value = '';
+    onChanged();
+  }
+  async function removeFile(f: TaskFile) {
+    const r = await fetch(`/api/tasks/files?id=${f.id}`, { method: 'DELETE' });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); toast.bad(d.error ?? 'That file was not removed.'); return; }
+    toast.saved('File removed'); onChanged();
+  }
+
   return (
-    <li className="task">
-      <button disabled={toggling} className="task-check" onClick={onToggle} aria-label={`Mark ${t.title} done`} />
-      <div className="task-body">
-        <div className="task-top">
-          <span className={`pri ${t.priority}`}>{PRIORITIES.find(p => p.key === t.priority)?.label}</span>
-          <span className="task-title">{t.title}</span>
-        </div>
-        {t.detail && !editing && <p className="small muted task-detail">{t.detail}</p>}
-        <div className="task-meta xs">
-          {due && <span className={`due ${due.tone}`}>{due.text}{t.due_time ? ` · ${String(t.due_time).slice(0, 5)}` : ''}</span>}
-          {t.repeat_weekly && <span className="pill" style={{ fontSize: 10 }}>Weekly</span>}
-          {!t.done && googleCalendarLink(t) && (
-            <a className="muted" href={googleCalendarLink(t)!} target="_blank" rel="noopener">Add to Google Calendar</a>
-          )}
-          {(origin && (origin.key !== 'self' || t.origin_note)) && (
-            <span className="muted">{origin.label}{t.origin_note ? ` · ${t.origin_note}` : ''}</span>
-          )}
-          <span className="muted">{t.created_by === me ? 'Added by you' : `From ${side === 'admin' ? 'the placement' : counterpart}`}</span>
-          {theyAsked && <span className="due late">{side === 'client' ? `${counterpart} asked a question` : 'A question for you'}</span>}
-        </div>
-
-        <div className="task-actions">
-          <label className="sr-only" htmlFor={`st-${t.id}`}>Status of {t.title}</label>
-          <select id={`st-${t.id}`} className={`task-status ${status}`} value={status}
-            onChange={e => onStatus(e.target.value as TaskStatus)}>
-            {TASK_STATUSES.map(s => <option key={s.key} value={s.key}>{statusLabel(s.key, side)}</option>)}
-          </select>
-          {canEdit && (
-            <button type="button" className="task-link" onClick={() => setEditing(v => !v)} aria-expanded={editing}>
-              {editing ? 'Close' : 'Edit'}
-            </button>
-          )}
-          <button type="button" className="task-link" onClick={() => setTalk(v => v === 'comment' ? null : 'comment')}
-            aria-expanded={talk === 'comment'}>
-            {count ? `Comments (${count})` : 'Comment'}
+    <div className="tb-panel-wrap" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <aside className="tb-panel" role="dialog" aria-label={t.title}>
+        <div className="tb-panel-top">
+          <span className="eyebrow">{t.done ? 'Finished' : statusLabel(status, side)}</span>
+          <button className="tb-close" onClick={onClose} aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
           </button>
-          {side === 'talent' && (
-            <button type="button" className="task-link" onClick={() => setTalk(v => v === 'question' ? null : 'question')}
-              aria-expanded={talk === 'question'}>
-              <span className="q">Ask a question</span>
-            </button>
-          )}
         </div>
 
-        {editing && (
+        {!editing ? (
+          <>
+            <h3 className="tb-panel-title">{t.title}</h3>
+            {t.detail ? <p className="tb-panel-detail">{t.detail}</p> : <p className="tb-panel-detail muted">No detail was added.</p>}
+          </>
+        ) : (
           <form className="task-edit" onSubmit={saveEdit}>
             <label className="sr-only" htmlFor={`et-${t.id}`}>Title</label>
             <input id={`et-${t.id}`} name="title" defaultValue={t.title} required />
             <label className="sr-only" htmlFor={`ed-${t.id}`}>Detail</label>
-            <textarea id={`ed-${t.id}`} name="detail" rows={3} defaultValue={t.detail ?? ''} placeholder="Detail" />
+            <textarea id={`ed-${t.id}`} name="detail" rows={4} defaultValue={t.detail ?? ''} placeholder="Detail" />
             <div className="grid-2" style={{ gap: 10 }}>
-              <div>
-                <label className="xs muted" htmlFor={`ep-${t.id}`}>Priority</label>
-                <select id={`ep-${t.id}`} name="priority" defaultValue={t.priority}>
-                  {PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="xs muted" htmlFor={`edue-${t.id}`}>Due</label>
-                <input id={`edue-${t.id}`} type="date" name="due_on" defaultValue={t.due_on ?? ''} />
-              </div>
-              <div>
-                <label className="xs muted" htmlFor={`etime-${t.id}`}>At a time</label>
-                <input id={`etime-${t.id}`} type="time" name="due_time" step="900" defaultValue={(t.due_time ?? '').slice(0, 5)} />
-              </div>
+              <div><label className="xs muted" htmlFor={`ep-${t.id}`}>Priority</label>
+                <select id={`ep-${t.id}`} name="priority" defaultValue={t.priority}>{PRIORITIES.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}</select></div>
+              <div><label className="xs muted" htmlFor={`edue-${t.id}`}>Due</label>
+                <input id={`edue-${t.id}`} type="date" name="due_on" defaultValue={t.due_on ?? ''} /></div>
+              <div><label className="xs muted" htmlFor={`etime-${t.id}`}>At a time</label>
+                <input id={`etime-${t.id}`} type="time" name="due_time" step="900" defaultValue={(t.due_time ?? '').slice(0, 5)} /></div>
               <label className="log-share" style={{ alignSelf: 'end' }}>
-                <input type="checkbox" name="repeat_weekly" defaultChecked={!!t.repeat_weekly} />
-                <span>Repeats every week</span>
+                <input type="checkbox" name="repeat_weekly" defaultChecked={!!t.repeat_weekly} /><span>Repeats every week</span>
               </label>
             </div>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
@@ -453,17 +511,93 @@ function TaskRow({
           </form>
         )}
 
-        {talk && <TaskTalk task={t} me={me} side={side} counterpart={counterpart} question={talk === 'question'}
-          onSent={() => { onSaved(); if (talk === 'question') setTalk('comment'); }} />}
-      </div>
-      {t.created_by === me && (confirming
-        ? <span className="row" style={{ gap: 6 }}>
-            <button disabled={busy} className="btn sm solid" onClick={onRemove}>Remove</button>
-            <button className="btn sm ghost" onClick={onKeep}>Keep</button>
-          </span>
-        : <button disabled={busy} className="task-x" onClick={onRemove} aria-label={`Remove ${t.title}`}>×</button>
-      )}
-    </li>
+        <dl className="tb-facts">
+          <dt>Priority</dt><dd><span className={`pri ${t.priority}`}>{PRIORITIES.find(p => p.key === t.priority)?.label}</span></dd>
+          <dt>Due</dt><dd>{due ? <span className={`due ${due.tone}`}>{due.text}{t.due_time ? ` at ${String(t.due_time).slice(0, 5)}` : ''}</span> : <span className="muted">No date</span>}{t.repeat_weekly ? <span className="muted"> · every week</span> : null}</dd>
+          <dt>From</dt><dd>{mine ? 'You' : side === 'admin' ? 'The placement' : counterpart}{origin && origin.key !== 'self' ? <span className="muted"> · {origin.label}{t.origin_note ? `, ${t.origin_note}` : ''}</span> : null}</dd>
+          {(executiveSide) && !mine && side === 'admin' ? null : (executiveSide && mine) ? (
+            <><dt>Seen</dt><dd>{t.seen_at ? `${counterpart}, ${fmtWhen(t.seen_at, tz)}` : <span className="muted">Not opened by {counterpart} yet</span>}</dd></>
+          ) : null}
+          {t.review_note && !t.done && <><dt>Sent back</dt><dd>“{t.review_note}”</dd></>}
+        </dl>
+
+        {/* the one action that moves it on */}
+        {!t.done && (
+          <div className="tb-actions">
+            {status === 'review' && executiveSide ? (
+              !sendingBack ? (
+                <>
+                  <button className="btn sm solid" onClick={onFinish}>Accept, it is done</button>
+                  <button className="btn sm ghost" onClick={() => setSendingBack(true)}>Send it back</button>
+                </>
+              ) : (
+                <form className="tb-sendback" onSubmit={async e => { e.preventDefault(); if (await onSendBack(note)) { setSendingBack(false); setNote(''); } }}>
+                  <label className="xs muted" htmlFor={`sb-${t.id}`}>What needs changing</label>
+                  <textarea id={`sb-${t.id}`} rows={3} value={note} onChange={e => setNote(e.target.value)} required placeholder="One more pass on the numbers: use net revenue, not gross." />
+                  <div className="row" style={{ gap: 8 }}>
+                    <button className="btn sm solid" disabled={!note.trim()}>Send back to {counterpart}</button>
+                    <button type="button" className="btn sm ghost" onClick={() => setSendingBack(false)}>Cancel</button>
+                  </div>
+                </form>
+              )
+            ) : status === 'review' ? (
+              <p className="small muted" style={{ margin: 0 }}>Finished and with {counterpart} to review. You will hear when it is accepted or needs another pass.</p>
+            ) : (
+              <>
+                <button className="btn sm solid" onClick={onFinish}>
+                  {side === 'talent' && !mine ? 'Finished, send for review' : 'Mark it done'}
+                </button>
+                <select className={`task-status ${status}`} value={status} aria-label="Status" onChange={e => onStatus(e.target.value as TaskStatus)}>
+                  {TASK_STATUSES.filter(s => s.key !== 'done' && s.key !== 'review').map(s => <option key={s.key} value={s.key}>{statusLabel(s.key, side)}</option>)}
+                </select>
+                {side === 'talent' && <button className="btn sm ghost" onClick={() => setAsking(a => !a)}>{asking ? 'Not now' : 'Ask a question'}</button>}
+              </>
+            )}
+          </div>
+        )}
+        {t.done && <div className="tb-actions"><button className="btn sm ghost" onClick={onReopen}>Put it back on the list</button></div>}
+
+        {/* files */}
+        <div className="tb-section">
+          <div className="tb-section-head"><span className="eyebrow">Files</span>
+            {!t.done && (
+              <>
+                <input ref={fileInput} type="file" multiple style={{ display: 'none' }} onChange={e => upload(e.target.files)} />
+                <button className="task-link" disabled={uploading} onClick={() => fileInput.current?.click()}>{uploading ? 'Uploading…' : '+ Attach a file'}</button>
+              </>
+            )}
+          </div>
+          {files.length === 0 ? (
+            <p className="xs muted" style={{ margin: 0 }}>{side === 'talent' ? 'Nothing attached. Add the finished work here when it is ready.' : `Nothing attached. A document, a screenshot or last time's version saves ${counterpart} a round trip.`}</p>
+          ) : (
+            <ul className="tb-files">
+              {files.map(f => (
+                <li key={f.id}>
+                  <a href={`/api/tasks/files?id=${f.id}`} target="_blank" rel="noopener">{f.file_name}</a>
+                  <span className="xs muted">{kb(f.size_bytes)} · {f.uploaded_by === me ? 'you' : side === 'admin' ? 'the placement' : counterpart}, {fmtWhen(f.created_at, tz)}</span>
+                  {(f.uploaded_by === me || side === 'admin') && !t.done && <button className="task-link" onClick={() => removeFile(f)}>Remove</button>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* the conversation */}
+        <div className="tb-section">
+          <div className="tb-section-head"><span className="eyebrow">Conversation</span></div>
+          <TaskTalk task={t} me={me} side={side} counterpart={counterpart} question={asking}
+            onSent={() => { onChanged(); setAsking(false); }} />
+        </div>
+
+        <div className="tb-panel-foot">
+          {canEdit && !t.done && <button className="task-link" onClick={() => setEditing(v => !v)}>{editing ? 'Close edit' : 'Edit the task'}</button>}
+          {!t.done && googleCalendarLink(t) && <a className="task-link" href={googleCalendarLink(t)!} target="_blank" rel="noopener">Add to Google Calendar</a>}
+          {mine && (confirmRemove
+            ? <span className="row" style={{ gap: 6 }}><button className="btn sm solid" onClick={onRemove}>Remove it</button><button className="btn sm ghost" onClick={() => setConfirmRemove(false)}>Keep</button></span>
+            : <button className="task-link danger" onClick={() => setConfirmRemove(true)}>Remove</button>)}
+        </div>
+      </aside>
+    </div>
   );
 }
 
@@ -495,14 +629,15 @@ function TaskTalk({ task, me, side, counterpart, question, onSent }: {
     const ok = await saving(() => fetch('/api/tasks/comments', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ task_id: task.id, body, question })
-    }), question ? 'Question sent' : 'Comment added');
+    }), question ? `Question sent to ${counterpart}` : 'Added');
     setSending(false);
     if (ok) { form.reset(); load(); onSent(); }
   }
 
   return (
-    <div className="task-thread">
+    <div className="task-thread tb-thread">
       {items === null ? <p className="xs muted">Loading…</p>
+        : items.length === 0 ? <p className="xs muted" style={{ margin: '0 0 10px' }}>Nothing yet. Anything about this task goes here, so it stays with the task.</p>
         : items.map(c => (
           <div key={c.id} className={`c${c.is_question ? ' question' : ''}`}>
             <span className="who">{c.author_id === me ? 'You'
@@ -515,9 +650,9 @@ function TaskTalk({ task, me, side, counterpart, question, onSent }: {
       <form onSubmit={send}>
         <label className="sr-only" htmlFor={`tc-${task.id}`}>{question ? 'Your question' : 'Your comment'}</label>
         <textarea id={`tc-${task.id}`} name="body" rows={2} required
-          placeholder={question ? `What do you need from ${counterpart} to move this on?` : 'Add a comment'} />
+          placeholder={question ? `What do you need from ${counterpart} to move this on?` : side === 'client' ? `A note for ${counterpart}` : 'Add a comment'} />
         <div className="row" style={{ gap: 8 }}>
-          <button className="btn sm solid" disabled={sending}>{sending ? 'Sending…' : question ? 'Send the question' : 'Add comment'}</button>
+          <button className="btn sm solid" disabled={sending}>{sending ? 'Sending…' : question ? 'Send the question' : 'Add'}</button>
         </div>
       </form>
     </div>
