@@ -61,6 +61,7 @@ export async function PATCH(req: Request) {
     if (wantsDone && !executiveSide && assignedByOther && before.status !== 'review') {
       delete patch.done;
       patch.status = 'review';
+      patch.review_note = null;
     }
     if (wantsDone && executiveSide) { patch.status = 'done'; delete patch.done; patch.review_note = null; }
 

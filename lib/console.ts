@@ -228,7 +228,7 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   for (const t of (tasks.data ?? []) as any[]) {
     if (t.done) continue;
     openTasksBy.set(t.placement_id, (openTasksBy.get(t.placement_id) ?? 0) + 1);
-    if (t.due_on && t.due_on < now)
+    if (t.due_on && t.due_on < now && t.status !== 'review' && t.status !== 'waiting')
       overdueTasksBy.set(t.placement_id, (overdueTasksBy.get(t.placement_id) ?? 0) + 1);
   }
 

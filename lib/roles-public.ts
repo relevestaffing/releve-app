@@ -15,6 +15,16 @@ import { DISCIPLINES, DISCIPLINE, compsOf, type Need, type Prof } from './discip
 export * from './disciplines';
 export { DISCIPLINES, DISCIPLINE, compsOf };
 
+/* Choice options were renamed from '50–150' to '50 to 150'; an answer saved
+   under the old spelling still selects the right button. Free text is left
+   exactly as typed: only a value that becomes one of the options is rewritten. */
+const CHOICE_VALUES = new Set(DISCIPLINES.flatMap(d => d.details.flatMap(q => q.options ?? [])));
+export function undash(v: string): string {
+  const w = v.replace(/\s*[\u2013\u2014]\s*/g, ' to ');
+  return w !== v && CHOICE_VALUES.has(w) ? w : v;
+}
+
+
 /* ---------- what the executive saves ---------- */
 export type RoleBreakdown = {
   /* the disciplines this role is made of, most important first */

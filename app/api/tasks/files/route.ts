@@ -14,7 +14,9 @@ export const dynamic = 'force-dynamic';
    through row level security), stores the file under the placement and
    task, and hands out short signed links. Nothing is ever public. */
 const BUCKET = 'task-files';
-const MAX_BYTES = 25 * 1024 * 1024;
+/* Netlify hands a function at most 6 MB of request body; a bigger file
+   fails before this route runs, so the limit and the copy say 6 MB. */
+const MAX_BYTES = 6 * 1024 * 1024;
 const uuid = (v: unknown) => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v);
 
 export async function GET(req: Request) {
@@ -54,7 +56,7 @@ export async function POST(req: Request) {
   if (!uuid(taskId)) return NextResponse.json({ error: 'which task?' }, { status: 400 });
   if (!(file instanceof Blob)) return NextResponse.json({ error: 'no file received' }, { status: 400 });
   if (file.size === 0) return NextResponse.json({ error: 'That file is empty.' }, { status: 400 });
-  if (file.size > MAX_BYTES) return NextResponse.json({ error: 'That file is over 25 MB. Share a link to it instead.' }, { status: 413 });
+  if (file.size > MAX_BYTES) return NextResponse.json({ error: 'That file is over 6 MB. Share a link to it instead.' }, { status: 413 });
 
   const task = await getTask(taskId);
   if (!task) return NextResponse.json({ error: 'That task is not on a placement you are part of.' }, { status: 404 });

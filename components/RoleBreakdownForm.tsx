@@ -3,7 +3,7 @@ import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
-  DISCIPLINES, DISCIPLINE, NEEDS, key, roleComplete, roleShape, PICK_ONE_DISCIPLINE,
+  DISCIPLINES, DISCIPLINE, NEEDS, key, undash, roleComplete, roleShape, PICK_ONE_DISCIPLINE,
   type Need, type RoleBreakdown
 } from '@/lib/roles-public';
 
@@ -15,9 +15,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
   const router = useRouter();
   const [picked, setPicked] = useState<string[]>(initial?.disciplines ?? []);
   const [needs, setNeeds] = useState<Record<string, Need>>(initial?.needs ?? {});
-  /* Choice options were renamed from '50–150' to '50 to 150'; answers saved
-     under the old spelling still select the right button. */
-  const [details, setDetails] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial?.details ?? {}).map(([k, v]) => [k, String(v).replace(/\s*[\u2013\u2014]\s*/g, ' to ')])));
+  const [details, setDetails] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial?.details ?? {}).map(([k, v]) => [k, undash(String(v))])));
   const [priorities, setPriorities] = useState(initial?.priorities ?? '');
   const [never, setNever] = useState(initial?.never ?? '');
   const [tools, setTools] = useState(initial?.tools ?? '');

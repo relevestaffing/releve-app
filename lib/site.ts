@@ -8,14 +8,21 @@
    configured address, then the forwarded host, and never a netlify.app one. */
 const CANONICAL = 'https://app.relevestaffing.com';
 
+const LOCAL = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[::1\])/i;
+
 export function siteOrigin(request?: Request): string {
   const configured = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/+$/, '');
-  if (/^https?:\/\//.test(configured)) return configured;
   if (request) {
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
-    const proto = request.headers.get('x-forwarded-proto') || 'https';
-    if (host && !/netlify\.app$/i.test(host) && !/^localhost|^127\./.test(host)) return `${proto}://${host}`;
-    if (/^localhost|^127\./.test(host)) return `http://${host}`;
+    let proto = request.headers.get('x-forwarded-proto') || '';
+    if (!proto) { try { proto = new URL(request.url).protocol.replace(':', ''); } catch { proto = 'https'; } }
+    /* Local development and phone testing on the LAN: the request is right,
+       whatever the configured address says. */
+    if (host && LOCAL.test(host)) return `${proto || 'http'}://${host}`;
+    if (/^https?:\/\//.test(configured)) return configured;
+    if (host && !/netlify\.app$/i.test(host)) return `${proto || 'https'}://${host}`;
+    return CANONICAL;
   }
+  if (/^https?:\/\//.test(configured)) return configured;
   return CANONICAL;
 }

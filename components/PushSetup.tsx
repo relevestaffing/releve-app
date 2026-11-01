@@ -46,10 +46,18 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     setEnv(e);
     if (compact) { try { if (localStorage.getItem('releve_push_nudge_dismissed') === '1') setHidden(true); } catch {} }
     if (e.supported && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      /* Already granted on this device: sync the subscription to this account
-         once per page. One idempotent upsert, so a sign-out (which removes the
-         rows) followed by a sign-in on the same device is covered. */
-      ensureSubscribed().then(ok => { if (ok) setState('on'); }).catch(() => {});
+      /* Already granted on this device: assume it is on so the bar never
+         flashes, then sync the subscription to this account once per tab
+         session. One idempotent upsert, so a sign-out (which removes the rows)
+         followed by a sign-in on the same device is covered; if the sync
+         fails the bar comes back. */
+      let synced = false;
+      try { synced = sessionStorage.getItem('releve_push_synced') === '1'; } catch {}
+      setState('on');
+      if (!synced) ensureSubscribed().then(ok => {
+        if (ok) { try { sessionStorage.setItem('releve_push_synced', '1'); } catch {} }
+        else setState('idle');
+      }).catch(() => setState('idle'));
     }
   }, []);
 
@@ -147,6 +155,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
         <button className="push-bar-dismiss" onClick={() => { setHidden(true); try { localStorage.setItem('releve_push_nudge_dismissed', '1'); } catch {} }}>Not now</button>
       </span>
       {state === 'denied' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>Notifications are blocked for this site in your browser settings.</span>}
+      {state === 'error' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>That did not take. Try once more, or write to hello@relevestaffing.com.</span>}
     </div>
   );
   return (

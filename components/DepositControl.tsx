@@ -11,8 +11,8 @@ async function post(body: any) {
   });
 }
 
-/* The $500 taken when a search begins. Non-refundable, and credited against
-   the first monthly invoice — so it is tracked, not just remembered.
+/* The $500 taken when a search begins. Credited against the first monthly
+   invoice, refunded only if no candidate is presented — so it is tracked, not just remembered.
    Marking it paid records money received, so that one change arms a confirm
    first rather than committing on the stray pick of a dropdown. */
 export default function DepositControl({ searchId, clientId, status, cents, invoiced }: {

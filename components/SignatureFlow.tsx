@@ -67,7 +67,9 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
      conditions form is left alone. */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!data || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!data || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      /* Not on the intro, not between sections, not on the result. */
+      if (qi < 0 || interlude || result) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       const k = e.key.toLowerCase();
@@ -81,7 +83,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qi, data, answers, pairs, timings]);
+  }, [qi, data, answers, pairs, timings, interlude, result]);
 
   function note(msg: string) { setChip(msg); setTimeout(() => setChip(null), 2000); }
 

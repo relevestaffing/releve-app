@@ -61,17 +61,10 @@ export async function PATCH(req: Request) {
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   const { id, ...patch } = await req.json().catch(() => ({}));
   if (!id) return NextResponse.json({ error: 'which task?' }, { status: 400 });
+  /* Finishing goes through /api/tasks/item, where the review step lives. */
+  if ('done' in patch || 'status' in patch) return NextResponse.json({ error: 'Use /api/tasks/item to change a task\'s status.' }, { status: 400 });
   try {
-    const after = await updateTask(id, patch, me.id);
-    /* Finishing a task somebody else gave you is the moment they want to
-       hear about; ticking your own is not. */
-    if (after && patch.done === true && after.created_by !== me.id) {
-      try {
-        const by = me.full_name ?? me.email;
-        const who = await personEmail(after.created_by);
-        if (who?.email) await send(who.email, templates.taskDone({ name: who.name, by, title: after.title }));
-      } catch { /* done is done */ }
-    }
+    await updateTask(id, patch, me.id);
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });

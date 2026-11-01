@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { saving, toast } from '@/components/Toast';
 import {
-  DISCIPLINES, DISCIPLINE, PROFS, key, skillsComplete, skillsShape, PICK_ONE_DISCIPLINE,
+  DISCIPLINES, DISCIPLINE, PROFS, key, undash, skillsComplete, skillsShape, PICK_ONE_DISCIPLINE,
   type Prof, type SkillsProfile
 } from '@/lib/roles-public';
 
@@ -17,9 +17,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
   const [picked, setPicked] = useState<string[]>(initial?.disciplines ?? []);
   const [primary, setPrimary] = useState(initial?.primary ?? '');
   const [levels, setLevels] = useState<Record<string, Prof>>(initial?.levels ?? {});
-  /* Choice options were renamed from '50–150' to '50 to 150'; answers saved
-     under the old spelling still select the right button. */
-  const [details, setDetails] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial?.details ?? {}).map(([k, v]) => [k, String(v).replace(/\s*[\u2013\u2014]\s*/g, ' to ')])));
+  const [details, setDetails] = useState<Record<string, string>>(Object.fromEntries(Object.entries(initial?.details ?? {}).map(([k, v]) => [k, undash(String(v))])));
   const [years, setYears] = useState<Record<string, number>>(initial?.years ?? {});
   const [best, setBest] = useState(initial?.best ?? '');
   const [growing, setGrowing] = useState(initial?.growing ?? '');

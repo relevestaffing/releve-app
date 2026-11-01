@@ -515,10 +515,6 @@ export function alertsFor(input: {
     text: `Report for week ending ${c.week_ending} needs a look${c.blocked ? `: "${c.blocked.slice(0, 70)}"` : ''}`
   }));
 
-  const overdue = input.tasks.filter(t => !t.done && t.due_on && t.due_on < today);
-  if (overdue.length >= 3) out.push({ level: 'high', text: `${overdue.length} tasks past their due date` });
-  else if (overdue.length) out.push({ level: 'watch', text: `${overdue.length} task${overdue.length > 1 ? 's' : ''} overdue` });
-
   const daysIn = Math.floor((Date.now() - new Date(input.startedOn + 'T00:00:00').getTime()) / 86400000);
   if (daysIn >= 14 && input.tasks.length === 0)
     out.push({ level: 'high', text: 'Two weeks in and no work has been delegated at all' });

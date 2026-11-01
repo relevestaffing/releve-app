@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { timingSafeEqual } from 'crypto';
 import { send, templates } from '@/lib/email';
+import { dayLabel } from '@/lib/money-public';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,11 +51,11 @@ export async function POST(req: Request) {
     const execName = (p.client?.full_name as string) ?? 'your executive';
 
     if (!t.nudged_on && talentEmail) {
-      const ok = await send(talentEmail, templates.taskOverdue({ name: talentName, title: t.title, due: t.due_on, executive: execName }));
+      const ok = await send(talentEmail, templates.taskOverdue({ name: talentName, title: t.title, due: dayLabel(t.due_on), executive: execName }));
       if (ok) { nudged++; await sb.from('tasks').update({ nudged_on: today }).eq('id', t.id); }
     }
     if (!t.escalated_on && t.due_on <= twoDaysAgo) {
-      teamNotes.push({ talent: (p.talent?.full_name as string) ?? 'Talent', executive: execName, title: t.title, due: t.due_on });
+      teamNotes.push({ talent: (p.talent?.full_name as string) ?? 'Talent', executive: execName, title: t.title, due: dayLabel(t.due_on) });
       await sb.from('tasks').update({ escalated_on: today }).eq('id', t.id);
       escalated++;
     }

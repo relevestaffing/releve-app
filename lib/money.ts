@@ -123,7 +123,7 @@ export async function invoiceDeposit(searchId: string, clientId: string, sb?: Aw
     client_id: clientId, search_id: searchId, kind: 'deposit',
     amount_cents: (search as any)?.deposit_cents ?? DEPOSIT_CENTS, issued_on: today, due_on: today,
     status: 'draft',
-    note: 'Search deposit. Non-refundable, credited against the first monthly invoice.'
+    note: 'Search deposit. Credited against the first monthly invoice; refunded in full if no candidate is presented.'
   }).select().single();
   if (error) throw new Error(error.message);
   return data as Invoice;

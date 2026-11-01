@@ -330,7 +330,7 @@ export async function carryOverToReplacement(fromPlacementId: string, toPlacemen
       due_on: t.due_on, due_time: t.due_time ?? null, repeat_weekly: !!t.repeat_weekly,
       series_id: t.repeat_weekly ? crypto.randomUUID() : null,
       origin: t.origin, origin_note: t.origin_note ? `${t.origin_note} (carried over)` : 'Carried over from the previous placement',
-      created_by: t.created_by, status: t.status ?? 'todo'
+      created_by: t.created_by, status: t.status === 'review' ? 'todo' : (t.status ?? 'todo')
     });
     if (!error) tasks++;
   }
