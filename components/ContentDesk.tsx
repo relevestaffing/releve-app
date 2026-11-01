@@ -47,6 +47,26 @@ const needsDot = (s: string) => ['needs_image', 'needs_video', 'failed', 'held']
 
 /* One easy step a week: pick all your personal photos at once and they fill
    the week's six personal slots in order, each written from its photo. */
+/* Phone photos arrive at 4000px and several megabytes. Claude reads images up
+   to 5 MB, and LinkedIn needs nothing over 2048px, so shrink on the phone
+   before the upload. Anything that cannot be read as an image goes up as is. */
+async function shrinkImage(file: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
+  if (file.size < 1_500_000) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const long = Math.max(bmp.width, bmp.height);
+    const k = Math.min(1, 2048 / long);
+    const w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); if (!ctx) return file;
+    ctx.drawImage(bmp, 0, 0, w, h); bmp.close?.();
+    const blob: Blob | null = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[a-z0-9]+$/i, '') + '.jpg', { type: 'image/jpeg' });
+  } catch { return file; }
+}
+
 function PhotoWeek({ posts, onRefresh }: { posts: Row[]; onRefresh: () => void }) {
   const personal = posts
     .filter(p => p.channel === 'li_personal' && !p.parent_id && p.status !== 'skipped')
@@ -56,7 +76,8 @@ function PhotoWeek({ posts, onRefresh }: { posts: Row[]; onRefresh: () => void }
   if (!personal.length) return null;
   const filled = personal.filter(p => p.image_path).length;
 
-  async function uploadTo(target: Row, file: File) {
+  async function uploadTo(target: Row, picked: File) {
+    const file = await shrinkImage(picked);
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
     const path = `${target.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
     const { error } = await supabaseBrowser().storage.from('content').upload(path, file, { contentType: file.type, upsert: false });
@@ -166,11 +187,11 @@ export default function ContentDesk(props: Props) {
           </div>
           <a className="cd-nudge" aria-label="Later week" href={`/console/content?week=${props.nextWeek}`}>{'›'}</a>
         </div>
-        <button className="btn sm" disabled={!!busy || drafting || !setup.ready}
-          onClick={() => run('draft', 'draft_week', { week: props.week === props.thisWeek ? props.nextWeek : props.week },
+        {props.week >= props.thisWeek && <button className="btn sm" disabled={!!busy || drafting || !setup.ready}
+          onClick={() => run('draft', 'draft_week', { week: props.week },
             'Claude is writing the week. It takes a few minutes; the preview email follows.')}>
-          {drafting ? 'Writing the week…' : posts.length ? 'Fill any empty slots' : 'Write this week now'}
-        </button>
+          {drafting ? 'Writing the week…' : posts.length ? 'Fill any empty slots' : (props.week === props.thisWeek ? 'Write this week now' : 'Write next week now')}
+        </button>}
       </div>
 
       {/* ---- the week at a glance ---- */}
@@ -191,7 +212,7 @@ export default function ContentDesk(props: Props) {
               Nothing posts, and the group and page posts do not go to the VA, until you release the week. Read through the days below, then approve.
             </p>
           </div>
-          <button className="btn on-dark" disabled={!!busy} onClick={() => run('approve', 'approve_week', { week: props.week }, 'Approved. Everything is back on schedule.')}>
+          <button className="btn on-dark" disabled={!!busy} onClick={() => { if (confirm(`Release all ${held} held ${held === 1 ? 'post' : 'posts'}? They post on their schedule and the group and page posts go to the VA.`)) run('approve', 'approve_week', { week: props.week }, 'Approved. Everything is back on schedule.'); }}>
             {busy === 'approve' ? 'Approving…' : 'Approve the week'}
           </button>
         </div>
@@ -310,6 +331,7 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   p: Row; open: boolean; onToggle: () => void; onClose: () => void; groups: { name: string; url: string }[];
   busy: string; run: (k: string, a: string, b?: Record<string, unknown>, ok?: string) => Promise<any>;
 }) {
+  const router = useRouter();
   const [caption, setCaption] = useState(p.caption);
   const [captionFb, setCaptionFb] = useState(p.caption_fb ?? '');
   const [card, setCard] = useState(p.card ?? { kicker: '', quote: '', sub: '' });
@@ -320,9 +342,10 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   const isCopy = Boolean(p.parent_id);
   const photoFirst = p.channel === 'li_personal' && !(p.caption ?? '').trim();
 
-  async function upload(file: File, kind: 'image' | 'video') {
+  async function upload(picked: File, kind: 'image' | 'video') {
     setUploading(true);
     try {
+      const file = kind === 'image' ? await shrinkImage(picked) : picked;
       const ext = (file.name.split('.').pop() || (kind === 'image' ? 'jpg' : 'mp4')).toLowerCase().replace(/[^a-z0-9]/g, '');
       const path = `${p.id}/${Date.now()}.${ext}`;
       const { error } = await supabaseBrowser().storage.from('content').upload(path, file, { contentType: file.type, upsert: false });
@@ -465,12 +488,13 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
             {p.images.length > 0 && <button className="btn sm ghost" disabled={!!getting} onClick={async () => {
               for (let i = 0; i < p.images.length; i++) await download(p.images[i].replace('fmt=png', 'fmt=jpg'), `releve-${p.slot}-${i + 1}.jpg`, 'img');
             }}>{getting === 'img' ? 'Preparing…' : p.images.length === 1 ? 'Download graphic' : `Download ${p.images.length} graphics`}</button>}
-            {!done && !isCopy && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('re' + p.id, 'redraft', { id: p.id }, 'Opus is rewriting this post. It updates here in about two minutes.').then(() => setTimeout(() => window.location.reload(), 120000))}>{label('re', 'Rewrite it', 'Starting…')}</button>}
+            {!done && !isCopy && !photoFirst && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('re' + p.id, p.channel === 'li_personal' && p.image_path ? 'write_image' : 'redraft', { id: p.id }, p.channel === 'li_personal' && p.image_path ? 'Writing the post again from your photo. It updates here in about a minute.' : 'Claude is rewriting this post. It updates here in about two minutes.').then(() => setTimeout(() => router.refresh(), 90000))}>{label('re', p.channel === 'li_personal' && p.image_path ? 'Rewrite from the photo' : 'Rewrite it', 'Starting…')}</button>}
             {['scheduled', 'needs_image', 'needs_video', 'manual'].includes(p.status) && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('h' + p.id, 'hold', { id: p.id }, 'Held')}>{label('h', 'Hold', 'Holding…')}</button>}
             {p.status === 'held' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('r' + p.id, 'resume', { id: p.id }, 'Back on schedule')}>{label('r', 'Release the hold', 'Releasing…')}</button>}
-            {(p.status === 'scheduled' || p.status === 'failed') && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('n' + p.id, p.status === 'failed' ? 'retry' : 'post_now', { id: p.id }, 'Posting now')}>{label('n', p.status === 'failed' ? 'Try again' : 'Post now', 'Posting…')}</button>}
+            {(p.status === 'scheduled' || p.status === 'failed') && <button className="btn sm ghost" disabled={!!busy} onClick={() => { if (p.status === 'failed' || confirm('Post this right now, ahead of its schedule?')) run('n' + p.id, p.status === 'failed' ? 'retry' : 'post_now', { id: p.id }, 'Posting now'); }}>{label('n', p.status === 'failed' ? 'Try again' : 'Post now', 'Posting…')}</button>}
             {p.status === 'manual' && p.channel !== 'li_group' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('m' + p.id, 'mark_posted', { id: p.id }, 'Marked as posted')}>{label('m', 'Mark as posted', 'Saving…')}</button>}
-            {!done && p.status !== 'skipped' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('s' + p.id, 'skip', { id: p.id }, 'Skipped')}>{label('s', 'Skip', 'Skipping…')}</button>}
+            {!done && p.status !== 'skipped' && <button className="btn sm ghost" disabled={!!busy} onClick={() => { if (confirm('Skip this post? It will not go out. You can put it back later.')) run('s' + p.id, 'skip', { id: p.id }, 'Skipped'); }}>{label('s', 'Skip', 'Skipping…')}</button>}
+            {p.status === 'skipped' && <button className="btn sm ghost" disabled={!!busy} onClick={() => run('u' + p.id, 'unskip', { id: p.id }, 'Back on schedule')}>{label('u', 'Put it back', 'Restoring…')}</button>}
             <button className="btn sm ghost" onClick={onClose}>Close</button>
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>{CHANNELS[p.channel].where}. {p.written_by === 'team' ? 'Edited by the team.' : 'Written by Claude.'}</p>

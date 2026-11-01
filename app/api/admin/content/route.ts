@@ -106,6 +106,7 @@ export async function POST(req: Request) {
         await updatePost(post.id, { status: 'held', hold_reason: 'Held by the team.' } as any);
         break;
       case 'resume':
+      case 'unskip':
         if (done) return bad('This one has already gone out.', 409);
         await updatePost(post.id, { status: readyStatus(post), hold_reason: null, error: null } as any);
         break;
@@ -148,6 +149,13 @@ export async function POST(req: Request) {
         /* Photo-first personal posts (no caption yet): write the post from the
            photo she just uploaded, then hold it for her approval. */
         if (post.channel === 'li_personal' && !(post.caption ?? '').trim() && !done) {
+          await updatePost(post.id, { image_path: path, status: 'held', hold_reason: 'Writing your post from the photo\u2026' } as any);
+          if (!(await kick('write_image', { id: post.id }))) await writePostFromImage({ ...post, image_path: path } as any);
+          return ok({ writing: true });
+        }
+        /* A new photo on a personal post Claude wrote: the words were about the
+           old picture, so write them again. Words the team edited are kept. */
+        if (post.channel === 'li_personal' && !done && post.image_path && post.image_path !== path && post.written_by !== 'team') {
           await updatePost(post.id, { image_path: path, status: 'held', hold_reason: 'Writing your post from the photo\u2026' } as any);
           if (!(await kick('write_image', { id: post.id }))) await writePostFromImage({ ...post, image_path: path } as any);
           return ok({ writing: true });

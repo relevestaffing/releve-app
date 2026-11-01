@@ -325,7 +325,7 @@ export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragra
     ${ps ? `<p style="margin:26px 0 0;font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:15.5px;line-height:1.7;color:#6E7F71;">P.S. ${esc(ps)}</p>` : ''}
   </td></tr>
   <tr><td style="padding:24px 56px 40px;border-top:1px solid #E3DCCB;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.75;color:#8A9A8C;">
-    You are receiving The Relève Letter because you shared your email with Relève at relevestaffing.com.<br>
+    You are receiving The Relève Letter because you shared your email with Relève.<br>
     <a href="${esc(unsub)}" style="color:#35443A;text-decoration:underline;">Unsubscribe</a> &nbsp;&middot;&nbsp; Relève Staffing LLC, ${esc(address)}
   </td></tr>
 </table></td></tr></table></body></html>`;
@@ -340,7 +340,7 @@ export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragra
     ...(ps ? ['', `P.S. ${ps}`] : []),
     '',
     '---',
-    'You are receiving The Relève Letter because you shared your email with Relève at relevestaffing.com.',
+    'You are receiving The Relève Letter because you shared your email with Relève.',
     `Unsubscribe: ${unsub}`,
     `Relève Staffing LLC, ${address}`
   ].join('\n');
@@ -415,7 +415,15 @@ export async function sendCampaign(c: Campaign, deadline = Date.now() + 18000) {
     await updateCampaign(c.id, { status: 'held', hold_reason: 'Email sending is not configured on the server.' } as any);
     return { held: true };
   }
-  await updateCampaign(c.id, { status: 'sending', hold_reason: null } as any);
+  /* Claim the campaign before sending so two runners (the hourly job and a
+     "Send on schedule" press) never mail the same person twice. A claim is a
+     scheduled campaign, or a sending one whose last touch is over a minute
+     old (the previous runner stopped at its deadline). */
+  const lease = new Date(Date.now() - 60000).toISOString();
+  const { data: claimed } = await sb().from('campaigns')
+    .update({ status: 'sending', hold_reason: null, updated_at: new Date().toISOString() })
+    .eq('id', c.id).or(`status.eq.scheduled,and(status.eq.sending,updated_at.lt.${lease})`).select('id');
+  if (!claimed?.length) return { sentNow: 0, done: false, busy: true };
   const { tokens, subscribed } = await recipientsFor(c.id);
   const { data: queue } = await sb().from('campaign_sends').select('subscriber_id, email, status').eq('campaign_id', c.id).neq('status', 'sent');
   let sentNow = 0;
@@ -443,7 +451,7 @@ export async function sendCampaign(c: Campaign, deadline = Date.now() + 18000) {
     status: done ? ((delivered ?? 0) > 0 || (total ?? 0) === 0 ? 'sent' : 'failed') : 'sending',
     recipients: total ?? 0, delivered: delivered ?? 0, sent_at: done ? new Date().toISOString() : null
   } as any);
-  return { sentNow, done };
+  return { sentNow, done, delivered: delivered ?? 0, total: total ?? 0 };
 }
 
 export async function sendDue(now = new Date()) {

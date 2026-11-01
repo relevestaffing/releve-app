@@ -37,7 +37,11 @@ export async function POST(req: Request) {
         if (!mailingAddress()) return NextResponse.json({ error: 'Add the mailing address (CAMPAIGN_MAILING_ADDRESS in Netlify) first. The law requires it in every marketing email.' }, { status: 409 });
         await updateCampaign(c.id, { status: 'scheduled', hold_reason: null } as any);
         /* Past its time already? Send it now rather than wait an hour. */
-        if (new Date(c.send_at).getTime() <= Date.now()) await sendCampaign({ ...c, status: 'scheduled' });
+        if (new Date(c.send_at).getTime() <= Date.now()) {
+          const r: any = await sendCampaign({ ...c, status: 'scheduled' });
+          if (r?.done && r.total > 0 && r.delivered === 0) return NextResponse.json({ error: 'The mail host refused every send. The email is marked failed; check the Resend dashboard and press Send on schedule to try again.' }, { status: 502 });
+          if (r?.busy) return NextResponse.json({ ok: true, note: 'It is already sending.' });
+        }
         break;
       case 'cancel':
         if (locked) return NextResponse.json({ error: 'This email has already gone out.' }, { status: 409 });
