@@ -6,6 +6,7 @@ import {
   type TaskComment, type TaskFile, type TaskStatus
 } from '@/lib/experience-public';
 import { saving, toast } from './Toast';
+import Portal from './Portal';
 import { fmtShortDay, fmtWhen } from '@/lib/words';
 import './experience.css';
 
@@ -473,6 +474,7 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
   }
 
   return (
+    <Portal>
     <div className="tb-panel-wrap" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <aside className="tb-panel" role="dialog" aria-label={t.title}>
         <div className="tb-panel-top">
@@ -598,6 +600,7 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
         </div>
       </aside>
     </div>
+    </Portal>
   );
 }
 

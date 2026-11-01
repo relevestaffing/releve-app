@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import Portal from './Portal';
 
 /* A form that opens over the page rather than inside it. The create actions
    on the list pages (send onboarding, write a role) live in a card head now,
@@ -15,9 +16,9 @@ export default function Overlay({ onClose, label, children }: {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <>
+    <Portal>
       <div className="scrim" onClick={onClose} />
       <div className="modal" role="dialog" aria-modal="true" aria-label={label}>{children}</div>
-    </>
+    </Portal>
   );
 }

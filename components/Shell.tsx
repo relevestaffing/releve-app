@@ -341,7 +341,13 @@ export default async function Shell({
           </form>
         </aside>
         <main className="main">
-          <div className="topbar">
+          <div className={`topbar${active === '/app' || active === '/console' ? ' stage' : ''}`}>
+            {(active === '/app' || active === '/console') && (
+              <>
+                <div className="stage-light" aria-hidden="true" />
+                <div className="stage-ring" aria-hidden="true"><i /><i /><i /><b /></div>
+              </>
+            )}
             <div><div className="crumb">{crumb ?? nav.find(g => g.items.some(i => i.href === active))?.group ?? ''}</div><h1>{title}</h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used

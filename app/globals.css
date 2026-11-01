@@ -3527,8 +3527,11 @@ main.main{background:
   radial-gradient(70% 42% at 18% -4%, rgba(176,196,178,.26) 0%, rgba(176,196,178,0) 70%),
   radial-gradient(50% 30% at 92% 12%, rgba(243,239,230,.9) 0%, rgba(243,239,230,0) 70%),
   var(--ground)}
-body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.035;mix-blend-mode:multiply;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+main.main{background-image:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.21 0 0 0 0 0.27 0 0 0 0 0.23 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+  radial-gradient(70% 42% at 18% -4%, rgba(176,196,178,.26) 0%, rgba(176,196,178,0) 70%),
+  radial-gradient(50% 30% at 92% 12%, rgba(243,239,230,.9) 0%, rgba(243,239,230,0) 70%);
+  background-color:var(--ground);background-repeat:repeat,no-repeat,no-repeat}
 
 /* ---- the route line: a thread of fern across the top while a page loads ---- */
 #rv-route{position:fixed;left:0;top:0;height:2px;width:0;background:linear-gradient(90deg,var(--pale),var(--fern));z-index:2147483000;opacity:0;transition:width .35s var(--ease-soft),opacity .3s}
@@ -3542,7 +3545,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opac
     transform:scaleX(0);transform-origin:left;opacity:.55;animation:rvDraw 1.3s var(--ease-out) .15s both, rvLineSettle 1.2s ease 1.3s forwards}
   .topbar .crumb{animation:rvSlideIn .9s var(--ease-out) .05s both}
   .topbar .crumb:not(:empty)::after{transform-origin:left;animation:rvDraw .9s var(--ease-out) .5s both}
-  .topbar-action{animation:rvRise .9s var(--ease-out) .45s both}
+  .topbar-action{animation:rvRise .9s var(--ease-out) .45s backwards}
   /* the cursor light, now on paper */
   .topbar.lit{background:radial-gradient(420px circle at var(--gx,50%) var(--gy,50%), rgba(176,196,178,.22), transparent 66%)}
 }
@@ -3603,6 +3606,8 @@ table.data tbody tr:has(a):hover td{background:#FFFFFF}
 .btn.solid:not(:disabled):hover{transform:translateY(-1px);box-shadow:0 14px 28px -16px rgba(34,48,42,.55)}
 .btn:not(:disabled):active{transform:translateY(0);transition-duration:.1s}
 .btn.solid{color:var(--cream)}
+.btn.solid::after{background:var(--ink);transform:scaleX(0);transform-origin:right;display:block}
+.btn.ghost:not(:disabled):hover,.btn.on-dark:not(:disabled):hover{color:var(--cream);border-color:var(--fern)}
 /* on a fern surface the fill is cream and the text fern */
 .card.dark .btn::before{background:var(--cream)}
 .card.dark .btn::after{background:var(--pale)}
@@ -3644,7 +3649,7 @@ a.side-logo:hover img{transform:translateY(-1px)}
 @keyframes rvUnfurl{from{opacity:0;transform:scale(.6) rotate(-20deg)}to{opacity:1;transform:none}}
 
 /* ---- Ask Relève moves ---- */
-.ask-fab{animation:rvFabIn .9s var(--ease-out) 1.2s both}
+.ask-fab{animation:rvFabIn .9s var(--ease-out) 1.2s backwards}
 @keyframes rvFabIn{from{opacity:0;transform:translateY(16px) scale(.9)}to{opacity:1;transform:none}}
 .ask-fab:not(.open) .ask-fab-mark{animation:rvNod 7s ease-in-out 4s infinite}
 @keyframes rvNod{0%,92%,100%{transform:none}95%{transform:translateY(-2px)}}
@@ -3676,3 +3681,107 @@ a.side-logo:hover img{transform:translateY(-1px)}
 .btn.solid.danger{color:#FBF8F1}
 .btn.ghost.danger:not(:disabled):hover{color:#FBF8F1;border-color:var(--crit)}
 .btn.solid{box-shadow:none}
+
+/* ════════════════════════════════════════════════════════════════════
+   DIMENSION (1 November 2026, night)
+   Nona: "more dramatic. an app I love is Open: breathwork and meditation,
+   I love how modern it feels, I want it to be entrancing and pull your
+   attention in. More dimension and interactive pieces."
+   What Open does: light that moves slowly behind everything, one thing
+   breathing in the middle, glass over depth, long easing, nothing abrupt.
+   Here: an aurora of sage light drifting behind every page, the home
+   pages open on a dark stage with a breathing ring, cards tilt toward the
+   cursor with a sheen, the primary button is magnetic, Ask Relève is
+   glass over the page. Reduced motion turns every bit of it off.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ---- the aurora: three plumes of light drifting behind the page ---- */
+main.main{position:relative;isolation:isolate;overflow:clip}
+main.main::before,main.main::after{content:"";position:absolute;pointer-events:none;z-index:-1;border-radius:50%;will-change:transform;opacity:.9}
+main.main::before{width:62vw;height:62vw;left:-14vw;top:-26vw;background:radial-gradient(circle at 50% 50%, rgba(176,196,178,.55) 0%, rgba(176,196,178,.18) 40%, rgba(176,196,178,0) 70%);animation:rvDriftA 38s ease-in-out infinite alternate}
+main.main::after{width:54vw;height:54vw;right:-20vw;top:18vh;background:radial-gradient(circle at 50% 50%, rgba(243,239,230,1) 0%, rgba(232,226,212,.5) 45%, rgba(232,226,212,0) 72%);animation:rvDriftB 46s ease-in-out infinite alternate}
+@keyframes rvDriftA{from{transform:translate(0,0) scale(1)}50%{transform:translate(9vw,7vh) scale(1.12)}to{transform:translate(3vw,14vh) scale(.96)}}
+@keyframes rvDriftB{from{transform:translate(0,0) scale(1)}50%{transform:translate(-10vw,-6vh) scale(1.08)}to{transform:translate(-4vw,10vh) scale(1.15)}}
+
+/* ---- the stage: the home page opens in the dark, with light moving in it ---- */
+.topbar.stage{position:relative;z-index:1;color:var(--cream)}
+@media (min-width:901px){
+  .topbar.stage{margin:0;padding:96px 72px 92px;border-bottom:0;overflow:hidden;min-height:380px;
+    background:linear-gradient(180deg,#1C2621 0%,#263128 55%,#2E3B33 100%)}
+  .topbar.stage::before{display:none}
+  .topbar.stage + .page-body{margin-top:-44px}
+}
+@media (max-width:900px){
+  .topbar.stage{background:linear-gradient(180deg,#1C2621 0%,#263128 60%,#2E3B33 100%);overflow:hidden;padding-bottom:34px}
+  .topbar.stage .crumb{color:var(--pale)}
+  .topbar.stage h1{color:var(--cream)}
+  .topbar.stage + .page-body{margin-top:-10px}
+}
+.topbar.stage h1{color:var(--cream)}
+.topbar.stage .crumb{color:var(--pale)}
+.topbar.stage .crumb:not(:empty)::after{background:rgba(176,196,178,.5)}
+.topbar.stage .muted,.topbar.stage .small{color:var(--pale)}
+.topbar.stage .btn{border-color:rgba(243,239,230,.6);color:var(--cream)}
+.topbar.stage .btn::before{background:var(--cream)}
+.topbar.stage .btn:not(:disabled):hover{color:var(--fern)}
+.topbar.stage.lit{background:linear-gradient(180deg,#1C2621 0%,#263128 55%,#2E3B33 100%)}
+/* light moving inside the stage */
+.stage-light,.stage-light::before,.stage-light::after{position:absolute;pointer-events:none;border-radius:50%}
+.stage-light{inset:0;overflow:hidden;z-index:0;filter:none;border-radius:0}
+.stage-light::before{content:"";width:70%;height:160%;left:-10%;top:-60%;background:radial-gradient(circle, rgba(176,196,178,.42) 0%, rgba(176,196,178,.1) 45%, rgba(176,196,178,0) 70%);animation:rvDriftA 30s ease-in-out infinite alternate}
+.stage-light::after{content:"";width:60%;height:140%;right:-16%;top:-30%;background:radial-gradient(circle, rgba(243,239,230,.22) 0%, rgba(243,239,230,.06) 45%, rgba(243,239,230,0) 70%);animation:rvDriftB 36s ease-in-out infinite alternate}
+.topbar.stage > *:not(.stage-light):not(.stage-ring){position:relative;z-index:1}
+.topbar.stage .stage-light{position:absolute;z-index:0}
+.topbar.stage .stage-ring{position:absolute;z-index:0}
+/* the breathing ring: one thing, in the dark, that moves like breath */
+.stage-ring{position:absolute;right:72px;top:50%;width:200px;height:200px;margin-top:-100px;pointer-events:none;z-index:0}
+.stage-ring i{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(176,196,178,.55);animation:rvBreath 7s cubic-bezier(.45,0,.3,1) infinite;transform-origin:center}
+.stage-ring i:nth-child(2){animation-delay:-2.33s;border-color:rgba(176,196,178,.35)}
+.stage-ring i:nth-child(3){animation-delay:-4.66s;border-color:rgba(176,196,178,.2)}
+.stage-ring b{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--pale);box-shadow:0 0 30px 8px rgba(176,196,178,.35);animation:rvCore 7s cubic-bezier(.45,0,.3,1) infinite}
+@keyframes rvBreath{0%{transform:scale(.35);opacity:0}30%{opacity:.9}100%{transform:scale(1.15);opacity:0}}
+@keyframes rvCore{0%,100%{transform:scale(.85)}50%{transform:scale(1.25)}}
+@media (max-width:900px){.stage-ring{right:-40px;width:150px;height:150px;margin-top:-75px;opacity:.45}}
+.topbar.stage h1{font-size:clamp(44px,4.2vw,64px);letter-spacing:-.01em}
+
+/* ---- dimension: cards tilt toward the cursor and catch the light ---- */
+@media (pointer:fine) and (min-width:901px){
+  .page-body .card{transition:transform .6s var(--ease-out),border-color .35s,box-shadow .6s var(--ease-out)}
+  .page-body .card.tilt{transform:perspective(1400px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-2px)!important;border-color:rgba(53,68,58,.24);box-shadow:0 40px 80px -50px rgba(34,48,42,.5)}
+  .page-body .card{position:relative}
+  .page-body .card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s;
+    background:radial-gradient(520px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.55), rgba(255,255,255,0) 60%);mix-blend-mode:soft-light}
+  .page-body .card.tilt::after{opacity:1}
+  .page-body .card.dark::after{background:radial-gradient(520px circle at var(--mx,50%) var(--my,50%), rgba(176,196,178,.28), rgba(176,196,178,0) 60%);mix-blend-mode:screen}
+}
+/* the primary button is magnetic (set by Flourish.tsx) */
+.btn.solid{will-change:transform}
+.btn.solid.mag{transform:translate(var(--bx,0),var(--by,0)) translateY(-1px)!important}
+
+/* ---- glass: Ask Relève floats over the page ---- */
+.ask-panel{background:rgba(251,249,245,.84);backdrop-filter:blur(22px) saturate(1.2);-webkit-backdrop-filter:blur(22px) saturate(1.2);box-shadow:0 60px 120px -40px rgba(34,48,42,.5),0 0 0 1px rgba(255,255,255,.5) inset}
+.ask-panel-head{background:rgba(255,255,255,.35)}
+.ask-fab{box-shadow:0 18px 36px -18px rgba(34,48,42,.55),0 0 0 0 rgba(176,196,178,.5);animation:rvFabIn .9s var(--ease-out) 1.2s backwards, rvHalo 5s ease-out 3s 3}
+@keyframes rvHalo{0%{box-shadow:0 18px 36px -18px rgba(34,48,42,.55),0 0 0 0 rgba(176,196,178,.55)}60%{box-shadow:0 18px 36px -18px rgba(34,48,42,.55),0 0 0 18px rgba(176,196,178,0)}100%{box-shadow:0 18px 36px -18px rgba(34,68,42,.55),0 0 0 0 rgba(176,196,178,0)}}
+.ask-fab.open{animation:none}
+
+/* ---- the sidebar gets depth too: the logo breathes with the page ---- */
+.side-logo img{animation:rvLogoIn 1.4s var(--ease-out) both}
+@keyframes rvLogoIn{from{opacity:0;transform:translateY(6px);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}
+
+@media (prefers-reduced-motion:reduce){
+  main.main::before,main.main::after,.stage-light::before,.stage-light::after,.stage-ring i,.stage-ring b,.side-logo img{animation:none!important}
+  .page-body .card.tilt{transform:none!important}
+  .btn.solid.mag{transform:none!important}
+  .ask-fab{animation:none!important}
+}
+
+/* ---- review fixes (Opus, 1 November 2026, night) ---- */
+@media (max-width:900px){
+  main.main::before,main.main::after{animation:none}
+  .quickbar a{color:#9FB0A2}
+  .quickbar .on{color:#FFFFFF}
+  .menu-trigger{background:#FFFFFF}
+}
+.topbar.stage .btn.solid::before{background:var(--cream)}
+.topbar.stage .btn.solid{color:var(--fern)}

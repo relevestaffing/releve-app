@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
+import Portal from './Portal';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { CHANNELS, STATUS_LABEL, STATUS_PILL, type ContentPost, type Slide } from '@/lib/content-model';
 
@@ -613,6 +614,7 @@ function Viewer({ images, start, onClose }: { images: string[]; start: number; o
   );
 
   return (
+    <Portal>
     <div role="dialog" aria-modal="true" aria-label={`Graphic ${i + 1} of ${n}`} onClick={onClose}
       onTouchStart={e => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; }}
       onTouchEnd={e => {
@@ -638,5 +640,6 @@ function Viewer({ images, start, onClose }: { images: string[]; start: number; o
         </div>
       )}
     </div>
+    </Portal>
   );
 }
