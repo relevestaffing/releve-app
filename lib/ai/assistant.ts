@@ -31,6 +31,11 @@ import { ACTION_CATALOG, type Proposal } from './actions';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 export type ChatResult = { reply: string; proposals: Proposal[] };
+export type ChatEvent =
+  | { t: 'text'; d: string }
+  | { t: 'status'; d: string }
+  | { t: 'done'; reply: string; proposals: Proposal[] };
+export type Greeting = { text: string; chips: string[] };
 
 /* Sonnet by default: the answer has to land inside Netlify's 26-second
    request window, lookups included. ANTHROPIC_AI_MODEL overrides. */
@@ -186,6 +191,10 @@ What you never do: invent facts, figures, dates or names that are not in your kn
 
 When you do not know, or the question is about a specific decision on their account (a refund, a date, a change of plan, a dispute, a replacement), say so plainly and hand off: "Your ${p.role === 'talent' ? 'Talent' : 'Client'} Success Manager will pick this up; the Messages page is the fastest way to reach them." Do not pretend to have sent anything.
 
+How you carry a conversation: like Relève's best client success person on a chat window, not a search box. Answer the question first, in the first sentence. When a request could mean two things, ask one short question instead of guessing. Before proposing a change, say in one line what you understood. End with the natural next step when there is one: a question, or a link to the page that does it. Use the person's first name now and then, not in every message. Never open with "Great question" or any filler; never apologise more than once. If they thank you, one warm line back, no recap.
+
+Links: when a page in the app would help, give it as a markdown link with a short label, for example [Open your tasks](/app/tasks) or [See the placement](/console/placements/ID). Only link paths that exist in the knowledge or account summary.
+
 Formatting: plain text. Short paragraphs. If you list steps, number them. Keep answers under 160 words unless the person asks for detail.`;
 
   const founderRules = founder ? `
@@ -203,7 +212,10 @@ You are talking with a team member, not the founder. You may use the lookup tool
 
 /* ---------- the call ---------- */
 
-export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
+/* One turn, streamed. The model's words go to `emit` as they arrive, so the
+   person sees Relève typing instead of a spinner; a lookup in the middle is
+   announced with a status line. `chat` below is the same turn collected. */
+export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent) => void): Promise<ChatResult> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error('The assistant is not switched on yet. Add ANTHROPIC_API_KEY in Netlify.');
   const started = Date.now();
@@ -229,28 +241,72 @@ export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
   while (trimmed.length && trimmed[0].role !== 'user') trimmed = trimmed.slice(1);   // the API needs a user turn first
   const messages: any[] = trimmed.length ? trimmed : [{ role: 'user', content: 'Hello' }];
   const proposals: Proposal[] = [];
-  let reply = '';
+  const parts: string[] = [];
 
   for (let round = 0; round < 5; round++) {
     const left = BUDGET_MS - (Date.now() - started);
-    if (left < 4000) { reply = reply || 'That took longer than the page allows. Ask again in a narrower way.'; break; }
+    if (left < 4000) { if (!parts.length) { const t = 'That took longer than the page allows. Ask again in a narrower way.'; parts.push(t); emit({ t: 'text', d: t }); } break; }
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), left);
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL(), max_tokens: 900, system, messages, ...(tools.length ? { tools } : {}) }),
+      body: JSON.stringify({ model: MODEL(), max_tokens: 900, system, messages, stream: true, ...(tools.length ? { tools } : {}) }),
       signal: ctl.signal
-    }).catch(() => null).finally(() => clearTimeout(timer));
-    if (!res) throw new Error('The assistant did not answer in time. Try again.');
-    const data: any = await res.json().catch(() => null);
-    if (!res.ok || !data) throw new Error(data?.error?.message ? `The assistant could not answer: ${String(data.error.message).slice(0, 140)}` : 'The assistant could not answer.');
+    }).catch(() => null);
+    if (!res) { clearTimeout(timer); throw new Error('The assistant did not answer in time. Try again.'); }
+    if (!res.ok || !res.body) {
+      clearTimeout(timer);
+      const data: any = await res.json().catch(() => null);
+      throw new Error(data?.error?.message ? `The assistant could not answer: ${String(data.error.message).slice(0, 140)}` : 'The assistant could not answer.');
+    }
 
-    const blocks: any[] = data.content ?? [];
-    const text = blocks.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    /* Read the event stream, rebuilding the content blocks as they close. */
+    const blocks: any[] = [];
+    let stop = '';
+    let roundText = '';
+    const open: Record<number, { type: string; text: string; json: string; id?: string; name?: string }> = {};
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl: number;
+        while ((nl = buf.indexOf('\n')) >= 0) {
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+          if (!line.startsWith('data:')) continue;
+          let ev: any; try { ev = JSON.parse(line.slice(5)); } catch { continue; }
+          if (ev.type === 'content_block_start') {
+            const b = ev.content_block ?? {};
+            open[ev.index] = { type: b.type, text: '', json: '', id: b.id, name: b.name };
+            if (b.type === 'tool_use') emit({ t: 'status', d: b.name === 'propose_action' ? 'Writing up a proposal' : 'Looking that up' });
+          } else if (ev.type === 'content_block_delta') {
+            const o = open[ev.index]; if (!o) continue;
+            if (ev.delta?.type === 'text_delta') {
+              const d = nodash(String(ev.delta.text ?? ''));
+              o.text += d; roundText += d;
+              if (d) emit({ t: 'text', d });
+            } else if (ev.delta?.type === 'input_json_delta') o.json += String(ev.delta.partial_json ?? '');
+          } else if (ev.type === 'content_block_stop') {
+            const o = open[ev.index]; if (!o) continue;
+            if (o.type === 'text') blocks.push({ type: 'text', text: o.text });
+            else if (o.type === 'tool_use') { let input: any = {}; try { input = o.json ? JSON.parse(o.json) : {}; } catch {} blocks.push({ type: 'tool_use', id: o.id, name: o.name, input }); }
+            delete open[ev.index];
+          } else if (ev.type === 'message_delta') {
+            if (ev.delta?.stop_reason) stop = ev.delta.stop_reason;
+          } else if (ev.type === 'error') {
+            throw new Error(String(ev.error?.message ?? 'The assistant stopped.').slice(0, 140));
+          }
+        }
+      }
+    } finally { clearTimeout(timer); }
+
+    if (roundText.trim()) parts.push(roundText.trim());
     const uses = blocks.filter(b => b.type === 'tool_use');
-    if (text) reply = text;
-    if (!uses.length || data.stop_reason !== 'tool_use') break;
+    if (!uses.length || stop !== 'tool_use') break;
 
     messages.push({ role: 'assistant', content: blocks });
     const results: any[] = [];
@@ -268,11 +324,96 @@ export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
       results.push({ type: 'tool_result', tool_use_id: u.id, content: String(out).slice(0, 20000) });
     }
     messages.push({ role: 'user', content: results });
+    if (round < 4) emit({ t: 'text', d: '\n\n' });
   }
 
-  reply = nodash(reply || (proposals.length ? 'Here is what I would do. Confirm what you want.' : 'I could not put an answer together. Your Success Manager can help from Messages.'));
+  let reply = parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+  if (!reply) { reply = proposals.length ? 'Here is what I would do. Confirm what you want.' : 'I could not put an answer together. Your Success Manager can help from Messages.'; emit({ t: 'text', d: reply }); }
   logMessage(p, history[history.length - 1]?.content ?? '', reply, proposals.length).catch(() => {});
   return { reply, proposals };
+}
+
+export async function chat(p: Profile, history: Msg[]): Promise<ChatResult> {
+  return chatStream(p, history, () => {});
+}
+
+/* ---------- the opening line ---------- */
+
+/* What a good person on the desk says when the window opens: the person's
+   name, the hour, and the one thing on their account worth mentioning. Built
+   from the account, not the model, so it is on screen before anything else. */
+export async function greet(p: Profile): Promise<Greeting> {
+  const hour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Los_Angeles' }).format(new Date()));
+  const hello = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const first = (p.full_name ?? '').trim().split(/\s+/)[0] || '';
+  const name = first ? `${hello}, ${first}.` : `${hello}.`;
+  const founder = p.role === 'admin' && await isOwner().catch(() => false);
+
+  try {
+    if (p.role === 'admin') {
+      if (!founder) return { text: `${name} Ask me anything across the console and I will look it up.`, chips: ['What is waiting on the team today?', 'Which interviews are coming up?', 'What does the Book say about releases?'] };
+      const { consoleSnapshot } = await import('@/lib/console');
+      const snap = await consoleSnapshot().catch(() => null);
+      const att = snap?.attention ?? [];
+      if (att.length) {
+        const top = att.slice(0, 2).map(a => a.what.replace(/\.$/, '')).join(', and ');
+        return { text: `${name} ${att.length === 1 ? 'One thing needs you' : `${att.length} things need you`} today: ${top}. Where would you like to start?`,
+          chips: ['Walk me through what is waiting', 'Show me this week’s posts', 'Which invoices are open?', 'Hold next Tuesday’s Letter'] };
+      }
+      return { text: `${name} Nothing is waiting on you right now. What would you like to look at?`, chips: ['Show me this week’s posts', 'Which invoices are open?', 'Who is coming up for interview?', 'Hold next Tuesday’s Letter'] };
+    }
+
+    if (p.role === 'client') {
+      const [st, steps, live] = await Promise.all([executiveStage(p.id), setupFor(p).catch(() => []), listPlacementsFor(p.id).catch(() => [])]);
+      const inv = await listInvoicesFor(p.id).catch(() => []);
+      const openInv = inv.filter(i => ['sent', 'failed'].includes(i.status));
+      if (live.length) {
+        const who = (live[0] as any).talent_name ?? 'your assistant';
+        return { text: `${name} ${who} is working with you${openInv.length ? `, and you have ${openInv.length === 1 ? 'an invoice' : `${openInv.length} invoices`} open` : ''}. How can I help today?`,
+          chips: ['What is on the task list?', 'When is the next invoice?', 'How do I give feedback?', 'What does the guarantee cover?'] };
+      }
+      if (st.hiring) return { text: `${name} Your search is under way and your Client Success Manager is on it. I can answer anything about how the matching works while you wait.`, chips: ['How does the matching work?', 'What happens after I approve a candidate?', 'When is my first invoice?', 'What does the guarantee cover?'] };
+      const next = steps.find(s => !s.done);
+      if (next) return { text: `${name} The next step on your account is ${next.title.toLowerCase()}. Want me to walk you through it, or is there something else on your mind?`, chips: [`Walk me through ${next.title.toLowerCase()}`, 'How does the matching work?', 'When is my first invoice?', 'What does the guarantee cover?'] };
+      return { text: `${name} Your setup is complete. What can I help with?`, chips: ['How does the matching work?', 'What happens after I approve a candidate?', 'When is my first invoice?', 'What does the guarantee cover?'] };
+    }
+
+    const [steps, live] = await Promise.all([setupFor(p).catch(() => []), listPlacementsFor(p.id).catch(() => [])]);
+    if (live.length) {
+      const who = (live[0] as any).client_name ?? 'your executive';
+      return { text: `${name} You are placed with ${who}. Ask me about the day to day, your pay, or anything Relève expects of you.`, chips: ['What is on my task list?', 'How am I paid?', 'How do I file the end of week report?', 'What if I need time off?'] };
+    }
+    const left = steps.filter(s => !s.done);
+    if (left.length) return { text: `${name} ${left.length === 1 ? 'One step' : `${left.length} steps`} left on your checklist, starting with ${left[0].title.toLowerCase()}. Want me to explain it?`, chips: [`Explain ${left[0].title.toLowerCase()}`, 'How is The Watch scored?', 'How am I paid?', 'What happens once I am placed?'] };
+    return { text: `${name} Your checklist is complete and Relève is matching you. What would you like to know?`, chips: ['What happens once I am placed?', 'How am I paid?', 'How long does matching take?', 'How do interviews work?'] };
+  } catch {
+    return { text: `${name} What can I help with?`, chips: [] };
+  }
+}
+
+/* The last few exchanges, for the window to open on. Each row is one
+   question and one answer; proposals from the same minute ride along. */
+export async function recentThread(p: Profile): Promise<{ role: 'user' | 'assistant'; content: string; at: string; proposals?: any[] }[]> {
+  if (!hasServiceKey()) return [];
+  const sb = adminClient();
+  const { data } = await sb.from('ai_messages').select('question, answer, proposed, created_at')
+    .eq('user_id', p.id).order('created_at', { ascending: false }).limit(12);
+  const rows = ((data ?? []) as any[]).reverse();
+  if (!rows.length) return [];
+  let actions: any[] = [];
+  if (rows.some(r => r.proposed > 0)) {
+    const since = rows[0].created_at;
+    const { data: a } = await sb.from('ai_actions').select('id, kind, summary, status, result, created_at').eq('user_id', p.id).gte('created_at', since).order('created_at');
+    actions = (a ?? []) as any[];
+  }
+  const out: { role: 'user' | 'assistant'; content: string; at: string; proposals?: any[] }[] = [];
+  for (const r of rows) {
+    out.push({ role: 'user', content: r.question, at: r.created_at });
+    const t = new Date(r.created_at).getTime();
+    const mine = r.proposed > 0 ? actions.filter(x => Math.abs(new Date(x.created_at).getTime() - t) < 90000) : [];
+    out.push({ role: 'assistant', content: r.answer, at: r.created_at, ...(mine.length ? { proposals: mine } : {}) });
+  }
+  return out;
 }
 
 /* Best-effort log: what people ask is the clearest view of what the product

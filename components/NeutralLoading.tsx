@@ -1,23 +1,19 @@
 import './experience.css';
-import { SkelShell, SkelCard, Skel } from './Skeleton';
+import { SkelShell } from './Skeleton';
 
 /* The loading state for any page that has no skeleton of its own: the same
-   fern sidebar and topbar the page is about to have, and two quiet cards.
-   Deliberately shaped like no page in particular, so it never promises a
-   layout (a table, a dashboard) that the page then fails to be. */
+   fern sidebar and topbar the page is about to have, and the Relève mark
+   waiting in the middle with its fill bar, so a slow page looks like Relève
+   taking a moment rather than a blank or a stranger's spinner. */
 export default function NeutralLoading() {
   return (
     <SkelShell>
       <div role="status" aria-live="polite" className="sr-only">Loading</div>
-      <SkelCard titleWidth={170}>
-        <Skel style={{ width: '88%' }} />
-        <Skel style={{ width: '72%' }} />
-        <Skel style={{ width: '54%' }} />
-      </SkelCard>
-      <SkelCard titleWidth={120}>
-        <Skel style={{ width: '80%' }} />
-        <Skel style={{ width: '60%' }} />
-      </SkelCard>
+      <div className="rv-wait" aria-hidden="true">
+        <div className="rv-wait-word">RELÈVE</div>
+        <div className="rv-wait-sub">One moment</div>
+        <div className="rv-wait-bar"><i /></div>
+      </div>
     </SkelShell>
   );
 }

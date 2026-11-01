@@ -37,12 +37,15 @@ export default function AskWidget({ who, founder, starters, managerHref }: {
       {open && (
         <div id="ask-panel" className="ask-panel" role="dialog" aria-label="Ask Relève">
           <div className="ask-panel-head">
-            <div>
-              <div className="ask-panel-title">Ask Relève</div>
-              <div className="xs muted">{who === 'admin' ? (founder ? 'Look things up, or tell it what to fix.' : 'Look things up across the console.') : 'Anything about Relève or your account.'}</div>
+            <div className="ask-presence">
+              <div className="ask-mark lg" aria-hidden="true">R<i /></div>
+              <div>
+                <div className="ask-panel-title">Relève</div>
+                <div className="ask-presence-sub">{who === 'admin' ? (founder ? 'Looks things up, proposes fixes' : 'Looks things up across the console') : 'Usually replies in seconds'}</div>
+              </div>
             </div>
-            <div className="row" style={{ gap: 10, alignItems: 'center' }}>
-              {founder && <a className="xs" href="/console/ask" style={{ textDecoration: 'underline' }}>Log</a>}
+            <div className="row" style={{ gap: 12, alignItems: 'center' }}>
+              {founder && <a className="xs ask-log" href="/console/ask">Log</a>}
               <button type="button" className="ask-panel-close" aria-label="Close" onClick={() => setOpen(false)}>
                 <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
               </button>

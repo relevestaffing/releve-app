@@ -5,6 +5,18 @@ import SWRegister from '@/components/SWRegister';
 import Splash from '@/components/Splash';
 
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
+
+/* [image px width, image px height, CSS width, CSS height, pixel ratio] */
+const STARTUP: [number, number, number, number, number][] = [
+  [1320, 2868, 440, 956, 3], [1290, 2796, 430, 932, 3], [1206, 2622, 402, 874, 3], [1179, 2556, 393, 852, 3],
+  [1170, 2532, 390, 844, 3], [1125, 2436, 375, 812, 3], [1242, 2688, 414, 896, 3], [828, 1792, 414, 896, 2],
+  [1242, 2208, 414, 736, 3], [750, 1334, 375, 667, 2],
+  [2048, 2732, 1024, 1366, 2], [1668, 2388, 834, 1194, 2], [1640, 2360, 820, 1180, 2], [1620, 2160, 810, 1080, 2], [1488, 2266, 744, 1133, 2]
+];
+const STARTUP_IMAGES = STARTUP.map(([w, h, cw, ch, r]) => ({
+  url: `/splash/${w}x${h}.png`,
+  media: `(device-width: ${cw}px) and (device-height: ${ch}px) and (-webkit-device-pixel-ratio: ${r}) and (orientation: portrait)`
+}));
 const TITLE = 'Relève';
 const DESCRIPTION = 'The Relève Signature, talent matching, and placement management.';
 
@@ -21,7 +33,12 @@ export const metadata: Metadata = {
   twitter: { card: 'summary', title: TITLE, description: DESCRIPTION, images: ['/icon-1024.png'] },
   manifest: '/manifest.webmanifest',
   applicationName: 'Relève',
-  appleWebApp: { capable: true, title: 'Relève', statusBarStyle: 'default' },
+  /* Added to the Home Screen, iOS shows these between the tap and the first
+     paint of the page. Without them it shows a black screen in dark mode for
+     as long as the cold launch takes, which on a phone over cellular can be
+     most of ten seconds. One image per device size, cream with the wordmark,
+     the same picture the in-page splash then takes over. */
+  appleWebApp: { capable: true, title: 'Relève', statusBarStyle: 'default', startupImage: STARTUP_IMAGES },
   icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
   formatDetection: { telephone: false }
 };
@@ -31,6 +48,7 @@ export const viewport: Viewport = {
   /* The top of the app on a phone is the cream topbar, not the fern sidebar —
      which is hidden below 900px. Matching it keeps the status bar seamless. */
   themeColor: '#FAF8F2',
+  colorScheme: 'light',          // never a black launch or form controls on a dark phone
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover'          // lets the safe-area insets in globals.css do their job

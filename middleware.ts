@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-/* Keeps the session cookie fresh on every request. */
+/* Keeps the session cookie fresh on every request, cheaply. */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -18,7 +18,11 @@ export async function middleware(request: NextRequest) {
       }
     }
   });
-  await supabase.auth.getUser();
+  /* getClaims verifies the token locally against the project's signing keys
+     (one JWKS fetch, cached), where getUser was a network round trip to the
+     auth server on every single page. A token near expiry still refreshes
+     through the cookie adapter above. */
+  await supabase.auth.getClaims();
   return response;
 }
 export const config = {
@@ -26,6 +30,6 @@ export const config = {
      (and burn a Supabase auth.getUser() call) on every icon, manifest and
      service-worker request. Keep this list in sync with /public. */
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.png|apple-touch-icon\\.png|icon-512\\.png|icon-1024\\.png|logo-.*\\.png|manifest\\.webmanifest|robots\\.txt|sw\\.js).*)'
+    '/((?!_next/static|_next/image|favicon\\.png|apple-touch-icon\\.png|icon-512\\.png|icon-1024\\.png|logo-.*\\.png|manifest\\.webmanifest|robots\\.txt|sw\\.js|splash/.*|fonts/.*).*)'
   ]
 };

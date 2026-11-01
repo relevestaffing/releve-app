@@ -47,7 +47,11 @@ export default async function AppHome() {
   if (profile.role === 'admin') redirect('/console');
 
   const side = profile.role === 'client' ? 'client' : 'talent';
-  const self = await getSelfProfile(profile.id);
+  /* Three reads that only need the profile, in one round trip rather than
+     three; every sequential await here is felt on a phone. */
+  const [self, unrevealed, tz] = await Promise.all([
+    getSelfProfile(profile.id), getUnrevealedPlacement(profile.id, side), viewerTimezone(profile.id)
+  ]);
 
   /* first visit: say hello properly before asking for twenty minutes */
   if (!self.onboarded_at) redirect('/app/welcome');
@@ -55,7 +59,6 @@ export default async function AppHome() {
   /* A placement just confirmed outranks the ordinary dashboard entirely —
      one indexed lookup, for either side, only until that side has seen it
      once. Client and talent each get their own showing, independently. */
-  const unrevealed = await getUnrevealedPlacement(profile.id, side);
   if (unrevealed) redirect('/placement-confirmed');
 
   /* Empty rather than the fallback: these read "Welcome, {name}" and want to
@@ -104,7 +107,6 @@ export default async function AppHome() {
      together rather than one after the next. */
   /* Dates on this page ("today", "day 3 of 14") in the reader's own
      timezone; Pacific, the business's own, when their profile has none. */
-  const tz = await viewerTimezone(profile.id);
   const today = todayIn(tz ?? 'America/Los_Angeles');
   const [placements, deposit, brief, clientAgreement] = await Promise.all([
     side === 'client'
