@@ -16,7 +16,7 @@ export default function DemoSwitch({ current }: { current: string }) {
   }
   return (
     <div className="demo-switch">
-      <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 10 }}>Preview as</div>
+      <div className="eyebrow" style={{ marginBottom: 10 }}>Preview as</div>
       <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
         {[['client', 'Executive'], ['talent', 'Talent'], ['admin', 'Relève'], ['new', 'New sign-up']].map(([k, label]) => (
           <button key={k} onClick={() => to(k)} className={`demo-btn ${current === k ? 'on' : ''}`} aria-pressed={current === k}>{label}</button>

@@ -99,7 +99,7 @@ export default function PlacementReveal({
           min-height: 100vh;
           background: var(--fern);
           color: var(--cream);
-          font-family: 'Tenor Sans', sans-serif;
+          font-family: 'Instrument Sans', sans-serif;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -216,7 +216,7 @@ export default function PlacementReveal({
           display: inline-block;
           background: var(--cream);
           color: var(--fern);
-          font-family: 'Tenor Sans', sans-serif;
+          font-family: 'Instrument Sans', sans-serif;
           font-size: 14.5px;
           letter-spacing: 0.03em;
           padding: 15px 34px;

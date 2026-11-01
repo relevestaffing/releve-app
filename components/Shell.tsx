@@ -341,14 +341,8 @@ export default async function Shell({
           </form>
         </aside>
         <main className="main">
-          <div className={`topbar${active === '/app' || active === '/console' ? ' stage' : ''}`}>
-            {(active === '/app' || active === '/console') && (
-              <>
-                <div className="stage-light" aria-hidden="true" />
-                <div className="stage-ring" aria-hidden="true"><i /><i /><i /><b /></div>
-              </>
-            )}
-            <div><div className="crumb">{crumb ?? nav.find(g => g.items.some(i => i.href === active))?.group ?? ''}</div><h1>{title}</h1></div>
+          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
+            <div className="title-block"><h1>{title}</h1>{crumb && crumb !== title && <p className="page-sub">{crumb}</p>}</div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
                 to sit here unconditionally, which put it above the mobile nav bar

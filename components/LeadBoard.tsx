@@ -12,6 +12,7 @@ import {
 } from '@/lib/prospects-public';
 import { daysBetweenISO } from '@/lib/money-public';
 import { fmtWhen } from '@/lib/words';
+import CheckMark from './CheckMark';
 
 /* The lead board, reworked to feel seamless (28 October 2026). One grouped
    table, a solid coloured status label per row, inline owner and date. Every
@@ -118,7 +119,7 @@ function StatusCell({ stage, onMove }: { stage: ProspectStage; onMove: (s: Prosp
                 onClick={() => { setOpen(false); if (s.key !== stage) onMove(s.key); }}>
                 <span className="status-swatch" style={{ background: s.color }} aria-hidden="true" />
                 {s.label}
-                {s.key === stage && <span className="status-now" aria-hidden="true">✓</span>}
+                {s.key === stage && <span className="status-now" aria-hidden="true"><CheckMark /></span>}
               </button>
             ))}
           </div>

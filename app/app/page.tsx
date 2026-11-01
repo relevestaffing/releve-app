@@ -41,6 +41,13 @@ export const metadata = { title: 'Dashboard' };
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
 
+/* The home greets by the hour in the reader's own timezone, the way a person
+   at the door would. The line under it carries the one fact that matters. */
+function greetingFor(tz: string | null | undefined): string {
+  const h = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tz || 'America/Los_Angeles' }).format(new Date()));
+  return h < 5 ? 'Good evening' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
+
 export default async function AppHome() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
@@ -176,8 +183,8 @@ export default async function AppHome() {
   if (side === 'client' && !stage.placed && !depositSettled) {
     return (
       <Shell profile={profile} active="/app"
-        title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
-        crumb={profile.org_name ?? 'Executive'}>
+        title={`${greetingFor(tz)}${myName ? `, ${myName}` : ''}`}
+        crumb={`${profile.org_name ? `${profile.org_name}. ` : ''}Your deposit opens the search; your Client Success Manager takes it from there.`}>
         {clientAgreement?.state !== 'verified' && (
           <ClientAgreementStatus state={(clientAgreement?.state ?? 'not_started') as any} />
         )}
@@ -192,8 +199,8 @@ export default async function AppHome() {
      simulation, where a placed talent saw only "Before you can be matched". */
   if (!sig && side === 'talent' && placements.length > 0) return (
     <Shell profile={profile} active="/app"
-      title={myName || 'Your account'}
-      crumb={placements.length === 1 ? `Working with ${placements[0].client_name}` : 'Your placements'}>
+      title={`${greetingFor(tz)}${myName ? `, ${myName}` : ''}`}
+      crumb={placements.length === 1 ? `Working with ${placements[0].client_name}${placements[0].org_name ? `, ${placements[0].org_name}` : ''}.` : `${placements.length} placements.`}>
       {offer && <OfferCard offer={offer} side="talent" />}
       {placements.map(p => (
         <div className="card dark" key={`placed-${p.id}`}>
@@ -228,7 +235,8 @@ export default async function AppHome() {
 
   if (!sig && !(side === 'client' && stage.placed)) return (
     <Shell profile={profile} active="/app"
-      title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}>
+      title={`${greetingFor(tz)}${myName ? `, ${myName}` : ''}`}
+      crumb={(() => { const left = steps.filter(x => !x.done); return left.length ? `${left.length === 1 ? 'One step' : `${left.length} steps`} left. Next: ${left[0].title.toLowerCase()}.` : 'Your setup is complete.'; })()}>
       <Checklist steps={steps}
         heading={side === 'client' ? 'Set up your account' : 'Before you can be matched'} />
     </Shell>
@@ -317,8 +325,8 @@ export default async function AppHome() {
 
     return (
       <Shell profile={profile} active="/app"
-        title={myName || 'Your account'}
-        crumb={profile.org_name ?? 'Executive'}>
+        title={`${greetingFor(tz)}${myName ? `, ${myName}` : ''}`}
+        crumb={(() => { const left = steps.filter(x => !x.done); return left.length ? `${profile.org_name ? `${profile.org_name}. ` : ''}Next: ${left[0].title.toLowerCase()}.` : (profile.org_name ?? undefined); })()}>
 
         {offer && <OfferCard offer={offer} side="client" />}
         {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
@@ -403,8 +411,8 @@ export default async function AppHome() {
 
   return (
     <Shell profile={profile} active="/app"
-      title={myName || 'Your account'}
-      crumb={self.headline ?? 'Your account'}>
+      title={`${greetingFor(tz)}${myName ? `, ${myName}` : ''}`}
+      crumb={self.headline ?? undefined}>
 
       {offer && <OfferCard offer={offer} side="talent" />}
 

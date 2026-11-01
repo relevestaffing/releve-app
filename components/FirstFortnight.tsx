@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { saving } from '@/components/Toast';
 import { dueOn, type Step } from '@/lib/care-public';
 import { todayIn } from '@/lib/experience-public';
+import CheckMark from './CheckMark';
 
 const WHOSE: Record<string, string> = {
   client: 'Executive', talent: 'Talent', both: 'Both of you'
@@ -63,10 +64,10 @@ export default function FirstFortnight({ steps, startedOn, side, today: todayPro
               <button className="step-tick" disabled={busy === s.id}
                 onClick={() => tick(s)}
                 aria-label={s.done ? 'Mark not done' : 'Mark done'}>
-                {s.done ? '✓' : ''}
+                {s.done ? <CheckMark /> : null}
               </button>
             ) : (
-              <span className="step-tick" aria-hidden="true">{s.done ? '✓' : ''}</span>
+              <span className="step-tick" aria-hidden="true">{s.done ? <CheckMark /> : null}</span>
             )}
             <div className="step-body">
               <div className="row between" style={{ gap: 10, flexWrap: 'wrap' }}>

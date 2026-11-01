@@ -9,6 +9,7 @@ import { saving, toast } from './Toast';
 import Portal from './Portal';
 import { fmtShortDay, fmtWhen } from '@/lib/words';
 import './experience.css';
+import CheckMark from './CheckMark';
 
 /* The task board.
    --------------
@@ -348,7 +349,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
             <ul className="tb-list done">
               {done.map(t => (
                 <li key={t.id} className="tb-row done">
-                  <button disabled={toggling === t.id} className="tb-check on" onClick={() => reopen(t)} aria-label={`Reopen ${t.title}`}>✓</button>
+                  <button disabled={toggling === t.id} className="tb-check on" onClick={() => reopen(t)} aria-label={`Reopen ${t.title}`}><CheckMark /></button>
                   <button className="tb-main" onClick={() => setOpenId(openId === t.id ? null : t.id)}>
                     <span className="tb-title">{t.title}</span>
                     <span className="tb-sub">Done{t.done_by ? (t.done_by === me ? ' by you' : ` by ${counterpart}`) : ''}{t.done_at ? `, ${fmtWhen(t.done_at, tz)}` : ''}</span>

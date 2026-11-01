@@ -134,23 +134,12 @@ export default function Flourish() {
       if (card) {
         const r = card.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-        const max = r.width > 700 ? 1.6 : 2.6;
+        const max = r.width > 700 ? .8 : 1.4;
         card.style.setProperty('--ry', `${((px - .5) * 2 * max).toFixed(2)}deg`);
         card.style.setProperty('--rx', `${((.5 - py) * 2 * max).toFixed(2)}deg`);
         card.style.setProperty('--mx', `${Math.round(e.clientX - r.left)}px`);
         card.style.setProperty('--my', `${Math.round(e.clientY - r.top)}px`);
         card.classList.add('tilt');
-      }
-      const btn = t?.closest('.btn.solid') as HTMLElement | null;
-      if (btn !== magnet) {
-        if (magnet) { magnet.classList.remove('mag'); magnet.style.removeProperty('--bx'); magnet.style.removeProperty('--by'); }
-        magnet = btn;
-      }
-      if (btn) {
-        const r = btn.getBoundingClientRect();
-        btn.style.setProperty('--bx', `${((e.clientX - (r.left + r.width / 2)) * .16).toFixed(1)}px`);
-        btn.style.setProperty('--by', `${((e.clientY - (r.top + r.height / 2)) * .22).toFixed(1)}px`);
-        btn.classList.add('mag');
       }
     };
     const onLeaveDoc = () => {

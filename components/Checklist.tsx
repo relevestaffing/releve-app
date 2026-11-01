@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Step } from '@/lib/onboarding';
+import CheckMark from './CheckMark';
 
 /* What is left to set up.
    ----------------------
@@ -80,7 +81,7 @@ export default function Checklist({ steps, heading }: { steps: Step[]; heading?:
               there are. The mark is the same tick the website uses. */}
           {rest.map(s => s.done ? (
             <li key={s.key} className="done">
-              <span className="n" aria-hidden>✓</span>
+              <span className="n" aria-hidden><CheckMark /></span>
               <span className="t">{s.title}</span>
               <span className="m">Done</span>
             </li>

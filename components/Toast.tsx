@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import CheckMark from './CheckMark';
 
 /* A small, visible confirmation. Saves used to change a button label at the
    bottom of a long form — easy to miss, and it said "Saved" even when the
@@ -60,7 +61,7 @@ export default function Toaster() {
     <div className="toast-wrap" role="status" aria-live="polite">
       {notes.map(n => (
         <div key={n.id} className={`toast ${n.kind}`}>
-          <span className="toast-mark" aria-hidden="true">{n.kind === 'ok' ? '✓' : '!'}</span>
+          <span className="toast-mark" aria-hidden="true">{n.kind === 'ok' ? <CheckMark /> : '!'}</span>
           {n.text}
         </div>
       ))}

@@ -200,7 +200,7 @@
 /* the panel */
 .tb-panel-wrap{position:fixed;inset:0;z-index:140;background:rgba(34,48,42,.28);display:flex;justify-content:flex-end;animation:tbFade .2s ease both}
 @keyframes tbFade{from{opacity:0}to{opacity:1}}
-.tb-panel{width:min(520px,100%);height:100%;overflow-y:auto;background:#FBF8F1;border-left:1px solid var(--line);
+.tb-panel{width:min(520px,100%);height:100%;overflow-y:auto;background:#F8F9F6;border-left:1px solid var(--line);
   padding:22px 26px 32px;display:flex;flex-direction:column;gap:18px;animation:tbSlide .28s cubic-bezier(.22,.61,.36,1) both;box-shadow:-40px 0 90px -40px rgba(34,48,42,.5)}
 @keyframes tbSlide{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
 .tb-panel-top{display:flex;justify-content:space-between;align-items:center}
