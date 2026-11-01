@@ -52,7 +52,7 @@ function AuditStyle() {
     <style>{`
       :root{--fern:#35443A;--ink:#22302A;--body:#3C463F;--sage:#6E8073;--cream:#F3EFE6;--paper:#FAF8F2;--rule:rgba(53,68,58,.16);--pale:#B0C4B2}
       body{background:var(--paper)}
-      .audit-wrap{max-width:760px;margin:0 auto;padding:46px 22px 90px;font-family:'Instrument Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--body);line-height:1.7}
+      .audit-wrap{max-width:760px;margin:0 auto;padding:46px 22px 90px;font-family:'Tenor Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--body);line-height:1.7}
       .audit-mast{text-align:center;border-bottom:1px solid var(--rule);padding-bottom:26px;margin-bottom:40px}
       .audit-word{display:block;font-family:'Marcellus',serif;font-size:30px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink)}
       .audit-sub{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--sage);margin-top:8px}

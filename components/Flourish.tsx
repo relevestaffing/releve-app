@@ -58,29 +58,6 @@ export default function Flourish() {
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    /* 4. the route line: starts the moment a link inside the app is pressed,
-       completes when the new page has arrived (this effect re-runs on the
-       pathname). A page that never arrives is cleared by the failsafe. */
-    let line = document.getElementById('rv-route');
-    if (!line) { line = document.createElement('div'); line.id = 'rv-route'; document.body.appendChild(line); }
-    if (line.classList.contains('go')) {
-      line.classList.remove('go'); line.classList.add('done');
-      window.setTimeout(() => line?.classList.remove('done'), 700);
-    }
-    let failsafe = 0;
-    const onClick = (e: MouseEvent) => {
-      if (reduced || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-      const a = (e.target as HTMLElement | null)?.closest('a[href]') as HTMLAnchorElement | null;
-      if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
-      const url = new URL(a.href, location.href);
-      if (url.origin !== location.origin || url.pathname === location.pathname) return;
-      if (/^\/api\//.test(url.pathname) || url.pathname.startsWith('/agreement')) return;
-      line?.classList.remove('done'); line?.classList.add('go');
-      window.clearTimeout(failsafe);
-      failsafe = window.setTimeout(() => { line?.classList.remove('go'); line?.classList.add('done'); window.setTimeout(() => line?.classList.remove('done'), 700); }, 2500);
-    };
-    document.addEventListener('click', onClick, true);
-
     /* 2. title rise, replayed on each navigation */
     const h1 = document.querySelector('.topbar h1');
     if (h1 && !reduced) {
@@ -119,44 +96,7 @@ export default function Flourish() {
       bar.addEventListener('mouseleave', leave);
     }
 
-    /* 5. dimension: cards tilt toward the cursor and catch a sheen, the
-       primary button is drawn toward the pointer. Desktop, fine pointer,
-       motion allowed. All of it is CSS variables; nothing is laid out. */
-    let tilted: HTMLElement | null = null;
-    let magnet: HTMLElement | null = null;
-    const onPointer = (e: PointerEvent) => {
-      const t = e.target as HTMLElement | null;
-      const card = t?.closest('.page-body .card') as HTMLElement | null;
-      if (card !== tilted) {
-        if (tilted) { tilted.classList.remove('tilt'); tilted.style.removeProperty('--rx'); tilted.style.removeProperty('--ry'); }
-        tilted = card;
-      }
-      if (card) {
-        const r = card.getBoundingClientRect();
-        const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-        const max = r.width > 700 ? .8 : 1.4;
-        card.style.setProperty('--ry', `${((px - .5) * 2 * max).toFixed(2)}deg`);
-        card.style.setProperty('--rx', `${((.5 - py) * 2 * max).toFixed(2)}deg`);
-        card.style.setProperty('--mx', `${Math.round(e.clientX - r.left)}px`);
-        card.style.setProperty('--my', `${Math.round(e.clientY - r.top)}px`);
-        card.classList.add('tilt');
-      }
-    };
-    const onLeaveDoc = () => {
-      if (tilted) { tilted.classList.remove('tilt'); tilted = null; }
-      if (magnet) { magnet.classList.remove('mag'); magnet = null; }
-    };
-    if (fine && !reduced) {
-      document.addEventListener('pointermove', onPointer, { passive: true });
-      document.documentElement.addEventListener('pointerleave', onLeaveDoc);
-    }
-
     return () => {
-      document.removeEventListener('pointermove', onPointer);
-      document.documentElement.removeEventListener('pointerleave', onLeaveDoc);
-      onLeaveDoc();
-      document.removeEventListener('click', onClick, true);
-      window.clearTimeout(failsafe);
       window.clearTimeout(later);
       io?.disconnect();
       bar?.removeEventListener('mousemove', move);

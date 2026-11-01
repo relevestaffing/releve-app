@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html:not(.js) #rv-splash{display:none}
           #rv-splash .rv-word{font-family:"Marcellus",Georgia,serif;font-size:clamp(40px,12vw,64px);letter-spacing:1px;color:#35443A;line-height:1;position:relative;opacity:0;animation:rvFade .9s ease .1s forwards}
           #rv-splash .rv-word .rv-sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.85) 50%,transparent 58%);background-size:260% 100%;background-position:160% 0;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rvSweep 1.5s ease 1s forwards}
-          #rv-splash .rv-sub{margin-top:16px;font-family:"Instrument Sans","Helvetica Neue",Arial,sans-serif;font-size:13px;letter-spacing:.02em;color:#6E7F71;opacity:0;animation:rvFadeUp .8s ease .55s forwards}
+          #rv-splash .rv-sub{margin-top:16px;font-family:"Tenor Sans","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:5px;text-transform:uppercase;color:#6E7F71;opacity:0;animation:rvFadeUp .8s ease .55s forwards}
           #rv-splash .rv-bar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:rgba(53,68,58,.12)}
           #rv-splash .rv-bar i{display:block;height:100%;width:0;background:#35443A;animation:rvFill 2.6s cubic-bezier(.4,.1,.2,1) .2s forwards}
           @keyframes rvFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -93,7 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ` }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Marcellus&family=WindSong:wght@500&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=WindSong:wght@500&family=Tenor+Sans&display=swap" rel="stylesheet" />
       </head>
       <body>
         <Splash />

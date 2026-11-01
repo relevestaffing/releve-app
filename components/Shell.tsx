@@ -341,8 +341,8 @@ export default async function Shell({
           </form>
         </aside>
         <main className="main">
-          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
-            <div className="title-block"><h1>{title}</h1>{crumb && crumb !== title && <p className="page-sub">{crumb}</p>}</div>
+          <div className="topbar">
+            <div><div className="crumb">{crumb}</div><h1>{title}</h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
                 to sit here unconditionally, which put it above the mobile nav bar
