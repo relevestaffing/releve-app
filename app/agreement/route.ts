@@ -1,3 +1,4 @@
+import { siteOrigin } from '@/lib/site';
 import { NextResponse, type NextRequest } from 'next/server';
 import { currentProfile, configured } from '@/lib/supabase/server';
 
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   /* The configured address, never the one the request arrived on: behind
      Netlify that can be a per-deploy hostname, not app.relevestaffing.com. */
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+  const origin = siteOrigin(request);
   const to = (path: string) => NextResponse.redirect(new URL(path, origin));
 
   if (!configured()) return to('/app');

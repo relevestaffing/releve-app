@@ -256,7 +256,7 @@ const FACET_TALENT: [string, 1 | -1, string][] = [
 
 export const VALIDITY_TALENT: {kind:'im'|'att'|'dup'; text:string; expect?:number; of?:string}[] = [
   { kind:'im',  text:"I have never been irritated by a colleague." },
-  { kind:'att', text:"Not a question, just a check that you are still reading. Please choose “Rarely”.", expect:2 },
+  { kind:'att', text:"Not a question, just a check that you are still reading. Please choose “A little like me”.", expect:2 },
   { kind:'im',  text:"I have never missed a deadline in my life." },
   { kind:'dup', of:"I check my work twice before it leaves my hands.", text:"I look over my work a second time before I send it." },
   { kind:'im',  text:"I admit every mistake immediately, without exception." },
@@ -267,7 +267,7 @@ export const VALIDITY_TALENT: {kind:'im'|'att'|'dup'; text:string; expect?:numbe
 
 export const VALIDITY_CLIENT: {kind:'im'|'att'|'dup'; text:string; expect?:number; of?:string}[] = [
   { kind:'im',  text:"I have never been unfair to someone who works for me." },
-  { kind:'att', text:"Not a question, just a check that you are still reading. Please choose “Rarely”.", expect:2 },
+  { kind:'att', text:"Not a question, just a check that you are still reading. Please choose “A little like me”.", expect:2 },
   { kind:'dup', of:"I say exactly what isn't working, in plain words.", text:"I tell people directly when their work has missed." },
   { kind:'im',  text:"I have never lost patience with anyone at work." },
   { kind:'im',  text:"I have never asked more of someone than was fair, even on a hard week." },

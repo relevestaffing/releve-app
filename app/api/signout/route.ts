@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { siteOrigin } from '@/lib/site';
 import { configured, supabaseServer } from '@/lib/supabase/server';
 import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
 export async function POST(request: Request) {
-  const { origin } = new URL(request.url);
+  const origin = siteOrigin(request);
   if (configured()) {
     const sb = await supabaseServer();
     /* Signing out on a shared machine must also stop its push notifications:

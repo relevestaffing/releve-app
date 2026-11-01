@@ -1,3 +1,4 @@
+import { siteOrigin } from '@/lib/site';
 import { NextResponse } from 'next/server';
 import { cleanToken, unsubscribeByToken, resubscribeByToken } from '@/lib/subscribers';
 
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   const t = new URL(req.url).searchParams.get('t') || '';
-  return NextResponse.redirect(new URL(`/unsubscribe?t=${encodeURIComponent(t)}`, req.url), 303);
+  return NextResponse.redirect(new URL(`/unsubscribe?t=${encodeURIComponent(t)}`, siteOrigin(req)), 303);
 }
 
 export async function POST(req: Request) {

@@ -1,3 +1,4 @@
+import { siteOrigin } from '@/lib/site';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { configured } from '@/lib/supabase/server';
@@ -22,7 +23,8 @@ export const dynamic = 'force-dynamic';
    whatever cookies Supabase wants to set, then writes them onto the exact
    response it is about to return. Deterministic, and nothing is swallowed. */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = siteOrigin(request);
   const code = searchParams.get('code');
 
   const jar: { name: string; value: string; options?: any }[] = [];
