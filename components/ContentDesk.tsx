@@ -45,6 +45,67 @@ function fmtWeek(w: string) {
 const NEEDS = ['needs_image', 'needs_video', 'manual', 'failed'];
 const needsDot = (s: string) => ['needs_image', 'needs_video', 'failed', 'held'].includes(s);
 
+/* One easy step a week: pick all your personal photos at once and they fill
+   the week's six personal slots in order, each written from its photo. */
+function PhotoWeek({ posts, onRefresh }: { posts: Row[]; onRefresh: () => void }) {
+  const personal = posts
+    .filter(p => p.channel === 'li_personal' && !p.parent_id)
+    .sort((a, b) => (a.publish_at < b.publish_at ? -1 : 1));
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState('');
+  if (!personal.length) return null;
+  const filled = personal.filter(p => p.image_path).length;
+
+  async function uploadTo(target: Row, file: File) {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const path = `${target.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+    const { error } = await supabaseBrowser().storage.from('content').upload(path, file, { contentType: file.type, upsert: false });
+    if (error) throw new Error(error.message);
+    await post('set_image', { id: target.id, path });
+  }
+
+  async function onPick(files: FileList) {
+    const chosen = Array.from(files);
+    /* Fill the empty slots first, in day order; if she picked more than are
+       empty, the rest replace from the top. */
+    const empties = personal.filter(p => !p.image_path);
+    const targets = (empties.length ? empties.concat(personal.filter(p => p.image_path)) : personal);
+    setBusy(true);
+    try {
+      for (let i = 0; i < chosen.length && i < targets.length; i++) {
+        setProgress(`Uploading ${i + 1} of ${Math.min(chosen.length, targets.length)}\u2026`);
+        await uploadTo(targets[i], chosen[i]);
+      }
+      toast.ok('Photos uploaded. Each post is being written from its photo, give it a moment.');
+      onRefresh();
+    } catch (e: any) { toast.bad(`Upload stopped. ${e?.message ?? ''}`); }
+    setBusy(false); setProgress('');
+  }
+
+  return (
+    <div className="card">
+      <div className="card-head"><div><div className="crumb">Your personal LinkedIn</div><h3>Photos for this week</h3></div></div>
+      <p className="small muted" style={{ marginTop: 4 }}>
+        Pick your candid photos for the week in one go. Each post is written around its photo, for you to approve. {filled} of {personal.length} added.
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0 14px' }}>
+        {personal.map((p, i) => (
+          <div key={p.id} title={p.day} style={{ width: 74, height: 74, border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#F3EFE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {p.imageSrc
+              ? <img src={p.imageSrc} alt={p.day} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#8A9A8C' }}>{p.day || `#${i + 1}`}</span>}
+          </div>
+        ))}
+      </div>
+      <label className="btn sm solid" style={{ cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.7 : 1 }}>
+        {busy ? (progress || 'Uploading\u2026') : (filled ? 'Add or replace photos' : "Add this week's photos")}
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={busy} style={{ display: 'none' }}
+          onChange={e => { if (e.target.files && e.target.files.length) onPick(e.target.files); e.target.value = ''; }} />
+      </label>
+    </div>
+  );
+}
+
 export default function ContentDesk(props: Props) {
   const router = useRouter();
   const { posts, setup, meta, linkedin } = props;
@@ -136,6 +197,8 @@ export default function ContentDesk(props: Props) {
         </div>
       )}
       {props.draftNext?.status === 'failed' && <p className="small" style={{ margin: '-8px 0 0' }}><span className="pill crit">Drafting stopped</span> {props.draftNext.error}</p>}
+
+      {props.week >= props.thisWeek && <PhotoWeek posts={posts} onRefresh={() => router.refresh()} />}
 
       {/* ---- the week ---- */}
       {posts.length > 0 ? (
