@@ -49,7 +49,7 @@ const needsDot = (s: string) => ['needs_image', 'needs_video', 'failed', 'held']
    the week's six personal slots in order, each written from its photo. */
 function PhotoWeek({ posts, onRefresh }: { posts: Row[]; onRefresh: () => void }) {
   const personal = posts
-    .filter(p => p.channel === 'li_personal' && !p.parent_id)
+    .filter(p => p.channel === 'li_personal' && !p.parent_id && p.status !== 'skipped')
     .sort((a, b) => (a.publish_at < b.publish_at ? -1 : 1));
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('');
