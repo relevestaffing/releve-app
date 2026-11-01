@@ -493,7 +493,11 @@ export function alertsFor(input: {
     let miss = 0;
     for (let i = 1; i <= 3; i++) {
       const d = new Date(input.thisWeek + 'T00:00:00'); d.setUTCDate(d.getUTCDate() - 7 * i);
-      if (!weeks.has(d.toISOString().slice(0, 10))) miss++;
+      const weekEnding = d.toISOString().slice(0, 10);
+      /* A week that ended before the placement began was never owed a
+         report. A brand-new placement used to open with "3 of 3 missing". */
+      if (weekEnding < input.startedOn) continue;
+      if (!weeks.has(weekEnding)) miss++;
     }
     return miss;
   })();

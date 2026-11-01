@@ -28,7 +28,7 @@ import ExecOnboarding from '@/components/ExecOnboarding';
 import GuaranteeBadge from '@/components/GuaranteeBadge';
 import { depositGateFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
-import { firstName, WORDS } from '@/lib/words';
+import { firstName, WORDS, fmtDate } from '@/lib/words';
 import { docusignClientReady, docusignReady } from '@/lib/docusign';
 import { getClientAgreement } from '@/lib/agreement';
 import ClientAgreementCard from '@/components/ClientAgreementCard';
@@ -183,6 +183,46 @@ export default async function AppHome() {
       </Shell>
     );
   }
+
+  /* A talent placed by hand before finishing their setup (the first client's
+     talent, placed from the console) is working from day one: the placement
+     leads, and what is still to do follows. Found in the 1 November launch
+     simulation, where a placed talent saw only "Before you can be matched". */
+  if (!sig && side === 'talent' && placements.length > 0) return (
+    <Shell profile={profile} active="/app"
+      title={myName || 'Your account'}
+      crumb={placements.length === 1 ? `Working with ${placements[0].client_name}` : 'Your placements'}>
+      {offer && <OfferCard offer={offer} side="talent" />}
+      {placements.map(p => (
+        <div className="card dark" key={`placed-${p.id}`}>
+          <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 10 }}>Your placement</div>
+          <h2 style={{ fontSize: 28, color: 'var(--cream)', marginBottom: 8 }}>{p.client_name}{p.org_name ? `, ${p.org_name}` : ''}</h2>
+          <p className="small" style={{ color: '#D9DDD4', maxWidth: 560, margin: 0 }}>
+            Since {fmtDate(p.started_on)}. Your tasks, your briefing and your daily log live here, and your Talent Success Manager is one message away.
+          </p>
+          <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
+            <Link className="btn sm on-dark" href="/app/tasks">Your tasks</Link>
+            <Link className="btn sm ghost on-dark" href="/app/brief">Your briefing</Link>
+            <Link className="btn sm ghost on-dark" href="/app/log">Write today’s log</Link>
+          </div>
+        </div>
+      ))}
+      {placements.map(p => (
+        <PlacementProgress key={`progress-${p.id}`} steps={stepsByPlacement[p.id] ?? []} startedOn={p.started_on}
+          planHref={placements.length === 1 ? '/app/care' : `/app/care/${p.id}`} today={today} />
+      ))}
+      <Checklist steps={steps} heading="Still to do" />
+      {manager && (
+        <div className="card">
+          <div className="card-head"><h3>Your Talent Success Manager</h3></div>
+          <ManagerLine manager={manager} />
+          <div className="row" style={{ marginTop: 16 }}>
+            <Link className="btn sm ghost" href="/app/messages?tab=sm">Message</Link>
+          </div>
+        </div>
+      )}
+    </Shell>
+  );
 
   if (!sig && !(side === 'client' && stage.placed)) return (
     <Shell profile={profile} active="/app"
