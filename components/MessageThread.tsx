@@ -143,7 +143,7 @@ export default function MessageThread({
       <div className="card-head">
         {managerThread && manager
           ? <ManagerLine manager={manager} compact />
-          : <h3>{asTeam || placement || readOnly ? theirName : manager?.title ? `Your ${manager.title}` : 'Your Success Manager'}</h3>}
+          : <h3>{asTeam || placement || readOnly ? theirName : manager?.title ? `Your ${manager.title}` : 'Relève'}</h3>}
         {msgs.length > 0 && <span className="xs muted">{msgs.length} message{msgs.length === 1 ? '' : 's'}</span>}
       </div>
       {managerThread && <p className="xs muted chat-promise">{REPLY_PROMISE}</p>}

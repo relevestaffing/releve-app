@@ -200,7 +200,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <h2 style={{ fontSize: 32, margin: '0 0 16px' }}>{side === 'client' ? 'Executive Signature' : 'Talent Signature'}</h2>
       <p style={{ maxWidth: 680, marginBottom: 14 }}>
         {side === 'talent'
-          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer honestly. A flattering profile in the wrong role is a failed placement, and the controls will find it anyway.'
+          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer as you actually are. An honest profile is what puts you in a role that lasts.'
           : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on, plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
@@ -439,7 +439,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
           )}
         </div>
       )}
-        <p className="small">This is now what every candidate is matched against.</p>
+        <p className="small">{side === 'talent' ? 'This is now what you are matched on.' : 'This is now what every candidate is matched against.'}</p>
         {/* Thirteen to twenty minutes of work used to end at an underlined
             phrase inside a sentence, with no mention of what came next. */}
         <div className="row" style={{ gap: 12, marginTop: 20, flexWrap: 'wrap' }}>

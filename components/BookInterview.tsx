@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/Toast';
+import { zoneLabel } from '@/lib/words';
 
 type Slot = { startISO: string; endISO: string; label: string; day: string };
 
@@ -55,7 +56,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
       <div className="row between" style={{ flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div className="eyebrow" style={{ marginBottom: 6 }}>Interview booked</div>
-          <div className="small"><b>{talentName}</b> · {done.when} ({tz.replace('_', ' ')})</div>
+          <div className="small"><b>{talentName}</b> · {done.when} ({zoneLabel(tz)})</div>
           {done.url
             ? <a className="small" href={done.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>Join link</a>
             : clientId
@@ -80,7 +81,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
         <h3>Times you are both free</h3>
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
-      <p className="xs muted" style={{ marginBottom: 16 }}>Shown in your time ({tz.replace('_', ' ')}). 45 minutes.</p>
+      <p className="xs muted" style={{ marginBottom: 16 }}>Shown in your time ({zoneLabel(tz)}). 45 minutes.</p>
       {Object.entries(byDay).slice(0, 5).map(([day, list]) => (
         <div className="slot-day" key={day}>
           <h4>{day}</h4>

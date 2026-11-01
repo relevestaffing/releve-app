@@ -118,7 +118,7 @@ export default async function ConsoleCalendar() {
                   return (
                     <li key={e.id}>
                       <span className="past-date" style={{ minWidth: 92 }}>
-                        {e.allDay ? 'All day' : `${timeOf(e.start, TZ)} – ${timeOf(e.end, TZ)} ${tzAbbrev(e.start, TZ)}`}
+                        {e.allDay ? 'All day' : `${timeOf(e.start, TZ)} to ${timeOf(e.end, TZ)} ${tzAbbrev(e.start, TZ)}`}
                       </span>
                       <span>
                         <b>{e.title}</b>

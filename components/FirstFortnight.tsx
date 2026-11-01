@@ -41,7 +41,7 @@ export default function FirstFortnight({ steps, startedOn, side, today: todayPro
   return (
     <div className="card">
       <div className="card-head">
-        <h3>{side === 'admin' ? 'The 30/60/90 day plan' : 'Your 30/60/90 day plan'}</h3>
+        <h3>{side === 'admin' ? 'The 90-Day Success Plan' : 'Your 90-Day Success Plan'}</h3>
         <span className="xs muted">{done} of {steps.length} done</span>
       </div>
       <div className="fortnight-bar"><i style={{ width: `${(done / steps.length) * 100}%` }} /></div>

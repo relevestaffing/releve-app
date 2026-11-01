@@ -135,7 +135,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
             <tbody>
               {rest.map(r => (
                 <tr key={r.id}>
-                  <td><b>{r.talent?.full_name ?? r.talent?.email ?? '–'}</b></td>
+                  <td><b>{r.talent?.full_name ?? r.talent?.email ?? '·'}</b></td>
                   <td className="small">{labelOf(r.kind)}</td>
                   <td><span className={`pill ${r.state === 'verified' ? 'good' : r.state === 'rejected' ? 'crit' : ''}`}>
                     {r.state === 'verified' && <span className="dot" />}{VETTING_WORDING[r.state]}</span></td>

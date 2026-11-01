@@ -132,7 +132,7 @@ export default function InvoiceTable({ invoices, stripeOn, methods, owner = fals
                           : i.status === 'draft'
                             ? <span className="xs muted">Send first</span>
                             : ['paid', 'void', 'refunded', 'disputed'].includes(i.status)
-                              ? <span className="xs muted">–</span>
+                              ? <span className="xs muted">·</span>
                               : <ChargeInvoice invoiceId={i.id} amount={money(i.amount_cents, true)}
                                   who={i.org_name ?? i.client_name ?? 'this executive'}
                                   method={m?.ok ? m.label : null} />}

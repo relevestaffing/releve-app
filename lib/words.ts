@@ -41,7 +41,7 @@ export const WORDS = {
 /* One mark for "nothing here": a figure with no value yet, an empty field, a
    date not set. The audit found three ('–', '·', '—') on the same screens;
    the en dash is the one, everywhere. */
-export const DASH = '–';
+export const DASH = '·';
 
 /* ---------- dates ---------- */
 /* One function per shape, so the same field never renders three ways.
@@ -143,7 +143,7 @@ export type Empty = { title: string; body: string; cta?: { label: string; href: 
 export const EMPTY: Record<string, Empty> = {
   shortlist: {
     title: 'Your candidate is being chosen',
-    body: 'Nobody has been put forward yet, and that is deliberate: we do not hand you a stack to sort through. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time. Our promise is a qualified candidate within fourteen days of your search opening.',
+    body: 'Nobody has been put forward yet, and that is deliberate: we do not hand you a stack to sort through. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time. Our 14-Day Placement Guarantee: a qualified candidate within fourteen days of your search opening.',
     cta: { label: 'Ask where things stand', href: '/app/messages' }
   },
   interviewsClient: {
@@ -172,7 +172,7 @@ export const EMPTY: Record<string, Empty> = {
   },
   messages: {
     title: 'No messages yet',
-    body: 'This goes straight to your Success Manager, not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need. A person reads every one and replies within one business day, usually sooner.'
+    body: 'This goes straight to the person looking after you at Relève, not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need. A person reads every one and replies within one business day, usually sooner.'
   },
   careClient: {
     title: 'Nothing here until someone starts',

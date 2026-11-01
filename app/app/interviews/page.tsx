@@ -96,7 +96,7 @@ export default async function Interviews() {
       const slots = overlappingSlots(myAvail, theirs, from, 10, 45,
         [...busy, ...theirBusy], [...myBusyCal, ...theirBusyCal]).slice(0, 20)
         .map(s => ({ ...s, label: formatTime(s.startISO, tz),
-          day: new Intl.DateTimeFormat('en-GB', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(s.startISO)) }));
+          day: new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(s.startISO)) }));
       bookable.push({ id, name: person.name, role: person.role, slots });
     }
   }

@@ -33,7 +33,7 @@ const TALENT: Panel[] = [
       'Verify who you are, and sign your agreement: a document check we run once, never shown to an executive.',
       'Take the Signature: twenty to twenty-five minutes, saved as you go. Nothing is matched until it exists.',
       'Break down your skills. Every discipline you claim opens its own quick breakdown.',
-      'Take the Watch for each discipline you claimed: a real day of work, done once, that clears you to be put forward.'
+      'Complete Taking The Watch for each discipline you claimed: a real day of work, done once, that clears you to be put forward.'
     ],
     note: 'Set your availability along the way, so an executive can actually book you. Once everything is cleared, we do the work. You will hear from your Talent Success Manager when a role fits.' }
 ];

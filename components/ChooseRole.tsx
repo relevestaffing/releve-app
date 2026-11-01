@@ -46,7 +46,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
         <img className="logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="welcome-card">
           <h1>{name ? `Welcome, ${firstName(name)}` : 'Welcome to Relève'}</h1>
-          <p className="lede">Before anything else, which side of this are you on?</p>
+          <p className="lede">First, which of these describes you?</p>
         </div>
 
         <div className="choose-grid">
@@ -73,15 +73,15 @@ export default function ChooseRole({ name }: { name?: string | null }) {
             <h3>Talent</h3>
             <p>
               You want a seat beside one executive, not a queue of tasks from twelve. We place you
-              deliberately, and manage the relationship after you land.
+              deliberately, and support the relationship after you land.
             </p>
             <span className="choose-go">{busy === 'talent' ? 'One moment…' : 'Continue as talent →'}</span>
           </button>
         </div>
 
         <p className="xs muted" style={{ marginTop: 22, maxWidth: 440, marginInline: 'auto' }}>
-          Pick the one that fits. If you choose wrong, your Relève contact can move you across.
-          You just cannot switch yourself once the account is set up.
+          Pick the one that fits. If you choose wrong, your Relève contact can move you across;
+          the account cannot switch itself once it is set up.
         </p>
         {err && <p className="small" style={{ color: 'var(--crit)', marginTop: 14 }}>{err}</p>}
         {/* The one way out that is not a choice: the same quiet sign-out the

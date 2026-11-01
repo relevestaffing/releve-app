@@ -8,7 +8,7 @@ export default function AccountError({ error, reset }: { error: Error & { digest
     <BrandedError
       eyebrow="Your account"
       title="This part of your account did not load"
-      line="Everything you have saved is safe. Try again, or write to us and your Success Manager will pick it up."
+      line="Everything you have saved is safe. Try again, or write to us and a person will pick it up."
       retry={reset} home="/app" digest={error.digest} />
   );
 }

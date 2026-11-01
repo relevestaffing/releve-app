@@ -112,9 +112,9 @@ export default async function ReportPage({ searchParams }: {
             {!r.pulse ? (
               <>
                 <p className="small muted" style={{ marginTop: 0 }}>
-                  {isCurrent ? 'Your monthly pulse for this month is not in yet. It takes a minute, and it comes to us, not to ' + who + '.' : 'No pulse was filed for this month.'}
+                  {isCurrent ? 'Your answer for this month is not in yet. It takes a minute, and it comes to us, not to ' + who + '.' : 'No answer was filed for this month.'}
                 </p>
-                {isCurrent && <Link className="btn sm ghost" href={placements.length > 1 ? `/app/care/${p.id}` : '/app/care'}>File this month’s pulse</Link>}
+                {isCurrent && <Link className="btn sm ghost" href={placements.length > 1 ? `/app/care/${p.id}` : '/app/care'}>Tell us how this month went</Link>}
               </>
             ) : (
               <>

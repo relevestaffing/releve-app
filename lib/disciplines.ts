@@ -82,7 +82,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'inbox_volume', kind: 'choice',
         ask: 'How much email lands on you in a normal day?',
         askTalent: 'What inbox volume have you actually managed?',
-        options: ['Under 50', '50–150', '150–300', '300+'] },
+        options: ['Under 50', '50 to 150', '150 to 300', '300+'] },
       { key: 'access', kind: 'choice',
         ask: 'How much access will they have?',
         askTalent: 'What level of access have you held before?',
@@ -129,7 +129,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'budget_social', kind: 'choice',
         ask: 'Will they handle a paid budget?',
         askTalent: 'What paid budget have you managed?',
-        options: ['No paid spend', 'Under $2k a month', '$2k–$10k a month', '$10k+ a month'] }
+        options: ['No paid spend', 'Under $2k a month', '$2k to $10k a month', '$10k+ a month'] }
     ]
   },
 
@@ -160,7 +160,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'scale_fin', kind: 'choice',
         ask: 'Roughly how many transactions a month?',
         askTalent: 'What transaction volume have you handled?',
-        options: ['Under 50', '50–200', '200–1,000', '1,000+'] },
+        options: ['Under 50', '50 to 200', '200 to 1,000', '1,000+'] },
       { key: 'entities', kind: 'choice',
         ask: 'How many entities or currencies?',
         askTalent: 'Have you worked across entities or currencies?',
@@ -195,7 +195,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'volume_cs', kind: 'choice',
         ask: 'How many customer conversations a day?',
         askTalent: 'What daily volume have you handled?',
-        options: ['Under 10', '10–40', '40–100', '100+'] },
+        options: ['Under 10', '10 to 40', '40 to 100', '100+'] },
       { key: 'channels_cs', kind: 'text',
         ask: 'Which channels?',
         askTalent: 'Which channels have you worked?',
@@ -238,7 +238,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'deal_size', kind: 'choice',
         ask: 'Typical deal size?',
         askTalent: 'What deal sizes have you worked?',
-        options: ['Under $1k', '$1k–$10k', '$10k–$100k', '$100k+'] }
+        options: ['Under $1k', '$1k to $10k', '$10k to $100k', '$100k+'] }
     ]
   },
 
@@ -269,7 +269,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'team_size', kind: 'choice',
         ask: 'How many people will they coordinate?',
         askTalent: 'How many people have you coordinated?',
-        options: ['Just me', '2–5', '6–20', '20+'] },
+        options: ['Just me', '2 to 5', '6 to 20', '20+'] },
       { key: 'authority', kind: 'choice',
         ask: 'How much authority do they have?',
         askTalent: 'What authority have you held?',
@@ -304,11 +304,11 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'list_size', kind: 'choice',
         ask: 'How big is your list or audience?',
         askTalent: 'What audience sizes have you worked with?',
-        options: ['Under 1,000', '1,000–10,000', '10,000–100,000', '100,000+'] },
+        options: ['Under 1,000', '1,000 to 10,000', '10,000 to 100,000', '100,000+'] },
       { key: 'mkt_spend', kind: 'choice',
         ask: 'Monthly marketing spend they would touch?',
         askTalent: 'What monthly spend have you managed?',
-        options: ['None', 'Under $5k', '$5k–$25k', '$25k+'] }
+        options: ['None', 'Under $5k', '$5k to $25k', '$25k+'] }
     ]
   },
 

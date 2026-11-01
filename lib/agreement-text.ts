@@ -14,7 +14,7 @@
      discount), deposit refund exception, 6/3-month terms with 3-month renewals,
      30 days' notice before a term ends, two replacements, Starter buyout figure,
      talent on US business hours with an NDA. */
-export const AGREEMENT_VERSION = 'csa-2026-10-30.2';
+export const AGREEMENT_VERSION = 'csa-2026-11-01.1';
 export const AGREEMENT_TITLE = 'Client Services Agreement';
 export type AgItem = { p?: string; sub?: string; bullet?: string };
 export const AGREEMENT_INTRO: string[] = [
@@ -43,7 +43,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "1.3 Direction and Control of Work"
    },
    {
-    "p": "Client directs the day-to-day performance of the services under each Placement: the specific tasks assigned, their priority and sequencing, the tools and methods used, and the standard the work must meet. Client is solely responsible for supervising and directing Talent’s day-to-day work product and conduct while performing services for Client. Relève’s role is limited to sourcing, matching, administering payment to Talent, and providing relationship management through a Talent Success Manager — regular check-ins, coaching, escalation support, and quality monitoring. Relève does not direct the substance of Talent’s day-to-day work."
+    "p": "Client directs the day-to-day performance of the services under each Placement: the specific tasks assigned, their priority and sequencing, the tools and methods used, and the standard the work must meet. Client is solely responsible for supervising and directing Talent’s day-to-day work product and conduct while performing services for Client. Relève’s role is limited to sourcing, matching, administering payment to Talent, and providing relationship management through a Talent Success Manager: regular check-ins, coaching, escalation support, and quality monitoring. Relève does not direct the substance of Talent’s day-to-day work."
    },
    {
     "sub": "1.4 Client’s Own Compliance"
@@ -66,7 +66,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "2.2 Restriction"
    },
    {
-    "p": "For twelve (12) months from the date Relève introduces a given Talent to Client, Client shall not employ, contract, or otherwise engage that Talent — directly, through an affiliate, or through any third party, and including anyone Client refers the Talent to — outside of Relève, whether or not a Placement with that Talent ever began."
+    "p": "For twelve (12) months from the date Relève introduces a given Talent to Client, Client shall not employ, contract, or otherwise engage that Talent, directly, through an affiliate, or through any third party (including anyone Client refers the Talent to), outside of Relève, whether or not a Placement with that Talent ever began."
    },
    {
     "sub": "2.3 Buyout"
@@ -78,7 +78,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "2.4 Remedy"
    },
    {
-    "p": "If Client breaches this Section, Client shall pay Relève a fee equal to twelve (12) months of the monthly rate applicable to that Talent’s Placement (on the Starter plan, $11,400). This reflects what Relève would reasonably have earned had the Placement continued through Relève, plus the cost of the sourcing, vetting, and matching work already performed — it is a genuine pre-estimate of Relève’s loss, not a penalty — and is in addition to any amounts already owed."
+    "p": "If Client breaches this Section, Client shall pay Relève a fee equal to twelve (12) months of the monthly rate applicable to that Talent’s Placement (on the Starter plan, $11,400). This reflects what Relève would reasonably have earned had the Placement continued through Relève, plus the cost of the sourcing, vetting, and matching work already performed. It is a genuine pre-estimate of Relève’s loss, not a penalty, and is in addition to any amounts already owed."
    },
    {
     "sub": "2.5 Enforceability"

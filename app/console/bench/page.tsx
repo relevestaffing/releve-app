@@ -111,7 +111,7 @@ export default async function Bench() {
       {unbookable.length > 0 && (
         <div className="card" style={{ borderColor: 'rgba(140,74,63,.45)' }}>
           <div className="card-head"><h3>Assessed but not bookable</h3>
-            <span className="pill crit"><span className="dot" />{unbookable.length} to chase</span></div>
+            <span className="pill crit"><span className="dot" />{unbookable.length} to follow up</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
             Complete, but no availability set, so nobody can book them.
           </p>

@@ -43,13 +43,13 @@ export default function WatchScoreForm({ attemptId, existing }: { attemptId: str
     <form onSubmit={submit} className="card">
       <div className="card-head"><h3>Score this attempt</h3></div>
       <div className="grid-2" style={{ gap: 14 }}>
-        <div className="ff"><label htmlFor={`${fid}-1`}>Accuracy <span className="muted">0–100</span></label>
+        <div className="ff"><label htmlFor={`${fid}-1`}>Accuracy <span className="muted">0 to 100</span></label>
           <input id={`${fid}-1`} type="number" name="accuracy" min={0} max={100} defaultValue={existing?.accuracy ?? ''} required /></div>
-        <div className="ff"><label htmlFor={`${fid}-2`}>Judgment / initiative <span className="muted">0–100</span></label>
+        <div className="ff"><label htmlFor={`${fid}-2`}>Judgment / initiative <span className="muted">0 to 100</span></label>
           <input id={`${fid}-2`} type="number" name="judgment" min={0} max={100} defaultValue={existing?.judgment ?? ''} required /></div>
-        <div className="ff"><label htmlFor={`${fid}-3`}>Communication & tone match <span className="muted">0–100</span></label>
+        <div className="ff"><label htmlFor={`${fid}-3`}>Communication & tone match <span className="muted">0 to 100</span></label>
           <input id={`${fid}-3`} type="number" name="communication" min={0} max={100} defaultValue={existing?.communication ?? ''} required /></div>
-        <div className="ff"><label htmlFor={`${fid}-4`}>Time management <span className="muted">0–100</span></label>
+        <div className="ff"><label htmlFor={`${fid}-4`}>Time management <span className="muted">0 to 100</span></label>
           <input id={`${fid}-4`} type="number" name="time_management" min={0} max={100} defaultValue={existing?.time_management ?? ''} required /></div>
       </div>
 

@@ -199,7 +199,7 @@ export default function OfferDesk({ offers, clients, talent }: {
                 <input id={`${fid}-5`} value={f.rate} inputMode="decimal" onChange={e => set('rate', e.target.value)}
                   placeholder="3500" />
                 {outside && <p className="xs muted" style={{ marginTop: 6 }}>
-                  Outside the {money(RATE_MIN_CENTS)}–{money(RATE_MAX_CENTS)} band in your terms.
+                  Outside the {money(RATE_MIN_CENTS)} to {money(RATE_MAX_CENTS)} band in your terms.
                 </p>}</div>
               <div className="ff"><label htmlFor={`${fid}-6`}>The talent is paid (USD/mo)</label>
                 <input id={`${fid}-6`} value={f.pay} inputMode="decimal" onChange={e => set('pay', e.target.value)}

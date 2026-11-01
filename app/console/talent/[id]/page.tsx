@@ -204,7 +204,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
                 <p className="xs muted" style={{ marginBottom: 8 }}>{avail.timezone.replace('_', ' ')}</p>
                 <ul className="plain">
                   {avail.windows.map((w: any, i: number) => (
-                    <li key={i} className="small">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][w.day] ?? w.day} · {w.start}–{w.end}</li>
+                    <li key={i} className="small">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][w.day] ?? w.day} · {w.start} to {w.end}</li>
                   ))}
                 </ul>
               </>
@@ -258,7 +258,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
             <ul className="past-list">
               {placements.map(p => (
                 <li key={p.id}>
-                  <span className="past-date">{dayLabel(p.started_on)}{p.ended_on ? ` – ${dayLabel(p.ended_on)}` : ' →'}</span>
+                  <span className="past-date">{dayLabel(p.started_on)}{p.ended_on ? ` to ${dayLabel(p.ended_on)}` : ' →'}</span>
                   <Link className="small" href={`/console/placements/${p.id}`}>{p.org_name ?? p.client_name}</Link>
                 </li>
               ))}

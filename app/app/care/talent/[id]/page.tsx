@@ -78,7 +78,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
                 </b>
                 {years ? <span className="xs muted">{years} years</span> : null}
               </div>
-              {comps.map(c => {
+              {comps.filter(c => (skills?.levels?.[`${d}.${c.key}`] ?? 'none') !== 'none').map(c => {
                 const level = skills?.levels?.[`${d}.${c.key}`] ?? 'none';
                 const label = PROFS.find(p => p.key === level)?.label ?? 'Never done it';
                 return (

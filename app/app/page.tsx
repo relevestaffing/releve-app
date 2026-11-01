@@ -391,7 +391,7 @@ export default async function AppHome() {
                 <AxisBars values={sig.scores} axes={L2_SHOWN} /></div>
             </div>
             <div className="row" style={{ marginTop: 20 }}>
-              <Link className="btn sm ghost" href="/app/signature">Retake the Signature</Link>
+              <Link className="btn sm ghost" href="/app/signature?retake=1">Retake the Signature</Link>
             </div>
           </div>
         </details>

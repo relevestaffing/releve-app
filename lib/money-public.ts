@@ -146,7 +146,7 @@ export function noticeReasonLabel(key: string | null | undefined): string | null
    because 0.1 + 0.2 is not 0.3 in binary floating point, and a rounding error
    in a retainer is a phone call nobody wants to make. */
 export function money(cents: number | null | undefined, withCents = false): string {
-  if (cents == null) return '–';
+  if (cents == null) return '·';
   return (cents / 100).toLocaleString('en-US', {
     style: 'currency', currency: 'USD',
     minimumFractionDigits: withCents ? 2 : 0,
@@ -188,7 +188,7 @@ export function monthLabel(iso: string | null): string {
 }
 
 export function dayLabel(iso: string | null): string {
-  if (!iso) return '–';
+  if (!iso) return '·';
   return new Date(iso + 'T00:00:00Z')
     .toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }

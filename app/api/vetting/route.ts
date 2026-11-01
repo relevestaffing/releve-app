@@ -45,7 +45,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
-  if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
+  if (!configured()) return NextResponse.json({ error: 'Documents cannot be stored right now. Write to hello@relevestaffing.com and we will arrange it.' }, { status: 400 });
 
   const form = await req.formData();
   const file = form.get('file');

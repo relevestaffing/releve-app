@@ -48,7 +48,7 @@ export function Radar({ series, size = 320, axes, note = true }: {
           </div>
         ))}
         {note && <div className="small muted" style={{ maxWidth: 190, marginTop: 6 }}>
-          Each spoke runs 0–100 from the low pole outward. Exact values are listed below.</div>}
+          Each spoke runs 0 to 100 from the low pole outward. Exact values are listed below.</div>}
       </div>
     </div>
   );

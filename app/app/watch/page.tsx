@@ -32,7 +32,7 @@ export default async function WatchPage() {
             Taking The Watch is built from the disciplines you claim on your Skills page. There is
             nothing generic to test until that is done. Once it is, come back here.
           </p>
-          <Link className="btn sm ghost" href="/app/skills">Open Your Skills</Link>
+          <Link className="btn sm ghost" href="/app/skills">Open your skills</Link>
         </div>
       ) : (
         <>
@@ -41,7 +41,7 @@ export default async function WatchPage() {
               A live, timed simulation of a real day in each discipline you claim: one attempt,
               three hours, completed on your own time once you start it, and paid at $6 an hour. It is
               the one part of intake that is observed rather than reported, and it has to be cleared
-              before you enter the Talent Roster.
+              before you join the roster.
             </Explain>
           </div>
           <WatchBoard items={items} />

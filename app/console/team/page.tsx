@@ -185,7 +185,7 @@ export default async function ConsoleTeam() {
                           <div className="xs muted wrap" style={{ marginTop: 4 }}>
                             {[l.openRequests && `${l.openRequests} request${l.openRequests === 1 ? '' : 's'}`,
                               l.reviewsOverdue && `${l.reviewsOverdue} review${l.reviewsOverdue === 1 ? '' : 's'} due`,
-                              l.flaggedReports && `${l.flaggedReports} report${l.flaggedReports === 1 ? '' : 's'} flagged`]
+                              l.flaggedReports && `${l.flaggedReports} report${l.flaggedReports === 1 ? '' : 's'} up for review`]
                               .filter(Boolean).join(', ')}
                           </div>
                         )}

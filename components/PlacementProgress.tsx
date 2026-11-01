@@ -32,7 +32,7 @@ export default function PlacementProgress({ steps, startedOn, planHref, today: t
   return (
     <div className="card">
       <div className="card-head">
-        <h3>Your 30/60/90 day plan</h3>
+        <h3>Your 90-Day Success Plan</h3>
         <span className="xs muted">{done} of {total} done</span>
       </div>
       <div className="fortnight-bar"><i style={{ width: `${(done / total) * 100}%` }} /></div>

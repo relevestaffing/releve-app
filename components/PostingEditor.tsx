@@ -77,7 +77,7 @@ export default function PostingEditor({ post, onDone }: {
 
       <div className="grid-2">
         <div className="ff"><label htmlFor={`${fid}-7`}>Hours</label>
-          <input id={`${fid}-7`} value={f.hours} onChange={set('hours')} placeholder="Full time · 9–5 Pacific overlap" /></div>
+          <input id={`${fid}-7`} value={f.hours} onChange={set('hours')} placeholder="Full time · 9 to 5 Pacific overlap" /></div>
         <div className="ff"><label htmlFor={`${fid}-8`}>Location</label>
           <input id={`${fid}-8`} value={f.location} onChange={set('location')} placeholder="Remote · Philippines" /></div>
       </div>

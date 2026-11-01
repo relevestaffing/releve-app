@@ -125,7 +125,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
               <dd><Link href={`/console/placements/${terms.replaces.id}`}>{terms.replaces.name}</Link>
                 <div className="xs muted">Carries the rest of that placement&rsquo;s minimum term.</div></dd></>}
             <dt>Minimum term</dt>
-            <dd>{terms?.minimum_ends ? `Through ${dayLabel(addDaysISO(terms.minimum_ends, -1))}` : '–'}</dd>
+            <dd>{terms?.minimum_ends ? `Through ${dayLabel(addDaysISO(terms.minimum_ends, -1))}` : '·'}</dd>
             <dt>Client pays</dt>
             <dd><RateSetter placementId={id} cents={terms?.rate_month_cents ?? null} />
               {terms?.notice_given_on && <div className="xs muted" style={{ marginTop: 4 }}>
@@ -219,7 +219,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
           <>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
               <span className={`pill ${pulse.needs_attention ? 'crit' : 'good'}`}>
-                {GOING.find(g => g.n === pulse.going)?.label ?? '–'}
+                {GOING.find(g => g.n === pulse.going)?.label ?? '·'}
               </span>
               <span className="pill">{WORKLOADS.find(w => w.key === pulse.workload)?.label}</span>
               {pulse.keep_going === false && <span className="pill crit">Would not place again</span>}
@@ -237,7 +237,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
             const st = TIME_OFF_STATE.find(x => x.key === t.state);
             return (
               <div key={t.id} className="row between" style={{ padding: '10px 0', gap: 12, flexWrap: 'wrap' }}>
-                <div><b className="small">{day(t.starts_on)} – {day(t.ends_on)}</b>
+                <div><b className="small">{day(t.starts_on)} to {day(t.ends_on)}</b>
                   <div className="xs muted">{nights(t.starts_on, t.ends_on)} days
                     {t.reason ? ` · ${t.reason}` : ''}{t.cover_note ? ` · cover: ${t.cover_note}` : ''}</div></div>
                 <span className={`pill ${st?.tone ?? ''}`}>{st?.label}</span>

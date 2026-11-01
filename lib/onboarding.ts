@@ -43,7 +43,7 @@ export function talentSteps(o: {
           : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',
       done: idDone, critical: true },
     { key: 'signature', title: o.signatureInvalid ? 'Retake the Talent Signature' : 'Take the Talent Signature',
-      href: o.signatureInvalid ? '/app/signature?retake=1' : '/app/signature', minutes: '20–25 min',
+      href: o.signatureInvalid ? '/app/signature?retake=1' : '/app/signature', minutes: '20 to 25 min',
       blurb: o.signatureInvalid
         ? 'Your last attempt did not pass its own checks, so it cannot be matched. Take it again when you have twenty uninterrupted minutes.'
         : 'How you work and who you are under pressure. Nothing is matched until this is done.',
@@ -51,7 +51,7 @@ export function talentSteps(o: {
     { key: 'skills', title: 'Break down your skills', href: '/app/skills', minutes: '8 min',
       blurb: 'Pick every kind of work you are good at. Each opens its own breakdown. This is what decides the roles you are put forward for.',
       done: !!o.hasSkills, critical: true },
-    { key: 'watch', title: 'Take the Watch', href: '/app/watch', minutes: '2½–3 hrs, per discipline',
+    { key: 'watch', title: 'Taking The Watch', href: '/app/watch', minutes: 'About 3 hrs per discipline',
       blurb: o.watch === 'awaiting_review'
         ? 'Submitted, and with us. Your Talent Success Manager reviews it within two working days and you will hear either way.'
         : o.watch === 'cleared'

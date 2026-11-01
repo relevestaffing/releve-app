@@ -77,7 +77,7 @@ export default function TimeOffForm({ placementId, existing }: {
         return (
           <div key={t.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
             <div>
-              <b className="small">{label(t.starts_on)} – {label(t.ends_on)}</b>
+              <b className="small">{label(t.starts_on)} to {label(t.ends_on)}</b>
               <div className="xs muted">{nights(t.starts_on, t.ends_on)} days{t.reason ? ` · ${t.reason}` : ''}</div>
               {t.cover_note && <div className="xs muted">Cover: {t.cover_note}</div>}
             </div>

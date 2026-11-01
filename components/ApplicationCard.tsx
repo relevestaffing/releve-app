@@ -87,7 +87,7 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             {app.location && ` · ${app.location}`}
             {app.years != null && ` · ${app.years} years`}
             {(app.english_speaking || app.english_writing) &&
-              ` · English (speak/write): ${app.english_speaking ?? '–'} / ${app.english_writing ?? '–'}`}
+              ` · English (speak/write): ${app.english_speaking ?? '·'} / ${app.english_writing ?? '·'}`}
           </div>
           <div className="xs muted" style={{ marginTop: 3 }}>
             Applied {fmtDate(app.created_at)}

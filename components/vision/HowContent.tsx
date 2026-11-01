@@ -61,7 +61,7 @@ export default function HowContent() {
           <div className="money-stat"><div className="n">12</div><div className="k">Working-style axes</div></div>
           <div className="money-stat"><div className="n">18</div><div className="k">Facets measured</div></div>
           <div className="money-stat"><div className="n">1</div><div className="k">Candidate at a time</div></div>
-          <div className="money-stat"><div className="n">14</div><div className="k">Day placement promise</div></div>
+          <div className="money-stat"><div className="n">14</div><div className="k">Day Placement Guarantee</div></div>
         </div>
       </div>
 

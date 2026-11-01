@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
+  if (!configured()) return NextResponse.json({ error: 'Documents cannot be stored right now. Write to hello@relevestaffing.com and we will arrange it.' }, { status: 400 });
   if (!docusignClientReady())
     return NextResponse.json({ error: 'Signing is not switched on for the Client Services Agreement yet.' }, { status: 503 });
 

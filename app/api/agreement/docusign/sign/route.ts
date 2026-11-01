@@ -15,7 +15,7 @@ export async function POST() {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   if (me.role !== 'client') return NextResponse.json({ error: 'executives only' }, { status: 403 });
-  if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
+  if (!configured()) return NextResponse.json({ error: 'Documents cannot be stored right now. Write to hello@relevestaffing.com and we will arrange it.' }, { status: 400 });
   if (!docusignClientReady())
     return NextResponse.json({ error: 'DocuSign is not switched on yet.' }, { status: 503 });
 

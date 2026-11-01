@@ -121,7 +121,7 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
                     <b className="small">{t.talent_name}</b>
                     <span className="xs muted"> · {t.org_name ?? t.client_name}</span>
                     <div className="xs muted">
-                      {day(t.starts_on)} – {day(t.ends_on)} · {nights(t.starts_on, t.ends_on)} days
+                      {day(t.starts_on)} to {day(t.ends_on)} · {nights(t.starts_on, t.ends_on)} days
                       {t.reason ? ` · ${t.reason}` : ''}
                     </div>
                     {t.cover_note && <div className="xs muted">Cover: {t.cover_note}</div>}

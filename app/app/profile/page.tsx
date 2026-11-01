@@ -153,7 +153,7 @@ export default async function ExecProfile() {
                   </>
                 )}
                 <div className="row" style={{ marginTop: 20 }}>
-                  <a className="btn sm ghost" href="/app/signature">Retake the Signature</a>
+                  <a className="btn sm ghost" href="/app/signature?retake=1">Retake the Signature</a>
                 </div>
               </div>
             </details>

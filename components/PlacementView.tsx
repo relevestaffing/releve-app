@@ -156,7 +156,7 @@ export default async function PlacementView({
                 <div className="fb-scores">
                   {FEEDBACK_SCORES.map(s => (
                     <div key={s.key} className="fb-score">
-                      <div className="n">{f[s.key] ?? '–'}<small> / 5</small></div>
+                      <div className="n">{f[s.key] ?? '·'}<small> / 5</small></div>
                       <div className="k">{s.label}</div>
                     </div>
                   ))}

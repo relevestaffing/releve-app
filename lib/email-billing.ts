@@ -87,11 +87,11 @@ export const billingTemplates = {
   placementPausedTalent(o: { name: string; executive: string }) {
     return msg('placementPausedTalent',
       `A short pause with ${o.executive}`,
-      `${o.name},\n\nWe have paused your placement with ${o.executive} for a few days while we settle an administrative matter on their account. Nothing about your work has changed, and you will be paid for every day you have worked.\n\nPlease hold new work for ${o.executive} until we write again, which we will the moment it resumes. Questions any time: just reply.${SIGN}`,
+      `${o.name},\n\nWe have paused your placement with ${o.executive} for a few days while we settle an administrative matter on their account. Nothing about your work has changed, and you will be paid for every day you have worked.\n\nPlease hold new work for ${o.executive} until we write again, which we will the moment it resumes. Questions any time: reply to this email.${SIGN}`,
       shell(`A short pause with ${esc(o.executive)}`,
         p(`${esc(o.name)},`) +
         p(`We have paused your placement with <b>${esc(o.executive)}</b> for a few days while we settle an administrative matter on their account. Nothing about your work has changed, and you will be paid for every day you have worked.`) +
-        p(`Please hold new work for ${esc(o.executive)} until we write again, which we will the moment it resumes. Questions any time: just reply.`),
+        p(`Please hold new work for ${esc(o.executive)} until we write again, which we will the moment it resumes. Questions any time: reply to this email.`),
         { label: 'Open your account', href: `${SITE}/app` }));
   },
 

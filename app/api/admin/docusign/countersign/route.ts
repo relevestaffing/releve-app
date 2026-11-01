@@ -17,7 +17,7 @@ const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com'
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
+  if (!configured()) return NextResponse.json({ error: 'Documents cannot be stored right now. Write to hello@relevestaffing.com and we will arrange it.' }, { status: 400 });
 
   const b = await req.json().catch(() => ({}));
   const kind = String(b.kind ?? '');

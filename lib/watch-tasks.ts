@@ -66,7 +66,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
     timeLimitMinutes: 180,
     scenario:
       'You are the new Social Media Manager for Fieldwork, a direct-to-consumer boot brand. Their voice is ' +
-      'plainspoken and a little dry, never exclamation-point-cheerful. Audience: outdoorsy professionals, 28–45.',
+      'plainspoken and a little dry, never exclamation-point-cheerful. Audience: outdoorsy professionals, 28 to 45.',
     tasks: [
       {
         key: 'content_calendar',
@@ -160,7 +160,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
         key: 'deescalation',
         title: 'De-escalating an angry customer',
         prompt:
-          'A customer is on their fourth message, increasingly heated, because a refund promised "5–7 business ' +
+          'A customer is on their fourth message, increasingly heated, because a refund promised "5 to 7 business ' +
           'days" by a colleague is now on day 11. It is genuinely stuck in a processing backlog on the payment ' +
           'provider’s side, not something support can force through faster. Write the reply.',
         placeholder: ''
@@ -181,7 +181,7 @@ export const WATCH_TEMPLATES: Record<string, WatchTemplate> = {
     disciplineKey: 'sales',
     timeLimitMinutes: 180,
     scenario:
-      'You support the sales pipeline for Ardent, a B2B scheduling software company selling $8k–$40k annual deals, in HubSpot.',
+      'You support the sales pipeline for Ardent, a B2B scheduling software company selling $8k to $40k annual deals, in HubSpot.',
     tasks: [
       {
         key: 'followup_sequence',

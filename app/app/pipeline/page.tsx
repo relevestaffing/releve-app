@@ -234,7 +234,7 @@ export default async function Pipeline() {
             <div style={{ marginBottom: 14 }}>
               <Explain>
                 People you have already declined. They are never told, and never shown why.
-                If you change your mind about someone, tell your manager and we will bring
+                If you change your mind about someone, tell your Client Success Manager and we will bring
                 them back.
               </Explain>
             </div>

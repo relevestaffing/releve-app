@@ -27,7 +27,7 @@ export default function GuaranteeBadge({ openedAt, firstCandidateOn, guaranteeDa
       <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0 }}>
           <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 6 }}>
-            {days}-day promise: a qualified candidate within {days} days
+            The 14-Day Placement Guarantee: a qualified candidate within {days} days
           </div>
           <p className="small" style={{ color: 'var(--cream)', margin: 0, maxWidth: 560 }}>
             {met

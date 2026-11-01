@@ -194,7 +194,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
   nav.push({ items: [{ href: '/app/messages', label: 'Messages' }] });
   /* The vision screens recede here once the deposit is in — out of the daily
      menu, but one link away for a client who wants to revisit them. */
-  nav.push({ items: [{ href: '/app/how', label: 'About Relève' }] });
+  nav.push({ items: [{ href: '/app/how', label: 'How Relève works' }] });
   nav.push({ items: [{ href: '/app/resources', label: 'Free resources' }] });
   return nav;
 }

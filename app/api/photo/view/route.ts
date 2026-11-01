@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   if (!who || !/^[0-9a-f-]{36}$/i.test(who))
     return NextResponse.json({ error: 'no such photo' }, { status: 400 });
 
-  if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 404 });
+  if (!configured()) return NextResponse.json({ error: 'Documents cannot be stored right now. Write to hello@relevestaffing.com and we will arrange it.' }, { status: 404 });
 
   const sb = await supabaseServer();
 

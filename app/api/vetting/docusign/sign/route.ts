@@ -20,7 +20,7 @@ export async function POST() {
   // talent have an agreement to sign here, so a signed-in executive hitting it directly
   // no longer triggers an unwanted send. (Still scoped to the caller's own account either way.)
   if (me.role !== 'talent') return NextResponse.json({ error: 'not available for this account' }, { status: 403 });
-  if (!configured()) return NextResponse.json({ error: 'no storage in demo mode' }, { status: 400 });
+  if (!configured()) return NextResponse.json({ error: 'Documents cannot be stored right now. Write to hello@relevestaffing.com and we will arrange it.' }, { status: 400 });
   if (!docusignReady())
     return NextResponse.json({ error: 'DocuSign is not switched on yet.' }, { status: 503 });
 

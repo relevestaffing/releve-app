@@ -76,7 +76,7 @@ export default function FounderBand({ trend }: { trend: Trend }) {
           </div>
           <div className="founder-tile">
             <div className="eyebrow">Seats kept</div>
-            <div className="founder-t-n">{trend.retentionPct == null ? '–' : `${trend.retentionPct}%`}</div>
+            <div className="founder-t-n">{trend.retentionPct == null ? '·' : `${trend.retentionPct}%`}</div>
           </div>
         </div>
       </div>
