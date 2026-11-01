@@ -22,7 +22,7 @@ export default function EmailCheck() {
     <div className="card tight">
       <div className="row between" style={{ gap: 14, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 240 }}>
-          <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)' }}>Is email working?</b>
+          <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)' }}>Is email working?</b>
           <div className="small muted" style={{ marginTop: 3 }}>
             Every notification in the platform fails quietly if it is not. This sends one
             to you and reports exactly what the mail host said.

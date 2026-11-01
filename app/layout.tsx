@@ -1,4 +1,5 @@
 import './globals.css';
+import './evergreen.css';
 import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
 import SWRegister from '@/components/SWRegister';

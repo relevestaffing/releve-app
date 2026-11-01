@@ -48,7 +48,7 @@ export default async function ExecProfile() {
           <Portrait id={profile.id} name={initial.full_name ?? ''} cls="lg" url={initial.photo_url} />
           <div>
             <h2 style={{ fontSize: 24, color: 'var(--cream)', marginBottom: 6 }}>{initial.full_name || 'Your name'}</h2>
-            <p style={{ fontFamily: 'Marcellus,serif', fontSize: 16, color: 'var(--pale)' }}>
+            <p style={{ fontFamily: 'var(--display)', fontSize: 16, color: 'var(--pale)' }}>
               {[initial.headline, initial.org_name].filter(Boolean).join(' · ') || 'Your title and company'}
             </p>
           </div>
@@ -80,7 +80,7 @@ export default async function ExecProfile() {
           <div className="card dark">
             <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your {WORDS.execSignature}</div>
             <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
-            <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
+            <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
             <p className="small" style={{ maxWidth: 640 }}>{type.d}</p>
           </div>
 
@@ -136,13 +136,13 @@ export default async function ExecProfile() {
                     <div className="grid-2">
                       {L2_SHOWN.map(t => (
                         <div key={t.key} style={{ marginBottom: 18 }}>
-                          <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
+                          <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
                           {facetDetail('client', sig.facets).filter(f => f.trait === t.key).map(f => (
                             <div className="row between" key={f.key} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)', gap: 14 }}>
                               <span className="small">{f.name}</span>
                               <div className="row" style={{ gap: 10 }}>
                                 <div className="bar-mini" style={{ width: 56 }}><span style={{ width: `${f.value}%` }} /></div>
-                                <span className="small" style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', width: 26, textAlign: 'right' }}>{f.value}</span>
+                                <span className="small" style={{ fontFamily: 'var(--display)', color: 'var(--fern)', width: 26, textAlign: 'right' }}>{f.value}</span>
                               </div>
                             </div>
                           ))}
@@ -169,7 +169,7 @@ export default async function ExecProfile() {
             </div>
             {brief.stage && <span className="pill">{brief.stage}</span>}
           </div>
-          <p style={{ fontFamily: 'Marcellus,serif', fontSize: 21, color: 'var(--fern)', marginBottom: 14 }}>{brief.role_title}</p>
+          <p style={{ fontFamily: 'var(--display)', fontSize: 21, color: 'var(--fern)', marginBottom: 14 }}>{brief.role_title}</p>
           <dl className="brief-facts">
             {brief.scope && <><dt>Owns</dt><dd>{brief.scope}</dd></>}
             {brief.hours && <><dt>Hours</dt><dd>{brief.hours}</dd></>}

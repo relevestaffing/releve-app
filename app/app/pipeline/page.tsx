@@ -204,7 +204,7 @@ export default async function Pipeline() {
                 {checks.map(c => (
                   <div className="row between" key={c.label} style={{ padding: '11px 0', borderBottom: '1px solid var(--line)', gap: 16 }}>
                     <div style={{ flex: 1 }}>
-                      <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 14 }}>{c.label}</b>
+                      <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 14 }}>{c.label}</b>
                       <div className="xs muted">{c.note}</div>
                     </div>
                     {/* An executive is never shown a red "Fails" about a person we
@@ -244,7 +244,7 @@ export default async function Pipeline() {
                 <div className="row">
                   <Portrait id={person.id} name={person.name} url={person.photo_url} />
                   <div>
-                    <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 14 }}>{person.name}</b>
+                    <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 14 }}>{person.name}</b>
                     <div className="xs muted">{person.role} · {match.overall}% fit</div>
                   </div>
                 </div>

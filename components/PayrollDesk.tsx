@@ -179,7 +179,7 @@ export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout:
   return (
     <div className="row between" style={{ gap: 14, flexWrap: 'wrap' }}>
       <div>
-        <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)' }}>{p.talent_name ?? 'Someone'}</b>
+        <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)' }}>{p.talent_name ?? 'Someone'}</b>
         <div className="xs muted">
           {periodLabel(p.period_start)}{p.client_name ? ` · with ${p.client_name}` : ''} · {money(p.amount_cents, true)} USD
           {p.sent_cents != null && p.sent_cents !== p.amount_cents ? ` · sent ${money(p.sent_cents, true)}` : ''}

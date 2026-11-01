@@ -189,7 +189,7 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
           return (
             <div key={i}>
               {divider && <div className="ask-day"><span>{dayLabel(m.at)}</span></div>}
-              <div className={`ask-msg${run ? ' run' : ''}`}>
+              <div className={`ask-msg${run ? ' run' : ''}${m.greeting ? ' greet' : ''}`}>
                 {!run ? <div className="ask-mark" aria-hidden="true">R</div> : <div className="ask-mark gap" aria-hidden="true" />}
                 <div className="ask-bubble">
                   {!run && <div className="ask-who">Relève<span>{typing ? '' : clock(m.at)}</span></div>}

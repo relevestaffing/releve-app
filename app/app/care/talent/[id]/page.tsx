@@ -44,7 +44,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
           <Portrait id={id} name={placement.talent_name} cls="lg" url={self.photo_url} />
           <div>
             <h2 style={{ fontSize: 24, color: 'var(--cream)', marginBottom: 6 }}>{placement.talent_name}</h2>
-            <p style={{ fontFamily: 'Marcellus,serif', fontSize: 16, color: 'var(--pale)' }}>
+            <p style={{ fontFamily: 'var(--display)', fontSize: 16, color: 'var(--pale)' }}>
               {[self.headline, self.years_exp ? `${self.years_exp} years` : null, self.location, self.english]
                 .filter(Boolean).join(' · ') || 'Their profile'}
             </p>
@@ -73,7 +73,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
           return (
             <div key={d} style={{ marginBottom: 22 }}>
               <div className="row between" style={{ marginBottom: 10 }}>
-                <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>
+                <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>
                   {DISCIPLINE[d]?.name ?? d}
                 </b>
                 {years ? <span className="xs muted">{years} years</span> : null}

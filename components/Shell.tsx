@@ -229,6 +229,19 @@ async function unreadCount(profile: Profile): Promise<number> {
   } catch { return 0; }
 }
 
+/* The page title, word by word: each word rises out of its own mask in
+   turn, the way the website's hero headline does (see .topbar h1 .w in
+   app/evergreen.css). Whatever follows a comma ("Good afternoon, Elena")
+   is the name, set in the pale green. */
+function Title({ text }: { text: string }) {
+  const i = text.indexOf(', ');
+  const nameFrom = i > 0 && i < text.length - 3 ? text.slice(0, i + 1).split(' ').length : Infinity;
+  const words = text.split(' ');
+  return <>{words.map((w, n) => (
+    <span key={n}>{n > 0 && ' '}<span className={`w${n >= nameFrom ? ' name' : ''}`}><span style={{ ['--i' as any]: n }}>{w}</span></span></span>
+  ))}</>;
+}
+
 export default async function Shell({
   profile, active, title, crumb, action, children
 }: {
@@ -305,7 +318,7 @@ export default async function Shell({
         profileHref={profileHref} unread={unread} messagesHref={messagesHref} />
       <div className="shell">
         <aside className="side">
-          <Link href={home} className="side-logo"><img src="/logo-fern.png" alt="Relève" /></Link>
+          <Link href={home} className="side-logo"><img src="/logo-white.png" alt="Relève" /></Link>
           {profileHref ? (
             <Link href={profileHref} className="side-role">
               <div className="eyebrow">{WHO[profile.role]}</div>
@@ -341,8 +354,9 @@ export default async function Shell({
           </form>
         </aside>
         <main className="main">
-          <div className="topbar">
-            <div><div className="crumb">{crumb}</div><h1>{title}</h1></div>
+          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
+            <span className="band-light" aria-hidden="true" />
+            <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
                 to sit here unconditionally, which put it above the mobile nav bar

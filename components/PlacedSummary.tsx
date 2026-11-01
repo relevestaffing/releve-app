@@ -37,7 +37,7 @@ export default function PlacedSummary({
                 style={{ gap: 14, textDecoration: 'none', color: 'inherit' }}>
                 <Portrait id={p.talent_id} name={p.talent_name} />
                 <div>
-                  <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>
+                  <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>
                     {p.talent_name}
                   </b>
                   <div className="xs muted">Since {dayLabel(p.started_on)}</div>

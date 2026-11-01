@@ -49,7 +49,7 @@ export default async function SignaturePage({ searchParams }: {
         <div className="card dark">
           <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your Signature</div>
           <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
-          <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
+          <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
           <p className="small" style={{ maxWidth: 640, marginBottom: 18 }}>{type.d}</p>
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
             <span className="pill" style={{ borderColor: 'var(--pale)', color: 'var(--pale)', background: 'transparent' }}>

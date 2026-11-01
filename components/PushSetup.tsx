@@ -108,7 +108,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   const wrap: React.CSSProperties = compact
     ? { border: '1px solid #D8DED6', background: '#F7F5EF', padding: '16px 18px' }
     : { background: '#35443A', color: '#F3EFE6', padding: '26px 24px' };
-  const head: React.CSSProperties = { fontFamily: "'Marcellus',Georgia,serif", fontSize: compact ? 17 : 22, margin: '0 0 6px', color: compact ? '#26312B' : '#FBF8F1' };
+  const head: React.CSSProperties = { fontFamily: 'var(--display)', fontSize: compact ? 17 : 22, margin: '0 0 6px', color: compact ? '#26312B' : '#FBF8F1' };
   const sub: React.CSSProperties = { fontSize: 14.5, lineHeight: 1.6, margin: '0 0 14px', color: compact ? '#516053' : '#CBD4CC' };
   const btn: React.CSSProperties = { display: 'inline-block', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', padding: '13px 24px', background: compact ? '#35443A' : '#FBF8F1', color: compact ? '#FBF8F1' : '#35443A' };
   const stepList: React.CSSProperties = { margin: '0 0 14px', padding: 0, listStyle: 'none', fontSize: 14.5, lineHeight: 1.7, color: compact ? '#3A463D' : '#E7ECE6' };

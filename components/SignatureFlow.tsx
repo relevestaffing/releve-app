@@ -319,7 +319,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
                 borderColor: cur === k ? 'var(--fern)' : 'var(--line)',
                 background: cur === k ? 'var(--fern)' : '#fff', color: cur === k ? 'var(--cream)' : 'var(--body)' }}>
               <div className="eyebrow" style={{ marginBottom: 12, color: cur === k ? 'var(--pale)' : 'var(--sage)' }}>{k.toUpperCase()}</div>
-              <div style={{ fontFamily: 'Marcellus,serif', fontSize: 20, lineHeight: 1.35, color: cur === k ? 'var(--cream)' : 'var(--fern)' }}>{p[k]}</div>
+              <div style={{ fontFamily: 'var(--display)', fontSize: 20, lineHeight: 1.35, color: cur === k ? 'var(--cream)' : 'var(--fern)' }}>{p[k]}</div>
             </button>
           ))}
         </div>
@@ -388,7 +388,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
             <span className="dot" />{result.validity.verdict === 'Valid' ? 'Profile verified' : result.validity.verdict === 'Review' ? 'Up for review' : 'Needs retaking'}
           </span>
         </div>
-        <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 18 }}>{a.tag}</p>
+        <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--pale)', marginBottom: 18 }}>{a.tag}</p>
         <p className="small">{a.d}</p>
       </div>
 

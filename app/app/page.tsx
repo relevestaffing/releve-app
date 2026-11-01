@@ -108,6 +108,11 @@ export default async function AppHome() {
   /* Dates on this page ("today", "day 3 of 14") in the reader's own
      timezone; Pacific, the business's own, when their profile has none. */
   const today = todayIn(tz ?? 'America/Los_Angeles');
+  /* The home opens with a greeting in the viewer's own time, the same
+     courtesy the console pays Sage. */
+  const hourNow = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tz ?? 'America/Los_Angeles' }).format(new Date())) % 24;
+  const hello = hourNow < 12 ? 'Good morning' : hourNow < 18 ? 'Good afternoon' : 'Good evening';
+  const homeTitle = myName ? `${hello}, ${myName}` : hello;
   const [placements, deposit, brief, clientAgreement] = await Promise.all([
     side === 'client'
       ? (stage.placed ? listPlacementsFor(profile.id) : Promise.resolve([]))
@@ -192,7 +197,7 @@ export default async function AppHome() {
      simulation, where a placed talent saw only "Before you can be matched". */
   if (!sig && side === 'talent' && placements.length > 0) return (
     <Shell profile={profile} active="/app"
-      title={myName || 'Your account'}
+      title={homeTitle}
       crumb={placements.length === 1 ? `Working with ${placements[0].client_name}` : 'Your placements'}>
       {offer && <OfferCard offer={offer} side="talent" />}
       {placements.map(p => (
@@ -317,7 +322,7 @@ export default async function AppHome() {
 
     return (
       <Shell profile={profile} active="/app"
-        title={myName || 'Your account'}
+        title={homeTitle}
         crumb={profile.org_name ?? 'Executive'}>
 
         {offer && <OfferCard offer={offer} side="client" />}
@@ -403,7 +408,7 @@ export default async function AppHome() {
 
   return (
     <Shell profile={profile} active="/app"
-      title={myName || 'Your account'}
+      title={homeTitle}
       crumb={self.headline ?? 'Your account'}>
 
       {offer && <OfferCard offer={offer} side="talent" />}
@@ -413,7 +418,7 @@ export default async function AppHome() {
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your profile</div>
         <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
-        <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
+        <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
         <p className="small" style={{ maxWidth: 640 }}>{type.d}</p>
       </div>
 

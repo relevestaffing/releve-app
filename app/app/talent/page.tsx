@@ -96,7 +96,7 @@ export default async function TalentProfile() {
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>Your profile</div>
         <h2 style={{ fontSize: 32, color: 'var(--cream)', marginBottom: 10 }}>{type.n}</h2>
-        <p style={{ fontFamily: 'Marcellus,serif', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
+        <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--pale)', marginBottom: 16 }}>{type.tag}</p>
         <p className="small" style={{ maxWidth: 640 }}>{type.d}</p>
       </div>
 
@@ -152,13 +152,13 @@ export default async function TalentProfile() {
                 <div className="grid-2">
                   {L2_SHOWN.map(t => (
                     <div key={t.key} style={{ marginBottom: 18 }}>
-                      <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
+                      <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
                       {facetsOf(t.key).map(f => (
                         <div className="row between" key={f.key} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)', gap: 14 }}>
                           <span className="small">{f.name}</span>
                           <div className="row" style={{ gap: 10 }}>
                             <div className="bar-mini" style={{ width: 56 }}><span style={{ width: `${sig.facets[f.key]}%` }} /></div>
-                            <span className="small" style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', width: 26, textAlign: 'right' }}>{sig.facets[f.key]}</span>
+                            <span className="small" style={{ fontFamily: 'var(--display)', color: 'var(--fern)', width: 26, textAlign: 'right' }}>{sig.facets[f.key]}</span>
                           </div>
                         </div>
                       ))}

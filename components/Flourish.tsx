@@ -96,7 +96,49 @@ export default function Flourish() {
       bar.addEventListener('mouseleave', leave);
     }
 
+    /* 4. Depth: cards lean a degree toward the cursor and catch a soft light.
+       Spring-smoothed (each frame closes part of the gap) so it settles like
+       a physical thing rather than snapping to the pointer. Desktop only. */
+    let card: HTMLElement | null = null;
+    let raf = 0;
+    const cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 };
+    const step = () => {
+      cur.x += (tgt.x - cur.x) * 0.14; cur.y += (tgt.y - cur.y) * 0.14;
+      if (card) card.style.transform = `perspective(1400px) rotateX(${cur.y.toFixed(3)}deg) rotateY(${cur.x.toFixed(3)}deg) translateY(-4px)`;
+      if (Math.abs(tgt.x - cur.x) > 0.005 || Math.abs(tgt.y - cur.y) > 0.005) raf = requestAnimationFrame(step);
+      else { raf = 0; if (card && tgt.x === 0 && tgt.y === 0) { card.style.transform = ''; card.classList.remove('leaning'); card = null; } }
+    };
+    const kick = () => { if (!raf) raf = requestAnimationFrame(step); };
+    const onMove = (e: PointerEvent) => {
+      const c = (e.target as HTMLElement | null)?.closest('.page-body > .card, .page-body > .stack > .card, .page-body > :is(.grid-2,.grid-3,.grid-4) > .card, .page-body > .setup, .qa-tile, .choose-card, .welcome-card, .auth-card') as HTMLElement | null;
+      if (c !== card) {
+        if (card) { card.style.transform = ''; card.classList.remove('leaning'); }
+        card = c; cur.x = 0; cur.y = 0;
+      }
+      /* A card with a form or a table in it holds still: nothing should
+         swing under a hand that is typing or reading across columns. */
+      if (card && card.querySelector('input:not([type=hidden]), textarea, select, table')) { card = null; }
+      if (!card) { tgt.x = 0; tgt.y = 0; return; }
+      const r = card.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+      const max = r.width > 900 ? 1.6 : r.width > 600 ? 2.6 : 4;
+      tgt.x = (px - .5) * 2 * max; tgt.y = (.5 - py) * 2 * max;
+      card.style.setProperty('--mx', `${Math.round(e.clientX - r.left)}px`);
+      card.style.setProperty('--my', `${Math.round(e.clientY - r.top)}px`);
+      card.classList.add('leaning');
+      kick();
+    };
+    const onOut = () => { tgt.x = 0; tgt.y = 0; kick(); };
+    if (fine && !reduced) {
+      document.addEventListener('pointermove', onMove, { passive: true });
+      document.documentElement.addEventListener('pointerleave', onOut);
+    }
+
     return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.documentElement.removeEventListener('pointerleave', onOut);
+      if (raf) cancelAnimationFrame(raf);
+      if (card) { card.style.transform = ''; card.classList.remove('leaning'); }
       window.clearTimeout(later);
       io?.disconnect();
       bar?.removeEventListener('mousemove', move);

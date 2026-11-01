@@ -1,0 +1,343 @@
+/* ════════════════════════════════════════════════════════════════════
+   EVERGREEN (1 November 2026, second pass)
+   ────────────────────────────────────────────────────────────────────
+   Nona, on the first pass: "I like the green. I don't like either of the
+   fonts, make it match the website. Utilize shadows and animations like
+   the website. Modern, high end, I really like 3D aspects."
+
+   So this layer keeps the green architecture (an evergreen rail meeting
+   the band, the page laid on it) and takes everything else from
+   relevestaffing.com and its /discovery page:
+
+   - Type is the website's: Marcellus for display, Tenor Sans for text,
+     letterspaced capitals for labels and buttons, the eyebrow with its
+     rule in front.
+   - Shadows are the website's: white cards resting on long soft shadows,
+     the deep shadow under the object that sits on the green, buttons with
+     an inner highlight and a shadow beneath.
+   - Motion is the website's: one easing (cubic-bezier(.2,.7,.1,1)), the
+     headline rising word by word, a light that follows the cursor across
+     the green, the dot grid fading out of the glow, the shine that crosses
+     a button, cards that lift when you reach for them, the pulse dot.
+   - 3D is the website's hero card, carried through the app: the object
+     you point at tilts toward the cursor in perspective and its heading
+     floats a layer above it.
+
+   Square corners everywhere, by Sage's standing call.
+   Loaded after globals.css (app/layout.tsx); lift it out and the app is as
+   it was.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root{
+  --eg-0:#121B16;
+  --eg:#1A2620;
+  --eg-2:#22302A;
+  --fern:#35443A;
+  --leaf:#B0C4B2;
+  --on-green:#F3EFE6;
+  --on-green-2:rgba(243,239,230,.66);
+  --on-green-3:rgba(243,239,230,.40);
+  --hair-green:rgba(243,239,230,.10);
+  --gold-glow:rgba(201,185,143,.10);
+  --ease:cubic-bezier(.2,.7,.1,1);
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-drawer:cubic-bezier(.32,.72,0,1);
+  --rest:0 1px 2px rgba(34,48,42,.04),0 26px 54px -38px rgba(34,48,42,.42);
+  --lift:0 2px 4px rgba(34,48,42,.04),0 40px 80px -40px rgba(34,48,42,.48);
+  --deep:0 1px 2px rgba(0,0,0,.05),0 60px 120px -40px rgba(0,0,0,.6);
+}
+
+/* ───────────────────────── the frame (desktop) ───────────────────────── */
+@media (min-width:901px){
+  .shell{background:linear-gradient(90deg,var(--eg) 0 var(--sidebar),var(--paper) var(--sidebar))}
+
+  aside.side{background:var(--eg);color:var(--on-green-2);border-right:1px solid var(--hair-green);isolation:isolate;
+    overflow-x:hidden;scrollbar-color:rgba(243,239,230,.18) transparent}
+  /* a slow light breathing in the rail */
+  aside.side::before{content:"";position:absolute;z-index:-1;left:-60%;top:-10%;width:220%;height:70%;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(176,196,178,.16),rgba(176,196,178,0));animation:egBreathe 14s ease-in-out infinite alternate}
+  .side-logo img{opacity:.95}
+  .side-role{border-bottom:1px solid var(--hair-green)}
+  .side-role .eyebrow{color:var(--on-green-3)}
+  .side-role .name{color:var(--on-green)}
+  .side-role .name .small{color:var(--on-green-3)!important}
+
+  nav.side-nav a{color:var(--on-green-2);background:none;border-left:0;transition:color .4s var(--ease),padding .6s var(--ease)}
+  nav.side-nav a:hover{color:var(--on-green)}
+  nav.side-nav a.active{color:var(--on-green);background:none;padding-left:56px}
+  /* the website's eyebrow rule, drawn beside the page you are on */
+  nav.side-nav a::before{left:30px;top:50%;bottom:auto;width:16px;height:1px;background:var(--leaf);transform:scaleX(0);transform-origin:left center;
+    transition:transform .6s var(--ease)}
+  nav.side-nav a.active::before,nav.side-nav a.active:hover::before{transform:scaleX(1)}
+  nav.side-nav a.active::before{animation:egRule .8s var(--ease) .2s both}
+  nav.side-nav a:hover::before{transform:scaleX(0)}
+  nav.side-nav .nav-group-label{color:var(--on-green-3)}
+  nav.side-nav .badge,.unread-badge.side{background:var(--leaf);color:var(--eg)}
+  .side-foot{border-top:1px solid var(--hair-green);color:var(--on-green-3)}
+  .side-foot:hover{color:var(--on-green)}
+  aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--leaf)}
+
+  /* the band is the website's hero: two glows, a dot grid fading out of
+     them, and a light that follows the cursor */
+  .topbar,.topbar.lit{align-items:flex-start;justify-content:flex-end;text-align:left;gap:24px;min-height:380px;padding:88px 72px 138px;border-bottom:0;
+    background:
+      radial-gradient(1100px 700px at 78% 30%,rgba(176,196,178,.16),transparent 60%),
+      radial-gradient(900px 600px at 10% 100%,var(--gold-glow),transparent 60%),
+      linear-gradient(180deg,var(--eg) 0%,#1D2A23 50%,var(--eg-2) 100%)}
+  .topbar::before{display:block;content:"";position:absolute;inset:0;border:0;z-index:0;pointer-events:none;
+    background-image:radial-gradient(rgba(243,239,230,.07) 1px,transparent 1px);background-size:28px 28px;
+    -webkit-mask-image:radial-gradient(ellipse at 72% 38%,#000 0%,transparent 70%);mask-image:radial-gradient(ellipse at 72% 38%,#000 0%,transparent 70%)}
+  .topbar::after{display:block;content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;mix-blend-mode:normal;background-image:none;
+    background:radial-gradient(520px circle at var(--gx,50%) var(--gy,50%),rgba(176,196,178,.20),transparent 65%);transition:opacity .6s var(--ease)}
+  .topbar.lit::after{opacity:1}
+  .topbar > div:first-child,.topbar .tb-text{display:flex;flex-direction:column;align-items:flex-start}
+  .topbar .crumb{color:var(--on-green-2);margin-bottom:24px}
+  .topbar .crumb:not(:empty)::before{display:block;content:"";width:38px;height:1px;background:var(--leaf);opacity:.9;transform-origin:left center;animation:egRule 1s var(--ease) .3s both}
+  .topbar .crumb:not(:empty)::after{display:none}
+  .topbar h1{color:var(--on-green);font-size:clamp(44px,4.6vw,72px);line-height:1.04;letter-spacing:-.02em;max-width:18ch;text-wrap:balance}
+  .topbar.home{min-height:470px;padding-top:120px;padding-bottom:146px}
+  .topbar.home h1{font-size:clamp(56px,6.2vw,96px);line-height:1.02;max-width:none}
+  .topbar-action{justify-content:flex-start}
+  .topbar .btn{border-color:rgba(243,239,230,.45);color:var(--on-green);background:transparent}
+  .topbar .btn:not(:disabled):hover{background:var(--on-green);color:var(--eg);border-color:var(--on-green)}
+  .topbar .btn.solid{background:var(--on-green);color:var(--eg);border-color:var(--on-green);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.7)}
+  .topbar .btn.solid:not(:disabled):hover{background:#fff;box-shadow:0 26px 50px -18px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.7)}
+
+  .topbar .band-light::before{width:62%;height:200%;left:-14%;top:-80%;
+    background:radial-gradient(closest-side,rgba(176,196,178,.22),rgba(176,196,178,.05) 50%,rgba(176,196,178,0) 100%);
+    animation:egDriftA 19s ease-in-out infinite alternate}
+  .topbar .band-light::after{width:48%;height:170%;right:-8%;top:-30%;
+    background:radial-gradient(closest-side,rgba(243,239,230,.09),rgba(243,239,230,0) 100%);
+    animation:egDriftB 23s ease-in-out infinite alternate}
+
+  /* content aligns to the title's left edge */
+  .page-body{margin:-92px 72px 0;max-width:min(var(--maxw),calc(100% - 144px));padding-left:0;padding-right:0;padding-top:0}
+}
+@keyframes egBreathe{0%{transform:translate(0,0) scale(.92);opacity:.7}100%{transform:translate(8%,22%) scale(1.12);opacity:1}}
+@keyframes egDriftA{0%{transform:translate(0,0) scale(.94);opacity:.75}100%{transform:translate(22%,10%) scale(1.14);opacity:1}}
+@keyframes egDriftB{0%{transform:translate(0,0) scale(1);opacity:.6}100%{transform:translate(-18%,14%) scale(1.08);opacity:1}}
+@keyframes egRule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* ───────────────────────── the headline, word by word ───────────────────────── */
+/* Shell sets each word in .w > span with its index; each rises out of its
+   own mask in turn, exactly as the website's hero headline does. */
+.topbar h1,html.js .topbar h1,.topbar h1.title-rise,html.js .topbar h1.title-rise{animation:none!important;opacity:1!important;transform:none!important;clip-path:none!important;filter:none!important}
+.topbar h1 .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.1em;margin-bottom:-.1em}
+.topbar h1 .w > span{display:inline-block;animation:egWord 1s var(--ease) both;animation-delay:calc(.12s + var(--i,0) * .08s)}
+.topbar h1 .name{color:var(--leaf)}
+@keyframes egWord{from{transform:translateY(105%)}to{transform:none}}
+html.js .topbar .crumb{animation:egFade .9s var(--ease) both}
+@keyframes egFade{from{opacity:0}to{opacity:1}}
+.topbar-action{animation:egFade .9s var(--ease) .45s both}
+
+/* ───────────────────────── surfaces: the website's cards ───────────────────────── */
+.card,.setup{background:#fff;border:1px solid rgba(53,68,58,.08);box-shadow:var(--rest)}
+.card .card:not(.dark):not(.stat){box-shadow:none}
+@media (min-width:901px){
+  /* the object that rests on the green carries the website's hero shadow */
+  .page-body > .card:first-of-type,
+  .page-body > .setup:first-of-type,
+  .page-body > .stack:first-child > .card:first-child{box-shadow:var(--deep);border-color:transparent}
+  .page-body > .card ~ .card,.page-body > .stack > .card ~ .card{box-shadow:var(--rest)}
+}
+/* reaching for a card lifts it (pointer devices). Prefixed html body so it
+   outranks the reveal system's own resting transform. */
+@media (hover:hover) and (pointer:fine){
+  html body .page-body .card,html body .page-body .setup,.qa-tile,a.money-stat,.choose-card,.pick,.req-choice{
+    transition:opacity .8s var(--ease),transform .7s var(--ease),box-shadow .7s var(--ease),border-color .4s var(--ease),background .4s}
+  html body .page-body > .card:hover,html body .page-body > .stack > .card:hover,html body .page-body > :is(.grid-2,.grid-3,.grid-4) > .card:hover,
+  html body .page-body > .overview-grid .card:hover{transform:translateY(-4px);box-shadow:var(--lift)}
+  html body .page-body > .card:first-of-type:hover,html body .page-body > .stack:first-child > .card:first-child:hover{
+    box-shadow:0 2px 4px rgba(0,0,0,.05),0 70px 130px -44px rgba(0,0,0,.62)}
+}
+/* 3D: whatever leans toward the cursor lifts its heading a layer above it */
+.card.leaning,.setup.leaning,.qa-tile.leaning,.choose-card.leaning,.welcome-card.leaning,.auth-card.leaning{transform-style:preserve-3d;will-change:transform}
+.card.leaning > :is(.card-head,h2,h3),.setup.leaning > .setup-head,.choose-card.leaning > :is(h3,.eyebrow),
+.welcome-card.leaning .panel > h1,.auth-card.leaning > :is(h1,h2){transform:translateZ(34px)}
+.card > :is(.card-head,h2,h3),.setup > .setup-head,.choose-card > :is(h3,.eyebrow),.welcome-card .panel > h1,.auth-card > :is(h1,h2){transition:transform .7s var(--ease)}
+
+/* dark cards: the website's founding card, glows over ink */
+.card.dark{border-color:transparent;box-shadow:0 50px 100px -60px rgba(34,48,42,.6);
+  background:radial-gradient(600px 400px at 90% 0%,rgba(201,185,143,.18),transparent 60%),radial-gradient(700px 500px at 0% 100%,rgba(176,196,178,.18),transparent 60%),var(--eg-2)}
+
+/* quick links: the website's .front, a lift and an underline that runs out */
+.qa-tile{position:relative}
+.qa-tile::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--fern);transition:width .7s var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  .qa-tile:hover{transform:translateY(-6px);box-shadow:var(--lift);background:#fff;z-index:2}
+  .qa-tile:hover::after{width:100%}
+  a.money-stat:hover{transform:translateY(-3px);box-shadow:var(--lift);z-index:2}
+  .choose-card:hover,.pick:hover,.req-choice:hover{transform:translateY(-4px);box-shadow:var(--lift)}
+}
+
+/* ───────────────────────── buttons: the website's ───────────────────────── */
+.btn{position:relative;overflow:hidden;
+  transition:transform .5s var(--ease),box-shadow .5s var(--ease),background .4s,color .4s,border-color .4s}
+.btn::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform 1s var(--ease)}
+.btn.solid{box-shadow:0 18px 40px -18px rgba(34,48,42,.7),inset 0 1px 0 rgba(255,255,255,.12)}
+@media (hover:hover) and (pointer:fine){
+  .btn:not(:disabled):hover{transform:translateY(-2px)}
+  .btn:not(:disabled):hover::after{transform:translateX(120%)}
+  .btn.solid:not(:disabled):hover{box-shadow:0 26px 50px -18px rgba(34,48,42,.75),inset 0 1px 0 rgba(255,255,255,.12)}
+  .btn:not(.solid):not(:disabled):hover{box-shadow:0 14px 32px -16px rgba(34,48,42,.45)}
+}
+.btn:disabled::after{display:none}
+.btn:not(:disabled):active{transform:translateY(0) scale(.98);transition-duration:.12s}
+.btn .arr{display:inline-block;transition:transform .5s var(--ease)}
+.btn:hover .arr{transform:translateX(5px)}
+
+/* fields: the website's focus ring */
+.ff input,.ff select,.ff textarea,.composer textarea{transition:border-color .3s var(--ease),box-shadow .3s var(--ease)}
+.ff input:focus,.ff select:focus,.ff textarea:focus,.composer textarea:focus{outline:none;border-color:var(--fern);box-shadow:0 0 0 4px rgba(53,68,58,.08)}
+
+/* ───────────────────────── overlays ───────────────────────── */
+.scrim,.nav-drawer-scrim{background:rgba(18,27,22,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{box-shadow:0 70px 120px -50px rgba(0,0,0,.8);border:0}
+.tb-panel{box-shadow:0 70px 120px -50px rgba(0,0,0,.7)}
+
+/* ───────────────────────── Ask Relève ───────────────────────── */
+.ask-fab{background:var(--fern);color:var(--on-green);box-shadow:0 18px 40px -18px rgba(34,48,42,.7),inset 0 1px 0 rgba(255,255,255,.12);
+  transition:transform .5s var(--ease),box-shadow .5s var(--ease),background .4s}
+.ask-fab:hover{transform:translateY(-2px);background:var(--eg-2)}
+/* the website's pulse dot */
+.ask-fab::after{content:"";position:absolute;right:7px;top:7px;width:7px;height:7px;border-radius:50%;background:#8FD3A1;animation:egPulse 2.2s infinite}
+.ask-fab.open::after{display:none}
+@keyframes egPulse{0%{box-shadow:0 0 0 0 rgba(143,211,161,.6)}70%{box-shadow:0 0 0 10px rgba(143,211,161,0)}100%{box-shadow:0 0 0 0 rgba(143,211,161,0)}}
+
+.ask-panel{background:var(--eg);border:0;color:var(--on-green-2);isolation:isolate;overflow:hidden;box-shadow:0 70px 120px -50px rgba(0,0,0,.8)}
+.ask-panel::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:radial-gradient(700px 500px at 100% 0%,rgba(176,196,178,.18),transparent 60%),radial-gradient(600px 400px at 0% 100%,var(--gold-glow),transparent 60%)}
+@media (min-width:821px){
+  .ask-panel{top:16px;right:16px;bottom:16px;height:auto;width:min(452px,calc(100vw - 32px));animation:egSheet .7s var(--ease-drawer) both}
+  body:has(.ask-panel) .ask-fab{opacity:0;pointer-events:none}
+}
+@keyframes egSheet{from{transform:translateX(48px);opacity:0}to{transform:none;opacity:1}}
+.ask-panel-head{background:transparent;border-bottom:1px solid var(--hair-green);padding:22px 24px 18px}
+.ask-panel .ask-mark{background:transparent;border:1px solid rgba(243,239,230,.3);color:var(--on-green)}
+.ask-panel .ask-mark.lg{width:42px;height:42px;font-size:20px}
+.ask-panel .ask-mark.lg i{background:#8FD3A1;border-color:var(--eg)}
+.ask-panel-title{color:var(--on-green);font-size:22px}
+.ask-panel .ask-presence-sub,.ask-panel .ask-log{color:var(--on-green-3)}
+.ask-panel .ask-panel-close{color:var(--on-green-2);transition:color .3s,transform .5s var(--ease)}
+.ask-panel .ask-panel-close:hover{color:var(--on-green);transform:rotate(90deg)}
+.ask-panel .ask-compact{padding:0 24px 18px}
+.ask-panel .ask-day::before,.ask-panel .ask-day::after{background:var(--hair-green)}
+.ask-panel .ask-day span{color:var(--on-green-3)}
+.ask-panel .ask-msg{gap:12px;margin-top:20px;animation:egMsg .7s var(--ease) both}
+.ask-panel .ask-msg.run{margin-top:8px}
+.ask-panel .ask-msg .ask-mark:not(.lg){display:none}
+.ask-panel .ask-bubble{background:transparent;border:0;padding:0;max-width:100%}
+.ask-panel .ask-bubble p{color:rgba(243,239,230,.9);font-size:15.5px;line-height:1.7}
+.ask-panel .ask-who,.ask-panel .ask-who span{color:var(--on-green-3)}
+.ask-panel .ask-msg.greet .ask-bubble p{font-family:'Marcellus',serif;font-size:24px;line-height:1.3;color:var(--on-green)}
+.ask-panel .ask-link{color:var(--leaf)}
+.ask-panel .ask-bubble.mine{background:rgba(243,239,230,.07);border:1px solid var(--hair-green);padding:11px 15px 19px;max-width:84%;
+  box-shadow:0 18px 40px -24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06)}
+.ask-panel .ask-bubble.mine p{font-size:15px;color:var(--on-green)}
+.ask-panel .ask-time{color:var(--on-green-3)}
+.ask-panel .ask-typing i{background:var(--leaf);border-radius:50%}
+.ask-panel .ask-typing em,.ask-panel .ask-status{color:var(--on-green-3)}
+.ask-panel .ask-caret{background:var(--leaf)}
+.ask-panel .ask-chips{margin-left:0}
+.ask-panel .ask-chip{background:transparent;border:1px solid rgba(243,239,230,.2);color:var(--on-green);
+  transition:border-color .4s var(--ease),transform .5s var(--ease),background .4s}
+.ask-panel .ask-chip:hover{border-color:var(--leaf);background:rgba(243,239,230,.05);transform:translateY(-2px)}
+.ask-panel .ask-proposal{background:var(--on-green);border:0;color:var(--body);box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.ask-panel .ask-proposal .small{color:var(--body)}
+.ask-panel .ask-compose{border-top:1px solid var(--hair-green)}
+.ask-panel .ask-compose textarea{background:rgba(243,239,230,.06);border:1px solid rgba(243,239,230,.16);color:var(--on-green);transition:border-color .3s,background .3s}
+.ask-panel .ask-compose textarea::placeholder{color:var(--on-green-3)}
+.ask-panel .ask-compose textarea:focus{border-color:rgba(243,239,230,.45);background:rgba(243,239,230,.09)}
+.ask-panel .ask-send{background:var(--on-green);color:var(--eg);box-shadow:0 18px 40px -18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.7)}
+.ask-panel .ask-send:not(:disabled):hover{background:#fff}
+.ask-panel .ask-send:disabled{opacity:.25}
+.ask-panel .ask-foot .xs,.ask-panel .ask-foot a,.ask-panel .ask-clear{color:var(--on-green-3)}
+.ask-panel .thread{scrollbar-color:rgba(243,239,230,.18) transparent}
+@keyframes egMsg{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ───────────────────────── the doorways: the website's hero ───────────────────────── */
+.welcome,.auth{position:relative;isolation:isolate;overflow:hidden;
+  background:
+    radial-gradient(1100px 700px at 78% 30%,rgba(176,196,178,.18),transparent 60%),
+    radial-gradient(900px 600px at 10% 90%,var(--gold-glow),transparent 60%),
+    linear-gradient(180deg,var(--eg-0) 0%,var(--eg) 45%,var(--eg-2) 100%)}
+.welcome::before,.auth::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(rgba(243,239,230,.06) 1px,transparent 1px);background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(ellipse at 70% 40%,#000 0%,transparent 70%);mask-image:radial-gradient(ellipse at 70% 40%,#000 0%,transparent 70%)}
+.welcome::after,.auth::after{content:"";position:absolute;z-index:-1;width:70vmax;height:70vmax;left:-20vmax;top:-35vmax;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(176,196,178,.16),rgba(176,196,178,0));animation:egDriftA 18s ease-in-out infinite alternate}
+.welcome img.logo,.auth img.auth-logo,.auth-logo{filter:brightness(0) invert(.94) sepia(.06)}
+.welcome-card,.auth-card{border:0;box-shadow:0 60px 120px -40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.4) inset;
+  background:linear-gradient(160deg,rgba(255,255,255,.99),rgba(250,248,242,.97))}
+.choose-card{box-shadow:0 40px 90px -46px rgba(0,0,0,.7)}
+.welcome-card .panel{transition:opacity .9s var(--ease),transform 1s var(--ease)}
+.welcome-card .panel:not(.in){transform:translateX(24px)}
+.welcome .dots i,.firstrun .dots i{transition:width .6s var(--ease),background .3s}
+.welcome-inner > :is(p,.xs,.muted,.small),.welcome-inner > form .gate-link,.welcome-inner > .gate-foot,.welcome-inner > .gate-foot a,
+.auth .muted:not(.auth-card *),.auth .small:not(.auth-card *),.auth .xs:not(.auth-card *),.auth > :is(p,.small,.muted,.xs){color:var(--on-green-2)}
+
+/* ───────────────────────── loading keeps the frame ───────────────────────── */
+.skel-side{background:var(--eg)!important;border-right:1px solid var(--hair-green)}
+.skel-side .skel.on-dark,.skel-side .on-dark{background:rgba(243,239,230,.08)!important}
+@media (min-width:901px){
+  .skel-topbar{height:auto;min-height:300px;justify-content:flex-end;padding:0 72px 72px;border-bottom:0;
+    background:linear-gradient(180deg,var(--eg) 0%,#1D2A23 50%,var(--eg-2) 100%)!important}
+  .skel-topbar .skel{background:rgba(243,239,230,.10)!important}
+  .skel-topbar .skel-text:last-child{width:340px;height:2.6em}
+}
+.rv-wait-bar i{background:linear-gradient(90deg,rgba(53,68,58,0),var(--fern),rgba(53,68,58,0))}
+
+/* ───────────────────────── small motions ───────────────────────── */
+.setup-marks i.on{animation:egMark .8s var(--ease) both}
+.setup-marks i.on:nth-child(2){animation-delay:.12s}.setup-marks i.on:nth-child(3){animation-delay:.24s}
+.setup-marks i.on:nth-child(4){animation-delay:.36s}.setup-marks i.on:nth-child(5){animation-delay:.48s}
+@keyframes egMark{from{transform:scaleX(0);transform-origin:left center}to{transform:scaleX(1);transform-origin:left center}}
+details[open] > :not(summary){animation:egOpen .6s var(--ease) both}
+@keyframes egOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+/* page blocks rise the website's distance, on the website's curve */
+html.js .page-body > *:not(.in),html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout) > *:not(.in){transform:translateY(34px)}
+html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout):not(.in){transform:none}
+
+/* ───────────────────────── phones and tablets ───────────────────────── */
+@media (max-width:900px){
+  .topbar{position:relative;top:auto;border-bottom:0;padding:calc(58px + env(safe-area-inset-top)) 22px 64px;min-height:0;isolation:isolate;overflow:hidden;
+    backdrop-filter:none;-webkit-backdrop-filter:none;z-index:1;
+    background:radial-gradient(500px 360px at 85% 10%,rgba(176,196,178,.18),transparent 60%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)}
+  .topbar.scrolled{background:radial-gradient(500px 360px at 85% 10%,rgba(176,196,178,.18),transparent 60%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)}
+  .topbar .band-light{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .topbar .band-light::before{content:"";position:absolute;width:140%;height:160%;left:-50%;top:-70%;
+    background:radial-gradient(closest-side,rgba(176,196,178,.22),rgba(176,196,178,0));animation:egDriftA 16s ease-in-out infinite alternate}
+  .topbar > *:not(.band-light){position:relative;z-index:1}
+  .topbar .crumb{color:var(--on-green-2);margin-bottom:10px}
+  .topbar h1{color:var(--on-green);font-size:36px;line-height:1.06;letter-spacing:-.015em}
+  .topbar.home h1{font-size:42px}
+  .topbar .muted,.topbar .small{color:var(--on-green-2)}
+  .page-body{margin-top:-30px;position:relative;z-index:3}
+  .card,.setup{border-radius:0}
+  .menu-trigger{background:rgba(243,239,230,.1);color:var(--on-green);box-shadow:none;border:1px solid rgba(243,239,230,.22);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .menu-trigger svg{color:var(--on-green)}
+  .nav-drawer{background:var(--eg);color:var(--on-green-2)}
+  .nav-drawer .side-role{border-bottom-color:var(--hair-green)}
+  .nav-drawer .side-role .eyebrow{color:var(--on-green-3)}
+  .nav-drawer .side-role .name{color:var(--on-green)}
+  .nav-drawer nav.side-nav a{color:var(--on-green-2);border-left:0;background:none}
+  .nav-drawer nav.side-nav a.active{color:var(--on-green)}
+  .nav-drawer nav.side-nav .nav-group-label{color:var(--on-green-3)}
+  .nav-drawer .side-foot{color:var(--on-green-3);border-top-color:var(--hair-green)}
+  .nav-drawer-close{background:rgba(243,239,230,.1);color:var(--on-green)}
+  .quickbar{background:rgba(26,38,32,.94)}
+}
+
+/* ───────────────────────── reduced motion ───────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  aside.side::before,.topbar .band-light::before,.topbar .band-light::after,.welcome::after,.auth::after,.ask-fab::after{animation:none}
+  .topbar h1 .w > span,.topbar .crumb,html.js .topbar .crumb,.topbar .crumb:not(:empty)::before,.topbar-action,
+  nav.side-nav a.active::before,.ask-panel,.ask-panel .ask-msg,.setup-marks i.on,details[open] > :not(summary){animation:none}
+  .btn::after,nav.side-nav a{transition:none}
+  .welcome-card .panel,.welcome-card .panel:not(.in){transform:none;transition:none}
+  html.js .page-body > *:not(.in),html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout) > *:not(.in){transform:none}
+}
+html.rv-off .page-body > *:not(.in),html.rv-off .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout) > *:not(.in){transform:none}

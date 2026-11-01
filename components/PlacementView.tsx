@@ -97,7 +97,7 @@ export default async function PlacementView({
             <Portrait id={p.talent_id} name={p.talent_name} cls="lg" url={talentSelf.photo_url} />
             <div>
               <h2 style={{ fontSize: 24, color: 'var(--cream)', marginBottom: 6 }}>{p.talent_name}</h2>
-              <p style={{ fontFamily: 'Marcellus,serif', fontSize: 16, color: 'var(--pale)' }}>
+              <p style={{ fontFamily: 'var(--display)', fontSize: 16, color: 'var(--pale)' }}>
                 {[talentSelf.headline, talentSelf.location].filter(Boolean).join(' · ') || 'Your talent'}
               </p>
             </div>
