@@ -49,6 +49,17 @@ function transport() {
 export type Attachment = { filename: string; content: Buffer; contentType: string };
 export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[]; headers?: Record<string, string> };
 
+/* Mirror a transactional notification to the recipient's push devices.
+   Best-effort and gated: marketing (campaign*) emails never push, and any
+   failure is swallowed so a push problem can never fail an email. */
+async function pushMirror(to: string, msg: Message) {
+  if (/^campaign/i.test(msg.kind || '')) return;
+  try {
+    const { sendPushToEmail } = await import('@/lib/push');
+    await sendPushToEmail(to, { title: msg.subject || 'Relève', url: '/app', tag: msg.kind || undefined });
+  } catch { /* push is best-effort */ }
+}
+
 /* Every attempt leaves a row behind.
    ---------------------------------
    This used to catch its own failure and return false, and almost every caller
@@ -95,6 +106,7 @@ export async function sendOrThrow(to: string, msg: Message) {
       from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers
     });
     await record(msg.kind, to, msg.subject, true);
+    await pushMirror(to, msg);
     return info;
   } catch (e: any) {
     await record(msg.kind, to, msg.subject, false,
@@ -115,6 +127,7 @@ export async function send(to: string, msg: Message) {
   try {
     await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers });
     await record(msg.kind, to, msg.subject, true);
+    await pushMirror(to, msg);
     return true;
   } catch (e: any) {
     console.error('[email] failed:', msg.subject, e);

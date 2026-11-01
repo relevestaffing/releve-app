@@ -21,3 +21,7 @@ backups/
 # scratch
 _attic/
 supabase/.temp/
+
+# local-only push VAPID keys (never commit)
+VAPID-KEYS-paste-into-netlify.txt
+.vapid*

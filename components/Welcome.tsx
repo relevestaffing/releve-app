@@ -2,6 +2,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/Toast';
+import PushSetup from '@/components/PushSetup';
 
 type Panel = { h: string; lede: string; points?: string[]; note?: string };
 
@@ -152,6 +153,7 @@ export default function Welcome({ role }: { role: 'client' | 'talent' }) {
             <p className="lede">{p.lede}</p>
             {p.points && <ul>{p.points.map(x => <li key={x}>{x}</li>)}</ul>}
             {p.note && <p className="welcome-note">{p.note}</p>}
+            {last && <div style={{ marginTop: 18 }}><PushSetup /></div>}
           </div>
 
           <div className="welcome-foot">

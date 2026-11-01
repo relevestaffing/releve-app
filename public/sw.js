@@ -42,3 +42,35 @@ self.addEventListener('fetch', (event) => {
     return res;
   })());
 });
+
+/* ---- Push notifications (added 1 Nov 2026) --------------------------------
+   The server (lib/push.ts) sends a JSON payload { title, body, url, tag }.
+   iOS only delivers these when the app has been added to the Home Screen and
+   is opened from there; the browser tab alone never receives them. */
+self.addEventListener('push', (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; }
+  catch { d = { title: 'Relève', body: event.data ? event.data.text() : '' }; }
+  const title = d.title || 'Relève';
+  const options = {
+    body: d.body || '',
+    icon: '/icon-512.png',
+    badge: '/icon-512.png',
+    data: { url: d.url || '/app' },
+    tag: d.tag || undefined,
+    renotify: !!d.tag
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/app';
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of all) {
+      if ('focus' in c) { try { await c.navigate(url); } catch { /* cross-origin or unsupported */ } return c.focus(); }
+    }
+    if (self.clients.openWindow) return self.clients.openWindow(url);
+  })());
+});

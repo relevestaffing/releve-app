@@ -6,6 +6,7 @@ import HowContent from '@/components/vision/HowContent';
 import DelegateContent from '@/components/vision/DelegateContent';
 import ValueContent from '@/components/vision/ValueContent';
 import { CONTACT_EMAIL } from '@/lib/experience-public';
+import PushSetup from '@/components/PushSetup';
 import './experience.css';
 
 /* The executive's first sign-in. The three screens play in sequence, full
@@ -14,7 +15,12 @@ import './experience.css';
 const STEPS = [
   <HowContent key="how" />,
   <DelegateContent key="delegate" />,
-  <ValueContent key="value" retainerMonthlyCents={null} placed={false} />
+  <ValueContent key="value" retainerMonthlyCents={null} placed={false} />,
+  <div key="notify" className="stack" style={{ maxWidth: 620, margin: '0 auto' }}>
+    <h2 style={{ fontFamily: "Georgia,'Times New Roman',serif", fontSize: 26, color: '#26312B', margin: '0 0 10px' }}>One last thing</h2>
+    <p style={{ fontSize: 16, lineHeight: 1.7, color: '#4E6B57', margin: '0 0 20px' }}>Put Relève on your phone and turn on notifications, so the moment a candidate, a message or an interview needs you, you know.</p>
+    <PushSetup />
+  </div>
 ];
 
 export default function ExecFirstRun() {

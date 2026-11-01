@@ -10,6 +10,7 @@ import Flourish from './Flourish';
 import TermsGate from './TermsGate';
 import InvoiceGate from './InvoiceGate';
 import BillingBanner from '@/components/BillingBanner';
+import PushSetup from '@/components/PushSetup';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 import { unpaidInvoiceFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
@@ -346,6 +347,9 @@ export default async function Shell({
             {/* The grace banner, on every client page, so an open invoice is
                 seen well before the fourteen-day gate. */}
             {profile.role === 'client' && <BillingBanner clientId={profile.id} />}
+            {profile.role !== 'admin' && !clientTour && (
+              <div style={{ marginBottom: 16 }}><PushSetup compact /></div>
+            )}
             {children}
             {/* Last in the DOM, first on the screen: both carry order:-2 in the
                 phone stylesheet. Putting them after the content means the
