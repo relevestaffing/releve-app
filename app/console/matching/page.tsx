@@ -45,7 +45,7 @@ export default async function Matching({ searchParams }: {
 
   if (!clients.length) return (
     <Shell profile={profile} active="/console/matching" title="Matching"
-      crumb="Nobody to match yet">
+      crumb="Matching">
       <ConsoleTabs active="/console/matching" items={[
         { href: '/console/matching', label: 'Matching' },
         { href: '/console/offers', label: 'Offers' }

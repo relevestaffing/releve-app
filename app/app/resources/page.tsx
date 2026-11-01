@@ -18,8 +18,7 @@ export default async function Resources() {
   if (profile.role !== 'client') redirect('/app');
 
   return (
-    <Shell profile={profile} active="/app/resources" title="Free resources"
-      crumb="Yours to use, any time">
+    <Shell profile={profile} active="/app/resources" title="Free resources">
 
       <div className="card">
         <div className="eyebrow">Free training</div>

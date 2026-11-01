@@ -17,8 +17,7 @@ export default async function VettingPage() {
   if (profile.role !== 'talent') redirect('/app');
   const rows = await listVetting(profile.id);
   return (
-    <Shell profile={profile} active="/app/vetting" title="Verification"
-      crumb="Done once, and then never again">
+    <Shell profile={profile} active="/app/vetting" title="Verification">
       <VettingUpload rows={rows} docusignOn={docusignReady()} />
       <NextStep steps={await setupFor(profile)} current="vetting" />
     </Shell>

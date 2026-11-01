@@ -20,8 +20,7 @@ export default async function DelegatePage() {
   const tour = await execInTour(profile.id);
 
   return (
-    <Shell profile={profile} active="/app/delegate" title="What to delegate"
-      crumb="The map before the role">
+    <Shell profile={profile} active="/app/delegate" title="What to delegate">
 
       <DelegateContent />
 

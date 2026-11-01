@@ -33,10 +33,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   ];
 
   return (
-    <Shell profile={profile} active="/app/messages" title="Messages"
-      crumb={placements.length
-        ? (manager.id ? `${manager.name}, and whoever you are placed with` : `${profile.role === 'client' ? WORDS.csmShort : WORDS.tsmShort}, and whoever you are placed with`)
-        : (manager.id ? `Straight to ${manager.name}` : (profile.role === 'client' ? `Straight to ${WORDS.csmShort}` : `Straight to ${WORDS.tsmShort}`))}>
+    <Shell profile={profile} active="/app/messages" title="Messages">
       <MessagesTabs me={profile.id} tabs={tabs} initial={tab ?? null} manager={manager} />
     </Shell>
   );

@@ -228,17 +228,9 @@ export default async function AppHome() {
 
   if (!sig && !(side === 'client' && stage.placed)) return (
     <Shell profile={profile} active="/app"
-      title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
-      crumb="Getting set up">
+      title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}>
       <Checklist steps={steps}
         heading={side === 'client' ? 'Set up your account' : 'Before you can be matched'} />
-      <div className="card tight">
-        <p className="small muted">
-          {side === 'client'
-            ? 'Your search is open and your deposit is in. Start with the Signature: every candidate is scored against it before their name reaches you. Your Client Success Manager is already sourcing.'
-            : 'Nothing is matched until your Signature exists. Once these are done, we do the work, and your Talent Success Manager will come to you when a role fits.'}
-        </p>
-      </div>
     </Shell>
   );
 
@@ -457,9 +449,6 @@ export default async function AppHome() {
       {placements.length > 0 && (
         <div className="card">
           <div className="card-head"><h3>Today</h3></div>
-          <p className="small muted" style={{ marginTop: 0, maxWidth: 620 }}>
-            Two minutes at the end of the day: what got done, your hours, anything in the way.
-          </p>
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
             <Link className="btn sm solid" href="/app/log">Write today’s log</Link>
             <Link className="btn sm ghost" href="/app/tasks">Your tasks</Link>

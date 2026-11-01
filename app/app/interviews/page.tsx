@@ -110,7 +110,7 @@ export default async function Interviews() {
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0] ?? null;
 
   return (
-    <Shell profile={profile} active="/app/interviews" title="Interviews" crumb={isClient ? 'Book and track' : 'Your schedule'}
+    <Shell profile={profile} active="/app/interviews" title="Interviews" 
       action={<Link className="btn sm ghost" href="/app/availability">Set your availability</Link>}>
 
       {!hasAvailRow && (

@@ -17,8 +17,7 @@ export default async function SkillsPage() {
   const initial = await getSkills(profile.id);
 
   return (
-    <Shell profile={profile} active="/app/skills" title="Your skills"
-      crumb="The work you are strongest at">
+    <Shell profile={profile} active="/app/skills" title="Your skills">
       <SkillsForm initial={initial} />
       <NextStep steps={await setupFor(profile)} current="skills" />
     </Shell>

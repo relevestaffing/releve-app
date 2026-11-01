@@ -30,7 +30,7 @@ export default async function CleanupPage() {
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
-      title="Tidy up" crumb="Archive or remove people"
+      title="Tidy up" crumb="Tidy up"
       action={<Link className="btn sm ghost" href="/console/directory">← Directory</Link>}>
 
 

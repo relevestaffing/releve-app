@@ -158,44 +158,44 @@ export type Empty = { title: string; body: string; cta?: { label: string; href: 
 export const EMPTY: Record<string, Empty> = {
   shortlist: {
     title: 'Your candidate is being chosen',
-    body: 'Nobody has been put forward yet, and that is deliberate: we do not hand you a stack to sort through. Your Client Success Manager reviews the roster against your Signature and the role you described, then puts forward one person worth your time. Our 14-Day Placement Guarantee: a qualified candidate within fourteen days of your search opening.',
+    body: 'Your Client Success Manager is reviewing the roster against your Signature and the role you described. One person, put forward with the reasons.',
     cta: { label: 'Ask where things stand', href: '/app/messages' }
   },
   interviewsClient: {
     title: 'No interviews yet',
-    body: 'Once you approve your candidate, we arrange the time, send the invitations and put the joining link here.',
+    body: 'Once you approve your candidate, the time, the invitations and the joining link appear here.',
     cta: { label: 'See your candidate', href: '/app/pipeline' }
   },
   interviewsTalent: {
     title: 'No interviews yet',
-    body: 'When an executive asks to meet you, it appears here with the time in your own timezone and a link to join. You will get an email too.',
+    body: 'When an executive asks to meet you, it appears here in your own timezone, with the link to join.',
     cta: { label: 'Check your hours are right', href: '/app/availability' }
   },
   tasksClient: {
     title: 'Nothing to hand over yet',
-    body: 'This is where you assign work and watch it move, once someone is in the seat. There is nothing to add until your placement starts, which is deliberate: the first week goes better when the list is written with them, not before they arrive.',
+    body: 'Tasks open the day your placement starts. The first week goes better when the list is written with them.',
     cta: { label: 'See where your search is', href: '/app/pipeline' }
   },
   tasksTalent: {
     title: 'Nothing on your list',
-    body: 'Work assigned to you appears here. You can also add your own: anything that arrived by email, a call or a note counts, and logging it is how your executive sees what you actually carry.'
+    body: 'Work assigned to you appears here, with anything you add yourself.'
   },
   checkinUnplaced: {
     title: 'Your end of week report starts when you are placed',
-    body: 'Every Friday you will send your Talent Success Manager your hours, what you accomplished, a win from the week and any concerns. It takes two minutes and it is the main way we look after you.',
+    body: 'Every Friday: your hours, what got done, a win and any concerns. Two minutes.',
     cta: { label: 'Finish getting set up', href: '/app' }
   },
   messages: {
     title: 'No messages yet',
-    body: 'This goes straight to the person looking after you at Relève, not a general inbox. Ask anything: a question about the search, something awkward about the placement, or a change you need. A person reads every one and replies within one business day, usually sooner.'
+    body: 'This goes to the person looking after you at Relève. A person reads every message.'
   },
   careClient: {
     title: 'Nothing here until someone starts',
-    body: 'Once your talent is in place, this is where you tell us each month how it is really going, and where your first ninety days are planned out step by step.'
+    body: 'Once your talent is in place: the monthly pulse and the first ninety days, step by step.'
   },
   careTalent: {
     title: 'Nothing here until you are placed',
-    body: 'Once you start, this is where you ask for time off, follow your first ninety days, and read the feedback written about your work.'
+    body: 'Once you start: time off, your first ninety days, and the feedback written about your work.'
   }
 };
 

@@ -46,7 +46,7 @@ export default async function Content({ searchParams }: { searchParams: Promise<
   }));
 
   return (
-    <Shell profile={profile} active="/console/content" title="Content" crumb="Every account, every week">
+    <Shell profile={profile} active="/console/content" title="Content" crumb="Check-ins">
       <ConsoleTabs active="/console/content" items={[
         { href: '/console/content', label: 'Posts' },
         { href: '/console/campaigns', label: 'Email' },

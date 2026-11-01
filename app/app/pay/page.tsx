@@ -47,7 +47,7 @@ export default async function PayPage() {
   }
 
   return (
-    <Shell profile={profile} active="/app/pay" title="Your pay" crumb="What you are paid, and how it reaches you">
+    <Shell profile={profile} active="/app/pay" title="Your pay">
       {placementRates.length > 0 && (
         <div className="card">
           <div className="card-head"><h3>{placementRates.length > 1 ? 'Your rates' : 'Your rate'}</h3></div>

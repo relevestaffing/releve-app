@@ -32,8 +32,7 @@ export default async function Care() {
   const placements = await listPlacementsFor(profile.id);
 
   if (!placements.length) return (
-    <Shell profile={profile} active="/app/care" title="Your placement"
-      crumb="Once you are placed, this is where it lives">
+    <Shell profile={profile} active="/app/care" title="Your placement">
       <Empty of={side === 'client' ? EMPTY.careClient : EMPTY.careTalent} />
     </Shell>
   );

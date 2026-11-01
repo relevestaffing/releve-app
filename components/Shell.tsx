@@ -342,7 +342,7 @@ export default async function Shell({
         </aside>
         <main className="main">
           <div className="topbar">
-            <div><div className="crumb">{crumb}</div><h1>{title}</h1></div>
+            <div><div className="crumb">{crumb ?? nav.find(g => g.items.some(i => i.href === active))?.group ?? ''}</div><h1>{title}</h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
                 to sit here unconditionally, which put it above the mobile nav bar

@@ -24,8 +24,7 @@ export default async function TalentProfile() {
   /* Sending someone into a twenty-minute assessment without warning is not a
      redirect, it is an ambush. Say why, and let them choose the moment. */
   if (!sig) return (
-    <Shell profile={profile} active="/app/talent" title="Your profile"
-      crumb="One thing first">
+    <Shell profile={profile} active="/app/talent" title="Your profile">
       <div className="card empty-card">
         <div className="empty-mark" aria-hidden="true" />
         <h3>Your profile starts with your {WORDS.signature}</h3>
@@ -47,7 +46,7 @@ export default async function TalentProfile() {
   const shape = skillsShape(skills);
 
   return (
-    <Shell profile={profile} active="/app/talent" title="Your profile" crumb="What executives are told about you">
+    <Shell profile={profile} active="/app/talent" title="Your profile">
 
       {/* what they wrote themselves, exactly as an executive sees it */}
       <div className="card">
@@ -87,8 +86,7 @@ export default async function TalentProfile() {
         ) : (
           <div style={{ marginTop: 16 }}>
             <p className="small muted" style={{ maxWidth: 560, marginBottom: 12 }}>
-              You have not broken your skills down yet. Until you do, executives
-              cannot be matched to what you are actually good at.
+              Your skills are not broken down yet.
             </p>
             <a className="btn sm ghost" href="/app/skills">Break down your skills</a>
           </div>
@@ -139,7 +137,6 @@ export default async function TalentProfile() {
 
       <div className="card">
         <div className="card-head"><h3>Your results in full</h3></div>
-        <p className="small muted">Most people never need this. It is here because it is your data.</p>
         <details className="more">
           <summary>{WORDS.moreDetail}</summary>
           <div className="inner">

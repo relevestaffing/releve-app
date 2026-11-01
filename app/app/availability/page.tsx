@@ -23,7 +23,7 @@ export default async function AvailabilityPage() {
   if (profile.role === 'admin') redirect('/console/calendar');
   const who = profile.role === 'client' ? 'client' : 'talent';
   return (
-    <Shell profile={profile} active="/app/availability" title="Availability" crumb="The hours you can take a call">
+    <Shell profile={profile} active="/app/availability" title="Availability">
       {/* Only offered where Google is actually switched on for this site. */}
       {googleConfigured() && <CalendarConnect />}
       <AvailabilityEditor who={who} />

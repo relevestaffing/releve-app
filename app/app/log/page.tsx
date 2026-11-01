@@ -24,8 +24,7 @@ export default async function LogPage() {
   const today = todayIn(tz);
 
   return (
-    <Shell profile={profile} active="/app/log" title="Daily log"
-      crumb="What got done today, in two minutes">
+    <Shell profile={profile} active="/app/log" title="Daily log">
       {!placements.length ? (
         <Empty of={{
           title: 'Your log starts with your placement',

@@ -27,12 +27,8 @@ export default function AskWidget({ who, founder, starters, managerHref }: {
     <>
       <button type="button" className={`ask-fab${open ? ' open' : ''}`} aria-expanded={open} aria-controls="ask-panel"
         onClick={() => setOpen(o => !o)} title={open ? 'Close' : 'Ask Relève'}>
-        {open ? (
-          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3l12 12M15 3L3 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-        ) : (
-          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5h14v8.5H8.5L5 16.5V13H3z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /></svg>
-        )}
-        <span className="ask-fab-label">{open ? 'Close' : 'Ask Relève'}</span>
+        <span className="ask-fab-mark" aria-hidden="true">{open ? '\u00d7' : 'R'}</span>
+        <span className="sr-only">{open ? 'Close' : 'Ask Relève'}</span>
       </button>
       {open && (
         <div id="ask-panel" className="ask-panel" role="dialog" aria-label="Ask Relève">

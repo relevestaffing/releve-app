@@ -3287,3 +3287,226 @@ body:has(.tb-panel-wrap,.modal,.drawer) .ask-fab{display:none}
 .push-bar-on{background:none;border:0;padding:0;font:inherit;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fern);cursor:pointer}
 .push-bar-on:hover{text-decoration:underline}
 .push-bar-dismiss{background:none;border:0;padding:0;font:inherit;font-size:12.5px;color:var(--sage);cursor:pointer;text-decoration:underline}
+
+/* ════════════════════════════════════════════════════════════════════
+   ELEVATION (1 November 2026)
+   Nona: "The app still feels too generic, too explanatory, too much like
+   a standard SaaS platform. Ultra-premium and understated. Expensive
+   without trying to look expensive." This layer supersedes the page
+   header, surface and chat rules above it. The principles, so the next
+   pass does not undo them:
+     1. Fern is an accent, never a surface. The page header sits on paper:
+        a small eyebrow, a large title, one hairline. No dark band.
+     2. No shadows. A surface is a hairline and a tonal shift, nothing else.
+        Hover lifts a hairline, not a card.
+     3. Uppercase and tracking are reserved for eyebrows, the nav and the
+        primary button. Everything else is sentence case at reading size.
+     4. One spacing scale, 8px, with air between sections rather than
+        boxes around them.
+     5. Ask Relève is a concierge note on paper, not a widget.
+   ════════════════════════════════════════════════════════════════════ */
+:root{--ground:#F7F5F0;--hair:rgba(53,68,58,.12);--hair-soft:rgba(53,68,58,.07);--paper2:#FBF9F5}
+.shell{background:linear-gradient(90deg,#FFFFFF 0 var(--sidebar),var(--ground) var(--sidebar))}
+main.main{background:var(--ground)}
+.skel-shell,.firstrun,.firstrun-foot{background:var(--ground)}
+
+/* ---- the page header ---- */
+@media (min-width:901px){
+  .topbar{background:transparent;flex-direction:row;justify-content:space-between;align-items:flex-end;text-align:left;gap:24px;min-height:0;z-index:1;
+    padding:76px 0 34px;margin:0 72px;border-bottom:1px solid var(--hair);backdrop-filter:none;overflow:visible}
+  .topbar::before,.topbar::after{display:none}
+  .topbar > div:first-child{display:block}
+  .topbar .crumb:not(:empty)::before{display:none}
+  .topbar-action{display:block}
+  .page-body{margin:0;position:static}
+  .page-body > .card:first-child,.page-body > .card,.page-body > .stack > .card{box-shadow:none}
+  /* nothing opens on a dark band any more: the first block is on paper */
+  .page-body > .dir-head:first-child{margin-bottom:0}
+  .page-body > .dir-head:first-child .tabs{border-bottom-color:var(--hair)}
+  .page-body > .dir-head:first-child .tabs a,.page-body > .dir-head:first-child .tabs button{color:#7E8D80}
+  .page-body > .dir-head:first-child .tabs a:hover,.page-body > .dir-head:first-child .tabs button:hover{color:var(--fern)}
+  .page-body > .dir-head:first-child .tabs a.on,.page-body > .dir-head:first-child .tabs button.on{color:var(--fern);border-bottom-color:var(--fern)}
+  .page-body > .dir-head:first-child .tab-n{background:var(--hair);color:var(--fern)}
+  .page-body > .dir-head:first-child .btn{border-color:var(--fern);color:var(--fern)}
+  .page-body > .dir-head:first-child .btn.ghost{border-color:var(--line-strong)}
+  .page-body > .dir-head:first-child .btn:not(:disabled):hover{background:var(--fern);color:var(--cream);border-color:var(--fern)}
+  .page-body > .dir-head:first-child .btn.solid{background:var(--fern);color:var(--cream);border-color:var(--fern)}
+  .page-body > .section-h:first-child,.page-body > .dir-head:first-child + .section-h{color:#7E8D80}
+  .topbar .pill.good{color:var(--good)}
+  .topbar .pill.warn{color:var(--warn)}
+  .page-body > .card.dark:first-child{outline:0}
+  .topbar h1{color:var(--fern);font-size:clamp(38px,3.4vw,50px);line-height:1.06;letter-spacing:-.004em}
+  .topbar .crumb{color:var(--sage);font-size:10.5px;letter-spacing:.34em;margin-bottom:20px}
+  .topbar .crumb:not(:empty)::after{background:var(--pale)}
+  .topbar .btn{border-color:var(--fern);color:var(--fern);background:transparent}
+  .topbar .btn:not(:disabled):hover{background:var(--fern);color:var(--cream)}
+  .topbar .btn.solid{background:var(--fern);color:var(--cream);border-color:var(--fern)}
+  .topbar .btn.solid:not(:disabled):hover{background:var(--ink);border-color:var(--ink)}
+  .topbar .muted,.topbar .small{color:var(--sage)}
+  .topbar .pill{color:var(--sage)}
+  .page-body{padding:48px 72px 150px;max-width:1120px}
+  .skel-topbar{background:transparent;margin:0 72px;padding:74px 0 34px;border-bottom:1px solid var(--hair)}
+}
+
+/* ---- the sidebar: white, quiet, a hairline rail ---- */
+aside.side{background:#FFFFFF;border-right:1px solid var(--hair-soft);padding-top:40px;box-shadow:none}
+.pill.good,.pill.warn,.pill.crit{background:transparent;padding:0}
+.pill.good{color:var(--good)}
+.qa-grid{box-shadow:none;background:var(--hair)}
+.qa-tile{padding:30px 28px;background:#FFFFFF;align-items:center}
+.qa-tile:hover{transform:none;box-shadow:none;background:var(--paper2)}
+.qa-t{font-size:17px}
+.side-logo{padding:0 36px 40px}
+.side-logo img{height:32px}
+.side-role{padding:0 36px 30px;margin-bottom:28px;border-bottom:1px solid var(--hair-soft)}
+.side-role .eyebrow{font-size:10px;letter-spacing:.3em;color:#8E9C90;margin-bottom:10px}
+.side-role .name{font-size:21px;color:var(--fern)}
+.side-role .small{color:var(--sage)!important}
+nav.side-nav a{padding:11px 36px;font-size:11.5px;letter-spacing:.2em;color:#66756A;border-left:0;position:relative}
+nav.side-nav a::before{content:"";position:absolute;left:24px;top:50%;width:0;height:1px;background:var(--fern);transition:width .25s ease}
+nav.side-nav a:hover{color:var(--fern)}
+nav.side-nav a.active{color:var(--fern);background:none}
+nav.side-nav a.active::before{width:6px}
+.nav-group-label{font-size:9.5px;letter-spacing:.3em;color:#9AA79C;padding:0 36px 8px}
+.nav-group + .nav-group{margin-top:22px}
+.side-foot{padding:22px 36px 0;border-top:1px solid var(--hair-soft);color:#8E9C90;font-size:11px;letter-spacing:.18em}
+.side-foot:hover{color:var(--fern)}
+.skel-side{background:#FFFFFF}
+
+/* ---- surfaces ---- */
+.card,.card:not(.stat):not(.dark),.card.stat,.money-stat,.money-strip,table.data,.lead-table,.drawer,.modal,.card.dark,.empty-card,.cd-row,.cd-tile,.cd-day{box-shadow:none}
+.btn.solid,.btn.solid:not(:disabled):hover{box-shadow:none}
+.cd-row:hover,.cd-row.open,.cd-tile:hover,.cd-day:hover{box-shadow:none;transform:none}
+.cd-row:hover,.cd-tile:hover{border-color:var(--line-strong)}
+.card{background:#FFFFFF;border:1px solid var(--hair)}
+.card .card:not(.dark):not(.stat){border-color:var(--hair-soft)}
+.card.dark{background:var(--fern);color:rgba(251,248,241,.86)}
+.card.stat,.money-stat{border:1px solid var(--hair);background:#FFFFFF}
+.card.stat:hover,.money-stat:hover{transform:none;border-color:var(--line-strong);box-shadow:none}
+.money-strip,.grid-2:has(> .card.stat):not(:has(> .card:not(.stat))),
+.grid-3:has(> .card.stat):not(:has(> .card:not(.stat))),
+.grid-4:has(> .card.stat):not(:has(> .card:not(.stat))){background:var(--hair)}
+table.data{border:0;background:transparent}
+table.data th{font-family:'Tenor Sans',sans-serif;font-size:10.5px;letter-spacing:.26em;color:#8E9C90;padding:14px 18px;border-bottom:1px solid var(--line-strong)}
+table.data td{padding:17px 18px;border-bottom:1px solid var(--hair);font-size:15px}
+table.data tbody tr:has(a):hover{background:rgba(255,255,255,.7)}
+table.data tbody tr.picked{background:#FFFFFF}
+.drawer{background:var(--paper2);border-left:1px solid var(--hair)}
+.modal{background:#FFFFFF;border:1px solid var(--hair)}
+
+/* ---- type scale ---- */
+@media (min-width:901px){
+  .card{padding:44px 46px}
+  .card.tight{padding:30px 34px}
+  .card-head{margin-bottom:28px}
+  .card-head h3{font-size:25px;letter-spacing:0}
+  .section-title{margin:16px 0 26px}
+  .section-title h2{font-size:clamp(26px,2.4vw,32px)}
+  .card.stat,.money-stat{padding:34px 32px}
+  .money-stat .n,.card.stat .score{font-size:38px}
+  .stack{gap:40px}
+}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:#7E8D80}
+.card > .eyebrow:first-child::after,.section-title .eyebrow::after{width:22px;background:var(--pale)}
+.btn{letter-spacing:.17em;padding:15px 30px;font-size:12.5px}
+.btn.sm{padding:10px 20px;font-size:11.5px;letter-spacing:.16em}
+.pill{font-size:11px;letter-spacing:.18em}
+.pill.fern{padding:5px 12px}
+.ff label{font-size:10.5px;letter-spacing:.26em;color:#7E8D80}
+.ff input,.ff select,.ff textarea{border:1px solid var(--hair);padding:14px 16px;font-size:15.5px;transition:border-color .2s}
+.ff input:hover,.ff select:hover,.ff textarea:hover{border-color:var(--line-strong)}
+.ff input:focus,.ff select:focus,.ff textarea:focus{outline:none;border-color:var(--fern);box-shadow:none}
+.card p{line-height:1.75}
+.empty{padding:64px 20px}
+.empty-card{border:1px dashed var(--hair);background:transparent}
+
+/* ---- the notification line: one quiet hairline, not a bar ---- */
+.push-bar{background:transparent;border:0;border-bottom:1px solid var(--hair);padding:0 0 14px;margin-bottom:8px}
+.push-bar-text{font-size:13px;color:var(--sage)}
+.push-bar-on{font-size:10.5px;letter-spacing:.2em}
+.push-bar-dismiss{font-size:12px}
+
+/* ---- the demo banner, in case it ever shows ---- */
+.demo-banner{background:var(--ink)}
+
+/* ---- Ask Relève: a concierge note on paper ---- */
+.ask-fab{right:28px;bottom:28px;width:52px;height:52px;padding:0;justify-content:center;gap:0;background:var(--fern);color:#FBF8F1;box-shadow:0 18px 36px -18px rgba(34,48,42,.55);
+  font-family:'Marcellus',Georgia,serif;font-size:22px;letter-spacing:0;text-transform:none;transition:transform .25s cubic-bezier(.22,.61,.36,1),background .2s,box-shadow .25s}
+.ask-fab-mark{line-height:1}
+.ask-fab.open .ask-fab-mark{font-size:26px}
+.ask-fab:hover{transform:translateY(-2px);box-shadow:0 22px 40px -18px rgba(34,48,42,.6)}
+.ask-panel{right:28px;bottom:96px;width:min(460px,calc(100vw - 56px));height:min(700px,calc(100vh - 130px));background:var(--paper2);border:1px solid var(--hair);box-shadow:0 50px 100px -40px rgba(34,48,42,.45)}
+.ask-panel-head{padding:22px 28px 18px;background:transparent;border-bottom:1px solid var(--hair);align-items:center}
+.ask-presence{gap:14px}
+.ask-mark{background:var(--fern);color:#FBF8F1}
+.ask-mark.lg{width:40px;height:40px;font-size:20px}
+.ask-mark.lg i{background:#5E8A6A;border-color:var(--paper2)}
+.ask-panel-title{font-size:20px}
+.ask-presence-sub{font-size:12px;color:#7E8D80;margin-top:2px}
+.ask-log{font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:#7E8D80}
+.ask-log:hover{color:var(--fern)}
+.ask-panel-close{color:#7E8D80}
+.ask-panel-close:hover{color:var(--fern)}
+.ask-compact{padding:0 28px 22px}
+.ask-compact .thread{padding:18px 0}
+.ask-msg{gap:14px;margin-top:22px;align-items:flex-start}
+.ask-msg.run{margin-top:10px}
+.ask-mark:not(.lg){width:26px;height:26px;font-size:14px;margin-top:1px}
+.ask-bubble{background:transparent;border:0;padding:0;max-width:100%}
+.ask-compact .ask-bubble{padding:0;max-width:100%}
+.ask-who{margin-bottom:8px;font-size:10px;letter-spacing:.3em;color:#8E9C90}
+.ask-who span{font-size:10.5px;color:#A3AEA5}
+.ask-bubble p,.ask-compact .ask-bubble p{font-size:15.5px;line-height:1.7;color:var(--body)}
+.ask-msg.mine{margin-top:22px}
+.ask-bubble.mine,.ask-compact .ask-bubble.mine{background:var(--fern);color:var(--paper);padding:13px 16px 20px;max-width:84%}
+.ask-bubble.mine p{font-size:15px;color:#FBF8F1}
+.ask-time{right:12px;bottom:5px}
+.ask-day{margin:26px 0 2px}
+.ask-day span{font-size:9.5px;letter-spacing:.3em;color:#A3AEA5}
+.ask-day::before,.ask-day::after{background:var(--hair-soft)}
+.ask-typing{height:22px}
+.ask-typing i{width:5px;height:5px}
+.ask-status{font-size:12px;color:#8E9C90;margin-top:8px}
+.ask-chips{margin:14px 0 0 40px;gap:8px}
+.ask-chip{background:transparent;border:1px solid var(--hair);color:var(--fern);font-size:13px;padding:9px 14px}
+.ask-chip:hover{border-color:var(--fern);background:#FFFFFF}
+.ask-proposal{background:#FFFFFF;border:1px solid var(--hair);padding:16px 18px}
+.ask-proposal.done{border-color:var(--pale)}
+.ask-proposal-tag{font-size:9.5px;letter-spacing:.3em;color:#8E9C90;margin-bottom:8px}
+.ask-compose,.ask-compact .ask-compose{border-top:1px solid var(--hair);padding-top:16px;margin-top:4px}
+.ask-compose-row{gap:12px;align-items:flex-end}
+.ask-compose textarea{border:0;border-bottom:1px solid var(--line-strong);background:transparent;padding:8px 0 10px;min-height:38px;font-size:16px;line-height:1.5;color:var(--body)}
+.ask-compose textarea::placeholder{color:#9AA79C}
+.ask-compose textarea:focus{border-bottom-color:var(--fern)}
+.ask-send{width:40px;height:40px;margin-bottom:2px}
+.ask-foot{margin-top:12px}
+.ask-foot .xs{font-size:11.5px;color:#9AA79C}
+.ask-foot a{color:#7E8D80}
+.ask-clear{font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:#9AA79C}
+.ask-clear:hover{color:var(--fern)}
+/* the full pages (/app/ask, /console/ask) take the same note */
+.ask:not(.ask-compact){background:var(--paper2);border:1px solid var(--hair);padding:36px 40px}
+.ask:not(.ask-compact) .ask-bubble.mine{max-width:70%}
+@media (max-width:820px){
+  .ask-fab{right:16px;bottom:calc(86px + env(safe-area-inset-bottom));width:48px;height:48px;font-size:20px}
+  .ask-panel{right:0;left:0;top:0;bottom:0;width:auto;height:auto;border:0;box-shadow:none}
+  .ask-panel-head{padding:calc(18px + env(safe-area-inset-top)) 22px 16px}
+  .ask-compact{padding:0 22px calc(16px + env(safe-area-inset-bottom))}
+  .ask-chips{margin-left:0}
+}
+
+/* ---- phones: the same system, square, hairlines ---- */
+@media (max-width:900px){
+  .card,.card.dark,.card.stat,.money-stat,table.data,.qa-tile{border-radius:0;box-shadow:none}
+  .card{border:1px solid var(--hair);background:#FFFFFF}
+  .card.stat,.money-stat{border:1px solid var(--hair)}
+  .btn,.btn.sm,.ff input,.ff select,.ff textarea{border-radius:0}
+  .menu-trigger{box-shadow:none;border:1px solid var(--hair);border-radius:0}
+  .quickbar{border-radius:0;background:rgba(38,49,42,.96);box-shadow:0 18px 40px -22px rgba(0,0,0,.5)}
+  .quickbar a{border-radius:0}
+  .quickbar .on{background:rgba(255,255,255,.1)}
+  .topbar{background:var(--ground)}
+  .page-body{padding-top:14px}
+  .push-bar{padding-bottom:12px}
+  .push-bar-text{font-size:12.5px}
+}

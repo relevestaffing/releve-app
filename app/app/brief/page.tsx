@@ -38,7 +38,7 @@ export default async function BriefPage({ searchParams }: { searchParams: Promis
   const placements = await listPlacementsFor(profile.id);
 
   if (!placements.length) return (
-    <Shell profile={profile} active="/app/brief" title={profile.role === 'client' ? 'The briefing' : 'Your briefing'} crumb={profile.role === 'client' ? 'How you like things done' : 'How your executive works'}>
+    <Shell profile={profile} active="/app/brief" title={profile.role === 'client' ? 'The briefing' : 'Your briefing'} >
       <Empty of={profile.role === 'client' ? {
         title: 'The briefing opens with your placement',
         body: 'Once someone starts with you, this is where you write down your tools, the access they will have and how you like things done. It is theirs to read before day one.',
@@ -55,7 +55,7 @@ export default async function BriefPage({ searchParams }: { searchParams: Promis
   const brief = await getBrief(p.id);
 
   if (profile.role === 'client') return (
-    <Shell profile={profile} active="/app/brief" title={`The briefing for ${firstName(p.talent_name)}`} crumb="What they need to work the way you do">
+    <Shell profile={profile} active="/app/brief" title={`The briefing for ${firstName(p.talent_name)}`}>
       <BriefEditor placementId={p.id} talentName={firstName(p.talent_name)} initial={brief} startOpen />
     </Shell>
   );

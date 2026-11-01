@@ -27,7 +27,7 @@ export default async function ConsolePlacements({ searchParams }: { searchParams
   const join = base.includes('?') ? '&' : '?';
   return (
     <Shell profile={profile} active="/console/placements" title="Placements"
-      crumb="Who is working with whom"
+      crumb="Placements"
       action={
         <span className="row" role="group" aria-label="Whose placements" style={{ gap: 6 }}>
           <Link className={`btn sm ${mine ? 'ghost' : 'solid'}`} href={base} aria-current={!mine ? 'true' : undefined}>Everyone</Link>

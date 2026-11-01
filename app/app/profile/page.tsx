@@ -41,7 +41,7 @@ export default async function ExecProfile() {
   const hasFacets = !!(sig && Object.keys(sig.facets ?? {}).length > 0);
 
   return (
-    <Shell profile={profile} active="/app/profile" title="Your profile" crumb="What a candidate sees before meeting you">
+    <Shell profile={profile} active="/app/profile" title="Your profile">
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 16 }}>How this reads to a candidate</div>
         <div className="row" style={{ gap: 18 }}>
@@ -121,7 +121,6 @@ export default async function ExecProfile() {
 
           <div className="card">
             <div className="card-head"><h3>Your results in full</h3><span className="pill">{WORDS.moreDetail}</span></div>
-            <p className="small muted">Most people never need this. It is here because it is your data.</p>
             <details className="more">
               <summary>{WORDS.moreDetail}</summary>
               <div className="inner">

@@ -101,37 +101,30 @@ export default async function Console({ searchParams }: { searchParams: Promise<
          invoices and money. */}
       {trend && <FounderBand trend={trend} />}
 
-      <h3 className="section-h" style={{ marginTop: 0 }}>Dashboard</h3>
       <div className="qa-grid">
         <Link className="qa-tile" href="/console/calendar">
           <QaIcon k="calendar" />
-          <div><div className="qa-t">Your calendar</div>
-            <div className="qa-s">Discovery calls, interviews and everything else on the Relève calendar.</div></div>
+          <div><div className="qa-t">Calendar</div></div>
         </Link>
         <Link className="qa-tile" href="/console/matching">
           <QaIcon k="match" />
-          <div><div className="qa-t">Matching and placements</div>
-            <div className="qa-s">Move a search from candidates to an offer to a seat filled.</div></div>
+          <div><div className="qa-t">Matching and placements</div></div>
         </Link>
         <Link className="qa-tile" href="/console/people">
           <QaIcon k="send" />
-          <div><div className="qa-t">Send executive onboarding</div>
-            <div className="qa-s">Discovery call done: open their search and email the deposit link.</div></div>
+          <div><div className="qa-t">Executive onboarding</div></div>
         </Link>
         <Link className="qa-tile" href="/console/bench">
           <QaIcon k="send" />
-          <div><div className="qa-t">Send talent onboarding</div>
-            <div className="qa-s">Sourced someone yourself: email their account and assessment link.</div></div>
+          <div><div className="qa-t">Talent onboarding</div></div>
         </Link>
         <Link className="qa-tile" href="/console/money#money-out">
           <QaIcon k="payroll" />
-          <div><div className="qa-t">Run and track payroll</div>
-            <div className="qa-s">Pay every live placement and keep the record of it.</div></div>
+          <div><div className="qa-t">Payroll</div></div>
         </Link>
         <Link className="qa-tile" href="/console/money#invoices">
           <QaIcon k="invoice" />
-          <div><div className="qa-t">Send invoices, see money</div>
-            <div className="qa-s">Draft, send and track what every executive owes.</div></div>
+          <div><div className="qa-t">Invoices and money</div></div>
         </Link>
       </div>
 
@@ -215,9 +208,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
           <div className="empty"><span className="tick" />
             {vitals.clients + vitals.talent === 0 ? (
               <p className="small">
-                Nothing here yet because nothing has started. The order is: add an
-                executive, write their brief, then build the roster. Everything else
-                on this page fills itself in from there.
+                Nothing has started yet. Add an executive, write their brief, build the roster.
               </p>
             ) : (
               <p className="small">

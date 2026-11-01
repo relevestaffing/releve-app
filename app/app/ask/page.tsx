@@ -19,7 +19,7 @@ export default async function AskPage() {
     : ['What is left on my checklist?', 'How is The Watch scored?', 'How am I paid?', 'What happens once I am placed?'];
 
   return (
-    <Shell profile={profile} active="/app/ask" title="Ask Relève" crumb="Answers about Relève and your account, any time">
+    <Shell profile={profile} active="/app/ask" title="Ask Relève">
       <AskReleve who={profile.role} founder={false} starters={starters} managerHref="/app/messages" />
     </Shell>
   );

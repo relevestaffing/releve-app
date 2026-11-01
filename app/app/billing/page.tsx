@@ -76,7 +76,7 @@ export default async function Billing() {
   const monthly = live.reduce((n, p) => n + (p.rate_month_cents ?? 0), 0);
 
   return (
-    <Shell profile={profile} active="/app/billing" title="Billing" crumb="What you are paying, and when">
+    <Shell profile={profile} active="/app/billing" title="Billing">
 
       <BillingReturnBanner />
       <PaymentMethod account={account} ready={stripeReady()} />

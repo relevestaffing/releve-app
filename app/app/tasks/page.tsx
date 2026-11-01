@@ -22,8 +22,7 @@ export default async function TasksPage() {
   const [placements, tz] = await Promise.all([listPlacementsFor(profile.id), viewerTimezone(profile.id)]);
 
   return (
-    <Shell profile={profile} active="/app/tasks" title="Tasks"
-      crumb={side === 'client' ? 'What you have delegated' : 'What is on your plate'}>
+    <Shell profile={profile} active="/app/tasks" title="Tasks">
       {placements.length === 0 ? (
         <Empty of={side === 'client' ? EMPTY.tasksClient : EMPTY.tasksTalent} />
       ) : placements.map(p => (

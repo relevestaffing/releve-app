@@ -17,8 +17,7 @@ export default async function HowPage() {
   if (profile.role === 'admin') redirect('/console');
 
   return (
-    <Shell profile={profile} active="/app/how" title="How Relève works"
-      crumb="Our method, in full">
+    <Shell profile={profile} active="/app/how" title="How Relève works">
 
       <HowContent />
 

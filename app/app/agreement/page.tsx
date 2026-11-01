@@ -29,9 +29,6 @@ export default async function AgreementPage() {
             <h3>Signed and filed</h3>
             <span className="pill good"><span className="dot" />Signed</span>
           </div>
-          <p className="small muted" style={{ maxWidth: 560, marginBottom: 14 }}>
-            Your Client Services Agreement is signed, and a copy was emailed to you. It is kept here too.
-          </p>
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
             <a className="btn solid" href="/api/agreement/copy">Download your signed copy</a>
             <Link className="btn ghost" href="/app">Back to your account</Link>
@@ -39,7 +36,7 @@ export default async function AgreementPage() {
         </div>
       ) : (
         <p className="small muted" style={{ maxWidth: 560, margin: '0 0 16px' }}>
-          Read the agreement below, then sign at the bottom. It takes a few minutes, and your signed copy is emailed to you.
+          Sign at the bottom. Your copy is emailed to you.
         </p>
       )}
 

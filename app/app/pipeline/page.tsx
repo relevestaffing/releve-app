@@ -58,7 +58,7 @@ export default async function Pipeline() {
   const skills = await skillsFor(current ? [current.person.id] : []);
 
   return (
-    <Shell profile={profile} active="/app/pipeline" title="Your candidate" crumb="One person, matched to you">
+    <Shell profile={profile} active="/app/pipeline" title="Your candidate">
       {/* The page-level explanation lives inside whichever card opens the
          page: on its own it was the first child of the body, which on a
          desktop lands on the fern hero, unreadable. */}

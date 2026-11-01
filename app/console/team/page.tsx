@@ -146,7 +146,7 @@ export default async function ConsoleTeam() {
 
   return (
     <Shell profile={profile} active="/console/business" title="The business"
-      crumb="Who is on the team, and what each is carrying">
+      crumb="Team">
       <ConsoleTabs active="/console/team" items={[
         { href: '/console/reports', label: 'Reports' },
         { href: '/console/signals', label: 'Match accuracy' },

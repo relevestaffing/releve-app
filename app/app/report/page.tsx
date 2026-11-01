@@ -31,7 +31,7 @@ export default async function ReportPage({ searchParams }: {
 
   const [placements, tz] = await Promise.all([listPlacementsFor(profile.id), viewerTimezone(profile.id)]);
   if (!placements.length) return (
-    <Shell profile={profile} active="/app/report" title="Your month" crumb="Once someone is working with you">
+    <Shell profile={profile} active="/app/report" title="Your month">
       <Empty of={{
         title: 'Your first month report is on its way',
         body: 'Once someone starts, this page fills in as the month goes: the tasks finished, the highlights they share with you and what is coming next. A summary arrives by email on the first of each month.',

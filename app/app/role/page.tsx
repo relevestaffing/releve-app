@@ -19,8 +19,7 @@ export default async function RolePage() {
   const initial = await getRoleBreakdown(profile.id);
 
   return (
-    <Shell profile={profile} active="/app/role" title="The role"
-      crumb="What the person you hire will own">
+    <Shell profile={profile} active="/app/role" title="The role">
       <RoleBreakdownForm initial={initial} />
       <NextStep steps={await setupFor(profile)} current="role" />
     </Shell>
