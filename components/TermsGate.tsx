@@ -103,8 +103,8 @@ export default function TermsGate({ name, side }: {
                   than an employee, Relève pays you directly each month, and for twelve
                   months after we introduce you to an executive, work with them goes
                   through us. All of it is in Section 5 and Section 6.</>
-              : <>Worth knowing before you tick the box: placements carry a three-month
-                  minimum, invoices go out on the first Monday of each month, and there
+              : <>Worth knowing before you tick the box: placements carry a six-month
+                  minimum (three on the Starter plan), invoices go out on the first Monday of each month, and there
                   is a twelve-month non-circumvention clause covering anyone we
                   introduce you to. All of it is in Section 5 and Section 6.</>}
           </p>

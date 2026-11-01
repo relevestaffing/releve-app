@@ -321,7 +321,7 @@ const label = (a: typeof AXES[number], v: number) => (v >= 66 ? a.hi.toLowerCase
 const band = (v: number) =>
   v >= 90 ? { k: 'Exceptional', c: 'good' } :
   v >= 80 ? { k: 'Strong', c: 'good' } :
-  v >= 70 ? { k: 'Workable', c: 'warn' } : { k: 'Friction', c: 'crit' };
+  v >= 70 ? { k: 'Workable', c: 'warn' } : { k: 'Different', c: 'warn' };
 
 /* ---- bench norms ---- */
 export function percentile(value: number, pool: number[]) {

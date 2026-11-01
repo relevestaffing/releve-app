@@ -21,6 +21,7 @@ export default function WatchAttemptForm({
   const [submitting, setSubmitting] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const pending = useRef<Record<string, string>>({});   // latest unsaved value per task
 
   const deadline = new Date(startedAt).getTime() + timeLimitMinutes * 60000;
   const [now, setNow] = useState(() => Date.now());
@@ -45,7 +46,8 @@ export default function WatchAttemptForm({
   function onChange(taskId: string, value: string) {
     if (over) return;
     clearTimeout(timers.current[taskId]);
-    timers.current[taskId] = setTimeout(() => save(taskId, value), 1000);
+    pending.current[taskId] = value;
+    timers.current[taskId] = setTimeout(() => { delete pending.current[taskId]; save(taskId, value); }, 1000);
   }
 
   async function save(taskId: string, value: string) {
@@ -66,6 +68,11 @@ export default function WatchAttemptForm({
   async function submit() {
     setSubmitting(true);
     try {
+      /* Save anything still sitting in the debounce first: a last sentence typed
+         just before pressing Send must land before the attempt closes. */
+      for (const id of Object.keys(timers.current)) clearTimeout(timers.current[id]);
+      const unsaved = Object.entries(pending.current); pending.current = {};
+      await Promise.all(unsaved.map(([id, v]) => save(id, v)));
       const res = await fetch('/api/watch/submit', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ attemptId })

@@ -59,7 +59,10 @@ export async function execInTour(clientId: string): Promise<boolean> {
   const stage = await executiveStage(clientId);
   if (stage.placed) return false;
   const dep = await depositGateFor(clientId);
-  return !dep || (dep.status !== 'paid' && dep.status !== 'waived');
+  /* 'processing' is a bank debit already committed (the webhook reverts it to
+     'due' if it fails), so it opens the account rather than locking a new
+     client out for the days a bank transfer takes to settle. */
+  return !dep || (dep.status !== 'paid' && dep.status !== 'waived' && dep.status !== 'processing');
 }
 
 /* The lock on every executive account.

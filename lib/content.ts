@@ -544,6 +544,7 @@ export async function publishOne(post: ContentPost): Promise<'posted' | 'pending
       ? (post.image_path ? [await fetchBytes(mediaUrl(post.image_path))] : [])
       : await Promise.all((await imagesFor(post)).map(fetchBytes));
     if (post.channel === 'li_personal' && !images.length) throw new Error('Add your picture first.');
+    if (post.channel === 'li_personal' && !(post.caption ?? '').trim()) throw new Error('No words yet: this post is still being written from its photo.');
     if (!results.linkedin) { results.linkedin = { id: await linkedinPost(li, author, post.caption, images), at: new Date().toISOString() }; await save(); }
     return 'posted';
   }

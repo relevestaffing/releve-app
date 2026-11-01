@@ -144,7 +144,7 @@ export default async function AppHome() {
         hasSignature: !!sig, hasAvailability, hasSkills,
         signatureInvalid: sig?.validity?.verdict === 'Invalid',
         watch: watch!,
-        hasProfile: !!(self.bio && (self.skills?.length ?? 0) > 0),
+        hasProfile: !!self.bio,
         hasPhoto: !!self.photo_url,
         vettingDone: vetting.filter(v => v.state === 'verified').length,
         vettingTotal: 2,
@@ -182,7 +182,7 @@ export default async function AppHome() {
     );
   }
 
-  if (!sig) return (
+  if (!sig && !(side === 'client' && stage.placed)) return (
     <Shell profile={profile} active="/app"
       title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
       crumb="Getting set up">
@@ -206,7 +206,7 @@ export default async function AppHome() {
      came back as "your candidate" every time you opened the app. It now
      follows exactly the same rule as the pipeline page. */
   const [ranked, decisions] = side === 'client'
-    ? await Promise.all([rankBench(sig), listDecisions(profile.id)])
+    ? await Promise.all([sig ? rankBench(sig) : Promise.resolve([] as Awaited<ReturnType<typeof rankBench>>), listDecisions(profile.id)])
     : [[], []] as [Awaited<ReturnType<typeof rankBench>>, Awaited<ReturnType<typeof listDecisions>>];
   const decided = Object.fromEntries(decisions.map(d => [d.talent_id, d]));
   const current = ranked.find(r => decided[r.person.id]?.state !== 'passed') ?? null;
@@ -351,6 +351,9 @@ export default async function AppHome() {
     );
   }
 
+  /* From here on this is the talent dashboard. The gate above already returned
+     for any talent without a Signature, so this only narrows the type. */
+  if (!sig) return null;
   const type = archetype(sig.scores, side);
   const selfLines = talentSelfLines(sig.scores);
 

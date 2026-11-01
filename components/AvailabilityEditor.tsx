@@ -4,7 +4,7 @@ import { useEffect, useState, useId } from 'react';
 import { WEEKDAYS, minutesToLabel, type Window } from '@/lib/scheduling';
 import { saving } from './Toast';
 
-const HOURS = Array.from({ length: 15 }, (_, i) => (i + 6) * 60);   // 6am – 8pm
+const HOURS = Array.from({ length: 24 }, (_, i) => i * 60);   // every hour: a professional in Manila on US hours works through the night
 
 export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }) {
   const fid = useId();

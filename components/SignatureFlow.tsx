@@ -204,7 +204,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
           : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on, plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
-        {data.total} screens, about {side === 'talent' ? 'twenty' : 'fifteen'} minutesutes.
+        {data.total} screens, about {side === 'talent' ? 'twenty' : 'fifteen'} minutes.
       </p>
       {/* Answering everything and stopping on the Conditions screen — the
           likeliest place to stop, since it is the only one with typing — used

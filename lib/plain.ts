@@ -229,8 +229,8 @@ export function conditionNote(c: { label: string; state: string; note: string },
 export function fitSentence(m: Match, firstName: string): string {
   if (m.overall >= 90) return `${firstName} works almost exactly the way you do.`;
   if (m.overall >= 80) return `${firstName} fits how you work, with one thing to keep an eye on.`;
-  if (m.overall >= 70) return `${firstName} could work, but it would take some adjustment on both sides.`;
-  return `${firstName} works differently enough from you that we would not lead with them.`;
+  if (m.overall >= 70) return `${firstName} could work well with you, with some adjustment on both sides worth talking through.`;
+  return `${firstName} brings a different working style from yours, which is part of why we chose them for this role. Worth discussing in the first call.`;
 }
 
 /* Talent: what this profile is good for, in one sentence. */

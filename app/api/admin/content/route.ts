@@ -22,7 +22,7 @@ const nodash = (s: unknown, max: number) => String(s ?? '').replace(/[–—]/g,
 
 /* Where a post goes back to when it is released from a hold. */
 function readyStatus(p: ContentPost): ContentPost['status'] {
-  if (p.channel === 'li_personal') return p.image_path ? 'scheduled' : 'needs_image';
+  if (p.channel === 'li_personal') return (p.image_path && (p.caption ?? '').trim()) ? 'scheduled' : 'needs_image';
   if (p.format === 'video' && p.channel !== 'li_group') {
     if (!p.video_path) return 'needs_video';
     return p.channel === 'li_page_client' && !pageAccess() ? 'manual' : 'scheduled';
@@ -54,7 +54,11 @@ export async function POST(req: Request) {
         const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : '';
         if (!week) return bad('Which week?');
         const { data: held } = await adminClient().from('content_posts').select('*').eq('week_start', week).eq('status', 'held');
-        for (const p of (held ?? []) as ContentPost[]) await updatePost(p.id, { status: readyStatus(p), hold_reason: null, error: null } as any);
+        for (const p of (held ?? []) as ContentPost[]) {
+          /* A photo-first post still being written stays held until its words land. */
+          if ((p.hold_reason ?? '').startsWith('Writing')) continue;
+          await updatePost(p.id, { status: readyStatus(p), hold_reason: null, error: null } as any);
+        }
         const va = await getSetting<{ status: string; note?: string }>(`va:${week}`);
         if (va?.note?.startsWith('paused')) { await putSetting(`va:${week}`, { status: 'sending', at: new Date().toISOString() }); await kick('va_export', { week }); }
         return ok({ released: (held ?? []).length });

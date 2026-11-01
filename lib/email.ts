@@ -814,7 +814,7 @@ const rawTemplates = {
     text: `${o.name},\n\n${o.from} added a task for you: ${o.title}.${o.due ? `\nDue ${o.due}.` : ''}${o.priority ? `\nPriority: ${o.priority}.` : ''}\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('A new task for you',
       p(`${o.name},`) +
-      p(`<b>${o.from}</b> added a task for you: <b>${o.title}</b>.${o.due ? ` Due <b>${o.due}</b>.` : ''}${o.priority ? ` Priority: ${o.priority}.` : ''}`),
+      p(`<b>${esc(o.from)}</b> added a task for you: <b>${esc(o.title)}</b>.${o.due ? ` Due <b>${esc(o.due)}</b>.` : ''}${o.priority ? ` Priority: ${esc(o.priority)}.` : ''}`),
       { label: 'Open your tasks', href: `${SITE}/app/tasks` })
   }),
   taskDone: (o: { name: string; by: string; title: string }) => ({
@@ -822,7 +822,7 @@ const rawTemplates = {
     text: `${o.name},\n\n${o.by} marked a task done: ${o.title}.\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('A task is done',
       p(`${o.name},`) +
-      p(`<b>${o.by}</b> marked a task done: <b>${o.title}</b>.`),
+      p(`<b>${esc(o.by)}</b> marked a task done: <b>${esc(o.title)}</b>.`),
       { label: 'See the list', href: `${SITE}/app/tasks` })
   }),
 
@@ -837,7 +837,7 @@ const rawTemplates = {
       p(o.cleared
         ? `Your Taking The Watch for <b>${o.discipline}</b> has been reviewed and you cleared it. You are now eligible to be put forward for ${o.discipline} roles.`
         : `Your Taking The Watch for <b>${o.discipline}</b> has been reviewed and did not clear this time.`) +
-      (o.feedback ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #35443A;">${o.feedback}</p>` : ''),
+      (o.feedback ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #35443A;">${esc(o.feedback)}</p>` : ''),
       { label: 'Open Taking The Watch', href: `${SITE}/app/watch` })
   }),
 
