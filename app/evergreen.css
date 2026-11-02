@@ -509,3 +509,23 @@ main.main::before{opacity:.075;right:-22vw;top:28vh}
    across it. The experiments are in git history (b05dd79 to 2ec6b97). */
 .topbar h1,.topbar .crumb{text-shadow:0 2px 28px rgba(8,14,11,.65),0 1px 2px rgba(8,14,11,.4)}
 .topbar h1 .name{color:#D3E0CF!important}
+
+/* ═════════════════════ THE WINDOW WALL (2 November 2026) ═════════════════════
+   Nona chose option C: a photograph of deep green plaster with late sun
+   through a paned window and a sprig of leaf shadow in the light, in place
+   of the drawn olive branch (made for Relève in her Canva, "Relève app
+   imagery"). One photograph, so the light sits in the plaster; it drifts
+   slowly and the sun swells and fades as a cloud passes. */
+:root{--window-wall:url('/atmos/window-wall.webp')}
+.topbar .band-light{animation:kenburns 38s ease-in-out infinite alternate!important;
+  background:linear-gradient(90deg,rgba(10,16,13,.55) 0%,rgba(10,16,13,.2) 45%,rgba(10,16,13,0) 70%),var(--window-wall) 100% 45%/cover no-repeat!important}
+.topbar .band-light::before,.topbar .band-light::after,.topbar::before{display:none!important}
+.topbar::after{background:radial-gradient(640px 420px at 84% 12%,rgba(255,244,214,.35),transparent 65%)!important;mix-blend-mode:soft-light!important}
+main.main::before{display:none!important}
+.welcome,.auth{background:linear-gradient(90deg,rgba(10,16,13,.6),rgba(10,16,13,.25)),var(--window-wall) 85% 45%/cover no-repeat,var(--eg)!important}
+.welcome::before,.auth::before,.welcome::after,.auth::after{display:none!important}
+:root{--branch-band:none;--branch-page:none}
+@media (max-width:900px){
+  .topbar .band-light{background:linear-gradient(180deg,rgba(10,16,13,.3),rgba(10,16,13,.62)),var(--window-wall) 82% 45%/cover no-repeat!important}
+  .topbar::after{background:none!important}
+}
