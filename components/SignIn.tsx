@@ -79,12 +79,8 @@ export default function SignIn({ initialError }: { initialError?: string }) {
             </>
           ) : (
             <>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>Relève Executive Staffing</div>
-              <h2 style={{ fontSize: 24, marginBottom: 10 }}>Sign in</h2>
-              <p className="note" style={{ marginBottom: 24 }}>
-                {live ? 'Enter the email address your account is under. We will send you a link.'
-                      : 'Preview mode: sign-in is skipped and nothing is saved.'}
-              </p>
+              <h2 style={{ fontSize: 24, marginBottom: live ? 22 : 10 }}>Sign in</h2>
+              {!live && <p className="note" style={{ marginBottom: 24 }}>Preview mode: sign-in is skipped and nothing is saved.</p>}
               <form onSubmit={magicLink}>
                 <div className="ff">
                   <label htmlFor={`${fid}-1`}>Email</label>
@@ -106,9 +102,6 @@ export default function SignIn({ initialError }: { initialError?: string }) {
                 {gBusy ? 'Opening Google…' : 'Continue with Google'}
               </button>
               {err && <div className="err" role="alert">{err}</div>}
-              <p className="note" style={{ marginTop: 22, fontSize: 12 }}>
-                Talent applying for the first time should use the address on their application.
-              </p>
             </>
           )}
         </div>

@@ -30,7 +30,7 @@ varying vec2 v;
 uniform sampler2D plaster,sun;
 uniform vec2 res;          // canvas px
 uniform vec2 focus;        // cover focus (like background-position)
-uniform float zoom, t, veil;
+uniform float zoom, t, veil, drift;
 uniform vec4 xf;           // sx, sy, shear, unused
 uniform vec2 dxy;          // translation of the patch (uv)
 uniform vec3 sunCol, ambCol, lampCol;
@@ -46,7 +46,7 @@ void main(){
   vec2 sc= ca>ia? vec2(1.,ia/ca): vec2(ca/ia,1.);
   sc/=zoom;
   vec2 uv=focus*(1.-sc)+px*sc;
-  uv+=vec2(sin(t*.021),cos(t*.017))*.009;
+  uv+=vec2(sin(t*.021*drift),cos(t*.017*drift))*.009*drift;
   // plaster grain and mottle
   float g=(texture2D(plaster,uv).r-.5)/.9;
   // light through the window, moved by the sun
@@ -148,7 +148,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
       const U: Record<string, WebGLUniformLocation | null> = {};
-      ['plaster', 'sun', 'res', 'focus', 'zoom', 't', 'veil', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud']
+      ['plaster', 'sun', 'res', 'focus', 'zoom', 't', 'veil', 'drift', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud']
         .forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
       imgs.forEach((img, unit) => {
         const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
@@ -197,10 +197,17 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         gl.uniform1f(U.zoom, 1.05);
         gl.uniform1f(U.t, still ? 0 : t);
         gl.uniform1f(U.veil, page ? (mob ? 4 : 3) : room ? 2 : mob ? 1 : 0);
-        gl.uniform4fv(U.xf, L.xf); gl.uniform2fv(U.dxy, L.dxy);
+        /* The sign-in page is the first thing anyone sees, so the light there
+           visibly travels: the camera drifts, the window's light glides slowly
+           across the plaster and back (about a minute each way) and the sprig
+           moves more. Elsewhere it stays quiet so it never distracts from work. */
+        const lively = room && !still;
+        gl.uniform1f(U.drift, lively ? 3.2 : 1);
+        gl.uniform4fv(U.xf, L.xf);
+        gl.uniform2f(U.dxy, L.dxy[0] + (lively ? Math.sin(t * .055) * .045 : 0), L.dxy[1] + (lively ? Math.sin(t * .041 + 1.1) * .018 : 0));
         gl.uniform3fv(U.sunCol, L.sunCol); gl.uniform3fv(U.ambCol, L.ambCol); gl.uniform3fv(U.lampCol, L.lampCol);
         gl.uniform1f(U.sunI, L.sunI); gl.uniform1f(U.moonI, L.moonI); gl.uniform1f(U.soft, L.soft);
-        gl.uniform1f(U.sway, still ? 0 : .05); gl.uniform1f(U.cloud, still ? 1 : cloudAt(t));
+        gl.uniform1f(U.sway, still ? 0 : lively ? .13 : .05); gl.uniform1f(U.cloud, still ? 1 : cloudAt(t));
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         if (!shown) { shown = true; canvas.classList.add('on'); }
       };
