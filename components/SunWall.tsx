@@ -100,8 +100,14 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
   useEffect(() => {
     const root = document.documentElement;
     const t0 = performance.now();
+    let lastKey = '';
     const apply = () => {
       const k = sunShadow(hourNow((performance.now() - t0) / 1000));
+      /* Writing to <html> restyles the whole page, so only when the shadow
+         has actually moved enough to see (scroll performance, 2 Nov 2026). */
+      const key = [Math.round(k.x), Math.round(k.y), Math.round(k.b / 2), k.a.toFixed(2), k.c.join(','), k.lx.toFixed(1)].join('|');
+      if (key === lastKey) return;
+      lastKey = key;
       const st = root.style;
       st.setProperty('--shx', k.x.toFixed(1) + 'px'); st.setProperty('--shy', k.y.toFixed(1) + 'px');
       st.setProperty('--shb', k.b.toFixed(1) + 'px'); st.setProperty('--sha', k.a.toFixed(3));
@@ -111,7 +117,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
     apply();
     let fast = false;
     try { fast = /^lapse/.test(new URLSearchParams(window.location.search).get('sun') || ''); } catch {}
-    const id = window.setInterval(apply, fast ? 400 : 60000);
+    const id = window.setInterval(apply, fast ? 400 : 5 * 60000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -160,15 +166,29 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         if (r < .5) return 1;
         return 1 - S(.15, .4, f) * S(.95, .65, f) * mix(.3, .65, r);
       };
-      let raf = 0, last = -1e9, visible = true, shown = false;
+      let raf = 0, last = -1e9, visible = true, shown = false, busyUntil = 0;
       const t0 = performance.now();
+      /* Smoothness (2 Nov 2026, Nona: "it keeps glitching when I try to
+         scroll"). The wall is fixed, so it never needs a new frame while the
+         page scrolls: drawing pauses during any scroll, wheel or touch and
+         for a moment after, and the browser keeps all of its time for the
+         scroll. Between scrolls it draws about 24 times a second, and at a
+         pixel budget (about 0.6 megapixels) the soft plaster and light do
+         not need more of: the canvas is scaled up by the browser for free. */
+      const busy = () => { busyUntil = performance.now() + 260; };
+      window.addEventListener('scroll', busy, { passive: true, capture: true });
+      window.addEventListener('wheel', busy, { passive: true });
+      window.addEventListener('touchmove', busy, { passive: true });
+      const BUDGET = page ? 600000 : 420000;
       const frame = (now: number) => {
         raf = requestAnimationFrame(frame);
         const still = calm.matches;
-        if (!visible || now - last < (still ? 30000 : 33)) return;
+        if (!visible || now < busyUntil || now - last < (still ? 30000 : 41)) return;
         last = now;
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-        const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+        const cw = canvas.clientWidth, ch = canvas.clientHeight;
+        if (!cw || !ch) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(BUDGET / (cw * ch)));
+        const w = Math.round(cw * dpr), h = Math.round(ch * dpr);
         if (!w || !h) return;
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
         const t = (now - t0) / 1000, L = lightAt(hourNow(t)), mob = phone.matches;
@@ -189,7 +209,10 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
       const vis = () => { visible = document.visibilityState === 'visible'; if (visible) last = -1e9; };
       document.addEventListener('visibilitychange', vis);
       raf = requestAnimationFrame(frame);
-      stop = () => { cancelAnimationFrame(raf); io.disconnect(); document.removeEventListener('visibilitychange', vis); };
+      stop = () => {
+        cancelAnimationFrame(raf); io.disconnect(); document.removeEventListener('visibilitychange', vis);
+        window.removeEventListener('scroll', busy, { capture: true } as any); window.removeEventListener('wheel', busy); window.removeEventListener('touchmove', busy);
+      };
     })();
     return () => { dead = true; stop(); };
   }, [room, page]);

@@ -95,35 +95,37 @@ export default async function People({ searchParams }: { searchParams: Promise<{
       section, stage: STAGE[key], ownerId: manager, tags,
       search: [c.full_name, c.org_name, c.email, brief?.role_title].filter(Boolean).join(' '),
       fullHref: c.signed_in ? `/console/executive/${c.key}` : null,
-      headline: <>{brief?.role_title ? <><b>{brief.role_title}</b>{opened !== null && !brief?.closed_at ? ` · search open ${opened} day${opened === 1 ? '' : 's'}` : ''}</> : 'No role brief yet'}</>,
+      headline: brief?.role_title
+        ? `${brief.role_title}${opened !== null && !brief?.closed_at ? ` · search open ${opened} day${opened === 1 ? '' : 's'}` : ''}`
+        : 'No role brief yet',
       cells: {
         stage: <span className="ws-stage" style={{ background: STAGE[key].color, cursor: 'default' }}>{STAGE[key].label}</span>,
-        onboarding: <><Ring done={done} total={steps.length} /><span className="ws-muted">{done} of {steps.length}</span></>,
+        onboarding: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Ring key="r" done={done} total={steps.length} /><span key="t" className="ws-muted">{done} of {steps.length}</span></span>,
         role: brief?.role_title ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{brief.role_title}</span> : <span className="ws-faint">No brief yet</span>,
         agreement: <span className={`ws-tag ${aTone}`}>{aLabel}</span>,
         zone: <span className="ws-muted">{zoneLabel(c.timezone) || '—'}</span>
       },
       props: [
-        ['Company', c.org_name || <span key="c" className="ws-faint">Not given</span>],
-        ['Email', <a key="e" href={`mailto:${c.email}`}>{c.email}</a>],
-        ['Timezone', zoneLabel(c.timezone) || <span key="z" className="ws-faint">Not given</span>],
-        ['Account', <span key="s" className={`ws-tag ${c.signed_in ? 'good' : 'warn'}`}>{c.signed_in ? 'Signed in' : 'Not yet signed in'}</span>],
-        ['Agreement', <span key="a" className={`ws-tag ${aTone}`}>{aLabel}</span>],
-        ['Onboarding', <div key="o" style={{ display: 'grid', gap: 6, padding: '8px 0' }}>
+        { k: 'Company', v: c.org_name || <span key="c" className="ws-faint">Not given</span> },
+        { k: 'Email', v: <a key="e" href={`mailto:${c.email}`}>{c.email}</a> },
+        { k: 'Timezone', v: zoneLabel(c.timezone) || <span key="z" className="ws-faint">Not given</span> },
+        { k: 'Account', v: <span key="s" className={`ws-tag ${c.signed_in ? 'good' : 'warn'}`}>{c.signed_in ? 'Signed in' : 'Not yet signed in'}</span> },
+        { k: 'Agreement', v: <span key="a" className={`ws-tag ${aTone}`}>{aLabel}</span> },
+        { k: 'Onboarding', v: <div key="o" style={{ display: 'grid', gap: 6, padding: '8px 0' }}>
           {steps.map(st => <div key={st.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: st.done ? '#22302A' : '#9AA59C' }}>
-            <span className={`ws-fresh ${st.done ? 'g' : 'n'}`} />{st.title}</div>)}</div>],
-        ['Open role', brief?.role_title || <span key="r" className="ws-faint">No brief written yet</span>]
+            <span key="d" className={`ws-fresh ${st.done ? 'g' : 'n'}`} /><span key="t">{st.title}</span></div>)}</div> },
+        { k: 'Open role', v: brief?.role_title || <span key="r" className="ws-faint">No brief written yet</span> }
       ],
       tabs: [
         { key: 'role', label: 'Role brief', body: <RoleBriefEditor clientKey={c.key} pending={!c.signed_in} initial={brief ?? {}} name={c.full_name} /> },
         { key: 'account', label: 'Agreement and account', body: (
           <div style={{ display: 'grid', gap: 16 }}>
-            <ClientAgreementAdmin clientId={c.key} docusignOn={docusignOn} state={agreement as any}
+            <ClientAgreementAdmin key="agr" clientId={c.key} docusignOn={docusignOn} state={agreement as any}
               rejectReason={agreements[c.key]?.reject_reason ?? null} manualSendUrl={manualSendUrl('client')} />
             {brief && !brief.closed_at && brief.id && (
-              <WaiveDeposit searchId={brief.id} cents={brief.deposit_cents ?? 50000} status={(brief.deposit_status ?? 'due') as 'due' | 'paid' | 'waived'} />
+              <WaiveDeposit key="dep" searchId={brief.id} cents={brief.deposit_cents ?? 50000} status={(brief.deposit_status ?? 'due') as 'due' | 'paid' | 'waived'} />
             )}
-            <div><DeletePerson id={c.key} name={c.full_name} pending={!c.signed_in} /></div>
+            <div key="del"><DeletePerson id={c.key} name={c.full_name} pending={!c.signed_in} /></div>
           </div>
         ) }
       ]
@@ -136,7 +138,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
       <PeopleWorkspace
         title="Executives" noun="executives" rows={rows} today={today} side="client" activityType="client" openId={q.open ?? null}
         team={team.map(m => ({ user_id: m.user_id, name: m.name }))}
-        toolbar={<OnboardingSender prefill={prefill} />}
+        toolbar={<OnboardingSender key="send" prefill={prefill} />}
         cols={[
           { key: 'stage', label: 'Stage', width: '132px' },
           { key: 'onboarding', label: 'Onboarding', width: '120px', opt: true },
@@ -156,7 +158,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
           { key: 'invited', label: 'Not signed in', warn: true }, { key: 'nobrief', label: 'No brief', warn: true },
           { key: 'agreement', label: 'Agreement to act on', warn: true }, { key: 'nomanager', label: 'No manager', warn: true }
         ]}
-        empty={<><h4>No executives yet</h4><p className="small">After a discovery call, send the onboarding email from the top of this list.</p></>}
+        empty={{ title: "No executives yet", text: "After a discovery call, send the onboarding email from the top of this list." }}
       />
     </Shell>
   );

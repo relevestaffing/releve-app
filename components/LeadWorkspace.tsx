@@ -471,7 +471,16 @@ export function LeadDetail({ p, team, today, onStage, onOwner, onFollow, onField
       onBlur={e => { const v = e.target.value.trim(); if (v !== ((p[k] as string) ?? '')) onField({ [k]: v || null } as any, String(k)); }}
       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
   );
-  useEffect(() => { setRefresh(r => r + 1); }, [p.stage, p.owner_id, p.next_follow_up]);
+  /* refresh the history after a stage, owner or follow-up change, but not on
+     first open (that would read it twice) */
+  const seen = useRef(`${p.stage}|${p.owner_id}|${p.next_follow_up}`);
+  useEffect(() => {
+    const now = `${p.stage}|${p.owner_id}|${p.next_follow_up}`;
+    if (now === seen.current) return;
+    seen.current = now;
+    const id = window.setTimeout(() => setRefresh(r => r + 1), 700);
+    return () => window.clearTimeout(id);
+  }, [p.stage, p.owner_id, p.next_follow_up]);
 
   return (
     <>

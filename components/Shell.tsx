@@ -7,7 +7,6 @@ import MobileNav from './MobileNav';
 import QuickBar from './QuickBar';
 import Motion from './Motion';
 import Flourish from './Flourish';
-import Depth from './Depth';
 import TermsGate from './TermsGate';
 import InvoiceGate from './InvoiceGate';
 import BillingBanner from '@/components/BillingBanner';
@@ -24,6 +23,7 @@ import UnreadBadge from './UnreadBadge';
 import AskWidget from './AskWidget';
 import { isOwner } from '@/lib/money';
 import './experience.css';
+import './smooth.css';
 import SunWall from '@/components/SunWall';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
@@ -311,7 +311,6 @@ export default async function Shell({
     <>
       <Motion />
       <Flourish />
-      <Depth />
       <UnreadSync initial={unread} />
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
       <MobileNav role={profile.role} active={active} nav={nav}

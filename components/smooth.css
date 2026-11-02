@@ -1,0 +1,22 @@
+/* ═════════════════════ SMOOTH SCROLLING (2 November 2026) ═════════════════════
+   Nona: "it keeps glitching when I try to scroll". Measured in the browser:
+   nearly all of the time went to the live wall redrawing under the page and
+   to effects that make the browser repaint everything on every frame. This
+   sheet removes those costs without changing the look.
+
+   1. The sun's shadow on every card used to glide over three seconds when it
+      changed, which repainted every shadow in the app for three seconds.
+      It now changes in one step, a few times an hour, too small to notice.
+   2. The sidebar blurred the moving wall behind it, so every frame of the
+      wall meant blurring it again. It is solid dark glass instead.
+   3. The still photograph under the live wall is hidden once the wall has
+      drawn, so the browser stops compositing two full-screen layers.
+   4. The wall gets its own layer and is never repainted by the page above. */
+:root{transition:none!important}
+@media (min-width:901px){
+  aside.side{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    background:linear-gradient(180deg,rgba(10,17,13,.9),rgba(10,17,13,.93))!important}
+}
+main.main:has(> .sun-page.on)::before{display:none!important}
+.sun-wall{contain:strict;transform:translateZ(0);backface-visibility:hidden}
+.topbar .band-light{will-change:auto!important;transform:none!important}

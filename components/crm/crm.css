@@ -311,3 +311,15 @@ html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .ws-faint{color:var(--ws-
 html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x :is(.btn.sm,.btn.ghost,.btn:not(.solid),.pill):not(.solid){color:var(--fern,#35443A)!important;background:transparent!important;border-color:var(--fern,#35443A)!important;text-shadow:none!important}
 html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .btn:not(.solid):not(:disabled):hover{background:var(--fern,#35443A)!important;color:var(--cream,#F3EFE6)!important}
 html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .ws-av:not(.ws-none-av){color:#fff!important;text-shadow:none!important}
+
+/* ── smoothness (2 November 2026) ──
+   Scrolling inside the panel, a menu or a board column never hands the
+   scroll on to the page behind it; long lists skip drawing the rows that are
+   off screen; rows and cards are their own paint so a hover repaints one
+   row, not the list. */
+.ws-p-body,.ws-pop,.ws-board,.ws-col-body,.ws-mention-list{overscroll-behavior:contain}
+.ws-row{contain:layout paint;content-visibility:auto;contain-intrinsic-size:auto 52px}
+.ws-card{contain:layout paint}
+.ws-panel{contain:layout paint;will-change:transform}
+.ws-row,.ws-row > div{transition:background-color .15s}
+@media (hover:none){.ws-row:hover{background:transparent}.ws-row .open-hint{display:none}}

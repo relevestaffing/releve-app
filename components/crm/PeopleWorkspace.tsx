@@ -16,7 +16,7 @@ export type PersonRow = {
   section: string; stage: { label: string; color: string };
   cells: Record<string, React.ReactNode>; search: string; tags: string[];
   ownerId?: string | null; fullHref?: string | null;
-  props: [string, React.ReactNode][]; headline?: React.ReactNode;
+  props: { k: string; v: React.ReactNode }[]; headline?: React.ReactNode;
   tabs?: { key: string; label: string; body: React.ReactNode }[];
 };
 export type Col = { key: string; label: string; width: string; opt?: boolean };
@@ -25,7 +25,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
   title: string; noun: string; rows: PersonRow[]; cols: Col[]; sections: { key: string; label: string; color: string }[];
   views: { key: string; label: string; warn?: boolean }[]; team: Member[]; today: string;
   side?: 'client' | 'talent'; activityType: 'client' | 'talent'; toolbar?: React.ReactNode; openId?: string | null;
-  empty: React.ReactNode;
+  empty: { title: string; text: string };
 }) {
   const [owners, setOwners] = useState<Record<string, string | null>>(() => Object.fromEntries(rows.map(r => [r.id, r.ownerId ?? null])));
   useEffect(() => { setOwners(Object.fromEntries(rows.map(r => [r.id, r.ownerId ?? null]))); }, [rows]);
@@ -111,7 +111,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
         </div>
       </div>
 
-      {!rows.length ? <div className="ws-none">{empty}</div> : (
+      {!rows.length ? <div className="ws-none"><h4>{empty.title}</h4><p className="small">{empty.text}</p></div> : (
         <div className="ws-list" role="grid" aria-label={title}>
           <div className="ws-head" role="row">
             <div /><div>{noun === 'executives' ? 'Executive' : 'Talent'}</div>
@@ -184,7 +184,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
               <dl className="ws-props">
                 {side && <><dt><Icon.user />{side === 'client' ? 'Success manager' : 'Talent manager'}</dt>
                   <dd><OwnerPicker ownerId={owners[current.id] ?? null} team={team} onPick={o => setOwner(current, o)} label="Manager" /></dd></>}
-                {current.props.map(([k, v]) => <FragmentPair key={k} k={k} v={v} />)}
+                {current.props.map(({ k, v }) => <FragmentPair key={k} k={k} v={v} />)}
               </dl>
               {!current.tabs?.length && (
                 <Sect title="Activity">

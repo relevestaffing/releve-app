@@ -77,12 +77,14 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
             : <span style={{ color: '#A4483A', fontSize: 13 }}><span className="ws-fresh r" style={{ display: 'inline-block', marginRight: 7 }} />No hours</span>
         },
         props: [
-          ['Role', t.role || DASH], ['Experience', `${t.yrs} years`], ['Location', t.loc || DASH],
-          ['Profile', <span key="p" className="ws-tag">{type}</span>],
-          ['Validity', <span key="v" className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span>],
-          ['Interview hours', canBook ? 'Set' : <span key="h" style={{ color: '#A4483A' }}>Not set, so nobody can book them</span>],
-          ['What Relève pays', payNode]
-        ],
+        { k: 'Role', v: t.role || DASH },
+        { k: 'Experience', v: `${t.yrs} years` },
+        { k: 'Location', v: t.loc || DASH },
+        { k: 'Profile', v: <span key="p" className="ws-tag">{type}</span> },
+        { k: 'Validity', v: <span key="v" className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span> },
+        { k: 'Interview hours', v: canBook ? 'Set' : <span key="h" style={{ color: '#A4483A' }}>Not set, so nobody can book them</span> },
+        { k: 'What Relève pays', v: payNode }
+      ],
         tabs: [{ key: 'record', label: 'Record', body: <div style={{ display: 'grid', gap: 14 }}>
           <p className="small muted" style={{ margin: 0 }}>The full profile, Signature and documents are on the talent&rsquo;s own page.</p>
           <div><Link className="btn sm" href={`/console/talent/${t.id}`}>Open the full profile</Link></div>
@@ -97,7 +99,11 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       headline: 'Started, Signature not finished, so there is nothing to match against yet.',
       cells: { stage: <span className="ws-stage" style={{ background: '#6E8CA8', cursor: 'default' }}>Signature due</span>,
         profile: <span className="ws-faint">Not yet</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
-      props: [['Role', t.role || DASH], ['Location', t.loc || DASH], ['Signature', 'In progress']]
+      props: [
+        { k: 'Role', v: t.role || DASH },
+        { k: 'Location', v: t.loc || DASH },
+        { k: 'Signature', v: 'In progress' }
+      ]
     } as PersonRow)),
     ...pending.map((p: any) => ({
       id: p.id, name: p.full_name, sub: [p.headline ?? p.org_name, p.email].filter(Boolean).join(' · '), photo: null,
@@ -106,7 +112,11 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       headline: 'Added, not yet signed in.',
       cells: { stage: <span className="ws-stage" style={{ background: '#9AA59C', cursor: 'default' }}>Invited</span>,
         profile: <span className="ws-faint">—</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
-      props: [['Email', <a key="e" href={`mailto:${p.email}`}>{p.email}</a>], ['Added as', p.role], ['Record', <DeletePerson key="d" id={p.id} name={p.full_name} pending />]]
+      props: [
+        { k: 'Email', v: <a key="e" href={`mailto:${p.email}`}>{p.email}</a> },
+        { k: 'Added as', v: p.role },
+        { k: 'Record', v: <DeletePerson key="d" id={p.id} name={p.full_name} pending /> }
+      ]
     } as PersonRow))
   ];
 
@@ -134,7 +144,7 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
           { key: 'review', label: 'To review', warn: true }, { key: 'unbookable', label: 'No interview hours', warn: true },
           { key: 'onboarding', label: 'Onboarding' }, { key: 'invited', label: 'Not signed in' }, { key: 'nomanager', label: 'No manager', warn: true }
         ]}
-        empty={<><h4>The roster is empty</h4><p className="small">Add someone from the top of this list, or let them apply through Careers.</p></>}
+        empty={{ title: "The roster is empty", text: "Add someone from the top of this list, or let them apply through Careers." }}
       />
 
       {bench.length > 0 && (

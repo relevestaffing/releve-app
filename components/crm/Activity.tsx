@@ -47,12 +47,14 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
 
   useEffect(() => {
     let live = true;
-    setItems(null);
+    /* keep what is on screen while the newer history loads: no flash */
     fetch(`/api/admin/activity?type=${type}&id=${encodeURIComponent(id)}`)
       .then(r => r.json()).then(d => { if (!live) return; setItems(d.items ?? []); setReady(d.ready !== false); })
       .catch(() => { if (live) setItems([]); });
     return () => { live = false; };
   }, [type, id, refreshKey]);
+  /* a different person: start clean */
+  useEffect(() => { setItems(null); }, [type, id]);
 
   /* @ opens a list of the team; picking one writes "@Name" into the text */
   function onType(v: string, caret: number) {
