@@ -502,3 +502,34 @@ main.main::before{opacity:.12;filter:blur(2.5px)}
 .topbar > *:not(.band-light){z-index:2!important}
 main.main::before{opacity:.075;right:-22vw;top:28vh}
 @media (max-width:900px){main.main::before{opacity:.06;right:-45vw}}
+
+/* ═════════════════════ WATER (2 November 2026, late) ═════════════════════
+   Nona: "No, I want it to move like water, versus the plaster wall and
+   olive tree." The band is now a pool lined with dark emerald stone,
+   drawn live by components/WaterBand.tsx: the stone refracts through a
+   moving surface, the light it focuses ripples across, strongest in the
+   sunlit corner, and the pointer stirs it. The plaster and the olive
+   shadow are gone everywhere. Under it, for reduced motion or no WebGL,
+   the same stone photograph with the water light drifting in CSS. */
+:root{--emerald:url('/atmos/emerald-stone.webp')}
+.water-band{position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block;opacity:0;transition:opacity 1.4s var(--ease);pointer-events:none}
+.water-band.on{opacity:1}
+.topbar .band-light{animation:none!important;transform:none!important;
+  background:linear-gradient(90deg,rgba(10,18,14,.6),rgba(10,18,14,.1) 70%),var(--emerald) 70% 40%/cover no-repeat!important}
+.topbar::before{display:none!important}
+.topbar::after{z-index:1!important;background:linear-gradient(90deg,rgba(10,18,14,.42) 0%,rgba(10,18,14,.12) 45%,transparent 70%)!important;mix-blend-mode:normal!important;animation:none!important;opacity:1!important}
+main.main::before{display:none}
+@media (min-width:901px){
+  aside.side{background:linear-gradient(180deg,rgba(14,22,18,.86),rgba(14,22,18,.94)),var(--emerald) 30% 50%/auto 100% no-repeat,var(--eg)}
+}
+.welcome,.auth{background:linear-gradient(90deg,rgba(10,18,14,.55),rgba(10,18,14,.25)),var(--emerald) 60% 40%/cover no-repeat,var(--eg)!important}
+.welcome::before,.auth::before{display:none!important}
+.welcome::after,.auth::after{opacity:.26;-webkit-mask-image:radial-gradient(70% 80% at 75% 25%,#000,transparent 80%);mask-image:radial-gradient(70% 80% at 75% 25%,#000,transparent 80%)}
+.card.dark{background:linear-gradient(160deg,rgba(14,24,19,.55),rgba(10,18,14,.75)),var(--emerald) center/cover no-repeat}
+@media (max-width:900px){
+  .topbar .band-light{background:linear-gradient(180deg,rgba(10,18,14,.3),rgba(10,18,14,.6)),var(--emerald) 70% 40%/cover no-repeat!important}
+}
+@media (prefers-reduced-motion:reduce){.water-band{display:none}}
+.topbar > .water-band{position:absolute!important;inset:0;z-index:0!important;width:100%;height:100%}
+.topbar .band-light{background:linear-gradient(90deg,rgba(10,18,14,.82),rgba(10,18,14,.55)),var(--emerald) 70% 40%/cover no-repeat!important}
+.topbar h1,.topbar .crumb{text-shadow:0 2px 28px rgba(8,14,11,.65),0 1px 2px rgba(8,14,11,.4)}
