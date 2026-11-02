@@ -10,13 +10,37 @@
    2. The sidebar blurred the moving wall behind it, so every frame of the
       wall meant blurring it again. It is solid dark glass instead.
    3. The still photograph under the live wall is hidden once the wall has
-      drawn, so the browser stops compositing two full-screen layers.
+      fully faded in, so the browser stops compositing two full-screen layers.
+      Until then the photograph is a still of the wall as it was last drawn,
+      so moving between pages never dips dark or changes the light.
    4. The wall gets its own layer and is never repainted by the page above. */
 :root{transition:none!important}
 @media (min-width:901px){
   aside.side{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
     background:linear-gradient(180deg,rgba(10,17,13,.9),rgba(10,17,13,.93))!important}
 }
-main.main:has(> .sun-page.on)::before{display:none!important}
+main.main:has(> .sun-page.lit)::before{display:none!important}
+main.main::before{background:var(--wall-snap,linear-gradient(transparent,transparent)),linear-gradient(90deg,rgba(10,16,13,.5),rgba(10,16,13,.1) 70%),var(--window-wall) 100% 35%/cover no-repeat,var(--eg)!important}
+@media (min-width:901px){main.main::before{left:0!important}}
+@media (max-width:900px){main.main::before{left:0!important;background:var(--wall-snap,linear-gradient(transparent,transparent)),linear-gradient(180deg,rgba(10,16,13,.35),rgba(10,16,13,.45)),var(--window-wall) 82% 35%/cover no-repeat,var(--eg)!important}}
+.sun-page.on{transition-duration:.9s}
+
+/* ═════ THE LOADING SCREEN IS THE SAME WALL (2 November 2026) ═════
+   Nona: "it still didn't load right". Between pages the loading screen was a
+   short strip of wall over a big cream panel, then the page arrived on the
+   full wall. Now the loading screen is the full wall too, in the same light,
+   with the white Relève mark waiting on it. */
+.skel-shell{background:transparent!important}
+.skel-shell::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:var(--wall-snap,linear-gradient(transparent,transparent)),linear-gradient(90deg,rgba(10,16,13,.5),rgba(10,16,13,.1) 70%),var(--window-wall) 100% 35%/cover no-repeat,var(--eg)}
+@media (max-width:900px){.skel-shell::before{background:var(--wall-snap,linear-gradient(transparent,transparent)),linear-gradient(180deg,rgba(10,16,13,.35),rgba(10,16,13,.45)),var(--window-wall) 82% 35%/cover no-repeat,var(--eg)}}
+.skel-shell > *{position:relative;z-index:1}
+.skel-shell .skel-main,.skel-shell .skel-page-body{background:transparent!important}
+.skel-shell .skel-topbar{background:transparent!important;border:0!important}
+.skel-shell .skel-topbar::after{display:none!important}
+@media (min-width:901px){.skel-shell .skel-side{background:linear-gradient(180deg,rgba(10,17,13,.9),rgba(10,17,13,.93))!important}}
+.skel-shell .rv-wait-logo{content:url(/logo-white.png);opacity:.92}
+.skel-shell .rv-wait-bar{background:rgba(243,239,230,.16)}
+.skel-shell .rv-wait-bar i{background:linear-gradient(90deg,rgba(243,239,230,0),rgba(243,239,230,.85),rgba(243,239,230,0))!important}
 .sun-wall{contain:strict;transform:translateZ(0);backface-visibility:hidden}
 .topbar .band-light{will-change:auto!important;transform:none!important}

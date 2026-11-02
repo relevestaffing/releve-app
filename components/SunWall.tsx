@@ -94,6 +94,8 @@ const load = (src: string) => new Promise<HTMLImageElement>((res, rej) => {
   const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = rej; i.src = src;
 });
 
+let snapAt = -1e9;
+
 export default function SunWall({ room = false, page = false }: { room?: boolean; page?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   /* every shadow in the app follows this sun (see lib/sun.ts) */
@@ -209,7 +211,23 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         gl.uniform1f(U.sunI, L.sunI); gl.uniform1f(U.moonI, L.moonI); gl.uniform1f(U.soft, L.soft);
         gl.uniform1f(U.sway, still ? 0 : lively ? .13 : .05); gl.uniform1f(U.cloud, still ? 1 : cloudAt(t));
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        if (!shown) { shown = true; canvas.classList.add('on'); }
+        if (!shown) {
+          shown = true; canvas.classList.add('on');
+          /* the live wall fades in over the photo; only once it is fully in
+             is the photo underneath let go (no dark gap between the two) */
+          window.setTimeout(() => canvas.classList.add('lit'), 1600);
+          /* Keep a still of this exact wall on the page root, so the next
+             page and the loading screen open on the same light instead of a
+             darker photograph (read in the same frame it was drawn). At most
+             every two minutes; it takes a few milliseconds. */
+          if (page && performance.now() - snapAt > 120000) {
+            try {
+              snapAt = performance.now();
+              const url = canvas.toDataURL('image/jpeg', .82);
+              document.documentElement.style.setProperty('--wall-snap', `url(${url}) center / 100% 100% no-repeat`);
+            } catch { /* a wall that cannot be read just keeps the photo */ }
+          }
+        }
       };
       const io = new IntersectionObserver(es => { visible = es[0].isIntersecting && document.visibilityState === 'visible'; });
       io.observe(canvas);

@@ -1,3 +1,4 @@
+import './smooth.css';
 /* Building blocks for route-level loading.tsx skeletons.
 
    Kept apart from Shell on purpose: Shell needs a signed-in profile — its

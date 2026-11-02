@@ -352,3 +352,9 @@ html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .ws-av:not(.ws-none-av){c
 @media (hover:none){.ws-row:hover{background:transparent}.ws-row .open-hint{display:none}}
 /* the people pages' own add buttons, at toolbar size */
 .ws-bar .btn{height:30px;padding:0 13px;font-size:12px;letter-spacing:.14em}
+
+/* Arriving on the CRM (2 November 2026): the page lift floats blocks up out of
+   blur, but the whole workspace is one block, so it rose as a single blurred
+   grey slab. The workspace now arrives clean: a short rise and fade, no blur. */
+html.js.rv-nav .page-body > .ws.ws-x:not(.in){filter:none!important;transform:translateY(14px)!important;opacity:0}
+html.js.rv-nav .page-body > .ws.ws-x{filter:none!important;transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1)!important;transition-delay:.08s!important}
