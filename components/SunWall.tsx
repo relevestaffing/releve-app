@@ -46,7 +46,7 @@ void main(){
   vec2 sc= ca>ia? vec2(1.,ia/ca): vec2(ca/ia,1.);
   sc/=zoom;
   vec2 uv=focus*(1.-sc)+px*sc;
-  uv+=vec2(sin(t*.021),cos(t*.017))*.006;
+  uv+=vec2(sin(t*.021),cos(t*.017))*.009;
   // plaster grain and mottle
   float g=(texture2D(plaster,uv).r-.5)/.9;
   // light through the window, moved by the sun
@@ -69,7 +69,7 @@ void main(){
   E+=lampCol*lamp;
   // grain reads more where the sun grazes it
   float lit=clamp(direct,0.,1.);
-  vec2 cell=floor(uv*vec2(1300.,650.));
+  vec2 cell=floor(uv*vec2(2048.,1024.));
   float sp=h1(dot(cell,vec2(12.9898,78.233)))-.5;
   float relief=g*(1.+1.8*lit)+sp*.12*lit;
   vec3 alb=vec3(.055,.10,.05)*exp(relief);
@@ -180,7 +180,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         gl.uniform4fv(U.xf, L.xf); gl.uniform2fv(U.dxy, L.dxy);
         gl.uniform3fv(U.sunCol, L.sunCol); gl.uniform3fv(U.ambCol, L.ambCol); gl.uniform3fv(U.lampCol, L.lampCol);
         gl.uniform1f(U.sunI, L.sunI); gl.uniform1f(U.moonI, L.moonI); gl.uniform1f(U.soft, L.soft);
-        gl.uniform1f(U.sway, still ? 0 : .035); gl.uniform1f(U.cloud, still ? 1 : cloudAt(t));
+        gl.uniform1f(U.sway, still ? 0 : .05); gl.uniform1f(U.cloud, still ? 1 : cloudAt(t));
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         if (!shown) { shown = true; canvas.classList.add('on'); }
       };

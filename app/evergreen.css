@@ -653,7 +653,14 @@ main.main::before{display:block!important;content:"";position:fixed!important;z-
   mix-blend-mode:normal!important;filter:none!important;transform:none!important;
   background:linear-gradient(90deg,rgba(10,16,13,.5),rgba(10,16,13,.1) 70%),var(--window-wall) 100% 35%/cover no-repeat,var(--eg)!important}
 main.main::after{display:none!important}
-main.main > .sun-page{position:fixed!important;z-index:0!important;inset:auto;top:0;left:var(--sidebar);width:calc(100% - var(--sidebar));height:100vh}
+main.main > .sun-page{position:fixed!important;z-index:0!important;inset:auto;top:0;left:0;width:100%;height:100vh}
+/* the sidebar is dark glass over the same wall, so the plaster runs edge to edge */
+@media (min-width:901px){
+  main.main::before{left:0!important}
+  aside.side{background:linear-gradient(180deg,rgba(10,17,13,.80),rgba(10,17,13,.86))!important;
+    -webkit-backdrop-filter:blur(3px) saturate(1.05);backdrop-filter:blur(3px) saturate(1.05)}
+  aside.side::before,aside.side::after{display:none!important}
+}
 .topbar,.topbar .band-light{background:transparent!important}
 .topbar .band-light{display:none!important}
 @media (max-width:900px){
