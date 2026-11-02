@@ -343,20 +343,102 @@ html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layou
 html.rv-off .page-body > *:not(.in),html.rv-off .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layout) > *:not(.in){transform:none}
 
 
-/* ───────────────────────── the velvet rail (Nona, 1 Nov 2026: "I actually really like the left panel") ─────────────────────────
-   From the materials board: the rail in a soft fern velvet, a hairline of
-   brushed brass along its edge, and the page you are on marked in brass. */
-:root{--velvet:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.008' numOctaves='3' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .58 0 0 0 0 .4 .45 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23v%29'/%3E%3C/svg%3E");--velvet-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23n%29'/%3E%3C/svg%3E");
-  --brass-line:linear-gradient(115deg,#7A5A26 0%,#C9A45C 30%,#F3DDA0 48%,#B88A3E 62%,#8E6A2E 100%);--brass-text:#EFD496}
+/* ═════════════════════ WATER AND SHADOW (2 November 2026) ═════════════════════
+   Nona, on the preview: "Yes!!!! I love this, every page. Disregard the
+   velvet sidebar, have the app complement this and have textures and
+   movement like this throughout."
+
+   The idea is light, not decoration: the app is a sunlit room. Light
+   reflected off water ripples across the green, an olive branch's shadow
+   moves in a breeze, and the same light and shade fall, more softly, over
+   the limewash paper the work sits on. Everything moves on long, slow
+   breaths, only by transform and opacity (composited, cheap), and all of
+   it stops for anyone who has asked for reduced motion. */
+:root{--grain-fine:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .22 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23n%29'/%3E%3C/svg%3E");--caA:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.011 0.014' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.8 0 0 0 0 0.95 0 0 0 0 0.88 -7 0 0 0 1.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23c%29'/%3E%3C/svg%3E");--caB:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='560'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.016 0.012' numOctaves='2' seed='17' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.86 0 0 0 0 0.97 0 0 0 0 0.9 -8 0 0 0 1.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23c%29'/%3E%3C/svg%3E");--branch-band:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='600'%3E%3Cdefs%3E%3Cfilter id='b' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeGaussianBlur stdDeviation='4.5'/%3E%3C/filter%3E%3C/defs%3E%3Cg filter='url%28%23b%29' fill='rgba%286%2C12%2C9%2C0.62%29' stroke='rgba%286%2C12%2C9%2C0.62%29'%3E%3Cpath d='M882.0 12.0 Q495.00000000000006 30.0 108.0 372.0' fill='none' stroke-width='4' stroke-linecap='round'/%3E%3Cpath transform='translate%28836.5 15.2%29 rotate%28208.2%29' d='M0 0 Q29.9 -10.6 66.4 0 Q29.9 10.6 0 0Z'/%3E%3Cpath transform='translate%28790.9 20.7%29 rotate%28129.3%29' d='M0 0 Q30.2 -10.7 67.1 0 Q30.2 10.7 0 0Z'/%3E%3Cellipse cx='780.9' cy='32.7' rx='7' ry='9'/%3E%3Cpath transform='translate%28745.4 28.4%29 rotate%28197.3%29' d='M0 0 Q31.7 -11.3 70.3 0 Q31.7 11.3 0 0Z'/%3E%3Cpath transform='translate%28699.9 38.4%29 rotate%28132.7%29' d='M0 0 Q32.6 -11.6 72.4 0 Q32.6 11.6 0 0Z'/%3E%3Cpath transform='translate%28654.4 50.6%29 rotate%28211.8%29' d='M0 0 Q27.5 -9.8 61.2 0 Q27.5 9.8 0 0Z'/%3E%3Cpath transform='translate%28608.8 65.1%29 rotate%28129.5%29' d='M0 0 Q28.4 -10.1 63.2 0 Q28.4 10.1 0 0Z'/%3E%3Cpath transform='translate%28563.3 81.8%29 rotate%28199.2%29' d='M0 0 Q28.9 -10.3 64.2 0 Q28.9 10.3 0 0Z'/%3E%3Cpath transform='translate%28517.8 100.7%29 rotate%28126.7%29' d='M0 0 Q28.6 -10.2 63.5 0 Q28.6 10.2 0 0Z'/%3E%3Cpath transform='translate%28472.2 121.9%29 rotate%28189.1%29' d='M0 0 Q22.1 -7.9 49.2 0 Q22.1 7.9 0 0Z'/%3E%3Cpath transform='translate%28426.7 145.3%29 rotate%28112.3%29' d='M0 0 Q27.3 -9.7 60.6 0 Q27.3 9.7 0 0Z'/%3E%3Cpath transform='translate%28381.2 170.9%29 rotate%28194.7%29' d='M0 0 Q28.4 -10.1 63.2 0 Q28.4 10.1 0 0Z'/%3E%3Cpath transform='translate%28335.6 198.9%29 rotate%28100.3%29' d='M0 0 Q24.2 -8.6 53.8 0 Q24.2 8.6 0 0Z'/%3E%3Cpath transform='translate%28290.1 229.0%29 rotate%28194.6%29' d='M0 0 Q21.1 -7.5 46.9 0 Q21.1 7.5 0 0Z'/%3E%3Cpath transform='translate%28244.6 261.4%29 rotate%28110.4%29' d='M0 0 Q27.3 -9.7 60.6 0 Q27.3 9.7 0 0Z'/%3E%3Cpath transform='translate%28199.1 296.0%29 rotate%28184.9%29' d='M0 0 Q21.9 -7.8 48.6 0 Q21.9 7.8 0 0Z'/%3E%3Cpath transform='translate%28153.5 332.9%29 rotate%28102.9%29' d='M0 0 Q21.8 -7.8 48.5 0 Q21.8 7.8 0 0Z'/%3E%3Cpath transform='translate%28108.0 372.0%29 rotate%28138.5%29' d='M0 0 Q28.0 -8 56.0 0 Q28.0 8 0 0Z'/%3E%3Cpath d='M558.0 72.0 Q558.0 330.0 342.0 552.0' fill='none' stroke-width='4' stroke-linecap='round'/%3E%3Cpath transform='translate%28555.3 128.9%29 rotate%28137.4%29' d='M0 0 Q27.2 -9.7 60.4 0 Q27.2 9.7 0 0Z'/%3E%3Cpath transform='translate%28547.3 184.9%29 rotate%2850.6%29' d='M0 0 Q26.1 -9.3 57.9 0 Q26.1 9.3 0 0Z'/%3E%3Cpath transform='translate%28534.0 240.0%29 rotate%28150.4%29' d='M0 0 Q20.3 -7.2 45.1 0 Q20.3 7.2 0 0Z'/%3E%3Cpath transform='translate%28515.3 294.2%29 rotate%2860.5%29' d='M0 0 Q24.9 -8.8 55.2 0 Q24.9 8.8 0 0Z'/%3E%3Cpath transform='translate%28491.3 347.6%29 rotate%28161.9%29' d='M0 0 Q19.4 -6.9 43.1 0 Q19.4 6.9 0 0Z'/%3E%3Cpath transform='translate%28462.0 400.0%29 rotate%2879.8%29' d='M0 0 Q19.3 -6.8 42.8 0 Q19.3 6.8 0 0Z'/%3E%3Cellipse cx='452.0' cy='412.0' rx='7' ry='9'/%3E%3Cpath transform='translate%28427.3 451.6%29 rotate%28174.6%29' d='M0 0 Q23.1 -8.2 51.3 0 Q23.1 8.2 0 0Z'/%3E%3Cellipse cx='437.3' cy='463.6' rx='7' ry='9'/%3E%3Cpath transform='translate%28387.3 502.2%29 rotate%2883.1%29' d='M0 0 Q18.7 -6.7 41.6 0 Q18.7 6.7 0 0Z'/%3E%3Cpath transform='translate%28342.0 552.0%29 rotate%28134.2%29' d='M0 0 Q23.2 -8 46.4 0 Q23.2 8 0 0Z'/%3E%3Cpath d='M810.0 180.0 Q738.0 450.0 495.00000000000006 588.0' fill='none' stroke-width='4' stroke-linecap='round'/%3E%3Cpath transform='translate%28789.3 245.4%29 rotate%28145.3%29' d='M0 0 Q23.4 -8.3 51.9 0 Q23.4 8.3 0 0Z'/%3E%3Cpath transform='translate%28763.3 306.8%29 rotate%2886.8%29' d='M0 0 Q21.6 -7.7 48.0 0 Q21.6 7.7 0 0Z'/%3E%3Cellipse cx='753.3' cy='318.8' rx='7' ry='9'/%3E%3Cpath transform='translate%28732.0 363.9%29 rotate%28166.9%29' d='M0 0 Q19.1 -6.8 42.4 0 Q19.1 6.8 0 0Z'/%3E%3Cpath transform='translate%28695.2 417.0%29 rotate%2876.1%29' d='M0 0 Q19.5 -6.9 43.3 0 Q19.5 6.9 0 0Z'/%3E%3Cpath transform='translate%28653.2 465.9%29 rotate%28169.1%29' d='M0 0 Q16.3 -5.8 36.1 0 Q16.3 5.8 0 0Z'/%3E%3Cpath transform='translate%28605.8 510.8%29 rotate%28110.8%29' d='M0 0 Q16.3 -5.8 36.3 0 Q16.3 5.8 0 0Z'/%3E%3Cpath transform='translate%28553.1 551.4%29 rotate%28187.8%29' d='M0 0 Q15.5 -5.5 34.4 0 Q15.5 5.5 0 0Z'/%3E%3Cellipse cx='563.1' cy='563.4' rx='7' ry='9'/%3E%3Cpath transform='translate%28495.00000000000006 588.0%29 rotate%28150.4%29' d='M0 0 Q20.8 -8 41.6 0 Q20.8 8 0 0Z'/%3E%3C/g%3E%3C/svg%3E");--branch-page:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='700'%3E%3Cdefs%3E%3Cfilter id='b' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeGaussianBlur stdDeviation='7'/%3E%3C/filter%3E%3C/defs%3E%3Cg filter='url%28%23b%29' fill='rgba%286%2C12%2C9%2C1%29' stroke='rgba%286%2C12%2C9%2C1%29'%3E%3Cpath d='M980.0 14.0 Q550.0 35.0 120.0 434.0' fill='none' stroke-width='4' stroke-linecap='round'/%3E%3Cpath transform='translate%28929.4 17.8%29 rotate%28207.7%29' d='M0 0 Q33.8 -12.0 75.1 0 Q33.8 12.0 0 0Z'/%3E%3Cpath transform='translate%28878.8 24.2%29 rotate%28126.4%29' d='M0 0 Q25.2 -9.0 56.1 0 Q25.2 9.0 0 0Z'/%3E%3Cpath transform='translate%28828.2 33.2%29 rotate%28220.5%29' d='M0 0 Q26.0 -9.2 57.7 0 Q26.0 9.2 0 0Z'/%3E%3Cpath transform='translate%28777.6 44.8%29 rotate%28126.6%29' d='M0 0 Q27.7 -9.9 61.7 0 Q27.7 9.9 0 0Z'/%3E%3Cpath transform='translate%28727.1 59.1%29 rotate%28195.5%29' d='M0 0 Q30.6 -10.9 68.0 0 Q30.6 10.9 0 0Z'/%3E%3Cellipse cx='737.1' cy='71.1' rx='7' ry='9'/%3E%3Cpath transform='translate%28676.5 75.9%29 rotate%28126.6%29' d='M0 0 Q23.1 -8.2 51.4 0 Q23.1 8.2 0 0Z'/%3E%3Cpath transform='translate%28625.9 95.4%29 rotate%28195.5%29' d='M0 0 Q30.3 -10.8 67.2 0 Q30.3 10.8 0 0Z'/%3E%3Cpath transform='translate%28575.3 117.5%29 rotate%28124.4%29' d='M0 0 Q24.4 -8.7 54.2 0 Q24.4 8.7 0 0Z'/%3E%3Cpath transform='translate%28524.7 142.2%29 rotate%28182.3%29' d='M0 0 Q26.9 -9.6 59.9 0 Q26.9 9.6 0 0Z'/%3E%3Cpath transform='translate%28474.1 169.5%29 rotate%28106.6%29' d='M0 0 Q24.2 -8.6 53.8 0 Q24.2 8.6 0 0Z'/%3E%3Cpath transform='translate%28423.5 199.4%29 rotate%28188.2%29' d='M0 0 Q26.3 -9.3 58.4 0 Q26.3 9.3 0 0Z'/%3E%3Cpath transform='translate%28372.9 232.0%29 rotate%28104.2%29' d='M0 0 Q21.9 -7.8 48.6 0 Q21.9 7.8 0 0Z'/%3E%3Cellipse cx='362.9' cy='244.0' rx='7' ry='9'/%3E%3Cpath transform='translate%28322.4 267.2%29 rotate%28194.9%29' d='M0 0 Q24.1 -8.6 53.6 0 Q24.1 8.6 0 0Z'/%3E%3Cpath transform='translate%28271.8 304.9%29 rotate%2891.6%29' d='M0 0 Q24.4 -8.7 54.1 0 Q24.4 8.7 0 0Z'/%3E%3Cpath transform='translate%28221.2 345.3%29 rotate%28189.6%29' d='M0 0 Q21.7 -7.7 48.3 0 Q21.7 7.7 0 0Z'/%3E%3Cpath transform='translate%28170.6 388.4%29 rotate%2889.7%29' d='M0 0 Q20.2 -7.2 45.0 0 Q20.2 7.2 0 0Z'/%3E%3Cpath transform='translate%28120.0 434.0%29 rotate%28137.1%29' d='M0 0 Q28.0 -8 56.0 0 Q28.0 8 0 0Z'/%3E%3Cpath d='M620.0 84.0 Q620.0 385.00000000000006 380.0 644.0' fill='none' stroke-width='4' stroke-linecap='round'/%3E%3Cpath transform='translate%28617.0 150.4%29 rotate%28125.5%29' d='M0 0 Q25.6 -9.1 56.8 0 Q25.6 9.1 0 0Z'/%3E%3Cpath transform='translate%28608.1 215.7%29 rotate%2849.6%29' d='M0 0 Q26.0 -9.2 57.7 0 Q26.0 9.2 0 0Z'/%3E%3Cpath transform='translate%28593.3 280.0%29 rotate%28138.3%29' d='M0 0 Q20.2 -7.2 44.9 0 Q20.2 7.2 0 0Z'/%3E%3Cpath transform='translate%28572.6 343.3%29 rotate%2870.5%29' d='M0 0 Q19.1 -6.8 42.3 0 Q19.1 6.8 0 0Z'/%3E%3Cpath transform='translate%28545.9 405.5%29 rotate%28155.8%29' d='M0 0 Q22.7 -8.1 50.5 0 Q22.7 8.1 0 0Z'/%3E%3Cpath transform='translate%28513.3 466.7%29 rotate%2886.5%29' d='M0 0 Q17.5 -6.2 38.8 0 Q17.5 6.2 0 0Z'/%3E%3Cpath transform='translate%28474.8 526.8%29 rotate%28159.2%29' d='M0 0 Q19.5 -6.9 43.3 0 Q19.5 6.9 0 0Z'/%3E%3Cpath transform='translate%28430.4 585.9%29 rotate%2881.0%29' d='M0 0 Q21.7 -7.7 48.2 0 Q21.7 7.7 0 0Z'/%3E%3Cpath transform='translate%28380.0 644.0%29 rotate%28132.8%29' d='M0 0 Q23.2 -8 46.4 0 Q23.2 8 0 0Z'/%3E%3Cpath d='M900.0 210.0 Q820.0 525.0 550.0 686.0' fill='none' stroke-width='4' stroke-linecap='round'/%3E%3Cpath transform='translate%28877.0 286.3%29 rotate%28146.8%29' d='M0 0 Q19.3 -6.8 42.8 0 Q19.3 6.8 0 0Z'/%3E%3Cpath transform='translate%28848.1 357.9%29 rotate%2863.4%29' d='M0 0 Q18.9 -6.7 42.0 0 Q18.9 6.7 0 0Z'/%3E%3Cpath transform='translate%28813.3 424.6%29 rotate%28155.7%29' d='M0 0 Q17.0 -6.1 37.9 0 Q17.0 6.1 0 0Z'/%3E%3Cpath transform='translate%28772.5 486.5%29 rotate%2890.1%29' d='M0 0 Q17.4 -6.2 38.7 0 Q17.4 6.2 0 0Z'/%3E%3Cpath transform='translate%28725.8 543.6%29 rotate%28165.8%29' d='M0 0 Q18.2 -6.5 40.5 0 Q18.2 6.5 0 0Z'/%3E%3Cpath transform='translate%28673.1 595.9%29 rotate%28100.1%29' d='M0 0 Q18.6 -6.6 41.3 0 Q18.6 6.6 0 0Z'/%3E%3Cpath transform='translate%28614.5 643.3%29 rotate%28174.1%29' d='M0 0 Q15.1 -5.4 33.5 0 Q15.1 5.4 0 0Z'/%3E%3Cellipse cx='624.5' cy='655.3' rx='7' ry='9'/%3E%3Cpath transform='translate%28550.0 686.0%29 rotate%28149.2%29' d='M0 0 Q20.8 -8 41.6 0 Q20.8 8 0 0Z'/%3E%3C/g%3E%3C/svg%3E");--grain-w:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23n%29'/%3E%3C/svg%3E");--lime:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .5 0 0 0 0 .4 .38 0 0 0 -.16'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23m%29'/%3E%3C/svg%3E")}
+
+/* the water light: two drifting layers of caustics, screened onto the green */
+.topbar .band-light,.welcome .water,.auth .water{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  -webkit-mask-image:radial-gradient(75% 100% at 82% 16%,#000 12%,rgba(0,0,0,.42) 58%,transparent 88%);
+  mask-image:radial-gradient(75% 100% at 82% 16%,#000 12%,rgba(0,0,0,.42) 58%,transparent 88%)}
+.topbar .band-light::before,.topbar .band-light::after{content:"";position:absolute;border-radius:0!important;left:-30%!important;top:-60%!important;right:auto!important;
+  width:160%!important;height:220%!important;background:none;background-repeat:repeat;mix-blend-mode:screen;will-change:transform}
+.topbar .band-light::before{background-image:var(--caA);background-size:1100px 1100px;opacity:.16;animation:wtrA 26s ease-in-out infinite alternate!important}
+.topbar .band-light::after{background-image:var(--caB);background-size:880px 880px;opacity:.12;animation:wtrB 21s ease-in-out infinite alternate!important}
+@keyframes wtrA{0%{transform:translate(0,0) scale(1) rotate(0deg)}100%{transform:translate(-6%,4%) scale(1.06) rotate(2deg)}}
+@keyframes wtrB{0%{transform:translate(0,0) scale(1.04) rotate(0deg)}100%{transform:translate(5%,-3%) scale(1) rotate(-2deg)}}
+
+/* the band: a sunlit corner for the shadow to fall in */
 @media (min-width:901px){
-  aside.side{background:var(--velvet),var(--velvet-grain),linear-gradient(180deg,#2A3830,#22302A);border-right:0;box-shadow:inset -1px 0 0 rgba(201,164,92,.35)}
-  aside.side::before{display:none}
-  .shell{background:linear-gradient(90deg,#22302A 0 var(--sidebar),var(--paper) var(--sidebar))}
-  nav.side-nav a.active,nav.side-nav a.active:hover{color:var(--brass-text)}
-  nav.side-nav a::before{background:var(--brass-line);height:2px}
-  .skel-side{background:var(--velvet),var(--velvet-grain),linear-gradient(180deg,#2A3830,#22302A)!important;box-shadow:inset -1px 0 0 rgba(201,164,92,.35)}
+  .topbar,.topbar.lit{background:
+      radial-gradient(760px 460px at 84% 14%,rgba(232,240,214,.20),transparent 62%),
+      radial-gradient(1100px 700px at 78% 30%,rgba(176,196,178,.14),transparent 60%),
+      radial-gradient(900px 600px at 10% 100%,var(--gold-glow),transparent 60%),
+      linear-gradient(180deg,var(--eg) 0%,#1D2A23 50%,var(--eg-2) 100%)}
 }
+/* the olive branch's shadow, moving in a breeze */
+.topbar::before{display:block!important;content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border:0;
+  background:var(--branch-band) right -80px top -70px/900px 600px no-repeat!important;-webkit-mask-image:none!important;mask-image:none!important;
+  transform-origin:100% 0;animation:sway 9s ease-in-out infinite alternate}
+@keyframes sway{0%{transform:rotate(-1.2deg) translate(0,0)}50%{transform:rotate(.6deg) translate(-6px,4px)}100%{transform:rotate(1.4deg) translate(4px,-2px)}}
+
+/* the rail: the same green, a faint shimmer of the water low down */
+@media (min-width:901px){
+  aside.side{background:var(--eg)}
+  aside.side::before{left:-40%;top:auto;bottom:-30%;width:200%;height:80%;border-radius:0;
+    background:var(--caA) 0 0/900px 900px repeat;mix-blend-mode:screen;opacity:.07;
+    -webkit-mask-image:linear-gradient(0deg,#000,transparent);mask-image:linear-gradient(0deg,#000,transparent);
+    animation:wtrA 30s ease-in-out infinite alternate}
+}
+
+/* the paper: limewash, with the light and the leaves falling across it */
+body,main.main{background:var(--grain-fine),var(--lime),var(--paper)}
+@media (min-width:901px){.shell{background:linear-gradient(90deg,var(--eg) 0 var(--sidebar),transparent var(--sidebar)),var(--grain-fine),var(--lime),var(--paper)}}
+main.main{position:relative;isolation:isolate}
+main.main::before,main.main::after{content:"";position:fixed;pointer-events:none;z-index:0}
+main.main::before{top:34vh;right:-8vw;width:min(1000px,80vw);height:min(700px,56vw);opacity:.13;z-index:6;mix-blend-mode:multiply;
+  background:var(--branch-page) center/contain no-repeat;transform-origin:100% 0;animation:sway 11s ease-in-out infinite alternate}
+main.main::after{inset:0;opacity:.6;background:linear-gradient(118deg,rgba(255,252,240,0) 32%,rgba(255,252,240,.55) 44%,rgba(255,252,240,0) 56%);
+  background-size:200% 100%;animation:beam 34s ease-in-out infinite alternate}
+@keyframes beam{0%{background-position:0% 0}100%{background-position:100% 0}}
+main.main > *{position:relative;z-index:1}
+@media (min-width:901px){main.main::before{left:auto}main.main::after{left:var(--sidebar)}}
+
+/* surfaces carry a fine grain, like stone or paper, not flat fill */
+.card,.setup{background:var(--grain-fine),linear-gradient(180deg,#FFFFFF,#FCFAF5)}
+.card .card:not(.dark):not(.stat){background:transparent}
+
+/* dark cards are the pool: emerald, with the water light moving in them */
+.card.dark{position:relative;isolation:isolate;overflow:hidden;
+  background:radial-gradient(600px 400px at 90% 0%,rgba(120,180,160,.16),transparent 60%),linear-gradient(160deg,#1E2E26,#15211C)}
+.card.dark::before{content:"";position:absolute;z-index:-1;left:-30%;top:-50%;width:160%;height:200%;pointer-events:none;
+  background:var(--caB) 0 0/620px 620px repeat;mix-blend-mode:screen;opacity:.16;animation:wtrB 19s ease-in-out infinite alternate}
+
+/* the doorways: the same water and shade */
+.welcome::after,.auth::after{left:-30%;top:-60%;width:160%;height:220%;border-radius:0;background:var(--caA) 0 0/1100px 1100px repeat;mix-blend-mode:screen;opacity:.12;
+  -webkit-mask-image:radial-gradient(70% 80% at 75% 20%,#000,transparent 80%);mask-image:radial-gradient(70% 80% at 75% 20%,#000,transparent 80%);
+  animation:wtrA 26s ease-in-out infinite alternate}
+.welcome::before,.auth::before{background:var(--branch-band) right -60px top -60px/900px 600px no-repeat;-webkit-mask-image:none;mask-image:none;
+  transform-origin:100% 0;animation:sway 9s ease-in-out infinite alternate}
+
+/* Ask Relève: the water light in the top of the panel */
+.ask-panel::after{content:"";position:absolute;z-index:-1;left:-30%;top:-40%;width:160%;height:110%;pointer-events:none;
+  background:var(--caA) 0 0/900px 900px repeat;mix-blend-mode:screen;opacity:.10;
+  -webkit-mask-image:linear-gradient(180deg,#000,transparent 70%);mask-image:linear-gradient(180deg,#000,transparent 70%);animation:wtrA 24s ease-in-out infinite alternate}
+
+/* loading keeps the water */
+@media (min-width:901px){.skel-topbar{position:relative;overflow:hidden}
+  .skel-topbar::after{content:"";position:absolute;left:-30%;top:-60%;width:160%;height:220%;pointer-events:none;background:var(--caA) 0 0/1100px 1100px repeat;mix-blend-mode:screen;opacity:.12;animation:wtrA 26s ease-in-out infinite alternate}}
+
+/* phones: the same light, scaled to the screen */
 @media (max-width:900px){
-  .nav-drawer{background:var(--velvet),var(--velvet-grain),linear-gradient(180deg,#2A3830,#22302A);box-shadow:inset -1px 0 0 rgba(201,164,92,.35)}
-  .nav-drawer nav.side-nav a.active{color:var(--brass-text)}
+  .topbar{background:radial-gradient(420px 300px at 88% 8%,rgba(232,240,214,.18),transparent 62%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)!important}
+  .topbar::before{background:var(--branch-band) right -120px top -90px/620px 413px no-repeat!important}
+  .topbar .band-light::before{background-size:620px 620px;opacity:.18}
+  .topbar .band-light::after{background-size:500px 500px;opacity:.12}
+  main.main::before{width:120vw;height:84vw;right:-30vw;top:40vh;opacity:.06}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .topbar::before,.topbar .band-light::before,.topbar .band-light::after,aside.side::before,main.main::before,main.main::after,
+  .card.dark::before,.welcome::before,.welcome::after,.auth::before,.auth::after,.ask-panel::after,.skel-topbar::after{animation:none!important}
 }
