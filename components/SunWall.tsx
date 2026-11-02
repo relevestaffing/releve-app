@@ -1,0 +1,209 @@
+'use client';
+import { useEffect, useRef } from 'react';
+
+/* The window wall, lit by the sun of the viewer's own clock (Nona, 2 November
+   2026: "I want it to have movement and the sun to move depending on the time
+   of day"). It is her chosen photograph (option C, deep green plaster, late sun
+   through a paned window, a sprig of leaf shadow) taken apart and relit live:
+
+     /atmos/wall-plaster.webp   the plaster itself, troweled lime with grain,
+                                photographed in Canva ("Relève app imagery", p11)
+     /atmos/wall-sunlight.webp  the light from the photograph, traced into three
+                                channels: R the window's light (its panes, bars
+                                and the brightening toward the top right), G the
+                                sprig's shadow, B the glow the light throws around
+                                (scripts/sun/*.py)
+
+   Each frame the window's light is laid on the plaster where the sun puts it:
+   short and high in the morning, crisp and white at midday, long, low and amber
+   toward evening, gone at dusk; after dark a faint cool moonlight through the
+   same window and a warm lamp washing up from below. The plaster's grain rises
+   where the sun grazes it, the sprig sways in a breeze, and now and then a cloud
+   passes over. About 30 frames a second, paused when out of view; with reduced
+   motion it holds still and only follows the clock. ?sun=17.5 shows any hour,
+   ?sun=lapse runs a day in a minute (?sun=lapse30 in thirty seconds). Without WebGL the photograph stays. */
+
+const VS = `attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}`;
+const FS = `precision highp float;
+varying vec2 v;
+uniform sampler2D plaster,sun;
+uniform vec2 res;          // canvas px
+uniform vec2 focus;        // cover focus (like background-position)
+uniform float zoom, t, veil;
+uniform vec4 xf;           // sx, sy, shear, unused
+uniform vec2 dxy;          // translation of the patch (uv)
+uniform vec3 sunCol, ambCol, lampCol;
+uniform float sunI, moonI, soft, sway, cloud;
+const vec2 P=vec2(.997,.0); // pivot: top right corner of the window patch
+vec2 warp(vec2 uv){vec2 q=uv-P-dxy; q.x/=xf.x; q.y=(q.y-xf.z*q.x)/xf.y; return P+q;}
+float h1(float n){return fract(sin(n)*43758.5453);}
+vec3 toLin(vec3 c){return pow(c,vec3(2.2));}
+void main(){
+  // cover-fit the 2:1 wall into the canvas, then a slow camera drift
+  vec2 px=vec2(v.x,1.-v.y);
+  float ca=res.x/res.y, ia=2.;
+  vec2 sc= ca>ia? vec2(1.,ia/ca): vec2(ca/ia,1.);
+  sc/=zoom;
+  vec2 uv=focus*(1.-sc)+px*sc;
+  uv+=vec2(sin(t*.021),cos(t*.017))*.006;
+  // plaster grain and mottle
+  float g=(texture2D(plaster,uv).r-.5)/.9;
+  // light through the window, moved by the sun
+  vec2 w=warp(uv);
+  vec2 o=vec2(soft/1600.,soft/800.);
+  vec3 L=texture2D(sun,w).rgb*.4+ (texture2D(sun,w+vec2(o.x,0.)).rgb+texture2D(sun,w-vec2(o.x,0.)).rgb+texture2D(sun,w+vec2(0.,o.y)).rgb+texture2D(sun,w-vec2(0.,o.y)).rgb)*.15;
+  float inb=step(0.,w.x)*step(w.x,1.)*step(0.,w.y)*step(w.y,1.);
+  // the sprig sways about where its stem leaves the frame
+  vec2 an=vec2(.95,.41); vec2 d=w-an;
+  float a=sway*(sin(t*.83)*.6+sin(t*1.91+1.3)*.3+sin(t*3.7)*.1);
+  vec2 wl=an+mat2(cos(a),sin(a),-sin(a),cos(a))*d + vec2(sin(t*2.3+w.y*40.),cos(t*1.7+w.x*35.))*.0007*sway*30.;
+  float leaf=texture2D(sun,wl).g;
+  float direct=L.r*2.2*(1.-leaf*.92)*inb;
+  float bounce=L.b*inb;
+  // ambient: darker toward the left and floor, a little lift near the light
+  float amb=mix(.55,1.,smoothstep(-.1,.9,uv.x))*mix(1.,.75,smoothstep(.4,1.1,uv.y));
+  vec3 E=ambCol*amb + sunCol*(sunI*cloud)*(direct + direct*direct*.15 + bounce*.015) + vec3(.5,.6,.8)*moonI*direct;
+  // lamp washing up from the lower right at night
+  float lamp=exp(-pow(length((uv-vec2(.86,1.12))*vec2(1.,1.6))/.42,2.));
+  E+=lampCol*lamp;
+  // grain reads more where the sun grazes it
+  float lit=clamp(direct,0.,1.);
+  vec2 cell=floor(uv*vec2(1300.,650.));
+  float sp=h1(dot(cell,vec2(12.9898,78.233)))-.5;
+  float relief=g*(1.+1.8*lit)+sp*.12*lit;
+  vec3 alb=vec3(.055,.10,.05)*exp(relief);
+  vec3 c=alb*E;
+  c=1.-exp(-c);                // soft film shoulder
+  c=pow(c,vec3(1./2.2));
+  // veil so the greeting reads (screen space)
+  float vl = veil<.5 ? mix(.6,0.,smoothstep(0.,.86,v.x))          // header, desktop: the greeting sits left
+           : veil<1.5 ? mix(.30,.62,1.-v.y)                         // header, phone: the greeting sits low
+           : mix(.62,.28,smoothstep(0.,.9,v.x));                    // sign-in and welcome: the card sits centre
+  c*=1.-vl*.82;
+  c+=(h1(dot(gl_FragCoord.xy,vec2(12.9898,78.233))+t)-.5)*.018; // film grain
+  gl_FragColor=vec4(c,1.);
+}`;
+
+type V3 = [number, number, number];
+const S = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+const mixv = (a: number[], b: number[], t: number) => a.map((x, i) => x + (b[i] - x) * t) as V3;
+
+function lightAt(h: number) {
+  // sun up 6:30, down 19:30
+  const s=(h-6.5)/13, up=s>0&&s<1;
+  const e=up?Math.sin(Math.PI*s):0;
+  const rise=S(0,.06,s)*S(1,.93,s);
+  const sunI=rise*(3.6+6.0*Math.pow(e,.6));
+  const warm=Math.pow(1-e,1.6);
+  const sunCol=mixv([1.0,.60,.42],[1.0,.40,.22],warm);
+  const day=S(5.6,7.2,h)*S(20.6,19.2,h);
+  const ambCol=mixv([.030,.040,.060],mixv([.13,.135,.13],[.15,.125,.10],warm*.7).map(x=>x*(.65+.45*e)),day);
+  const lamp=1-S(6.2,7.6,h)*S(19.6,18.4,h);
+  const lampCol=[.40,.24,.11].map(x=>x*lamp);
+  const moonI=(1-day)*.42;
+  // the patch: short and high in the morning, long and low toward evening
+  const m=Math.min(1,Math.max(0,s));
+  const sx=mix(.82,1.38,m*m), sy=mix(1.06,1.0,m), sh=mix(.10,-.12,m);
+  const dx=mix(.13,-.01,Math.sqrt(m)), dy=mix(-.07,.03,e)+mix(0,-.02,m);
+  const soft=mix(5,2,e);
+  return {sunI,sunCol,ambCol,lampCol,moonI,xf:[sx,sy,sh,0],dxy:[dx,dy],soft};
+}
+
+function hourNow(t: number): number {
+  try {
+    const q = new URLSearchParams(window.location.search).get('sun');
+    const lapse = q && /^lapse(\d+)?$/.exec(q);
+    if (lapse) return 5 + ((t / (Number(lapse[1]) || 60)) % 1) * 19;
+    if (q !== null && q !== '' && !isNaN(Number(q))) return ((Number(q) % 24) + 24) % 24;
+  } catch {}
+  const d = new Date();
+  return d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
+}
+
+const load = (src: string) => new Promise<HTMLImageElement>((res, rej) => {
+  const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = rej; i.src = src;
+});
+
+export default function SunWall({ room = false }: { room?: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    let stop = () => {};
+    let dead = false;
+    (async () => {
+      let imgs: HTMLImageElement[];
+      try { imgs = await Promise.all([load('/atmos/wall-plaster.webp'), load('/atmos/wall-sunlight.webp')]); } catch { return; }
+      if (dead) return;
+      const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false, powerPreference: 'low-power' });
+      if (!gl) return;
+      const sh = (type: number, src: string) => {
+        const s = gl.createShader(type)!; gl.shaderSource(s, src); gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'shader');
+        return s;
+      };
+      let pr: WebGLProgram;
+      try {
+        pr = gl.createProgram()!;
+        gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
+        gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+      } catch { return; }
+      gl.useProgram(pr);
+      const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      const U: Record<string, WebGLUniformLocation | null> = {};
+      ['plaster', 'sun', 'res', 'focus', 'zoom', 't', 'veil', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud']
+        .forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
+      imgs.forEach((img, unit) => {
+        const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      });
+      gl.uniform1i(U.plaster, 0); gl.uniform1i(U.sun, 1);
+      const phone = window.matchMedia('(max-width:900px)');
+      const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+      /* passing clouds on a slow random schedule: most minutes clear */
+      const cloudAt = (t: number) => {
+        const k = Math.floor(t / 70), f = t / 70 - k, r = Math.abs(Math.sin(k * 91.7) * 43758.5) % 1;
+        if (r < .5) return 1;
+        return 1 - S(.15, .4, f) * S(.95, .65, f) * mix(.3, .65, r);
+      };
+      let raf = 0, last = -1e9, visible = true, shown = false;
+      const t0 = performance.now();
+      const frame = (now: number) => {
+        raf = requestAnimationFrame(frame);
+        const still = calm.matches;
+        if (!visible || now - last < (still ? 30000 : 33)) return;
+        last = now;
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+        if (!w || !h) return;
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+        const t = (now - t0) / 1000, L = lightAt(hourNow(t)), mob = phone.matches;
+        gl.uniform2f(U.res, w, h);
+        gl.uniform2f(U.focus, room ? .85 : mob ? .82 : 1, .45);
+        gl.uniform1f(U.zoom, 1.05);
+        gl.uniform1f(U.t, still ? 0 : t);
+        gl.uniform1f(U.veil, room ? 2 : mob ? 1 : 0);
+        gl.uniform4fv(U.xf, L.xf); gl.uniform2fv(U.dxy, L.dxy);
+        gl.uniform3fv(U.sunCol, L.sunCol); gl.uniform3fv(U.ambCol, L.ambCol); gl.uniform3fv(U.lampCol, L.lampCol);
+        gl.uniform1f(U.sunI, L.sunI); gl.uniform1f(U.moonI, L.moonI); gl.uniform1f(U.soft, L.soft);
+        gl.uniform1f(U.sway, still ? 0 : .035); gl.uniform1f(U.cloud, still ? 1 : cloudAt(t));
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        if (!shown) { shown = true; canvas.classList.add('on'); }
+      };
+      const io = new IntersectionObserver(es => { visible = es[0].isIntersecting && document.visibilityState === 'visible'; });
+      io.observe(canvas);
+      const vis = () => { visible = document.visibilityState === 'visible'; if (visible) last = -1e9; };
+      document.addEventListener('visibilitychange', vis);
+      raf = requestAnimationFrame(frame);
+      stop = () => { cancelAnimationFrame(raf); io.disconnect(); document.removeEventListener('visibilitychange', vis); };
+    })();
+    return () => { dead = true; stop(); };
+  }, [room]);
+  return <canvas ref={ref} className={room ? 'sun-wall sun-room' : 'sun-wall'} aria-hidden="true" />;
+}

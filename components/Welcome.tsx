@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/Toast';
 import PushSetup from '@/components/PushSetup';
+import SunWall from '@/components/SunWall';
 
 type Panel = { h: string; lede: string; points?: string[]; note?: string };
 
@@ -143,6 +144,7 @@ export default function Welcome({ role }: { role: 'client' | 'talent' }) {
 
   return (
     <div className="welcome">
+      <SunWall room />
       <div className="welcome-inner">
         <img className="logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
 

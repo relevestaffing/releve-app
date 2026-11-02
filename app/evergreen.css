@@ -529,3 +529,14 @@ main.main::before{display:none!important}
   .topbar .band-light{background:linear-gradient(180deg,rgba(10,16,13,.3),rgba(10,16,13,.62)),var(--window-wall) 82% 45%/cover no-repeat!important}
   .topbar::after{background:none!important}
 }
+
+/* ═════════════════════ THE SUN ON THE WALL (2 November 2026) ═════════════════════
+   Nona: "I want it to have movement and the sun to move depending on the time
+   of day". components/SunWall.tsx relights the window wall live from the
+   viewer's clock (see the notes there). The photograph above stays underneath
+   as the fallback and fades out of sight once the live wall has drawn. */
+.sun-wall{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.4s ease;pointer-events:none}
+.sun-wall.on{opacity:1}
+.welcome > .sun-wall,.auth > .sun-wall{position:absolute!important;inset:0;z-index:-1}
+.topbar .band-light:has(.sun-wall.on){animation:none!important}
+.topbar::after{display:none!important}

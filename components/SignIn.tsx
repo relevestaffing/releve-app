@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useId } from 'react';
 import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
+import SunWall from '@/components/SunWall';
 
 /* A message the friendliest way to say "that link didn't work" can manage —
    Supabase's own wording (e.g. "Email link is invalid or has expired") is
@@ -66,6 +67,7 @@ export default function SignIn({ initialError }: { initialError?: string }) {
 
   return (
     <div className="auth">
+      <SunWall room />
       <div>
         <img className="auth-logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="auth-card">

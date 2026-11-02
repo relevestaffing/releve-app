@@ -23,6 +23,7 @@ import UnreadBadge from './UnreadBadge';
 import AskWidget from './AskWidget';
 import { isOwner } from '@/lib/money';
 import './experience.css';
+import SunWall from '@/components/SunWall';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
    four labelled groups is a product. Nothing is removed — everything stays
@@ -355,7 +356,7 @@ export default async function Shell({
         </aside>
         <main className="main">
           <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
-            <span className="band-light" aria-hidden="true" />
+            <span className="band-light" aria-hidden="true"><SunWall /></span>
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
