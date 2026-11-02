@@ -21,7 +21,6 @@ import { teamUnreadCount, unreadTotal } from '@/lib/experience';
 import UnreadSync from './UnreadSync';
 import UnreadBadge from './UnreadBadge';
 import AskWidget from './AskWidget';
-import WaterBand from './WaterBand';
 import { isOwner } from '@/lib/money';
 import './experience.css';
 
@@ -357,7 +356,6 @@ export default async function Shell({
         <main className="main">
           <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
             <span className="band-light" aria-hidden="true" />
-            <WaterBand />
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
