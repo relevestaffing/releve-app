@@ -7,20 +7,23 @@ import CheckMark from './CheckMark';
    request had failed. This says what actually happened, where you can see it. */
 
 type Kind = 'ok' | 'bad';
-type Note = { id: number; kind: Kind; text: string };
+type Note = { id: number; kind: Kind; text: string; action?: { label: string; run: () => void } };
 
 let subscribers: ((n: Note) => void)[] = [];
 let seq = 0;
 
-function push(kind: Kind, text: string) {
-  const n = { id: ++seq, kind, text };
+function push(kind: Kind, text: string, action?: Note['action']) {
+  const n = { id: ++seq, kind, text, action };
   subscribers.forEach(fn => fn(n));
 }
 
 export const toast = {
   saved: (text = 'Saved') => push('ok', text),
   ok: (text: string) => push('ok', text),
-  bad: (text = 'That did not save. Please try again.') => push('bad', text)
+  bad: (text = 'That did not save. Please try again.') => push('bad', text),
+  /* A change that can be taken back: the toast carries an Undo button for a
+     few seconds (the Directory, 2 November 2026). */
+  undo: (text: string, run: () => void) => push('ok', text, { label: 'Undo', run })
 };
 
 /* Wrap a save. Returns true when it actually worked. */
@@ -50,7 +53,7 @@ export default function Toaster() {
   useEffect(() => {
     const fn = (n: Note) => {
       setNotes(list => [...list, n]);
-      setTimeout(() => setNotes(list => list.filter(x => x.id !== n.id)), 4200);
+      setTimeout(() => setNotes(list => list.filter(x => x.id !== n.id)), n.action ? 6500 : 4200);
     };
     subscribers.push(fn);
     return () => { subscribers = subscribers.filter(x => x !== fn); };
@@ -63,6 +66,11 @@ export default function Toaster() {
         <div key={n.id} className={`toast ${n.kind}`}>
           <span className="toast-mark" aria-hidden="true">{n.kind === 'ok' ? <CheckMark /> : '!'}</span>
           {n.text}
+          {n.action && (
+            <button type="button" className="toast-act" onClick={() => {
+              n.action!.run(); setNotes(list => list.filter(x => x.id !== n.id));
+            }}>{n.action.label}</button>
+          )}
         </div>
       ))}
     </div>

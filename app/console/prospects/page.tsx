@@ -6,13 +6,14 @@ import { calendarConfigured } from '@/lib/calendar';
 import { todayInPacific } from '@/lib/money-public';
 import Shell from '@/components/Shell';
 import DirectoryTabs from '@/components/DirectoryTabs';
-import LeadBoard from '@/components/LeadBoard';
+import LeadWorkspace from '@/components/LeadWorkspace';
 
 export const metadata = { title: 'Leads' };
 
 export const dynamic = 'force-dynamic';
 
-export default async function Leads() {
+export default async function Leads({ searchParams }: { searchParams: Promise<{ open?: string }> }) {
+  const sp = await searchParams;
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
@@ -22,11 +23,13 @@ export default async function Leads() {
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Leads">
       <DirectoryTabs active="prospects" />
-      <LeadBoard
+      <LeadWorkspace
         prospects={all}
         team={team.map(m => ({ user_id: m.user_id, name: m.name }))}
+        me={profile.id}
         calendarOn={calendarConfigured()}
         today={todayInPacific()}
+        openId={sp.open ?? null}
       />
     </Shell>
   );

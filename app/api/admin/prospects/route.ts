@@ -5,6 +5,7 @@ import {
   logTouch, listTouches, importProspectsFromCalendar, importProspectsFromInbox
 } from '@/lib/prospects';
 import { safeMessage } from '@/lib/errors';
+import { logActivity, notifyTeam } from '@/lib/activity';
 
 const STAGES = ['new', 'contacted', 'nurturing', 'booked', 'held', 'proposal', 'won', 'lost'];
 
@@ -64,6 +65,10 @@ export async function POST(req: Request) {
       note: 'note' in b ? b.note : undefined,
       website: b.website
     });
+    try {
+      if (!b.id && id) await logActivity({ type: 'prospect', id, kind: 'created', by: g.p!.id, meta: { source: b.source ?? null } });
+      else if (b.id && b.field) await logActivity({ type: 'prospect', id: b.id, kind: 'field', by: g.p!.id, meta: { field: String(b.field) } });
+    } catch { /* best-effort */ }
     return NextResponse.json({ ok: true, id });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
@@ -88,9 +93,24 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'That is not a stage.' }, { status: 400 });
 
   try {
+    const by = g.p!.id;
     if (hasStage) await setProspectStage(id, String(b.stage) as any, { lost_reason: b.lost_reason, note: b.note });
     if (hasOwner) await setProspectOwner(id, b.owner_id || null);
     if (hasFollow) await setProspectFollowUp(id, b.next_follow_up || null);
+    /* The history (part 59): each change on the lead's timeline, and the
+       new owner told on their phone. Never fails the edit itself. */
+    try {
+      if (hasStage) await logActivity({ type: 'prospect', id, kind: 'stage', by, meta: { from: b.from ?? null, to: String(b.stage) } });
+      if (hasOwner) {
+        await logActivity({ type: 'prospect', id, kind: 'owner', by, meta: { from: b.from_owner ?? null, to: b.owner_id || null } });
+        if (b.owner_id && b.owner_id !== by) {
+          const who = (g.p as any).full_name || 'Someone';
+          const name = String(b.subject_name ?? '').slice(0, 80) || 'a lead';
+          await notifyTeam([b.owner_id], by, { title: `${who} assigned you ${name}`, body: 'You now own this lead.', url: `/console/prospects?open=${encodeURIComponent(id)}` });
+        }
+      }
+      if (hasFollow) await logActivity({ type: 'prospect', id, kind: 'follow_up', by, meta: { to: b.next_follow_up || null } });
+    } catch { /* history is best-effort */ }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });

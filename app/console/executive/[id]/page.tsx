@@ -13,6 +13,9 @@ import { getClientAgreement } from '@/lib/agreement';
 import { money, INVOICE_STATUS } from '@/lib/money-public';
 import { fmtDate, zoneLabel } from '@/lib/words';
 import Shell from '@/components/Shell';
+import Tabs from '@/components/crm/Tabs';
+import { Activity } from '@/components/crm/Activity';
+import { todayInPacific } from '@/lib/money-public';
 
 export const metadata = { title: 'Executive' };
 
@@ -78,7 +81,7 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
     <Shell profile={profile} active="/console/directory"
       title={client.full_name}
       crumb={client.org_name || 'Executive'}
-      action={<Link className="btn sm ghost" href="/console/people">← Executives</Link>}>
+      action={<Link className="btn sm ghost" href={`/console/people?open=${id}`}>← Executives</Link>}>
 
       <div className="grid-3">
         <div className="card stat"><div className="eyebrow">Paid to date</div>
@@ -89,6 +92,11 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
           <div className="score">{live.length}</div></div>
       </div>
 
+      {/* The account as tabs (2 November 2026), the way Asana keeps a
+          project: what it is, who is placed, the money, the files, and the
+          history with notes and @mentions. */}
+      <Tabs tabs={[
+        { key: 'overview', label: 'Overview', body: (<>
       <div className="card">
         <div className="card-head"><h3>The account</h3>
           <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
@@ -106,6 +114,8 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
         <AccountManagerPicker personId={id} side="client" team={team as any} current={csm} />
       </div>
 
+        </>) },
+        { key: 'placements', label: 'Placements', count: mine.length, body: (<>
       <div className="card">
         <div className="card-head"><h3>Placements</h3>
           {mine.length > 0 && <span className="pill">{mine.length} on file</span>}</div>
@@ -131,8 +141,8 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
         )}
       </div>
 
-      <Files kind="person" ownerId={id} docs={docs} />
-
+        </>) },
+        { key: 'billing', label: 'Invoices', count: invoices.length, body: (<>
       <div className="card">
         <div className="card-head"><h3>Invoices</h3>
           {invoices.length > 0 && <span className="pill">{invoices.length} on file</span>}</div>
@@ -156,6 +166,16 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
           </table>
         )}
       </div>
+        </>) },
+        { key: 'files', label: 'Files', count: docs.length, body: (<>
+      <Files kind="person" ownerId={id} docs={docs} />
+
+        </>) },
+        { key: 'activity', label: 'Activity', body: (
+          <Activity type="client" id={id} subjectName={client.full_name} today={todayInPacific()}
+            team={team.map((m: any) => ({ user_id: m.user_id, name: m.name }))} />
+        ) }
+      ]} />
     </Shell>
   );
 }

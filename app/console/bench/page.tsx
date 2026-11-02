@@ -1,7 +1,7 @@
 import { DASH } from '@/lib/words';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { currentProfile, configured } from '@/lib/supabase/server';
+import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { getBench, archetype } from '@/lib/data';
 import Shell from '@/components/Shell';
 import DirectoryTabs from '@/components/DirectoryTabs';
@@ -12,76 +12,131 @@ import { listPending, getAvailability } from '@/lib/store';
 import { bookableIds } from '@/lib/store';
 import { benchPay } from '@/lib/work';
 import { money } from '@/lib/money-public';
-import TableSearch from '@/components/TableSearch';
 import PaySetter from '@/components/PaySetter';
 import DeletePerson from '@/components/DeletePerson';
+import { teamRoles } from '@/lib/care';
+import { todayInPacific } from '@/lib/money-public';
+import PeopleWorkspace, { type PersonRow } from '@/components/crm/PeopleWorkspace';
 
 export const metadata = { title: 'Talent' };
 
 /* always read live data — never serve a cached copy of someone's account */
 export const dynamic = 'force-dynamic';
 
-export default async function Bench() {
+export default async function Bench({ searchParams }: { searchParams: Promise<{ open?: string }> }) {
+  const sp = await searchParams;
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role !== 'admin') redirect('/app');
   const allBench = await getBench();
-  /* PART 33: talent_directory now includes people mid-onboarding with no
-     Signature yet (has_signature === false) instead of hiding them. The main
-     table below reads scores/validity, which don't exist until the Signature
-     is done, so it keeps to the assessed group; the unsigned group gets its
-     own section further down instead of vanishing. */
+  /* PART 33: talent_directory includes people mid-onboarding with no
+     Signature yet (has_signature === false). They have no scores or
+     validity, so they sit in their own section rather than vanishing. */
   const bench = allBench.filter((t: any) => t.has_signature !== false);
   const unsigned = allBench.filter((t: any) => t.has_signature === false);
   const pending = (await listPending()).filter((p: any) => p.role === 'talent');
-  /* Someone with no availability looks ready and cannot be booked — surface it.
-     One query for everybody, not one per person: the old version made a round
-     trip per talent before the page could paint. */
-  const bookable = await bookableIds(bench.map(t => t.id));
-  /* Pay moved out of profiles into talent_pay; this column had been rendering
-     a field that no longer exists, so it was blank for everyone. */
-  const pay = await benchPay(bench.map(t => t.id));
-  const unbookable = bench.filter(t => !bookable.has(t.id));
+  /* One query for everybody: someone with no availability looks ready and
+     cannot be booked, so it is surfaced. */
+  const [bookable, pay, team, managers] = await Promise.all([
+    bookableIds(bench.map(t => t.id)),
+    benchPay(bench.map(t => t.id)),
+    teamRoles().catch(() => []),
+    talentManagers([...bench, ...unsigned].map((t: any) => t.id))
+  ]);
+  const today = todayInPacific();
+  const VALID: Record<string, string> = { Valid: 'good', Review: 'warn' };
+  const STAGE_COLOR: Record<string, string> = { Placed: '#35443A', Vetted: '#4E7A5C', Shortlisted: '#8A6DA3', Interviewing: '#8A6DA3' };
+
+  /* The roster at Asana quality (2 November 2026): one list, sectioned by
+     where each person is, every assessed profile, the ones mid-onboarding
+     and the ones not yet signed in, with the same panel and history as
+     Leads and Executives. */
+  const rows: PersonRow[] = [
+    ...bench.map((t: any) => {
+      const placed = t.stage === 'Placed';
+      const verdict = t.validity?.verdict ?? 'Review';
+      const canBook = bookable.has(t.id);
+      const manager = managers[t.id] ?? null;
+      const type = archetype(t.scores, 'talent').n;
+      const payNode = <PaySetter talentId={t.id} cents={pay[t.id] != null ? pay[t.id]! * 100 : null} compact />;
+      return {
+        id: t.id, name: t.name, sub: `${t.role}${t.loc ? ` · ${t.loc}` : ''}`, photo: t.photo_url ?? null,
+        section: placed ? 'placed' : 'ready',
+        stage: { label: placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review', color: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#C6A465' },
+        ownerId: manager,
+        tags: [placed ? 'placed' : 'ready', verdict !== 'Valid' ? 'review' : '', !canBook && !placed ? 'unbookable' : '', manager === profile.id ? 'mine' : '', manager ? '' : 'nomanager'].filter(Boolean),
+        search: [t.name, t.role, t.loc, type].filter(Boolean).join(' '),
+        fullHref: `/console/talent/${t.id}`,
+        headline: <>{type} · {t.yrs} yrs · {canBook ? 'interview hours set' : <span style={{ color: '#A4483A' }}>no interview hours</span>}</>,
+        cells: {
+          stage: <span className="ws-stage" style={{ background: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#C6A465', cursor: 'default' }}>{placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review'}</span>,
+          profile: <span className="ws-tag">{type}</span>,
+          validity: <span className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span>,
+          pay: pay[t.id] != null ? <span>{money(pay[t.id]! * 100)}<span className="ws-faint"> /mo</span></span> : <span className="ws-faint">Not set</span>,
+          book: canBook ? <span className="ws-muted"><span className="ws-fresh g" style={{ display: 'inline-block', marginRight: 7 }} />Bookable</span>
+            : <span style={{ color: '#A4483A', fontSize: 13 }}><span className="ws-fresh r" style={{ display: 'inline-block', marginRight: 7 }} />No hours</span>
+        },
+        props: [
+          ['Role', t.role || DASH], ['Experience', `${t.yrs} years`], ['Location', t.loc || DASH],
+          ['Profile', <span key="p" className="ws-tag">{type}</span>],
+          ['Validity', <span key="v" className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span>],
+          ['Interview hours', canBook ? 'Set' : <span key="h" style={{ color: '#A4483A' }}>Not set, so nobody can book them</span>],
+          ['What Relève pays', payNode]
+        ],
+        tabs: [{ key: 'record', label: 'Record', body: <div style={{ display: 'grid', gap: 14 }}>
+          <p className="small muted" style={{ margin: 0 }}>The full profile, Signature and documents are on the talent&rsquo;s own page.</p>
+          <div><Link className="btn sm" href={`/console/talent/${t.id}`}>Open the full profile</Link></div>
+          <div><DeletePerson id={t.id} name={t.name} pending={false} /></div></div> }]
+      } as PersonRow;
+    }),
+    ...unsigned.map((t: any) => ({
+      id: t.id, name: t.name, sub: [t.role, t.loc].filter(Boolean).join(' · ') || 'Mid-onboarding', photo: t.photo_url ?? null,
+      section: 'onboarding', stage: { label: 'Signature due', color: '#6E8CA8' }, ownerId: managers[t.id] ?? null,
+      tags: ['onboarding', managers[t.id] === profile.id ? 'mine' : '', managers[t.id] ? '' : 'nomanager'].filter(Boolean),
+      search: [t.name, t.role, t.loc].filter(Boolean).join(' '), fullHref: `/console/talent/${t.id}`,
+      headline: 'Started, Signature not finished, so there is nothing to match against yet.',
+      cells: { stage: <span className="ws-stage" style={{ background: '#6E8CA8', cursor: 'default' }}>Signature due</span>,
+        profile: <span className="ws-faint">Not yet</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
+      props: [['Role', t.role || DASH], ['Location', t.loc || DASH], ['Signature', 'In progress']]
+    } as PersonRow)),
+    ...pending.map((p: any) => ({
+      id: p.id, name: p.full_name, sub: [p.headline ?? p.org_name, p.email].filter(Boolean).join(' · '), photo: null,
+      section: 'onboarding', stage: { label: 'Invited', color: '#9AA59C' }, ownerId: null,
+      tags: ['invited'], search: [p.full_name, p.email, p.headline].filter(Boolean).join(' '), fullHref: null,
+      headline: 'Added, not yet signed in.',
+      cells: { stage: <span className="ws-stage" style={{ background: '#9AA59C', cursor: 'default' }}>Invited</span>,
+        profile: <span className="ws-faint">—</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
+      props: [['Email', <a key="e" href={`mailto:${p.email}`}>{p.email}</a>], ['Added as', p.role], ['Record', <DeletePerson key="d" id={p.id} name={p.full_name} pending />]]
+    } as PersonRow))
+  ];
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Talent">
       <DirectoryTabs active="talent" />
+      <PeopleWorkspace
+        title="Talent" noun="talent" rows={rows} today={today} side="talent" activityType="talent" openId={sp.open ?? null}
+        team={team.map(m => ({ user_id: m.user_id, name: m.name }))}
+        toolbar={<><TalentOnboardingSender /><AddPerson /></>}
+        cols={[
+          { key: 'stage', label: 'Stage', width: '120px' },
+          { key: 'profile', label: 'Profile', width: '132px', opt: true },
+          { key: 'validity', label: 'Validity', width: '92px', opt: true },
+          { key: 'pay', label: 'Pay', width: '104px', opt: true },
+          { key: 'book', label: 'Interviews', width: '112px', opt: true }
+        ]}
+        sections={[
+          { key: 'ready', label: 'Ready to place', color: '#4E7A5C' },
+          { key: 'placed', label: 'Placed', color: '#35443A' },
+          { key: 'onboarding', label: 'Onboarding', color: '#6E8CA8' }
+        ]}
+        views={[
+          { key: 'all', label: 'All talent' }, { key: 'mine', label: 'Mine' }, { key: 'ready', label: 'Ready to place' }, { key: 'placed', label: 'Placed' },
+          { key: 'review', label: 'To review', warn: true }, { key: 'unbookable', label: 'No interview hours', warn: true },
+          { key: 'onboarding', label: 'Onboarding' }, { key: 'invited', label: 'Not signed in' }, { key: 'nomanager', label: 'No manager', warn: true }
+        ]}
+        empty={<><h4>The roster is empty</h4><p className="small">Add someone from the top of this list, or let them apply through Careers.</p></>}
+      />
 
-      <div className="card">
-        <div className="card-head"><h3>Every assessed profile</h3>
-          <div className="row" style={{ gap: 10 }}>
-            {bench.length > 5 && <TableSearch scope="bench-table" placeholder="Search the roster…" />}
-            {bench.length > 0 && <span className="pill">{bench.length} on file</span>}
-            <TalentOnboardingSender />
-            <AddPerson /></div></div>
-        {!bench.length ? (
-          <div className="empty-card" style={{ padding: '34px 24px' }}>
-            <div className="empty-mark" aria-hidden="true" />
-            <h3>The roster is empty</h3>
-            <p className="small">Add someone from the top of this card, or let them apply through Careers.</p>
-          </div>
-        ) : (
-        <table className="data" id="bench-table">
-          <thead><tr><th>Name</th><th>Role</th><th>Profile</th><th>Validity</th><th style={{ textAlign: 'right' }}>What Relève pays</th><th>Stage</th><th></th></tr></thead>
-          <tbody>
-            {bench.map(t => (
-              <tr key={t.id}>
-                <td><div className="row"><Portrait id={t.id} name={t.name} url={t.photo_url} />
-                  <div><Link href={`/console/talent/${t.id}`}><b>{t.name}</b></Link><div className="small muted">{t.yrs} yrs · {t.loc}</div></div></div></td>
-                <td className="small">{t.role}</td>
-                <td><span className="pill">{archetype(t.scores, 'talent').n}</span></td>
-                <td><span className={`pill ${t.validity.verdict === 'Valid' ? 'good' : t.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>
-                  <span className="dot" />{t.validity.verdict}</span></td>
-                <td className="amount"><PaySetter talentId={t.id} cents={pay[t.id] != null ? pay[t.id]! * 100 : null} compact /></td>
-                <td><span className={`pill ${t.stage === 'Placed' ? 'good' : t.stage === 'Vetted' ? '' : 'warn'}`}>
-                  <span className="dot" />{t.stage}</span></td>
-                <td><DeletePerson id={t.id} name={t.name} pending={false} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        )}
-      </div>
       {bench.length > 0 && (
       <div className="card">
         <div className="card-head"><h3>Validity detail</h3><span className="pill">Internal only</span></div>
@@ -108,53 +163,17 @@ export default async function Bench() {
         </details>
       </div>
       )}
-      {unbookable.length > 0 && (
-        <div className="card" style={{ borderColor: 'rgba(140,74,63,.45)' }}>
-          <div className="card-head"><h3>Assessed but not bookable</h3>
-            <span className="pill crit"><span className="dot" />{unbookable.length} to follow up</span></div>
-          <p className="small muted" style={{ marginBottom: 14 }}>
-            Complete, but no availability set, so nobody can book them.
-          </p>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {unbookable.map(t => <span className="pill warn" key={t.id}>{t.name}</span>)}
-          </div>
-        </div>
-      )}
-      {unsigned.length > 0 && (
-        <div className="card">
-          <div className="card-head"><h3>Mid-onboarding, no Signature yet</h3><span className="pill warn"><span className="dot" />{unsigned.length} in progress</span></div>
-          <p className="small muted" style={{ marginBottom: 14 }}>
-            Started, Signature not finished, so there is nothing to match against yet.
-          </p>
-          <table className="data">
-            <thead><tr><th>Name</th><th>Role</th><th>Location</th></tr></thead>
-            <tbody>
-              {unsigned.map((t: any) => (
-                <tr key={t.id}>
-                  <td><div className="row"><Portrait id={t.id} name={t.name} url={t.photo_url} />
-                    <b>{t.name}</b></div></td>
-                  <td className="small">{t.role || DASH}</td>
-                  <td className="small muted">{t.loc || DASH}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {pending.length > 0 && (
-        <div className="card">
-          <div className="card-head"><h3>Added, not yet signed in</h3><span className="pill warn"><span className="dot" />{pending.length} waiting</span></div>
-          <table className="data">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added as</th><th></th></tr></thead>
-            <tbody>{pending.map((p: any) => (
-              <tr key={p.id}><td><b>{p.full_name}</b></td><td className="small">{p.email}</td>
-                <td className="small">{p.headline ?? p.org_name ?? DASH}</td>
-                <td><span className="pill">{p.role}</span></td>
-                <td><DeletePerson id={p.id} name={p.full_name} pending /></td></tr>
-            ))}</tbody>
-          </table>
-        </div>
-      )}
     </Shell>
   );
+}
+
+/* Who looks after each talent (profiles.tsm_id, part 50), in one read. */
+async function talentManagers(ids: string[]): Promise<Record<string, string | null>> {
+  if (!configured() || !ids.length) return {};
+  try {
+    const sb = await supabaseServer();
+    const { data, error } = await sb.from('profiles').select('id, tsm_id').in('id', ids);
+    if (error) return {};
+    return Object.fromEntries(((data ?? []) as any[]).map(r => [r.id, r.tsm_id ?? null]));
+  } catch { return {}; }
 }

@@ -20,6 +20,7 @@ export type Prospect = {
   next_follow_up: string | null; last_touched_at: string | null; owner_id: string | null;
   website: string | null;
   created_at: string; updated_at: string;
+  stage_changed_at?: string | null;   // part 59; absent until it has run
 };
 
 export type Touch = {
