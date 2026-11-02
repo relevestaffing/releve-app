@@ -610,26 +610,32 @@ main.main::before{display:none!important}
 /* ── parallax: the wall is further away than the page (components/Depth.tsx) ── */
 @media (prefers-reduced-motion:no-preference){
   .topbar .band-light{transform:translate3d(calc(var(--px,0)*-14px),calc(var(--scroll,0)*.4px + var(--py,0)*-9px),0) scale(1.09);will-change:transform}
-  .topbar .tb-text{transform:translate3d(calc(var(--px,0)*8px),calc(var(--scroll,0)*.16px + var(--py,0)*5px),0);
-    opacity:calc(1 - var(--scroll,0) / 520);will-change:transform}
 }
 
 /* ── focus pull: what opens over the page pulls focus off it ── */
 @media (min-width:901px) and (prefers-reduced-motion:no-preference){
   main.main{transform-origin:50% 40vh;transition:filter .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1),opacity .6s}
-  body:has(#ask-panel) main.main,body:has(.scrim) main.main{filter:blur(2.5px) brightness(.9) saturate(.92);transform:scale(.982)}
+  body:has(#ask-panel) main.main,body:has(.scrim) main.main{filter:blur(2.5px) brightness(.9) saturate(.92)}
   aside.side{transition:filter .8s cubic-bezier(.16,1,.3,1)}
   body:has(.scrim) aside.side{filter:blur(2px) brightness(.9)}
-  /* spatial transitions: leaving pushes the page back while the next loads */
-  html.page-leaving main.main .page-body{transition:transform .5s cubic-bezier(.16,1,.3,1),filter .5s,opacity .5s;
-    transform:perspective(1400px) translate3d(0,10px,-60px);filter:blur(3px);opacity:.55}
-  html.page-leaving .topbar .tb-text{transition:opacity .4s;opacity:.25}
 }
-@media (max-width:900px) and (prefers-reduced-motion:no-preference){
-  html.page-leaving main.main .page-body > :not(.quickbar):not(.mobile-action){transition:opacity .35s;opacity:.4}
-}
+/* (2 Nov 2026) Nona did not like text moving: the greeting no longer drifts or fades,
+   pages no longer sink and rise between links, the page no longer scales back. */
 /* the sidebar is meant to stay put while the page scrolls under the light
    (position:sticky); overflow-x:hidden on html/body was quietly turning them
    into scroll containers on desktop and letting it scroll away. clip keeps
    the no-sideways-scroll without that, as the phone stylesheet already does. */
 html,body{overflow-x:clip!important;overflow-y:visible!important}
+
+/* ── no water anywhere (2 November 2026) ──
+   Nona saw water light while pages loaded. The caustics from the retired
+   water look still sat in the loading header, the sidebar's lower edge, the
+   dark cards and the top of Ask Relève. All of it is off; the loading header
+   shows the same window wall as the real one. */
+:root{--caA:none;--caB:none}
+aside.side::before,.card.dark::before,.ask-panel::after,.skel-topbar::after,.welcome .water,.auth .water{display:none!important;animation:none!important}
+.skel-topbar{position:relative;overflow:hidden;
+  background:linear-gradient(90deg,rgba(10,16,13,.55) 0%,rgba(10,16,13,.2) 45%,rgba(10,16,13,0) 70%),var(--window-wall) 100% 45%/cover no-repeat,var(--eg)!important}
+@media (max-width:900px){
+  .skel-topbar{background:linear-gradient(180deg,rgba(10,16,13,.3),rgba(10,16,13,.62)),var(--window-wall) 82% 45%/cover no-repeat,var(--eg)!important}
+}
