@@ -69,7 +69,7 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
         fullHref: `/console/talent/${t.id}`,
         headline: <>{type} · {t.yrs} yrs · {canBook ? 'interview hours set' : <span style={{ color: '#A4483A' }}>no interview hours</span>}</>,
         cells: {
-          stage: <span className="ws-stage" style={{ background: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#C6A465', cursor: 'default' }}>{placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review'}</span>,
+          stage: <span className="ws-stage" style={{ ['--c' as any]: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#C6A465', cursor: 'default' }}>{placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review'}</span>,
           profile: <span className="ws-tag">{type}</span>,
           validity: <span className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span>,
           pay: pay[t.id] != null ? <span>{money(pay[t.id]! * 100)}<span className="ws-faint"> /mo</span></span> : <span className="ws-faint">Not set</span>,
@@ -97,7 +97,7 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       tags: ['onboarding', managers[t.id] === profile.id ? 'mine' : '', managers[t.id] ? '' : 'nomanager'].filter(Boolean),
       search: [t.name, t.role, t.loc].filter(Boolean).join(' '), fullHref: `/console/talent/${t.id}`,
       headline: 'Started, Signature not finished, so there is nothing to match against yet.',
-      cells: { stage: <span className="ws-stage" style={{ background: '#6E8CA8', cursor: 'default' }}>Signature due</span>,
+      cells: { stage: <span className="ws-stage" style={{ ['--c' as any]: '#6E8CA8', cursor: 'default' }}>Signature due</span>,
         profile: <span className="ws-faint">Not yet</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
       props: [
         { k: 'Role', v: t.role || DASH },
@@ -110,7 +110,7 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       section: 'onboarding', stage: { label: 'Invited', color: '#9AA59C' }, ownerId: null,
       tags: ['invited'], search: [p.full_name, p.email, p.headline].filter(Boolean).join(' '), fullHref: null,
       headline: 'Added, not yet signed in.',
-      cells: { stage: <span className="ws-stage" style={{ background: '#9AA59C', cursor: 'default' }}>Invited</span>,
+      cells: { stage: <span className="ws-stage" style={{ ['--c' as any]: '#9AA59C', cursor: 'default' }}>Invited</span>,
         profile: <span className="ws-faint">—</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
       props: [
         { k: 'Email', v: <a key="e" href={`mailto:${p.email}`}>{p.email}</a> },

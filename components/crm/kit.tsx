@@ -1,6 +1,7 @@
 'use client';
 import './crm.css';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { toast } from '../Toast';
 import { createPortal } from 'react-dom';
 
 /* The workspace kit (2 November 2026): the small parts every Directory view
@@ -196,9 +197,9 @@ export function StageChip({ stage, stages, onPick, readOnly = false }: {
   stage: string; stages: StageDef[]; onPick?: (s: string) => void; readOnly?: boolean;
 }) {
   const s = stages.find(x => x.key === stage) ?? { key: stage, label: stage, color: '#6E8073' };
-  if (readOnly || !onPick) return <span className="ws-stage" style={{ background: s.color, cursor: 'default' }}>{s.label}</span>;
+  if (readOnly || !onPick) return <span className="ws-stage" style={{ ['--c' as any]: s.color, cursor: 'default' }}>{s.label}</span>;
   return (
-    <Menu className="ws-stage" style={{ background: s.color }} label={`Stage: ${s.label}`} width={220}
+    <Menu className="ws-stage" style={{ ['--c' as any]: s.color }} label={`Stage: ${s.label}`} width={220}
       trigger={<><span>{s.label}</span><span className="car" aria-hidden="true">▾</span></>}>
       {close => (
         <>
@@ -309,38 +310,54 @@ export function useKeys(map: Record<string, (e: KeyboardEvent) => void>, on = tr
   }, [on]);
 }
 
-/* ---------- the slide-in panel ---------- */
-export function Panel({ onClose, onPrev, onNext, crumb, fullHref, children, page = false }: {
+/* ---------- the detail pane ----------
+   Asana's task pane (2 November 2026): it opens beside the list without
+   dimming or blocking it, so the list stays usable and clicking another row
+   just swaps what the pane shows. A header with the main action on the left
+   (Mark signed) and copy link, previous, next, full page and close on the
+   right; the record scrolls; the comment box stays pinned at the bottom. */
+export const PaneFoot = createContext<HTMLElement | null>(null);
+export function Panel({ onClose, onPrev, onNext, crumb, fullHref, copyHref, lead, children, page = false }: {
   onClose?: () => void; onPrev?: (() => void) | null; onNext?: (() => void) | null; crumb: string;
-  fullHref?: string; children: React.ReactNode; page?: boolean;
+  fullHref?: string; copyHref?: string; lead?: React.ReactNode; children: React.ReactNode; page?: boolean;
 }) {
+  const [foot, setFoot] = useState<HTMLElement | null>(null);
   useEffect(() => {
     if (page || !onClose) return;
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        const t = e.target as HTMLElement | null;
-        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) { t.blur(); return; }
-        onClose();
-      }
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) { t.blur(); return; }
+      if (document.querySelector('.ws-pop')) return;
+      onClose();
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [onClose, page]);
+  const copy = async () => {
+    const url = window.location.origin + (copyHref ?? fullHref ?? window.location.pathname);
+    try { await navigator.clipboard.writeText(url); toast.saved('Link copied'); } catch { toast.bad('Could not copy the link.'); }
+  };
   const body = (
     <aside className={`ws-panel ws-x${page ? ' page' : ''}`} aria-label={crumb}>
       <div className="ws-p-top">
-        <span className="crumb">{crumb}</span>
+        {lead ?? <span className="crumb">{crumb}</span>}
+        <span className="sp" />
+        {(copyHref || fullHref) && <button className="ws-icon" onClick={copy} aria-label="Copy link" title="Copy link"><Icon.link /></button>}
         {!page && <button className="ws-icon" onClick={() => onPrev?.()} disabled={!onPrev} aria-label="Previous" title="Previous (k)"><Icon.up /></button>}
         {!page && <button className="ws-icon" onClick={() => onNext?.()} disabled={!onNext} aria-label="Next" title="Next (j)"><Icon.down /></button>}
         {!page && fullHref && <a className="ws-icon" href={fullHref} aria-label="Open full page" title="Open full page"><Icon.out /></a>}
         {!page && onClose && <button className="ws-icon" onClick={onClose} aria-label="Close" title="Close (Esc)"><Icon.close /></button>}
       </div>
-      <div className="ws-p-body">{children}</div>
+      <PaneFoot.Provider value={foot}>
+        <div className="ws-p-body">{children}</div>
+      </PaneFoot.Provider>
+      <div className="ws-p-foot" ref={setFoot} />
     </aside>
   );
   if (page) return body;
   if (typeof document === 'undefined') return null;
-  return createPortal(<><div className="ws-panel-scrim" onClick={onClose} />{body}</>, document.body);
+  return createPortal(body, document.body);
 }
 
 export function Sect({ title, children, right }: { title: string; children?: React.ReactNode; right?: React.ReactNode }) {

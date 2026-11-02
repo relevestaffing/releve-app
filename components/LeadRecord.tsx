@@ -3,7 +3,7 @@ import { useState } from 'react';
 import type { Prospect, ProspectStage } from '@/lib/prospects-public';
 import { stageLabel } from '@/lib/prospects-public';
 import { LeadDetail, send } from './LeadWorkspace';
-import { Panel, cleanName, type Member } from './crm/kit';
+import { Panel, Icon, cleanName, type Member } from './crm/kit';
 import { toast } from './Toast';
 
 /* One lead on its own page (2 November 2026): the same detail as the panel
@@ -51,7 +51,9 @@ export default function LeadRecord({ lead, team, today, children }: {
   };
 
   return (
-    <Panel page crumb={`Lead · ${stageLabel(p.stage)}`}>
+    <Panel page crumb={`Lead · ${stageLabel(p.stage)}`} copyHref={`/console/prospects?open=${p.id}`}
+      lead={<button className={`ws-mark${p.stage === 'won' ? ' done' : ''}`} onClick={() => onStage(p.stage === 'won' ? 'proposal' : 'won')}>
+        <Icon.star />{p.stage === 'won' ? 'Signed' : 'Mark signed'}</button>}>
       <LeadDetail p={p} team={team} today={today} onStage={onStage} onOwner={onOwner} onFollow={onFollow} onField={onField}
         onTouched={next => put({ last_touched_at: new Date().toISOString(), ...(next ? { next_follow_up: next } : {}) })}
         extra={children} />

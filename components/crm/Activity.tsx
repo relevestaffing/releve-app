@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Avatar, Icon, cleanName, whenWords, dueWords, addDays, type Member } from './kit';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Avatar, Icon, cleanName, whenWords, dueWords, addDays, PaneFoot, type Member } from './kit';
 import { toast } from '../Toast';
 
 /* The history of one lead, executive or talent, and the box to add to it
@@ -35,6 +36,7 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
   const [text, setText] = useState('');
   const [next, setNext] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [mention, setMention] = useState<{ q: string; at: number } | null>(null);
   const [picked, setPicked] = useState<Member[]>([]);
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -125,16 +127,19 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
 
   const quick: [string, string][] = [['Tomorrow', addDays(today, 1)], ['3 days', addDays(today, 3)], ['1 week', addDays(today, 7)]];
 
-  return (
-    <div>
-      <div className="ws-compose" style={{ position: 'relative' }}>
-        <div className="kinds" role="tablist" aria-label="What to add">
+  const foot = useContext(PaneFoot);
+  const expanded = !foot || focused || !!text.trim() || kind !== 'note';
+  const composer = (
+      <div className={`ws-compose${expanded ? '' : ' rest'}`} style={{ position: 'relative' }}
+        onFocus={() => setFocused(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false); }}>
+        {foot && <span className="me"><Avatar name="You" size="sm" /></span>}
+        {expanded && <div className="kinds" role="tablist" aria-label="What to add">
           {KINDS.map(k => (
             <button key={k.key} type="button" role="tab" aria-selected={kind === k.key} className={kind === k.key ? 'on' : ''}
               onClick={() => { setKind(k.key); ta.current?.focus(); }}><k.icon />{k.label}</button>
           ))}
-        </div>
-        <textarea ref={ta} value={text} rows={2} aria-label="Write here"
+        </div>}
+        <textarea ref={ta} value={text} rows={expanded ? 2 : 1} aria-label="Write here"
           placeholder={kind === 'note' ? 'Add a comment. Type @ to bring in a teammate.' : `What was said on the ${KINDS.find(k => k.key === kind)?.label.toLowerCase()}?`}
           onChange={e => onType(e.target.value, e.target.selectionStart ?? e.target.value.length)}
           onKeyDown={e => {
@@ -143,7 +148,7 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submit(); }
           }} />
         {mention && options.length > 0 && (
-          <div className="ws-mention-list" style={{ left: 12, top: '100%' }}>
+          <div className="ws-mention-list" style={foot ? { left: 12, bottom: '100%' } : { left: 12, top: '100%' }}>
             {options.map(o => (
               <button key={o.user_id} type="button" className="ws-opt" onMouseDown={e => { e.preventDefault(); pick(o); }}>
                 <Avatar name={cleanName(o.name)} size="sm" />{cleanName(o.name)}
@@ -151,7 +156,7 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
             ))}
           </div>
         )}
-        <div className="foot">
+        {expanded && <div className="foot">
           {type === 'prospect' && kind !== 'note' ? (
             <span className="hint" style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
               Next follow-up
@@ -164,8 +169,13 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
           <button type="button" className="btn sm solid" disabled={busy || (!text.trim() && kind === 'note')} onClick={submit}>
             {busy ? 'Saving…' : kind === 'note' ? 'Comment' : `Log ${KINDS.find(k => k.key === kind)?.label.toLowerCase()}`}
           </button>
-        </div>
+        </div>}
       </div>
+  );
+
+  return (
+    <div>
+      {foot ? createPortal(composer, foot) : composer}
       {!ready && (
         <p className="ws-setup">The full history starts once the one-time database setup (part 59) has run. Until then, logged touches show here; stage and owner changes are not recorded yet.</p>
       )}

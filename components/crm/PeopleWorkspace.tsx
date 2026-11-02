@@ -88,33 +88,38 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
     Escape: () => { if (!panel && q) setQ(''); }
   });
 
-  const gridCols = `14px minmax(220px,2.2fr) ${cols.map(c => c.width).join(' ')}`;
+  const gridCols = `20px minmax(240px,2.4fr) ${cols.map(c => c.width).join(' ')}`;
   const ownerCol = side ? 'minmax(136px,.9fr)' : '';
 
   return (
     <div className="ws ws-x" style={{ ['--cols' as any]: `${gridCols} ${ownerCol}`.trim() }}>
+      <div className="ws-proj">
+        <span className="ws-tile" aria-hidden="true">{title[0]}</span>
+        <div><h3>{title}</h3><div className="meta">{rows.length} on file</div></div>
+      </div>
+      <div className="ws-tabs-top" role="tablist" aria-label="Layout">
+        <button role="tab" aria-selected className="ws-tab on"><Icon.list />List</button>
+      </div>
       <div className="ws-bar">
-        <div className="ws-title"><h3>{title}</h3><span className="ws-count">{rows.length} on file</span></div>
-        <div className="ws-tools">
-          <label className="ws-search"><Icon.search />
-            <input ref={search} type="search" placeholder={`Search ${noun}`} value={q} onChange={e => setQ(e.target.value)} aria-label={`Search ${noun}`} />
-            {!q && <kbd>/</kbd>}
-          </label>
-          {toolbar}
-        </div>
-        <div className="ws-views" role="tablist" aria-label="Saved views">
-          {views.map(v => (
-            <button key={v.key} role="tab" aria-selected={view === v.key} className={`ws-view${view === v.key ? ' on' : ''}${v.warn && counts[v.key] ? ' warn' : ''}`} onClick={() => setView(v.key)}>
-              {v.label}<span className="n">{counts[v.key] ?? 0}</span>
-            </button>
-          ))}
-        </div>
+        {toolbar}
+        <span className="sp" />
+        <label className="ws-search"><Icon.search />
+          <input ref={search} type="search" placeholder="Search" value={q} onChange={e => setQ(e.target.value)} aria-label={`Search ${noun}`} />
+          {!q && <kbd>/</kbd>}
+        </label>
+      </div>
+      <div className="ws-views" role="tablist" aria-label="Quick views">
+        {views.map(v => (
+          <button key={v.key} role="tab" aria-selected={view === v.key} className={`ws-view${view === v.key ? ' on' : ''}${v.warn && counts[v.key] ? ' warn' : ''}`} onClick={() => setView(v.key)}>
+            {v.label}<span className="n">{counts[v.key] ?? 0}</span>
+          </button>
+        ))}
       </div>
 
       {!rows.length ? <div className="ws-none"><h4>{empty.title}</h4><p className="small">{empty.text}</p></div> : (
         <div className="ws-list" role="grid" aria-label={title}>
           <div className="ws-head" role="row">
-            <div /><div>{noun === 'executives' ? 'Executive' : 'Talent'}</div>
+            <div /><div>Name</div>
             {cols.map(c => <div key={c.key}>{c.label}</div>)}
             {side && <div>{side === 'client' ? 'Success manager' : 'Talent manager'}</div>}
           </div>
@@ -124,19 +129,21 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
             const isClosed = !!closed[sec.key] && !q && view === 'all';
             return (
               <section key={sec.key} className={`ws-sec${isClosed ? ' closed' : ''}`}>
-                <div className="ws-sec-head" role="button" aria-expanded={!isClosed} onClick={() => setClosed(c => ({ ...c, [sec.key]: !c[sec.key] }))}>
-                  <span className="chev"><Icon.chev /></span><span className="sw" style={{ background: sec.color }} />
-                  <h4>{sec.label}</h4><span className="cnt">{list.length}</span>
+                <div className="ws-sec-head">
+                  <button className="chev" aria-expanded={!isClosed} aria-label={isClosed ? `Show ${sec.label}` : `Hide ${sec.label}`}
+                    onClick={() => setClosed(c => ({ ...c, [sec.key]: !c[sec.key] }))}><Icon.chev /></button>
+                  <span className="sw" style={{ background: sec.color }} />
+                  <h4 onClick={() => setClosed(c => ({ ...c, [sec.key]: !c[sec.key] }))}>{sec.label}</h4><span className="cnt">{list.length}</span>
                 </div>
                 <div className="ws-sec-body">
                   {list.map(r => (
                     <div key={r.id} data-row={r.id} role="row" className={`ws-row${focus === r.id ? ' focus' : ''}${panel === r.id ? ' open' : ''}`}
                       onClick={() => { setFocus(r.id); setPanel(r.id); }}>
-                      <div className="ws-check" />
+                      <div />
                       <div>
-                        <div className="ws-name"><Avatar name={r.name} url={r.photo} />
-                          <div className="t"><b>{r.name}</b><small>{r.sub}</small></div></div>
-                        <span className="open-hint">Open <Icon.out /></span>
+                        <div className="ws-name"><Avatar name={r.name} url={r.photo} size="sm" />
+                          <span className="t"><b>{r.name}</b><small>{r.sub}</small></span></div>
+                        <button className="ws-details" onClick={e => { e.stopPropagation(); setFocus(r.id); setPanel(r.id); }}>Details <Icon.chev /></button>
                       </div>
                       {cols.map(c => <div key={c.key} className={c.opt ? 'opt' : ''} onClick={e => { if ((e.target as HTMLElement).closest('button,a,input,select,label')) e.stopPropagation(); }}>{r.cells[c.key]}</div>)}
                       {side && <div className="opt" onClick={e => e.stopPropagation()}><OwnerPicker ownerId={owners[r.id] ?? null} team={team} onPick={o => setOwner(r, o)} label="Manager" /></div>}
@@ -156,7 +163,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
 
       {current && (
         <Panel crumb={`${noun === 'executives' ? 'Executive' : 'Talent'} · ${current.stage.label}`} onClose={() => setPanel(null)}
-          fullHref={current.fullHref ?? undefined}
+          fullHref={current.fullHref ?? undefined} copyHref={`${typeof window !== 'undefined' ? window.location.pathname : ''}?open=${current.id}`}
           onPrev={idx > 0 ? () => setPanel(flat[idx - 1].id) : null}
           onNext={idx >= 0 && idx < flat.length - 1 ? () => setPanel(flat[idx + 1].id) : null}>
           <div className="ws-p-hero">
@@ -168,7 +175,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
             {current.company && <Avatar name={current.company} company size="lg" title={current.company} />}
           </div>
           <div className="ws-step-say" style={{ marginBottom: 14 }}>
-            <span className="ws-stage" style={{ background: current.stage.color, cursor: 'default' }}>{current.stage.label}</span>
+            <span className="ws-stage" style={{ ['--c' as any]: current.stage.color, cursor: 'default' }}>{current.stage.label}</span>
             {current.headline && <span>{current.headline}</span>}
             {current.fullHref && <span className="end"><a className="ws-chip" href={current.fullHref} style={{ border: '1px solid rgba(53,68,58,.12)', background: '#fff' }}><Icon.out />Full record</a></span>}
           </div>

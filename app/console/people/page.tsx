@@ -99,7 +99,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
         ? `${brief.role_title}${opened !== null && !brief?.closed_at ? ` · search open ${opened} day${opened === 1 ? '' : 's'}` : ''}`
         : 'No role brief yet',
       cells: {
-        stage: <span className="ws-stage" style={{ background: STAGE[key].color, cursor: 'default' }}>{STAGE[key].label}</span>,
+        stage: <span className="ws-stage" style={{ ['--c' as any]: STAGE[key].color, cursor: 'default' }}>{STAGE[key].label}</span>,
         onboarding: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Ring key="r" done={done} total={steps.length} /><span key="t" className="ws-muted">{done} of {steps.length}</span></span>,
         role: brief?.role_title ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{brief.role_title}</span> : <span className="ws-faint">No brief yet</span>,
         agreement: <span className={`ws-tag ${aTone}`}>{aLabel}</span>,
