@@ -79,7 +79,9 @@ void main(){
   // veil so the greeting reads (screen space)
   float vl = veil<.5 ? mix(.6,0.,smoothstep(0.,.86,v.x))          // header, desktop: the greeting sits left
            : veil<1.5 ? mix(.30,.62,1.-v.y)                         // header, phone: the greeting sits low
-           : mix(.62,.28,smoothstep(0.,.9,v.x));                    // sign-in and welcome: the card sits centre
+           : veil<2.5 ? mix(.62,.28,smoothstep(0.,.9,v.x))          // sign-in and welcome: the card sits centre
+           : veil<3.5 ? mix(.55,.12,smoothstep(0.,.8,v.x))          // the whole page, desktop: greeting left, cards over the wall
+           : .38;                                                    // the whole page, phone
   c*=1.-vl*.82;
   c+=(h1(dot(gl_FragCoord.xy,vec2(12.9898,78.233))+t)-.5)*.018; // film grain
   gl_FragColor=vec4(c,1.);
@@ -92,7 +94,7 @@ const load = (src: string) => new Promise<HTMLImageElement>((res, rej) => {
   const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = rej; i.src = src;
 });
 
-export default function SunWall({ room = false }: { room?: boolean }) {
+export default function SunWall({ room = false, page = false }: { room?: boolean; page?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   /* every shadow in the app follows this sun (see lib/sun.ts) */
   useEffect(() => {
@@ -171,10 +173,10 @@ export default function SunWall({ room = false }: { room?: boolean }) {
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
         const t = (now - t0) / 1000, L = lightAt(hourNow(t)), mob = phone.matches;
         gl.uniform2f(U.res, w, h);
-        gl.uniform2f(U.focus, room ? .85 : mob ? .82 : 1, .45);
+        gl.uniform2f(U.focus, room ? .85 : mob ? .82 : 1, page ? .35 : .45);
         gl.uniform1f(U.zoom, 1.05);
         gl.uniform1f(U.t, still ? 0 : t);
-        gl.uniform1f(U.veil, room ? 2 : mob ? 1 : 0);
+        gl.uniform1f(U.veil, page ? (mob ? 4 : 3) : room ? 2 : mob ? 1 : 0);
         gl.uniform4fv(U.xf, L.xf); gl.uniform2fv(U.dxy, L.dxy);
         gl.uniform3fv(U.sunCol, L.sunCol); gl.uniform3fv(U.ambCol, L.ambCol); gl.uniform3fv(U.lampCol, L.lampCol);
         gl.uniform1f(U.sunI, L.sunI); gl.uniform1f(U.moonI, L.moonI); gl.uniform1f(U.soft, L.soft);
@@ -190,6 +192,6 @@ export default function SunWall({ room = false }: { room?: boolean }) {
       stop = () => { cancelAnimationFrame(raf); io.disconnect(); document.removeEventListener('visibilitychange', vis); };
     })();
     return () => { dead = true; stop(); };
-  }, [room]);
-  return <canvas ref={ref} className={room ? 'sun-wall sun-room' : 'sun-wall'} aria-hidden="true" />;
+  }, [room, page]);
+  return <canvas ref={ref} className={page ? 'sun-wall sun-page' : room ? 'sun-wall sun-room' : 'sun-wall'} aria-hidden="true" />;
 }

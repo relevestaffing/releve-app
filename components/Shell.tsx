@@ -357,8 +357,9 @@ export default async function Shell({
           </form>
         </aside>
         <main className="main">
+          <SunWall page />
           <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
-            <span className="band-light" aria-hidden="true"><SunWall /></span>
+            <span className="band-light" aria-hidden="true" />
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
                 in globals.css. An action like the executive picker on Matching used
