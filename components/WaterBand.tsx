@@ -44,19 +44,34 @@ float height(vec2 p){
   return snoise(p*1.1+vec2(t*.05,t*.03))*.6+snoise(p*2.3-vec2(t*.07,-t*.04))*.3+snoise(p*4.7+vec2(-t*.11,t*.09))*.1;
 }
 float ridge(vec2 p){return 1.-abs(snoise(p));}
-float caustic(vec2 p){
-  /* light thrown off moving water onto a smooth wall: soft bright pools
-     laced with thin, sharp filaments, both drifting and re-forming */
-  vec2 w=p+.55*vec2(snoise(p*.45+vec2(t*.05,0.)),snoise(p*.45+vec2(0.,t*.045)+5.2));
-  float a=ridge(w*1.6+vec2(t*.09,-t*.05));
-  float b=ridge(w*2.5-vec2(t*.06,t*.10)+3.7);
-  float lines=pow(a,6.5)*.8+pow(b,8.5)*.5;
-  float pools=smoothstep(.15,.95,snoise(w*.9+vec2(-t*.04,t*.03))*.5+.5);
-  return lines*(.5+.9*pools)+pools*.30;
+/* Long lines of light, the way sun through a rippled surface lays itself
+   across a wall (Nona's reference): sets of long, nearly parallel
+   filaments, each one wavering gently along its length, brightening and
+   fading as it travels, with a soft glow around it. Two sets at slightly
+   different angles cross the way real caustics do. Lines are drawn
+   explicitly (distance to the nearest filament), not as noise contours,
+   so they stay long and never curl into loops. */
+vec2 rot(vec2 p,float a){return mat2(cos(a),-sin(a),sin(a),cos(a))*p;}
+float strand(vec2 p,float freq,float seed,float speed){
+  float wob=snoise(vec2(p.x*.42,p.y*.18)+vec2(seed,t*.05))*1.15+snoise(vec2(p.x*1.1,p.y*.4)+vec2(-t*.07,seed))*.35;
+  float ph=p.y*freq+wob+t*speed;
+  float d=abs(fract(ph)-.5);d=.5-d;
+  float core=exp(-d*d*900.);
+  float halo=exp(-d*d*60.)*.16;
+  float life=smoothstep(-.35,.75,snoise(vec2(p.x*.35,p.y*.9)+vec2(seed*1.7,t*.08)));
+  return (core+halo)*life;
+}
+float caustic(vec2 q){
+  vec2 p=rot(q,-.5);
+  p.y*=mix(1.,1.6,v.y);
+  float a=strand(p,4.2,1.3,.22);
+  float b=strand(rot(p,.22)+vec2(4.,1.),3.3,7.9,-.16)*.75;
+  float c=strand(rot(p,-.15)+vec2(-3.,2.),4.6,13.1,.30)*.4;
+  return a+b+c+a*b*1.4;
 }
 void main(){
   vec2 asp=vec2(res.x/res.y,1.);
-  vec2 q=v*asp*vec2(.72,1.45);
+  vec2 q=v*asp*1.1;
   float e=.02;
   float h=height(q);
   vec2 grad=vec2(height(q+vec2(e,0.))-h,height(q+vec2(0.,e))-h)/e;
@@ -66,13 +81,13 @@ void main(){
   /* the wall: smooth deep fern plaster, the photograph only as a whisper of grain */
   vec2 iu=((v+grad*.004)-.5)*imgAspect+.5;
   vec3 st=texture2D(stone,vec2(iu.x,1.-iu.y)).rgb;
-  vec3 wall=mix(vec3(.055,.085,.068),vec3(.16,.21,.18),smoothstep(-.1,1.1,v.x*.8+v.y*.4));
-  wall=mix(wall,wall*(.75+st*1.6),.35);
-  float c=caustic(q*1.05+grad*.10);
-  float sun=smoothstep(1.6,.1,distance(v*asp,vec2(.9*asp.x,.95)));
-  float reach=mix(.35,1.,smoothstep(.0,.65,v.x));
-  vec3 light=mix(vec3(.62,.78,.64),vec3(.93,.90,.74),sun*.7);
-  vec3 col=wall*(.85+.3*sun)+light*c*(.20+.75*sun)*reach;
+  vec3 wall=mix(vec3(.05,.08,.064),vec3(.15,.20,.17),smoothstep(-.1,1.1,v.x*.8+v.y*.4));
+  wall=mix(wall,wall*(.78+st*1.4),.3);
+  float c=caustic(q+grad*.012);
+  float sun=smoothstep(2.1,.1,distance(v*asp,vec2(.92*asp.x,1.)));
+  float reach=mix(.42,1.,smoothstep(.0,.6,v.x));
+  vec3 light=mix(vec3(.60,.77,.63),vec3(.94,.90,.74),sun*.75);
+  vec3 col=wall*(.85+.3*sun)+light*c*(.18+.75*sun)*reach;
   col+=light*ring*.05;
   gl_FragColor=vec4(col,1.);
 }`;
