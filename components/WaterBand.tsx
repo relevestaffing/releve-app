@@ -1,21 +1,20 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
-/* The header as moving water (Nona, 2 November 2026: "it needs to be hyper
-   realistic, it needs to imitate water moving", with her reference of long
-   lines of sunlight thrown off water onto a wall).
+/* The header as the light and shadow of moving water (Nona, 2 November
+   2026: the references she loves show not the water but the light it
+   throws, rippling across a wall, "especially the orange pictures").
 
-   This is footage, not an effect drawn live. The light was simulated
-   physically, once, offline: an ocean-spectrum water surface refracts
-   parallel sunlight and every ray is traced to where it lands on the wall
-   (scripts/water/), which is what makes the bright lines focus, split and
-   travel the way real water light does. The wall is seen at a raking angle,
-   so the light recedes into depth: lines converge and soften with
-   distance, catch the relief of a real plaster surface, and split very
-   slightly into warm and cool edges as real refracted light does. Played
-   at a slow, calm pace; the wave frequencies are locked to the loop, so
-   the 20-second clip loops without a seam. Graded in Relève's greens:
-   /atmos/water.mp4, about 2 MB (scripts/water/sim.py, comp2.py).
+   Footage rendered once, offline (scripts/water/caus.py): a wind-driven
+   water surface (long swells plus fine ripples) refracts sunlight, and
+   every ray is traced to the wall it lands on and gathered there (photon
+   mapping), so the light focuses into bright lines that split and travel
+   as real water light does. The sun's size softens the lines; the wall is
+   fern plaster seen in steep perspective, so the pattern recedes into
+   depth and leans to the left; the light falls from the upper right and
+   fades toward the title. Graded deep green in the shadows to warm cream
+   in the light, with a soft bloom. Slow, and the wave frequencies are
+   locked to the loop, so it repeats without a seam.
 
    Muted, inline and looped, so it autoplays on phones. Paused when the
    band is off screen or the tab is hidden. With reduced motion the still
@@ -40,8 +39,8 @@ export default function WaterBand() {
 
   return (
     <video ref={ref} className="water-band" aria-hidden="true" tabIndex={-1}
-      autoPlay muted loop playsInline preload="auto" disablePictureInPicture poster="/atmos/water-poster.webp">
-      <source src="/atmos/water.mp4" type="video/mp4" />
+      autoPlay muted loop playsInline preload="auto" disablePictureInPicture poster="/atmos/light-poster.webp">
+      <source src="/atmos/light.mp4" type="video/mp4" />
     </video>
   );
 }
