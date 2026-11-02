@@ -7,6 +7,7 @@ import MobileNav from './MobileNav';
 import QuickBar from './QuickBar';
 import Motion from './Motion';
 import Flourish from './Flourish';
+import Depth from './Depth';
 import TermsGate from './TermsGate';
 import InvoiceGate from './InvoiceGate';
 import BillingBanner from '@/components/BillingBanner';
@@ -310,6 +311,7 @@ export default async function Shell({
     <>
       <Motion />
       <Flourish />
+      <Depth />
       <UnreadSync initial={unread} />
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
       <MobileNav role={profile.role} active={active} nav={nav}

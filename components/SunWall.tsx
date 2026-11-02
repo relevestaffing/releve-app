@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { S, mix, lightAt, hourNow, sunShadow } from '@/lib/sun';
 
 /* The window wall, lit by the sun of the viewer's own clock (Nona, 2 November
    2026: "I want it to have movement and the sun to move depending on the time
@@ -84,42 +85,8 @@ void main(){
   gl_FragColor=vec4(c,1.);
 }`;
 
-type V3 = [number, number, number];
-const S = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-const mix = (a: number, b: number, t: number) => a + (b - a) * t;
-const mixv = (a: number[], b: number[], t: number) => a.map((x, i) => x + (b[i] - x) * t) as V3;
 
-function lightAt(h: number) {
-  // sun up 6:30, down 19:30
-  const s=(h-6.5)/13, up=s>0&&s<1;
-  const e=up?Math.sin(Math.PI*s):0;
-  const rise=S(0,.06,s)*S(1,.93,s);
-  const sunI=rise*(3.6+6.0*Math.pow(e,.6));
-  const warm=Math.pow(1-e,1.6);
-  const sunCol=mixv([1.0,.60,.42],[1.0,.40,.22],warm);
-  const day=S(5.6,7.2,h)*S(20.6,19.2,h);
-  const ambCol=mixv([.030,.040,.060],mixv([.13,.135,.13],[.15,.125,.10],warm*.7).map(x=>x*(.65+.45*e)),day);
-  const lamp=1-S(6.2,7.6,h)*S(19.6,18.4,h);
-  const lampCol=[.40,.24,.11].map(x=>x*lamp);
-  const moonI=(1-day)*.42;
-  // the patch: short and high in the morning, long and low toward evening
-  const m=Math.min(1,Math.max(0,s));
-  const sx=mix(.82,1.38,m*m), sy=mix(1.06,1.0,m), sh=mix(.10,-.12,m);
-  const dx=mix(.13,-.01,Math.sqrt(m)), dy=mix(-.07,.03,e)+mix(0,-.02,m);
-  const soft=mix(5,2,e);
-  return {sunI,sunCol,ambCol,lampCol,moonI,xf:[sx,sy,sh,0],dxy:[dx,dy],soft};
-}
 
-function hourNow(t: number): number {
-  try {
-    const q = new URLSearchParams(window.location.search).get('sun');
-    const lapse = q && /^lapse(\d+)?$/.exec(q);
-    if (lapse) return 5 + ((t / (Number(lapse[1]) || 60)) % 1) * 19;
-    if (q !== null && q !== '' && !isNaN(Number(q))) return ((Number(q) % 24) + 24) % 24;
-  } catch {}
-  const d = new Date();
-  return d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
-}
 
 const load = (src: string) => new Promise<HTMLImageElement>((res, rej) => {
   const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = rej; i.src = src;
@@ -127,6 +94,25 @@ const load = (src: string) => new Promise<HTMLImageElement>((res, rej) => {
 
 export default function SunWall({ room = false }: { room?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  /* every shadow in the app follows this sun (see lib/sun.ts) */
+  useEffect(() => {
+    const root = document.documentElement;
+    const t0 = performance.now();
+    const apply = () => {
+      const k = sunShadow(hourNow((performance.now() - t0) / 1000));
+      const st = root.style;
+      st.setProperty('--shx', k.x.toFixed(1) + 'px'); st.setProperty('--shy', k.y.toFixed(1) + 'px');
+      st.setProperty('--shb', k.b.toFixed(1) + 'px'); st.setProperty('--sha', k.a.toFixed(3));
+      st.setProperty('--shc', k.c.join(',')); st.setProperty('--glow', k.g.join(','));
+      st.setProperty('--gla', k.ga.toFixed(3)); st.setProperty('--lx', k.lx.toFixed(3));
+    };
+    apply();
+    let fast = false;
+    try { fast = /^lapse/.test(new URLSearchParams(window.location.search).get('sun') || ''); } catch {}
+    const id = window.setInterval(apply, fast ? 400 : 60000);
+    return () => window.clearInterval(id);
+  }, []);
+
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
