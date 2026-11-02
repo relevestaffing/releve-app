@@ -22,7 +22,7 @@ import { adminClient } from '@/lib/supabase/admin';
    No schema change: email_log (every send already writes a row there) is the
    record of who got which email, so each address gets each email once. */
 
-export const BOOK_URL = 'https://calendly.com/hello-relevestaffing/30min';
+export const BOOK_URL = 'https://relevestaffing.com/book/';   /* Relève's own booking page (2 Nov 2026), was Calendly */
 const SENDER = 'Relève <hello@relevestaffing.com>';
 export const INVITE_KIND = 'leadBookingInvite';
 export const FOLLOW_UP_KIND = 'leadBookingFollowUp';
@@ -53,10 +53,10 @@ export function bookingInvite(o: { name: string; email: string }): Message {
     html: shell('Your discovery call.',
       p(`${esc(first)},`) +
       p('Thank you for reaching out to Relève.') +
-      p('If you already chose a time, you are set: your confirmation follows in a moment. If you did not finish, choose your time below. Thirty minutes, and we come prepared with what you told us.') +
+      p('If you already chose a time, you are set: your confirmation is in your inbox. If you did not finish, choose your time below. Thirty minutes, and we come prepared with what you told us.') +
       p('Consider it handled.'),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\nThank you for reaching out to Relève.\n\nIf you already chose a time, you are set: your confirmation follows in a moment. If you did not finish, choose your time here. Thirty minutes, and we come prepared with what you told us.\n\n${link}\n\nConsider it handled.\nRelève`
+    text: `${first},\n\nThank you for reaching out to Relève.\n\nIf you already chose a time, you are set: your confirmation is in your inbox. If you did not finish, choose your time here. Thirty minutes, and we come prepared with what you told us.\n\n${link}\n\nConsider it handled.\nRelève`
   };
 }
 

@@ -47,7 +47,7 @@ function transport() {
    template's own name — added automatically at the bottom of this file, so a
    new template cannot be added without also being loggable. */
 export type Attachment = { filename: string; content: Buffer; contentType: string };
-export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[]; headers?: Record<string, string> };
+export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[]; headers?: Record<string, string>; icalEvent?: { method: string; filename?: string; content: string } };
 
 /* Mirror a transactional notification to the recipient's push devices.
    Best-effort and gated: marketing (campaign*) emails never push, and any
@@ -103,7 +103,7 @@ export async function sendOrThrow(to: string, msg: Message) {
   }
   try {
     const info = await transport().sendMail({
-      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers
+      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent
     });
     await record(msg.kind, to, msg.subject, true);
     await pushMirror(to, msg);
@@ -125,7 +125,7 @@ export async function send(to: string, msg: Message) {
     return false;
   }
   try {
-    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers });
+    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent });
     await record(msg.kind, to, msg.subject, true);
     await pushMirror(to, msg);
     return true;

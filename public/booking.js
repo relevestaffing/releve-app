@@ -1,11 +1,14 @@
 /* Relève booking: the discovery-call picker the website shows instead of
    Calendly (Nona, 2 November 2026). Served from app.relevestaffing.com so the
-   website only loads one script. Calendly still books the call behind it,
-   through the app's /api/booking endpoints.
+   website only loads one script. The app books the call behind it, on hello@'s
+   calendar and Zoom, through its /api/booking endpoints.
 
    RelBooking.mount(element, {
      name, email, phone, notes, source,   // what the site already asked
      onReady(),                           // times are showing: hide anything Calendly-related
+     onMeta(data),                        // durationMin and the page wording from the console
+     submit(startIso, tz) -> fetch(...)   // optional: book differently (the reschedule page)
+     confirmWord, doneLine                // optional wording for the button and the last screen
      onBooked(startIso),                  // the call is booked
      onFallback()                         // booking is not switched on: show Calendly instead
    })
@@ -74,6 +77,8 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (!d || !d.configured) { if (o.onFallback) o.onFallback(); return; }
+        state.minutes = d.durationMin || 30;
+        if (o.onMeta) { try { o.onMeta(d); } catch (e) {} }
         (d.slots || []).forEach(function (iso) {
           var k = keyFmt.format(new Date(iso));
           if (!state.byDay[k]) { state.byDay[k] = []; state.days.push(k); }
@@ -94,7 +99,7 @@
       box.innerHTML = '';
       box.appendChild(el('div', 'rlb-h', 'Choose your time'));
       var tzName = tz.replace(/_/g, ' ').split('/').pop();
-      box.appendChild(el('div', 'rlb-tz', 'Thirty minutes on Zoom. Times are shown in your time zone (' + tzName + ').'));
+      box.appendChild(el('div', 'rlb-tz', (state.minutes || 30) + ' minutes on Zoom. Times are shown in your time zone (' + tzName + ').'));
 
       var days = el('div', 'rlb-days');
       days.setAttribute('role', 'group'); days.setAttribute('aria-label', 'Day');
@@ -120,7 +125,7 @@
       box.appendChild(times);
 
       var phoneInput = null;
-      if (!o.phone) {
+      if (!o.phone && !o.submit) {
         var f = el('div', 'rlb-f');
         var lab = el('label', null, 'Phone number'); lab.htmlFor = 'rlb-phone';
         phoneInput = el('input'); phoneInput.id = 'rlb-phone'; phoneInput.type = 'tel'; phoneInput.autocomplete = 'tel';
@@ -133,22 +138,23 @@
       var err = el('div', 'rlb-err'); err.hidden = true;
       function sync() {
         var phone = o.phone || state.phone || '';
-        go.disabled = state.busy || !state.slot || phone.replace(/\D/g, '').length < 7;
+        go.disabled = state.busy || !state.slot || (!o.submit && phone.replace(/\D/g, '').length < 7);
         go.textContent = state.busy ? 'Booking…'
-          : state.slot ? 'Confirm ' + numFmt.format(new Date(state.slot)) + ', ' + timeFmt.format(new Date(state.slot))
+          : state.slot ? (o.confirmWord || 'Confirm') + ' ' + numFmt.format(new Date(state.slot)) + ', ' + timeFmt.format(new Date(state.slot))
           : 'Choose a time';
       }
       sync();
       go.onclick = function () {
         if (go.disabled) return;
         state.busy = true; sync(); err.hidden = true;
-        fetch(API + '/api/booking/book', {
+        var req = o.submit ? o.submit(state.slot, tz) : fetch(API + '/api/booking/book', {
           method: 'POST', mode: 'cors', headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            name: o.name, email: o.email, phone: o.phone || state.phone, notes: o.notes || '',
+            name: o.name, email: o.email, phone: o.phone || state.phone, org: o.org || '', notes: o.notes || '',
             source: o.source || '', start: state.slot, timezone: tz
           })
-        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        });
+        req.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
           .then(function (x) {
             state.busy = false;
             if (!x.ok) {
@@ -156,7 +162,7 @@
               if (/taken/i.test(err.textContent)) { refresh(); }
               sync(); return;
             }
-            done(x.d.start || state.slot);
+            done(x.d.start || state.slot, x.d);
           })
           .catch(function () { state.busy = false; err.textContent = 'That did not go through. Please try again.'; err.hidden = false; sync(); });
       };
@@ -178,13 +184,13 @@
       });
     }
 
-    function done(iso) {
+    function done(iso, data) {
       box.innerHTML = '';
       var d = el('div', 'rlb-done');
       d.appendChild(el('div', 'rlb-done-h', 'It\u2019s handled.'));
-      d.appendChild(el('div', 'rlb-done-p', longFmt.format(new Date(iso)) + ' at ' + timeFmt.format(new Date(iso)) + '. Your confirmation is on its way from Relève.'));
+      d.appendChild(el('div', 'rlb-done-p', longFmt.format(new Date(iso)) + ' at ' + timeFmt.format(new Date(iso)) + '. ' + (o.doneLine || 'Your confirmation is on its way from Relève.')));
       box.appendChild(d);
-      if (o.onBooked) { try { o.onBooked(iso); } catch (e) {} }
+      if (o.onBooked) { try { o.onBooked(iso, data); } catch (e) {} }
     }
   }
 
