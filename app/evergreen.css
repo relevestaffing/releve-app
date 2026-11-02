@@ -553,3 +553,23 @@ main.main::before{display:none}
 /* Water light (2 November 2026): the clip is already dark where the title
    sits, so the veil can be lighter and the light keeps its glow. */
 @media (min-width:901px){.topbar::after{background:radial-gradient(62% 48% at 38% 60%,rgba(8,14,11,.58),rgba(8,14,11,.30) 55%,transparent 85%),linear-gradient(90deg,rgba(8,14,11,.38) 0%,rgba(8,14,11,.10) 50%,transparent 75%)!important}}
+
+/* ═════════════════════ THE WALL (2 November 2026) ═════════════════════
+   The band is a reeded green limewash wall in a sunlit room whose light
+   follows the viewer's clock (components/WaterBand.tsx). */
+.topbar .band-light{background:#16211B url('/atmos/wall/1300-midday.webp') 60% 50%/cover no-repeat!important}
+.topbar > .time-wall{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.time-wall img{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;object-position:62% 50%;
+  transition:opacity 20s linear;animation:wallDrift 90s ease-in-out infinite alternate}
+.time-wall .tw-cloud{opacity:0;transition:none;animation:wallDrift 90s ease-in-out infinite alternate,wallCloud 71s ease-in-out infinite}
+@keyframes wallDrift{from{transform:scale(1) translate(0,0)}to{transform:scale(1.035) translate(-1%,.6%)}}
+@keyframes wallCloud{0%,38%,100%{opacity:0}50%,58%{opacity:.85}70%{opacity:0}}
+.topbar::after{background:radial-gradient(60% 55% at 30% 62%,rgba(8,14,11,.55),rgba(8,14,11,.22) 60%,transparent 88%),
+  linear-gradient(90deg,rgba(8,14,11,.35) 0%,rgba(8,14,11,.08) 55%,transparent 80%)!important}
+.welcome,.auth{background:linear-gradient(90deg,rgba(8,14,11,.55),rgba(8,14,11,.2)),#16211B url('/atmos/wall/1600-afternoon.webp') 60% 50%/cover no-repeat!important}
+@media (max-width:900px){.time-wall img{object-position:74% 50%}}
+@media (prefers-reduced-motion:reduce){.time-wall img{animation:none;transition:none}.time-wall .tw-cloud{display:none}}
+.topbar::after{background:radial-gradient(64% 58% at 32% 62%,rgba(8,14,11,.68),rgba(8,14,11,.3) 60%,transparent 90%),
+  linear-gradient(90deg,rgba(8,14,11,.4) 0%,rgba(8,14,11,.1) 55%,transparent 80%)!important}
+@media (max-width:900px){.topbar::after{background:linear-gradient(180deg,rgba(8,14,11,.35),rgba(8,14,11,.62))!important}}
+.topbar h1 .name{color:#D3E0CF!important}

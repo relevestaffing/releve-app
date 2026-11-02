@@ -1,46 +1,83 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
-/* The header as the light and shadow of moving water (Nona, 2 November
-   2026: the references she loves show not the water but the light it
-   throws, rippling across a wall, "especially the orange pictures").
+/* The header as a wall in a sunlit room (Nona, 2 November 2026: the fluted
+   plaster wall, "but it changes based off the time of day").
 
-   Footage rendered once, offline (scripts/water/caus.py): a wind-driven
-   water surface (long swells plus fine ripples) refracts sunlight, and
-   every ray is traced to the wall it lands on and gathered there (photon
-   mapping), so the light focuses into bright lines that split and travel
-   as real water light does. The sun's size softens the lines; the wall is
-   fern plaster seen in steep perspective, so the pattern recedes into
-   depth and leans to the left; the light falls from the upper right and
-   fades toward the title. Graded deep green in the shadows to warm cream
-   in the light, with a soft bloom. Slow, and the wave frequencies are
-   locked to the loop, so it repeats without a seam.
+   A reeded limewash wall in Relève green, rendered physically, once,
+   offline (scripts/wall/flute.py, moments in keys.json): a heightfield of
+   half-round reeds with real plaster grain from a photograph, sunlight
+   coming through a two-light window with ray-marched soft shadows between
+   the reeds, ambient occlusion, sky and floor bounce, then seen in
+   perspective through a lens. Eight moments of the day, each also
+   rendered with a cloud over the sun:
 
-   Muted, inline and looped, so it autoplays on phones. Paused when the
-   band is off screen or the tab is hidden. With reduced motion the still
-   poster frame shows instead. */
+     00:00 night        floor washers graze warm light up the reeds
+     05:30 dawn         first soft light
+     07:30 morning      low sun from the left, long shadows
+     10:00 late morning
+     13:00 midday       high sun, short shadows
+     16:00 afternoon    sun from the right
+     18:30 golden hour  low amber sun
+     20:00 dusk         the sun gone, the lamps coming up
+
+   The page shows the viewer's own clock: the two moments either side of
+   now are layered and blended by how far between them it is, re-checked
+   every half minute, so over a working session the light visibly crosses
+   the wall. Now and then a cloud passes over the sun. With reduced
+   motion the cloud and the slow drift are off; the time of day still
+   applies. ?wall=18.5 (any hour) previews another time. */
+
+type Key = { at: number; name: string; cloud: boolean };
+const KEYS: Key[] = [
+  { at: 0, name: '0000-night', cloud: false },
+  { at: 330, name: '0530-dawn', cloud: true },
+  { at: 450, name: '0730-morning', cloud: true },
+  { at: 600, name: '1000-late', cloud: true },
+  { at: 780, name: '1300-midday', cloud: true },
+  { at: 960, name: '1600-afternoon', cloud: true },
+  { at: 1110, name: '1830-golden', cloud: true },
+  { at: 1200, name: '2000-dusk', cloud: false },
+  { at: 1320, name: '0000-night', cloud: false },
+  { at: 1440, name: '0000-night', cloud: false }
+];
+const src = (n: string) => `/atmos/wall/${n}.webp`;
+
+function moment(minutes: number) {
+  let i = 0;
+  while (i < KEYS.length - 2 && KEYS[i + 1].at <= minutes) i++;
+  const a = KEYS[i], b = KEYS[i + 1];
+  const f = Math.min(1, Math.max(0, (minutes - a.at) / (b.at - a.at)));
+  /* ease the blend so each moment holds a little before giving way */
+  const e = f * f * (3 - 2 * f);
+  return { a, b, f: e };
+}
+
+function nowMinutes(): number {
+  try {
+    const q = new URLSearchParams(window.location.search).get('wall');
+    if (q !== null && !isNaN(Number(q))) return ((Number(q) % 24) + 24) % 24 * 60;
+  } catch {}
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+}
+
 export default function WaterBand() {
-  const ref = useRef<HTMLVideoElement>(null);
-
+  /* Midday until the browser knows its own clock, so the server render
+     and the first paint agree. */
+  const [m, setM] = useState<number>(780);
   useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { v.removeAttribute('autoplay'); v.pause(); return; }
-    const play = () => { const p = v.play(); if (p) p.catch(() => {}); };
-    const io = new IntersectionObserver(es => { if (es[0]?.isIntersecting && !document.hidden) play(); else v.pause(); }, { threshold: 0 });
-    io.observe(v);
-    const vis = () => { if (document.hidden) v.pause(); else play(); };
-    document.addEventListener('visibilitychange', vis);
-    const on = () => v.classList.add('on');
-    v.addEventListener('playing', on);
-    if (!v.paused) on();
-    return () => { io.disconnect(); document.removeEventListener('visibilitychange', vis); v.removeEventListener('playing', on); };
+    setM(nowMinutes());
+    const id = window.setInterval(() => setM(nowMinutes()), 30000);
+    return () => window.clearInterval(id);
   }, []);
-
+  const { a, b, f } = moment(m);
+  const lead = f < 0.5 ? a : b;
   return (
-    <video ref={ref} className="water-band" aria-hidden="true" tabIndex={-1}
-      autoPlay muted loop playsInline preload="auto" disablePictureInPicture poster="/atmos/light-poster.webp">
-      <source src="/atmos/light.mp4" type="video/mp4" />
-    </video>
+    <div className="time-wall" aria-hidden="true">
+      <img className="tw-a" src={src(a.name)} alt="" decoding="async" />
+      {a.name !== b.name && <img className="tw-b" src={src(b.name)} alt="" decoding="async" style={{ opacity: f }} />}
+      {lead.cloud && <img className="tw-cloud" src={src(lead.name + '-cloud')} alt="" decoding="async" loading="lazy" />}
+    </div>
   );
 }
