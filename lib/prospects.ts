@@ -3,6 +3,7 @@ import { supabaseServer, configured } from './supabase/server';
 import { upcomingCalendarEvents, calendarConfigured } from './calendar';
 import { recentInboxMessages, inboxConfigured, guessInboxKind, resumeAttachment } from './gmail';
 import { classifyInboxEmailAI } from './ai';
+import { sendCallConfirmation, phoneFrom } from './lead-booking';
 import { looksLike } from './filetype';
 import { todayInPacific, addDaysISO } from './money-public';
 import { isOpenStage, followUpDue } from './prospects-public';
@@ -251,7 +252,7 @@ export async function importProspectsFromCalendar(
     sb.from('profiles').select('email'),
     sb.from('pending_people').select('email'),
     sb.from('job_applications').select('email'),
-    sb.from('prospects').select('id, email, stage, call_at')
+    sb.from('prospects').select('id, email, stage, call_at, full_name, note')
   ]);
   for (const rows of [prof, pend, apps, pros])
     for (const r of (rows ?? []) as any[]) if (r.email) known.add(String(r.email).toLowerCase());
@@ -269,13 +270,20 @@ export async function importProspectsFromCalendar(
   for (const e of events) {
     const outside = e.attendees.filter(a => !OWN.test(a)).map(a => a.toLowerCase());
     if (!outside.length || e.allDay) { skipped++; continue; }
+    /* The phone number from the booking form (Nona, 2 November 2026: "I need
+       their phone number"), kept in the lead's note. */
+    const phone = phoneFrom(e.description);
     const lead = outside.find(a => early.has(a));
     if (lead) {
-      const { error } = await sb.from('prospects')
-        .update({ stage: 'booked', call_at: e.start, calendar_event_id: e.id, last_touched_at: new Date().toISOString() })
-        .eq('id', early.get(lead)!);
+      const id = early.get(lead)!;
+      const row = ((pros ?? []) as any[]).find(r => r.id === id);
+      const patch: Record<string, unknown> = { stage: 'booked', call_at: e.start, calendar_event_id: e.id, last_touched_at: new Date().toISOString() };
+      if (phone && !String(row?.note || '').includes(phone)) patch.note = [row?.note, `Phone: ${phone}`].filter(Boolean).join('\n');
+      const { error } = await sb.from('prospects').update(patch).eq('id', id);
       early.delete(lead);
-      if (error) skipped++; else added++;
+      if (error) { skipped++; continue; }
+      added++;
+      await sendCallConfirmation({ name: row?.full_name || nameFromTitle(e.title, lead), email: lead, event: e });
       continue;
     }
     const email = outside.find(a => !known.has(a));
@@ -283,11 +291,13 @@ export async function importProspectsFromCalendar(
     const full_name = nameFromTitle(e.title, email);
     const { error } = await sb.from('prospects').insert({
       full_name, email, source: 'calendly', call_at: e.start,
-      calendar_event_id: e.id, stage: 'booked'
+      calendar_event_id: e.id, stage: 'booked', note: phone ? `Phone: ${phone}` : null
     });
     if (error) { skipped++; continue; }   // this event was imported before
     known.add(email);
     added++;
+    /* Confirmed by Relève, not Calendly, once, as the booking is filed. */
+    await sendCallConfirmation({ name: full_name, email, event: e });
   }
   return { added, skipped };
 }

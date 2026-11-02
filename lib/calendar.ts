@@ -25,6 +25,7 @@ export type CalendarEvent = {
   location: string | null;
   meetingLink: string | null;
   attendees: string[];
+  description?: string | null;   // Calendly writes the answers, cancel and reschedule links here
 };
 
 const CALENDAR_ID = () => process.env.GOOGLE_CALENDAR_ID || 'hello@relevestaffing.com';
@@ -129,6 +130,7 @@ export async function upcomingCalendarEvents(daysAhead = 14, fresh = false): Pro
       end: e.end?.dateTime || e.end?.date,
       allDay: !e.start?.dateTime,
       location: e.location || null,
+      description: e.description || null,
       meetingLink: e.hangoutLink
         || e.conferenceData?.entryPoints?.find((p: any) => p.entryPointType === 'video')?.uri
         || null,

@@ -1,5 +1,6 @@
 import { send, shell, p, esc } from '@/lib/email';
 import type { Message } from '@/lib/email';
+import type { CalendarEvent } from '@/lib/calendar';
 import { adminClient } from '@/lib/supabase/admin';
 
 /* The booking link, sent to a website lead the moment they come in.
@@ -52,10 +53,10 @@ export function bookingInvite(o: { name: string; email: string }): Message {
     html: shell('Your discovery call.',
       p(`${esc(first)},`) +
       p('Thank you for reaching out to Relève.') +
-      p('If you already chose a time, you are set: the confirmation is on its way from Calendly. If you did not finish, choose your time below. Thirty minutes, and we come prepared with what you told us.') +
+      p('If you already chose a time, you are set: your confirmation follows in a moment. If you did not finish, choose your time below. Thirty minutes, and we come prepared with what you told us.') +
       p('Consider it handled.'),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\nThank you for reaching out to Relève.\n\nIf you already chose a time, you are set: the confirmation is on its way from Calendly. If you did not finish, choose your time here. Thirty minutes, and we come prepared with what you told us.\n\n${link}\n\nConsider it handled.\nRelève`
+    text: `${first},\n\nThank you for reaching out to Relève.\n\nIf you already chose a time, you are set: your confirmation follows in a moment. If you did not finish, choose your time here. Thirty minutes, and we come prepared with what you told us.\n\n${link}\n\nConsider it handled.\nRelève`
   };
 }
 
@@ -141,4 +142,81 @@ export async function sendDueFollowUps() {
     }))) sent++;
   }
   return sent;
+}
+
+
+/* ---------- the confirmation, from Relève (Nona, 2 November 2026) ----------
+   "Make sure they don't get an email from Calendly, only from Relève with the
+   confirmation of their call." Calendly's free plan cannot be silenced, so the
+   event is set to "Calendar invitation": the invite reaches them from hello@'s
+   own Google Calendar, never from calendly.com. This is the confirmation in
+   Relève's words, sent once, the moment the calendar import files the call
+   (the website's booked ping, or the five-minute job for links in emails). */
+
+export const CONFIRM_KIND = 'leadCallConfirmed';
+
+/* Calendly writes the booking form's answers into the event description.
+   The phone question is "Phone number"; fall back to the first line that
+   reads like an international number. */
+export function phoneFrom(description: string | null | undefined): string | null {
+  const text = String(description || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ');
+  const labelled = /phone number[^\n:]*[:\n]\s*(\+?[\d][\d\s().-]{6,}\d)/i.exec(text)
+    || /phone[^\n:]*[:\n]\s*(\+?[\d][\d\s().-]{6,}\d)/i.exec(text);
+  const loose = /(\+\d[\d\s().-]{7,}\d)/.exec(text);
+  const v = (labelled?.[1] || loose?.[1] || '').replace(/\s+/g, ' ').trim();
+  return v || null;
+}
+
+function linkFrom(description: string | null | undefined, kind: 'cancellations' | 'reschedulings') {
+  const m = new RegExp(`https://calendly\\.com/${kind}/[A-Za-z0-9-]+`).exec(String(description || ''));
+  return m?.[0] ?? null;
+}
+
+function when(iso: string, timeZone: string) {
+  const d = new Date(iso);
+  return {
+    day: d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone }),
+    time: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone })
+  };
+}
+
+export function callConfirmation(o: { name: string; event: CalendarEvent }): Message {
+  const first = firstName(o.name);
+  const pt = when(o.event.start, 'America/Los_Angeles');
+  const et = when(o.event.start, 'America/New_York');
+  const join = o.event.meetingLink || (/^https?:\/\//.test(o.event.location || '') ? o.event.location : null);
+  const reschedule = linkFrom(o.event.description, 'reschedulings');
+  const cancel = linkFrom(o.event.description, 'cancellations');
+  const timeLine = `${pt.day}, ${pt.time} Pacific (${et.time} Eastern)`;
+  const changes = [reschedule && { label: 'Reschedule', href: reschedule }, cancel && { label: 'Cancel', href: cancel }]
+    .filter(Boolean) as { label: string; href: string }[];
+  return {
+    kind: CONFIRM_KIND,
+    from: SENDER,
+    subject: `Confirmed: your discovery call, ${pt.day}`,
+    html: shell('Your call is confirmed.',
+      p(`${esc(first)},`) +
+      p(`Your discovery call with Relève is confirmed for <b>${esc(timeLine)}</b>. It is already on your calendar.`) +
+      p('Thirty minutes. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.') +
+      p('Consider it handled.'),
+      join ? { label: 'Join on Zoom', href: join } : undefined,
+      changes.length ? changes : undefined),
+    text: `${first},\n\nYour discovery call with Relève is confirmed for ${timeLine}. It is already on your calendar.\n\nThirty minutes. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.${join ? `\n\nJoin on Zoom: ${join}` : ''}${reschedule ? `\nReschedule: ${reschedule}` : ''}${cancel ? `\nCancel: ${cancel}` : ''}\n\nConsider it handled.\nRelève`
+  };
+}
+
+/* Called by the calendar import as each booking is filed. Never throws.
+   One confirmation per address per call time, so an import that runs twice
+   never sends twice. */
+export async function sendCallConfirmation(o: { name: string; email: string; event: CalendarEvent }) {
+  try {
+    const msg = callConfirmation({ name: o.name, event: o.event });
+    const { data } = await adminClient().from('email_log').select('id')
+      .eq('kind', CONFIRM_KIND).eq('ok', true).eq('subject', msg.subject)
+      .ilike('to_addr', o.email.replace(/[\\%_]/g, m => '\\' + m)).limit(1).maybeSingle();
+    if (data?.id) return;
+    await send(o.email, msg);
+  } catch (e) {
+    console.error('[lead-booking] confirmation failed:', e);
+  }
 }

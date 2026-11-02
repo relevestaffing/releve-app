@@ -1,6 +1,7 @@
 /* The 24-hour booking follow-up for website leads (Nona, 2 November 2026).
-   Hourly, so a lead who has not booked hears from us within the hour after
-   their first day; the route sends each lead the follow-up once. */
+   Every five minutes: files new Calendly bookings off the calendar (which
+   sends Relève's own confirmation) and sends the 24-hour follow-up to
+   anyone still without a call. Each email goes to each person once. */
 /* Netlify's scheduler cannot set a header, and the app's cron routes want
    the shared secret in one. This function is that caller: it wakes on its
    schedule and makes the single authenticated request. The logic stays in
@@ -41,4 +42,4 @@ async function callCron(path: string) {
 }
 
 export default async () => callCron('/api/cron/lead-booking-follow-up');
-export const config = { schedule: '7 * * * *' };
+export const config = { schedule: '*/5 * * * *' };
