@@ -442,3 +442,63 @@ main.main > *{position:relative;z-index:1}
   .topbar::before,.topbar .band-light::before,.topbar .band-light::after,aside.side::before,main.main::before,main.main::after,
   .card.dark::before,.welcome::before,.welcome::after,.auth::before,.auth::after,.ask-panel::after,.skel-topbar::after{animation:none!important}
 }
+
+/* ═════════════════════ REAL LIGHT (2 November 2026, night) ═════════════════════
+   Nona: "I want texture, movement, depth, animation, an experience, not just
+   an app for data entry. The olive branch and water don't look real, I want
+   hyper realistic." The drawn layers are replaced by photographs made for
+   Relève (generated in Nona's Canva, "Relève app imagery"): a green plaster
+   wall in late sun, the shadow of a real olive branch, light thrown off pool
+   water, an ivory limewash wall. Files in /public/atmos, about 400 KB in all,
+   WebP. The motion stays transform and opacity only. */
+:root{
+  --caA:url('/atmos/caustics.webp');--caB:url('/atmos/caustics.webp');
+  --branch-band:url('/atmos/olive-shadow.webp');--branch-page:url('/atmos/olive-shadow.webp');
+  --plaster:url('/atmos/plaster-green.webp');--limewash:url('/atmos/limewash.webp')}
+
+/* the band is the wall: real plaster, the sun on its upper right, and it breathes */
+.topbar,.topbar.lit{background:#1B2620!important}
+.topbar .band-light{-webkit-mask-image:none;mask-image:none;transform-origin:80% 20%;
+  background:linear-gradient(90deg,rgba(18,27,22,.72) 0%,rgba(18,27,22,.38) 42%,rgba(18,27,22,.05) 75%),
+    linear-gradient(0deg,rgba(18,27,22,.55),rgba(18,27,22,0) 45%),
+    var(--plaster) 70% 30%/cover no-repeat;
+  animation:kenburns 38s ease-in-out infinite alternate}
+@keyframes kenburns{0%{transform:scale(1)}100%{transform:scale(1.07) translate(-1%,1%)}}
+.topbar .band-light::before,.topbar .band-light::after{
+  -webkit-mask-image:radial-gradient(60% 90% at 82% 18%,#000 8%,rgba(0,0,0,.35) 55%,transparent 85%);
+  mask-image:radial-gradient(60% 90% at 82% 18%,#000 8%,rgba(0,0,0,.35) 55%,transparent 85%)}
+.topbar .band-light::before{background-size:900px 900px;opacity:.22}
+.topbar .band-light::after{background-size:1300px 1300px;opacity:.14}
+/* the sun on the wall swells and fades as cloud passes */
+.topbar::after{display:block!important;opacity:1!important;mix-blend-mode:soft-light!important;
+  background:radial-gradient(640px 420px at 84% 12%,rgba(255,244,214,.55),transparent 65%)!important;animation:sunpass 17s ease-in-out infinite alternate}
+@keyframes sunpass{0%{opacity:.55}45%{opacity:1}100%{opacity:.7}}
+/* the branch: a real shadow, softened a touch by distance, moving in the breeze */
+.topbar::before{background:var(--branch-band) right -40px top -60px/980px 551px no-repeat!important;opacity:.62;mix-blend-mode:multiply;filter:blur(1.2px)}
+
+/* the paper is limewash */
+body,main.main{background:var(--limewash) 0 0/700px 700px repeat,var(--paper)}
+@media (min-width:901px){.shell{background:linear-gradient(90deg,var(--eg) 0 var(--sidebar),transparent var(--sidebar)),var(--limewash) 0 0/700px 700px repeat,var(--paper)}}
+main.main::before{opacity:.12;filter:blur(2.5px)}
+/* the rail: the wall in shade */
+@media (min-width:901px){
+  aside.side{background:linear-gradient(180deg,rgba(18,27,22,.82),rgba(18,27,22,.9)),var(--plaster) 0 50%/auto 100% no-repeat,var(--eg)}
+  aside.side::before{background-size:700px 700px;opacity:.10}
+}
+.card.dark::before{background-size:700px 700px;opacity:.2}
+.ask-panel::after{background-size:800px 800px;opacity:.16}
+.welcome,.auth{background:linear-gradient(90deg,rgba(18,27,22,.55),rgba(18,27,22,.25)),var(--plaster) 70% 30%/cover no-repeat,var(--eg)!important}
+.welcome::after,.auth::after{background-size:900px 900px;opacity:.18}
+.welcome::before,.auth::before{background:var(--branch-band) right -40px top -60px/1100px 619px no-repeat;opacity:.6;mix-blend-mode:multiply;filter:blur(1.2px)}
+
+@media (max-width:900px){
+  .topbar .band-light{background:linear-gradient(180deg,rgba(18,27,22,.35),rgba(18,27,22,.65)),url('/atmos/plaster-green-sm.webp') 75% 30%/cover no-repeat}
+  .topbar::before{background:var(--branch-band) right -150px top -80px/700px 394px no-repeat!important}
+  .topbar .band-light::before{background-size:600px 600px}
+}
+@media (prefers-reduced-motion:reduce){.topbar .band-light,.topbar::after{animation:none!important}}
+/* layering: the wall, then the light and the branch on it, then the words */
+.topbar::before,.topbar::after{z-index:1!important}
+.topbar > *:not(.band-light){z-index:2!important}
+main.main::before{opacity:.075;right:-22vw;top:28vh}
+@media (max-width:900px){main.main::before{opacity:.06;right:-45vw}}
