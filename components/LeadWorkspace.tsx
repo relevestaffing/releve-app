@@ -294,7 +294,7 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
   };
 
   return (
-    <div className={`ws${sel.size ? ' selecting' : ''}`} style={{ ['--cols' as any]: COLS }}>
+    <div className={`ws ws-x${sel.size ? ' selecting' : ''}`} style={{ ['--cols' as any]: COLS }}>
       <div className="ws-bar">
         <div className="ws-title"><h3>Leads</h3><span className="ws-count">{counts.all} open</span></div>
         <div className="ws-tools">

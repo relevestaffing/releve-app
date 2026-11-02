@@ -92,7 +92,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
   const ownerCol = side ? 'minmax(136px,.9fr)' : '';
 
   return (
-    <div className="ws" style={{ ['--cols' as any]: `${gridCols} ${ownerCol}`.trim() }}>
+    <div className="ws ws-x" style={{ ['--cols' as any]: `${gridCols} ${ownerCol}`.trim() }}>
       <div className="ws-bar">
         <div className="ws-title"><h3>{title}</h3><span className="ws-count">{rows.length} on file</span></div>
         <div className="ws-tools">

@@ -17,7 +17,7 @@ export default function Tabs({ tabs, initial }: { tabs: { key: string; label: st
     window.history.replaceState(null, '', u.toString());
   };
   return (
-    <div className="ws ws-record">
+    <div className="ws ws-x ws-record">
       <div className="ws-tabs" role="tablist" style={{ margin: 0, padding: '6px 22px 0' }}>
         {tabs.map(t => (
           <button key={t.key} role="tab" aria-selected={on === t.key} className={on === t.key ? 'on' : ''} onClick={() => pick(t.key)}>

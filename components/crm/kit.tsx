@@ -327,7 +327,7 @@ export function Panel({ onClose, onPrev, onNext, crumb, fullHref, children, page
     return () => window.removeEventListener('keydown', h);
   }, [onClose, page]);
   const body = (
-    <aside className={`ws-panel${page ? ' page' : ''}`} aria-label={crumb}>
+    <aside className={`ws-panel ws-x${page ? ' page' : ''}`} aria-label={crumb}>
       <div className="ws-p-top">
         <span className="crumb">{crumb}</span>
         {!page && <button className="ws-icon" onClick={() => onPrev?.()} disabled={!onPrev} aria-label="Previous" title="Previous (k)"><Icon.up /></button>}

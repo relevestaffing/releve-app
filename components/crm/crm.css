@@ -301,3 +301,13 @@ textarea.ws-edit{resize:vertical;min-height:70px;line-height:1.6;font-size:14px}
 .ws-record-body{padding:22px 22px 18px}
 .ws-record-body .card{box-shadow:none!important;border:1px solid rgba(53,68,58,.1)!important;background:#fff!important;background-image:none!important;margin-bottom:16px}
 .ws-record-body .card:last-child{margin-bottom:0}
+
+/* The workspace is a white surface on the wall. The wall's "text is light"
+   rule (evergreen.css, TEXT ON THE WALL) must never reach inside it, so the
+   workspace restates its own colours, at a higher specificity. */
+html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x :is(h2,h3,h4,h5,p,.muted,.small,.xs,.eyebrow,.section-h,.group-count){color:var(--ws-ink,#22302A)!important;text-shadow:none!important}
+html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x :is(p,.muted,.small,.xs,.ws-muted,.ws-faint,.ws-empty){color:var(--ws-sub,#6E7A71)!important;text-shadow:none!important}
+html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .ws-faint{color:var(--ws-faint,#9AA59C)!important}
+html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x :is(.btn.sm,.btn.ghost,.btn:not(.solid),.pill):not(.solid){color:var(--fern,#35443A)!important;background:transparent!important;border-color:var(--fern,#35443A)!important;text-shadow:none!important}
+html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .btn:not(.solid):not(:disabled):hover{background:var(--fern,#35443A)!important;color:var(--cream,#F3EFE6)!important}
+html body .page-body :is(.ws,.ws-panel).ws-x.ws-x.ws-x .ws-av:not(.ws-none-av){color:#fff!important;text-shadow:none!important}
