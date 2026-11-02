@@ -672,12 +672,29 @@ main.main > .sun-page{position:fixed!important;z-index:0!important;inset:auto;to
    Nona: hovering shouldn't turn things green, and the white boxes want
    gradient or shadow on their sides for dimension. */
 
-/* outline buttons no longer fill green on hover: they lift a little and
-   their edge firms up; solid buttons only deepen */
-.btn:not(.solid):not(:disabled):hover,.topbar .btn:not(.solid):not(:disabled):hover,.cd-nudge:hover{
-  background:transparent!important;color:var(--fern)!important;border-color:var(--ink)!important;transform:translateY(-2px)}
-.btn:not(.solid){transition:transform .45s var(--ease),box-shadow .45s var(--ease),border-color .3s,color .3s}
-.topbar .btn:not(.solid):not(:disabled):hover{color:var(--on-green)!important;border-color:rgba(243,239,230,.7)!important;background:rgba(243,239,230,.06)!important}
+/* the top of the page: hovering it used to switch on an old "lit" state
+   that painted the band solid dark green over the wall. Off. */
+.topbar,.topbar.lit,html body .topbar.lit{background:transparent!important}
+.topbar.lit::after,.topbar::after{opacity:0!important;background:none!important}
+
+/* buttons: their own hover colours as before (outline fills green), no
+   shadow underneath; 3D comes from the button itself. A soft light along
+   the top edge, a darker lip along the bottom like the edge of a key, and
+   a press that sinks the button when clicked. They still rise into view
+   with the page as it scrolls (the reveal system). */
+.btn,.topbar .btn,.ask-fab,.ask-panel .ask-send{box-shadow:none!important}
+.btn.solid,.topbar .btn.solid,.ask-fab{
+  background-image:linear-gradient(180deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 48%,rgba(0,0,0,.10) 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -3px 0 rgba(0,0,0,.28)!important}
+.topbar .btn.solid{background-image:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 50%,rgba(34,48,42,.08) 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -3px 0 rgba(34,48,42,.22)!important}
+.btn:not(.solid){box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(34,48,42,.16)!important}
+.topbar .btn:not(.solid){box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 0 rgba(0,0,0,.25)!important}
+.btn,.ask-fab{transition:background .3s,color .3s,border-color .3s,transform .18s cubic-bezier(.2,.7,.3,1),box-shadow .18s!important}
+.btn:not(:disabled):active,.ask-fab:active{transform:translateY(2px) scale(.985)!important}
+.btn.solid:not(:disabled):active,.topbar .btn.solid:not(:disabled):active,.ask-fab:active{
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.32),inset 0 -1px 0 rgba(0,0,0,.18)!important}
+.btn:not(.solid):not(:disabled):active{box-shadow:inset 0 2px 5px rgba(34,48,42,.22)!important}
 
 /* the white boxes: shaded toward their sides and lit along the top, like a
    sheet of heavy paper standing off the wall, with shadow falling past
