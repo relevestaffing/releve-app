@@ -667,3 +667,37 @@ main.main > .sun-page{position:fixed!important;z-index:0!important;inset:auto;to
   main.main::before{left:0!important;background:linear-gradient(180deg,rgba(10,16,13,.35),rgba(10,16,13,.45)),var(--window-wall) 82% 35%/cover no-repeat,var(--eg)!important}
   main.main > .sun-page{left:0;width:100%}
 }
+
+/* ═════════════════════ BUTTONS AND THE WHITE BOXES (2 November 2026) ═════════════════════
+   Nona: hovering shouldn't turn things green, and the white boxes want
+   gradient or shadow on their sides for dimension. */
+
+/* outline buttons no longer fill green on hover: they lift a little and
+   their edge firms up; solid buttons only deepen */
+.btn:not(.solid):not(:disabled):hover,.topbar .btn:not(.solid):not(:disabled):hover,.cd-nudge:hover{
+  background:transparent!important;color:var(--fern)!important;border-color:var(--ink)!important;transform:translateY(-2px)}
+.btn:not(.solid){transition:transform .45s var(--ease),box-shadow .45s var(--ease),border-color .3s,color .3s}
+.topbar .btn:not(.solid):not(:disabled):hover{color:var(--on-green)!important;border-color:rgba(243,239,230,.7)!important;background:rgba(243,239,230,.06)!important}
+
+/* the white boxes: shaded toward their sides and lit along the top, like a
+   sheet of heavy paper standing off the wall, with shadow falling past
+   both edges onto the plaster */
+:root{--sides:-26px 0 46px -30px rgba(5,10,8,.7),26px 0 46px -30px rgba(5,10,8,.7),0 34px 60px -40px rgba(5,10,8,.55)}
+.page-body > .card:not(.dark),.page-body > .stack > .card:not(.dark),.page-body > :is(.grid-2,.grid-3,.grid-4,.overview-grid) > .card:not(.dark),
+.page-body .setup,.page-body > :is(.grid-2,.grid-3,.grid-4) > .stack > .card:not(.dark),.qa-tile,a.money-stat,.choose-card{
+  background-image:
+    linear-gradient(90deg,rgba(34,48,42,.075) 0%,rgba(34,48,42,0) 7%,rgba(34,48,42,0) 93%,rgba(34,48,42,.075) 100%),
+    linear-gradient(180deg,rgba(255,255,255,.75) 0%,rgba(255,255,255,0) 18%,rgba(34,48,42,0) 72%,rgba(34,48,42,.05) 100%),
+    linear-gradient(180deg,#FFFFFF,#FAF8F3)!important;background-color:#FDFCF8!important;
+  box-shadow:var(--sides),var(--rest),var(--bevel)!important}
+@media (min-width:901px){
+  .page-body > .card:first-of-type:not(.dark),.page-body > .stack:first-child > .card:first-child:not(.dark),.page-body > .setup:first-of-type{
+    box-shadow:var(--sides),var(--deep),var(--bevel)!important}
+}
+@media (hover:hover) and (pointer:fine){
+  html body .page-body > .card:not(.dark):hover,html body .page-body > .stack > .card:not(.dark):hover,
+  html body .page-body > :is(.grid-2,.grid-3,.grid-4,.overview-grid) > .card:not(.dark):hover,.qa-tile:hover,a.money-stat:hover,.choose-card:hover,
+  .card.leaning:not(.dark),.qa-tile.leaning,.choose-card.leaning{box-shadow:var(--sides),var(--lift),var(--bevel)!important}
+}
+/* the start-here panel inside the first card is a recess in the paper */
+.setup-next{box-shadow:inset 0 2px 6px -2px rgba(34,48,42,.12),inset 0 -1px 0 rgba(255,255,255,.6)}
