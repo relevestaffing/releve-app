@@ -9,7 +9,7 @@
 /* under the wall, and past its edges */
 html,body,.shell{background:var(--wall)!important}
 /* the sidebar: a plain band of the wall's deepest olive */
-html body aside.side{background:var(--wall-deep)!important;background-image:none!important;border-right-color:rgba(222,212,160,.07)!important}
+html body aside.side{background:var(--wall-deep)!important;background-image:none!important;border-right-color:rgba(214,221,226,.07)!important}
 html body aside.side::before,html body aside.side::after{display:none!important}
 /* light surfaces: plain warm paper white, no grain */
 html body .card:not(.dark),html body .auth-card,html body .welcome-card,html body .today-card,html body .founder-band{background:var(--paper-white)!important;background-image:none!important}
@@ -32,7 +32,7 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
 @media (max-width:900px){
   html body .shell::after{content:'';position:fixed;z-index:49;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
     background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(20,27,21,.94);
-    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(203,198,164,.12);pointer-events:none}
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(200,207,212,.12);pointer-events:none}
   html body .menu-trigger{z-index:50}
   html body .ws-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
     -webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}

@@ -49,7 +49,7 @@ export default async function AuditView({ params }: { params: Promise<{ token: s
 function AuditStyle() {
   return (
     <style>{`
-      :root{--fern:#35443A;--ink:#22302A;--body:#3C463F;--sage:#888466;--cream:#F3EFE6;--paper:#FAF8F2;--rule:rgba(53,68,58,.16);--pale:#CDC8A7}
+      :root{--fern:#35443A;--ink:#22302A;--body:#3C463F;--sage:#888466;--cream:#F3EFE6;--paper:#FAF8F2;--rule:rgba(53,68,58,.16);--pale:#C8CFD4}
       body{background:var(--paper)}
       .audit-wrap{max-width:760px;margin:0 auto;padding:46px 22px 90px;font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--body);line-height:1.7}
       .audit-mast{text-align:center;border-bottom:1px solid var(--rule);padding-bottom:26px;margin-bottom:40px}

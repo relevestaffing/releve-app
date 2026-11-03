@@ -112,7 +112,7 @@ export function Portrait({ id, name, cls, url }: { id: string; name: string; cls
   /* a real photo when there is one; a calm generated plate when there is not */
   if (url) return <div className={`avatar ${cls ?? ''}`} role="img" aria-label={name}
     style={{ backgroundImage: `url("${url.replace(/"/g, '%22')}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />;
-  const plates = [['#E9E7D8','#CDC8A7','#999474'],['#E6E2D8','#CDC7B6','#9A9280'],['#E5E3D4','#C9C39F','#8F8A64'],
+  const plates = [['#E9E7D8','#C8CFD4','#999474'],['#E6E2D8','#CDC7B6','#9A9280'],['#E5E3D4','#C9C39F','#8F8A64'],
                   ['#E9E5DC','#C8C2B0','#8E8A78'],['#E2DFCD','#C2BC94','#847E56'],['#E2E6DF','#CFCCB5','#9D9876']];
   const n = [...id].reduce((s, c) => s + c.charCodeAt(0), 0) % plates.length;
   const [a, b, c] = plates[n];

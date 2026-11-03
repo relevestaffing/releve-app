@@ -33,12 +33,12 @@
   --eg:#1A2620;
   --eg-2:#22302A;
   --fern:#35443A;
-  --leaf:#CDC8A7;
+  --leaf:#C8CFD4;
   --on-green:#F3EFE6;
   --on-green-2:rgba(243,239,230,.66);
   --on-green-3:rgba(243,239,230,.40);
   --hair-green:rgba(243,239,230,.10);
-  --gold-glow:rgba(201,185,143,.10);
+  --gold-glow:rgba(190,198,204,.10);
   --ease:cubic-bezier(.2,.7,.1,1);
   --ease-out:cubic-bezier(.23,1,.32,1);
   --ease-drawer:cubic-bezier(.32,.72,0,1);
@@ -55,7 +55,7 @@
     overflow-x:hidden;scrollbar-color:rgba(243,239,230,.18) transparent}
   /* a slow light breathing in the rail */
   aside.side::before{content:"";position:absolute;z-index:-1;left:-60%;top:-10%;width:220%;height:70%;pointer-events:none;
-    background:radial-gradient(closest-side,rgba(205,200,167,.16),rgba(205,200,167,0));animation:egBreathe 14s ease-in-out infinite alternate}
+    background:radial-gradient(closest-side,rgba(200,207,212,.16),rgba(200,207,212,0));animation:egBreathe 14s ease-in-out infinite alternate}
   .side-logo img{opacity:.95}
   .side-role{border-bottom:1px solid var(--hair-green)}
   .side-role .eyebrow{color:var(--on-green-3)}
@@ -81,14 +81,14 @@
      them, and a light that follows the cursor */
   .topbar,.topbar.lit{align-items:flex-start;justify-content:flex-end;text-align:left;gap:24px;min-height:380px;padding:88px 72px 138px;border-bottom:0;
     background:
-      radial-gradient(1100px 700px at 78% 30%,rgba(205,200,167,.16),transparent 60%),
+      radial-gradient(1100px 700px at 78% 30%,rgba(200,207,212,.16),transparent 60%),
       radial-gradient(900px 600px at 10% 100%,var(--gold-glow),transparent 60%),
       linear-gradient(180deg,var(--eg) 0%,#1D2A23 50%,var(--eg-2) 100%)}
   .topbar::before{display:block;content:"";position:absolute;inset:0;border:0;z-index:0;pointer-events:none;
     background-image:radial-gradient(rgba(243,239,230,.07) 1px,transparent 1px);background-size:28px 28px;
     -webkit-mask-image:radial-gradient(ellipse at 72% 38%,#000 0%,transparent 70%);mask-image:radial-gradient(ellipse at 72% 38%,#000 0%,transparent 70%)}
   .topbar::after{display:block;content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;mix-blend-mode:normal;background-image:none;
-    background:radial-gradient(520px circle at var(--gx,50%) var(--gy,50%),rgba(205,200,167,.20),transparent 65%);transition:opacity .6s var(--ease)}
+    background:radial-gradient(520px circle at var(--gx,50%) var(--gy,50%),rgba(200,207,212,.20),transparent 65%);transition:opacity .6s var(--ease)}
   .topbar.lit::after{opacity:1}
   .topbar > div:first-child,.topbar .tb-text{display:flex;flex-direction:column;align-items:flex-start}
   .topbar .crumb{color:var(--on-green-2);margin-bottom:24px}
@@ -105,7 +105,7 @@
   .topbar .btn.solid:not(:disabled):hover{background:#fff;box-shadow:0 26px 50px -18px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.7)}
 
   .topbar .band-light::before{width:62%;height:200%;left:-14%;top:-80%;
-    background:radial-gradient(closest-side,rgba(205,200,167,.22),rgba(205,200,167,.05) 50%,rgba(205,200,167,0) 100%);
+    background:radial-gradient(closest-side,rgba(200,207,212,.22),rgba(200,207,212,.05) 50%,rgba(200,207,212,0) 100%);
     animation:egDriftA 19s ease-in-out infinite alternate}
   .topbar .band-light::after{width:48%;height:170%;right:-8%;top:-30%;
     background:radial-gradient(closest-side,rgba(243,239,230,.09),rgba(243,239,230,0) 100%);
@@ -159,7 +159,7 @@ html.js .topbar .crumb{animation:egFade .9s var(--ease) both}
 
 /* dark cards: the website's founding card, glows over ink */
 .card.dark{border-color:transparent;box-shadow:0 50px 100px -60px rgba(34,48,42,.6);
-  background:radial-gradient(600px 400px at 90% 0%,rgba(201,185,143,.18),transparent 60%),radial-gradient(700px 500px at 0% 100%,rgba(205,200,167,.18),transparent 60%),var(--eg-2)}
+  background:radial-gradient(600px 400px at 90% 0%,rgba(190,198,204,.18),transparent 60%),radial-gradient(700px 500px at 0% 100%,rgba(200,207,212,.18),transparent 60%),var(--eg-2)}
 
 /* quick links: the website's .front, a lift and an underline that runs out */
 .qa-tile{position:relative}
@@ -202,13 +202,13 @@ html.js .topbar .crumb{animation:egFade .9s var(--ease) both}
   transition:transform .5s var(--ease),box-shadow .5s var(--ease),background .4s}
 .ask-fab:hover{transform:translateY(-2px);background:var(--eg-2)}
 /* the website's pulse dot */
-.ask-fab::after{content:"";position:absolute;right:7px;top:7px;width:7px;height:7px;border-radius:50%;background:#CCC496;animation:egPulse 2.2s infinite}
+.ask-fab::after{content:"";position:absolute;right:7px;top:7px;width:7px;height:7px;border-radius:50%;background:#C3CBD1;animation:egPulse 2.2s infinite}
 .ask-fab.open::after{display:none}
-@keyframes egPulse{0%{box-shadow:0 0 0 0 rgba(204,196,150,.6)}70%{box-shadow:0 0 0 10px rgba(204,196,150,0)}100%{box-shadow:0 0 0 0 rgba(204,196,150,0)}}
+@keyframes egPulse{0%{box-shadow:0 0 0 0 rgba(195,203,209,.6)}70%{box-shadow:0 0 0 10px rgba(195,203,209,0)}100%{box-shadow:0 0 0 0 rgba(195,203,209,0)}}
 
 .ask-panel{background:var(--eg);border:0;color:var(--on-green-2);isolation:isolate;overflow:hidden;box-shadow:0 70px 120px -50px rgba(0,0,0,.8)}
 .ask-panel::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
-  background:radial-gradient(700px 500px at 100% 0%,rgba(205,200,167,.18),transparent 60%),radial-gradient(600px 400px at 0% 100%,var(--gold-glow),transparent 60%)}
+  background:radial-gradient(700px 500px at 100% 0%,rgba(200,207,212,.18),transparent 60%),radial-gradient(600px 400px at 0% 100%,var(--gold-glow),transparent 60%)}
 @media (min-width:821px){
   .ask-panel{top:16px;right:16px;bottom:16px;height:auto;width:min(452px,calc(100vw - 32px));animation:egSheet .7s var(--ease-drawer) both}
   body:has(.ask-panel) .ask-fab{opacity:0;pointer-events:none}
@@ -217,7 +217,7 @@ html.js .topbar .crumb{animation:egFade .9s var(--ease) both}
 .ask-panel-head{background:transparent;border-bottom:1px solid var(--hair-green);padding:22px 24px 18px}
 .ask-panel .ask-mark{background:transparent;border:1px solid rgba(243,239,230,.3);color:var(--on-green)}
 .ask-panel .ask-mark.lg{width:42px;height:42px;font-size:20px}
-.ask-panel .ask-mark.lg i{background:#CCC496;border-color:var(--eg)}
+.ask-panel .ask-mark.lg i{background:#C3CBD1;border-color:var(--eg)}
 .ask-panel-title{color:var(--on-green);font-size:22px}
 .ask-panel .ask-presence-sub,.ask-panel .ask-log{color:var(--on-green-3)}
 .ask-panel .ask-panel-close{color:var(--on-green-2);transition:color .3s,transform .5s var(--ease)}
@@ -260,14 +260,14 @@ html.js .topbar .crumb{animation:egFade .9s var(--ease) both}
 /* ───────────────────────── the doorways: the website's hero ───────────────────────── */
 .welcome,.auth{position:relative;isolation:isolate;overflow:hidden;
   background:
-    radial-gradient(1100px 700px at 78% 30%,rgba(205,200,167,.18),transparent 60%),
+    radial-gradient(1100px 700px at 78% 30%,rgba(200,207,212,.18),transparent 60%),
     radial-gradient(900px 600px at 10% 90%,var(--gold-glow),transparent 60%),
     linear-gradient(180deg,var(--eg-0) 0%,var(--eg) 45%,var(--eg-2) 100%)}
 .welcome::before,.auth::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
   background-image:radial-gradient(rgba(243,239,230,.06) 1px,transparent 1px);background-size:28px 28px;
   -webkit-mask-image:radial-gradient(ellipse at 70% 40%,#000 0%,transparent 70%);mask-image:radial-gradient(ellipse at 70% 40%,#000 0%,transparent 70%)}
 .welcome::after,.auth::after{content:"";position:absolute;z-index:-1;width:70vmax;height:70vmax;left:-20vmax;top:-35vmax;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(205,200,167,.16),rgba(205,200,167,0));animation:egDriftA 18s ease-in-out infinite alternate}
+  background:radial-gradient(closest-side,rgba(200,207,212,.16),rgba(200,207,212,0));animation:egDriftA 18s ease-in-out infinite alternate}
 .welcome img.logo,.auth img.auth-logo,.auth-logo{filter:brightness(0) invert(.94) sepia(.06)}
 .welcome-card,.auth-card{border:0;box-shadow:0 60px 120px -40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.4) inset;
   background:linear-gradient(160deg,rgba(255,255,255,.99),rgba(250,248,242,.97))}
@@ -304,11 +304,11 @@ html.js .page-body > :is(.stack,.grid-2,.grid-3,.grid-4,.match-grid,.match-layou
 @media (max-width:900px){
   .topbar{position:relative;top:auto;border-bottom:0;padding:calc(58px + env(safe-area-inset-top)) 22px 64px;min-height:0;isolation:isolate;overflow:hidden;
     backdrop-filter:none;-webkit-backdrop-filter:none;z-index:1;
-    background:radial-gradient(500px 360px at 85% 10%,rgba(205,200,167,.18),transparent 60%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)}
-  .topbar.scrolled{background:radial-gradient(500px 360px at 85% 10%,rgba(205,200,167,.18),transparent 60%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)}
+    background:radial-gradient(500px 360px at 85% 10%,rgba(200,207,212,.18),transparent 60%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)}
+  .topbar.scrolled{background:radial-gradient(500px 360px at 85% 10%,rgba(200,207,212,.18),transparent 60%),linear-gradient(180deg,var(--eg) 0%,var(--eg-2) 100%)}
   .topbar .band-light{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
   .topbar .band-light::before{content:"";position:absolute;width:140%;height:160%;left:-50%;top:-70%;
-    background:radial-gradient(closest-side,rgba(205,200,167,.22),rgba(205,200,167,0));animation:egDriftA 16s ease-in-out infinite alternate}
+    background:radial-gradient(closest-side,rgba(200,207,212,.22),rgba(200,207,212,0));animation:egDriftA 16s ease-in-out infinite alternate}
   .topbar > *:not(.band-light){position:relative;z-index:1}
   .topbar .crumb{color:var(--on-green-2);margin-bottom:10px}
   .topbar h1{color:var(--on-green);font-size:36px;line-height:1.06;letter-spacing:-.015em}
@@ -371,7 +371,7 @@ html.rv-off .page-body > *:not(.in),html.rv-off .page-body > :is(.stack,.grid-2,
 @media (min-width:901px){
   .topbar,.topbar.lit{background:
       radial-gradient(760px 460px at 84% 14%,rgba(232,240,214,.20),transparent 62%),
-      radial-gradient(1100px 700px at 78% 30%,rgba(205,200,167,.14),transparent 60%),
+      radial-gradient(1100px 700px at 78% 30%,rgba(200,207,212,.14),transparent 60%),
       radial-gradient(900px 600px at 10% 100%,var(--gold-glow),transparent 60%),
       linear-gradient(180deg,var(--eg) 0%,#1D2A23 50%,var(--eg-2) 100%)}
 }
@@ -797,7 +797,7 @@ html.js.rv-nav .page-body > .stack,html.js.rv-nav .page-body > :is(.grid-2,.grid
 /* while the next page is on its way: a fine line of light along the top */
 .rv-going-line{display:none}
 html.rv-going .rv-going-line{display:block;position:fixed;top:0;left:var(--sidebar);right:0;height:2px;z-index:41;pointer-events:none;
-  background:linear-gradient(90deg,transparent,rgba(201,185,143,.95),rgba(255,248,230,1),rgba(201,185,143,.95),transparent);background-size:40% 100%;background-repeat:no-repeat;
+  background:linear-gradient(90deg,transparent,rgba(190,198,204,.95),rgba(255,248,230,1),rgba(190,198,204,.95),transparent);background-size:40% 100%;background-repeat:no-repeat;
   animation:rvGoing 1.1s cubic-bezier(.45,0,.25,1) infinite}
 @keyframes rvGoing{from{background-position:-40% 0}to{background-position:140% 0}}
 @media (max-width:900px){html.rv-going .rv-going-line{left:0;top:env(safe-area-inset-top,0px)}}
