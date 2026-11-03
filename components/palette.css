@@ -47,3 +47,14 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
   html body .mobile-action:has(.acct-actions){padding-left:0}
   html body:has(.chat-card .composer) .ask-fab{display:none}
 }
+/* TODAY LIST ON PHONES (3 Nov 2026): the count sits beside its sentence, not on a line of
+   its own; the button sits under the sentence at its natural width, not a full-width slab. */
+@media (max-width:900px){
+  html body .attention li{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;row-gap:14px;
+    align-items:start;padding:20px 0;flex-wrap:nowrap}
+  html body .attention li:first-child{padding-top:6px}
+  html body .attention li .att-n{grid-column:1;min-width:0;width:30px;height:auto;font-size:24px;line-height:1.1;margin-top:-2px}
+  html body .attention li .att-body{grid-column:2;min-width:0}
+  html body .attention li .att-line,html body .attention li .att-body b{font-size:15px;line-height:1.55}
+  html body .attention li > .btn{grid-column:2;width:auto;justify-self:start;margin:0;align-self:start}
+}

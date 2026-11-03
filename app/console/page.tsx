@@ -197,7 +197,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               anyone to stop reading the number. */}
           <span className={`pill ${urgent.length ? 'crit' : attention.length ? 'warn' : 'good'}`}>
             {urgent.length
-              ? `${urgent.length} need${urgent.length === 1 ? 's' : ''} you today`
+              ? (attention.length > urgent.length ? `${urgent.length} urgent · ${attention.length} in all` : `${urgent.length} need${urgent.length === 1 ? 's' : ''} you today`)
               : attention.length
                 ? `${attention.length} to pick up`
                 : <><span className="dot" />All clear</>}
