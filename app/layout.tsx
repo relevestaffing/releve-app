@@ -6,6 +6,7 @@ import Toaster from '@/components/Toast';
 import SaveLock from '@/components/SaveLock';
 import SWRegister from '@/components/SWRegister';
 import Splash from '@/components/Splash';
+import NativeShell from '@/components/native/NativeShell';
 
 const SITE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.relevestaffing.com';
 
@@ -31,9 +32,9 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   openGraph: {
     type: 'website', siteName: 'Relève', title: TITLE, description: DESCRIPTION, url: '/',
-    images: [{ url: '/icon-1024.png', width: 1024, height: 1024, alt: 'Relève' }]
+    images: [{ url: '/og-card.jpg', width: 1200, height: 630, alt: 'Relève Staffing' }]
   },
-  twitter: { card: 'summary', title: TITLE, description: DESCRIPTION, images: ['/icon-1024.png'] },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: ['/og-card.jpg'] },
   manifest: '/manifest.webmanifest',
   applicationName: 'Relève',
   /* Added to the Home Screen, iOS shows these between the tap and the first
@@ -100,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Splash />
-        {children}<Toaster /><SaveLock /><SWRegister />
+        {children}<NativeShell /><Toaster /><SaveLock /><SWRegister />
       </body>
     </html>
   );

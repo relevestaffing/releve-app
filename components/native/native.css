@@ -1,0 +1,225 @@
+/* ═══════════════ RELÈVE ON A PHONE, AS AN APP (3 November 2026) ═══════════════
+   Nona: "it feels like a website ... I want it to feel like a $1 million app".
+   Her choices: a new phone shell in Relève's branding, native movement, thin
+   custom tab icons, soft rounding on phones. Everything here is scoped to
+   html.rv-native, which NativeShell sets only on phones, so the desktop never
+   sees a line of it.
+
+   The materials, in Relève's terms: the plaster wall is the room; the bars are
+   smoked glass over it with a silver edge where the light catches; content
+   sits on raised fern panels. Glass is used only where something floats over
+   the page (the bars and the sheets), which is the one place it means depth. */
+
+html.rv-native{
+  --nv-bar:48px;
+  --nv-top:calc(env(safe-area-inset-top,0px) + var(--nv-bar));
+  --nv-tabs-h:66px;
+  --nv-bottom:max(env(safe-area-inset-bottom,0px),14px);
+  --nv-ease:cubic-bezier(.32,.72,0,1);
+  --nv-ink:#F1F2EC;
+  --nv-body:#C8D0C7;
+  --nv-dim:rgba(214,221,226,.58);
+  --nv-silver:#C8CFD4;
+  --nv-line:rgba(214,221,226,.12);
+  --nv-panel:#17211B;
+  --nv-r:22px;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ── the old phone chrome steps aside ── */
+html.rv-native body :is(.menu-trigger,.quickbar,.rv-back,.home-jump,.ask-fab,.rv-glint,.rv-going-line){display:none!important}
+html.rv-native body .shell::before,html.rv-native body .shell::after{content:none!important;display:none!important}
+
+/* ── the glass top bar ── */
+.nv-bar{position:fixed;z-index:70;top:0;left:0;right:0;height:var(--nv-top);
+  padding:env(safe-area-inset-top,0px) 12px 0;box-sizing:border-box;
+  display:grid;grid-template-columns:64px minmax(0,1fr) 64px;align-items:center;
+  view-transition-name:rv-bar;pointer-events:none}
+.nv-bar::before{content:"";position:absolute;inset:0;
+  background:rgba(14,21,17,.86);
+  -webkit-backdrop-filter:blur(30px) saturate(1.5);backdrop-filter:blur(30px) saturate(1.5);
+  box-shadow:inset 0 -1px 0 var(--nv-line);opacity:0;transition:opacity .28s ease}
+.nv-bar[data-glass="1"]::before{opacity:1}
+.nv-bar > *{position:relative;pointer-events:auto}
+.nv-left{justify-self:start}
+.nv-right{justify-self:end}
+.nv-title{justify-self:center;max-width:100%;text-align:center;
+  font-family:'Lora',serif;font-size:16px;font-weight:500;color:var(--nv-ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .24s ease;pointer-events:none}
+.nv-title.on{opacity:1}
+.nv-title img{display:block;height:20px;width:auto}
+
+.nv-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;padding:0;
+  color:var(--nv-ink);background:rgba(30,42,35,.55);border:1px solid rgba(214,221,226,.16);
+  -webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 16px -8px rgba(0,0,0,.6);
+  transition:transform .22s var(--nv-ease),background .2s ease}
+.nv-btn:active{transform:scale(.88);background:rgba(214,221,226,.16)}
+.nv-btn svg{width:21px;height:21px}
+.nv-ask{position:relative}
+.nv-ask span{font-family:'Marcellus',serif;font-size:16px;line-height:1;color:var(--nv-silver);transform:translateY(1px)}
+.nv-ask i{position:absolute;top:7px;right:7px;width:5px;height:5px;border-radius:50%;background:#C3CBD1;box-shadow:0 0 0 2px rgba(23,33,27,.9)}
+
+/* ── the floating glass tab bar ── */
+.nv-tabs{position:fixed;z-index:70;left:14px;right:14px;bottom:var(--nv-bottom);height:var(--nv-tabs-h);
+  display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));padding:5px;box-sizing:border-box;border-radius:34px;
+  view-transition-name:rv-tabs;
+  background:linear-gradient(180deg,rgba(44,58,50,.58),rgba(13,20,16,.78));
+  -webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);
+  border:1px solid rgba(214,221,226,.13);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.3),0 22px 44px -14px rgba(0,0,0,.6),0 2px 10px rgba(0,0,0,.25)}
+/* the silver edge where the light catches the glass */
+.nv-tabs::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(118deg,rgba(236,240,242,.6),rgba(200,207,212,0) 30%,rgba(200,207,212,0) 68%,rgba(200,207,212,.32));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.nv-lens{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px) / var(--n));border-radius:28px;
+  transform:translateX(calc(var(--i) * 100%));
+  background:linear-gradient(180deg,rgba(214,221,226,.16),rgba(214,221,226,.07));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 1px rgba(214,221,226,.07);
+  transition:transform .55s var(--nv-ease),opacity .2s ease}
+.nv-tabs[data-lens="off"] .nv-lens{opacity:0}
+.nv-tab{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-width:0;padding:0;margin:0;border:0;background:none;color:var(--nv-dim);text-decoration:none;cursor:pointer;
+  font:500 10px/1 'Poppins',sans-serif;letter-spacing:.01em;-webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;transition:color .28s ease,transform .22s var(--nv-ease)}
+.nv-tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.nv-tab svg{width:24px;height:24px;overflow:visible}
+.nv-tab svg .f{fill:currentColor;stroke:none;opacity:0;transition:opacity .28s ease}
+.nv-tab[aria-current="page"]{color:var(--nv-ink)}
+.nv-tab[aria-current="page"] svg .f{opacity:.16}
+.nv-tab:active{transform:scale(.9)}
+.nv-tab .unread-dot{position:absolute;top:9px;left:calc(50% + 7px);width:7px;height:7px;border-radius:50%;background:#C3CBD1;box-shadow:0 0 0 2px rgba(20,29,24,.95)}
+
+/* ── the page under the bars ── */
+html.rv-native body .topbar{padding:calc(var(--nv-top) + 8px) 22px 20px!important;text-align:left!important;min-height:0!important}
+html.rv-native body .topbar .band-light{display:none!important}
+html.rv-native body .topbar h1{font-size:34px!important;line-height:1.08!important;letter-spacing:-.005em!important;margin:0!important}
+html.rv-native body .topbar.home h1{font-size:40px!important}
+/* the title is simply there: no word-by-word rise (Nona does not want text moving) */
+html.rv-native body .topbar h1 .w > span{animation:none!important;transform:none!important;opacity:1!important;filter:none!important}
+html.rv-native body .topbar .crumb{font-family:'Marcellus',serif;font-size:10.5px!important;letter-spacing:.22em!important;color:var(--nv-silver)!important;margin-bottom:10px!important}
+html.rv-native body .page-body{
+  padding:0 14px calc(var(--nv-tabs-h) + var(--nv-bottom) + 34px)!important;gap:14px!important}
+html.rv-native body .ptr{top:calc(var(--nv-top) + 8px)!important}
+
+/* ── soft rounding on phone ── */
+html.rv-native body .page-body :is(.card,.setup,.qa-grid,.qa-tile,.money-strip,.today-card,.founder-band,.stat,.choose-card,.next-step,.match-card,.role-card,.ws,.push-setup,.overview-table,.empty-card),
+html.rv-native body .page-body > :is(.grid-2,.grid-3,.grid-4) > .card{border-radius:var(--nv-r)!important}
+html.rv-native body .page-body :is(.card,.setup,.qa-grid,.money-strip,.overview-table,.ws){overflow:hidden}
+html.rv-native body .page-body :is(.card,.setup,.qa-tile,.money-strip,.today-card,.stat,.next-step):not(.card .card){
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 34px -20px rgba(0,0,0,.7)!important}
+/* tiles that live inside a grouped panel stay square; the panel holds the curve */
+html.rv-native body .page-body .qa-grid .qa-tile{border-radius:0!important;box-shadow:none!important}
+html.rv-native body .page-body .card .card{border-radius:16px!important}
+html.rv-native body .btn{border-radius:14px!important}
+html.rv-native body .btn.sm{border-radius:12px!important}
+html.rv-native body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){border-radius:12px!important}
+html.rv-native body :is(.tabs a,.seg a){border-radius:10px!important}
+
+/* ── touch: everything you can press gives under the finger ── */
+html.rv-native body :is(.btn,.qa-tile,a.card,a.money-stat,.choose-card,.pick,.req-choice,.nv-row){
+  transition:transform .2s var(--nv-ease),background-color .2s ease,opacity .2s ease}
+html.rv-native body :is(.btn,.pick,.req-choice):active{transform:scale(.96)}
+html.rv-native body :is(.qa-tile,a.card,a.money-stat,.choose-card):active{transform:scale(.98)}
+/* a screen arrives whole, the way an app's does: the scroll reveal and Lift's
+   arrival rise are retired on phones, since the screen itself moves now */
+html.rv-native.js body .page-body > *,html.rv-native.js body .page-body > .stack > *,
+html.rv-native.js body .page-body > :is(.grid-2,.grid-3,.grid-4,.overview-grid,.match-grid,.match-layout) > *{
+  opacity:1!important;transform:none!important;filter:none!important;transition:none!important;animation:none!important}
+html.rv-native.rv-nav body .page-body *{animation:none!important}
+
+/* ── the placeholder screen, on the same wall, while a screen is on its way ── */
+.nv-ghost{position:fixed;inset:0;z-index:60;overflow:hidden;box-sizing:border-box;
+  padding:calc(var(--nv-top) + 8px) 14px 0;
+  background:var(--wall-snap,linear-gradient(180deg,#1A2620,#111A15));transition:opacity .26s ease}
+.nv-ghost::before{content:"";position:absolute;inset:0;background:rgba(9,14,11,.42)}
+.nv-ghost > *{position:relative}
+.nv-ghost.out{opacity:0}
+.nv-ghost h2{font-family:'Marcellus',serif;font-weight:400;font-size:34px;line-height:1.08;color:var(--nv-ink);margin:0 8px 22px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nv-sk{height:150px;margin-bottom:14px;border-radius:var(--nv-r);background:rgba(23,33,27,.88);border:1px solid rgba(214,221,226,.07);
+  position:relative;overflow:hidden}
+.nv-sk + .nv-sk{height:96px}
+.nv-sk + .nv-sk + .nv-sk{height:210px}
+.nv-sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(100deg,transparent 30%,rgba(214,221,226,.06) 50%,transparent 70%);
+  animation:nvSheen 1.7s ease-in-out infinite}
+@keyframes nvSheen{to{transform:translateX(100%)}}
+
+/* ── sheets ── */
+.nv-scrim{position:fixed;inset:0;z-index:90;background:rgba(5,9,7,.52);opacity:0;transition:opacity .34s ease;
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.nv-scrim[data-shown="1"]{opacity:1}
+.nv-sheet{position:fixed;z-index:91;left:0;right:0;bottom:0;box-sizing:border-box;
+  max-height:calc(100% - env(safe-area-inset-top,0px) - 24px);display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#1D2922,#16201A 40%);color:var(--nv-body,#C8D0C7);
+  border-radius:28px 28px 0 0;border:1px solid rgba(214,221,226,.12);border-bottom:0;
+  box-shadow:0 -24px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.09);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  transform:translateY(104%);transition:transform .52s var(--nv-ease)}
+.nv-sheet[data-shown="1"]{transform:translateY(var(--drag,0px))}
+.nv-sheet.dragging{transition:none}
+.nv-grab{flex:none;height:28px;display:grid;place-items:center;touch-action:none}
+.nv-grab::before{content:"";width:40px;height:5px;border-radius:3px;background:rgba(214,221,226,.28)}
+.nv-sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 16px 22px}
+/* an existing form, opened on a phone, keeps its own panel colours and drops its centring */
+.nv-sheet .modal{position:static!important;transform:none!important;width:auto!important;max-width:none!important;max-height:none!important;
+  margin:0!important;padding:4px 6px 8px!important;background:transparent!important;border:0!important;box-shadow:none!important;
+  animation:none!important;opacity:1!important;overflow:visible!important}
+
+/* the More sheet */
+.nv-more .nv-sheet-body{padding-top:0}
+.nv-me{margin:4px 0 18px}
+.nv-me-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:20px;text-decoration:none;
+  background:rgba(214,221,226,.05);border:1px solid rgba(214,221,226,.08);color:var(--nv-ink)}
+.nv-avatar{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  font-family:'Marcellus',serif;font-size:19px;color:#17211B;background:linear-gradient(140deg,#E9EDEF,#B9C2C8)}
+.nv-me-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.nv-me-text b{font-family:'Lora',serif;font-weight:500;font-size:17px;color:var(--nv-ink)}
+.nv-me-text small{font-size:12.5px;color:var(--nv-dim)}
+.nv-me-row svg,.nv-row svg{width:18px;height:18px;color:rgba(214,221,226,.4);flex:none}
+.nv-group{margin:0 0 18px}
+.nv-group-h{font-family:'Marcellus',serif;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-silver);margin:0 6px 8px}
+.nv-list{border-radius:18px;overflow:hidden;background:rgba(214,221,226,.05);border:1px solid rgba(214,221,226,.08)}
+.nv-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:0 16px;
+  box-sizing:border-box;text-decoration:none;color:var(--nv-ink);font:400 15.5px/1.2 'Poppins',sans-serif;
+  background:none;border:0;text-align:left;cursor:pointer;position:relative}
+.nv-row + .nv-row::before{content:"";position:absolute;top:0;left:16px;right:0;height:1px;background:rgba(214,221,226,.09)}
+.nv-row:active{background:rgba(214,221,226,.08)}
+.nv-signout{color:#D9A99E}
+
+/* Ask Relève opens as a sheet */
+html.rv-native body .ask-panel{top:auto!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;
+  height:calc(100% - env(safe-area-inset-top,0px) - 24px)!important;max-height:none!important;
+  border-radius:28px 28px 0 0!important;box-shadow:0 -24px 60px rgba(0,0,0,.5)!important;
+  animation:nvRise .52s var(--nv-ease) both!important;z-index:95!important}
+@keyframes nvRise{from{transform:translateY(100%)}to{transform:none}}
+
+/* ── movement between screens (View Transitions) ── */
+::view-transition-group(root){animation-duration:.48s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
+html[data-vt="push"]::view-transition-old(root){animation:nvBackOut .48s cubic-bezier(.32,.72,0,1) both}
+html[data-vt="push"]::view-transition-new(root){animation:nvInRight .48s cubic-bezier(.32,.72,0,1) both;box-shadow:-24px 0 48px rgba(0,0,0,.5)}
+html[data-vt="pop"]::view-transition-old(root){z-index:2;animation:nvOutRight .42s cubic-bezier(.32,.72,0,1) both;box-shadow:-24px 0 48px rgba(0,0,0,.5)}
+html[data-vt="pop"]::view-transition-new(root){z-index:1;animation:nvBackIn .42s cubic-bezier(.32,.72,0,1) both}
+html[data-vt="tab"]::view-transition-old(root){animation:nvFadeOut .16s ease both}
+html[data-vt="tab"]::view-transition-new(root){animation:nvFadeIn .24s ease .03s both}
+/* the bars never move: the tab bar is not redrawn at all, the top bar only swaps its title */
+::view-transition-group(rv-tabs){animation:none}
+::view-transition-old(rv-tabs){display:none}
+::view-transition-new(rv-tabs){animation:none}
+::view-transition-group(rv-bar){animation:none}
+::view-transition-old(rv-bar){animation:nvFadeOut .18s ease both}
+::view-transition-new(rv-bar){animation:nvFadeIn .26s ease both}
+@keyframes nvInRight{from{transform:translateX(100%)}to{transform:none}}
+@keyframes nvBackOut{to{transform:translateX(-24%);filter:brightness(.55)}}
+@keyframes nvOutRight{from{transform:translateX(var(--pop-from,0px))}to{transform:translateX(100%)}}
+@keyframes nvBackIn{from{transform:translateX(-24%);filter:brightness(.55)}to{transform:none;filter:none}}
+@keyframes nvFadeOut{to{opacity:0}}
+@keyframes nvFadeIn{from{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .nv-lens,.nv-sheet,.nv-scrim,.nv-title,.nv-bar::before,.nv-ghost{transition:none!important}
+  .nv-sk::after{animation:none}
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+}

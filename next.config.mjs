@@ -62,6 +62,15 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  /* A screen you have just been on comes back from memory for thirty seconds
+     instead of a fresh server round trip, so back and the phone tabs are
+     instant (3 November 2026). Every save already calls router.refresh(),
+     which clears this. */
+  experimental: {
+    staleTimes: { dynamic: 30, static: 180 },
+    /* NEXT_BUILD_CPUS=1 for a build inside the desktop sandbox, which runs out of open files with one worker per core */
+    ...(process.env.NEXT_BUILD_CPUS ? { cpus: Number(process.env.NEXT_BUILD_CPUS), workerThreads: false } : {})
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   }

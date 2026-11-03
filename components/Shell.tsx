@@ -31,6 +31,7 @@ import './smooth.css';
 import SunWall from '@/components/SunWall';
 import HeaderScroll from '@/components/HeaderScroll';
 import './appframe.css';
+import { cookies } from 'next/headers';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
    four labelled groups is a product. Nothing is removed — everything stays
@@ -320,8 +321,22 @@ export default async function Shell({
   /* Sage, 19 October: the console greets her by name, not the shared inbox. */
   const shownName = profile.role === 'admin' && (!profile.full_name || profile.full_name.includes('@'))
     ? 'Sage' : (profile.full_name ?? 'Your account');
+  /* The phone app shell (components/native/NativeShell.tsx) lives in the root
+     layout and never leaves; each page hands it what it needs here. In preview
+     (3 November 2026): on for owners, on in any browser that opened ?native=1,
+     off with ?native=0, on for everyone once NATIVE_ALL=1. */
+  let nativePref: string | undefined;
+  try { nativePref = (await cookies()).get('rv_native')?.value; } catch { nativePref = undefined; }
+  const nativeOn = process.env.NATIVE_ALL === '1' ? nativePref !== '0' : (nativePref === '1' || (founder && nativePref !== '0'));
+  const nativeCtx = JSON.stringify({
+    on: nativeOn, role: profile.role, home, title, isHome, active,
+    tabs: quickItems(profile.role, clientTour, placedOnly),
+    groups: nav, who: WHO[profile.role], name: shownName, org: profile.org_name ?? null,
+    profileHref, unread, messagesHref
+  }).replace(/</g, '\\u003c');
   return (
     <>
+      <script type="application/json" id="rv-native-ctx" dangerouslySetInnerHTML={{ __html: nativeCtx }} />
       <Motion />
       <PageLift />
       <PullRefresh />
