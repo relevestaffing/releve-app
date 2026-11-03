@@ -46,7 +46,7 @@ export default function PostingEditor({ post, onDone }: {
   }
 
   return (
-    <div>
+    <div data-save-scope>
       <div className="grid-2">
         <div className="ff"><label htmlFor={`${fid}-1`}>Role title</label>
           <input id={`${fid}-1`} value={f.title} onChange={set('title')} placeholder="Executive Assistant" /></div>

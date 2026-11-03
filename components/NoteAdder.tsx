@@ -29,7 +29,7 @@ export default function NoteAdder({ placementId }: { placementId: string }) {
   }
 
   return (
-    <form onSubmit={add}>
+    <form onSubmit={add} data-keep-open>
       <div className="ff">
         <textarea aria-label="Note" name="body" rows={3} required
           placeholder="What happened, what you did about it, what you are watching for." />

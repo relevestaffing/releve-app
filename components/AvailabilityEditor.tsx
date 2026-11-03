@@ -64,7 +64,7 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
   if (!loaded) return <div className="empty"><span className="tick" /><p className="small">Loading…</p></div>;
 
   return (
-    <div className="card">
+    <div className="card" data-save-scope>
       <div className="card-head">
         <h3>When you are free</h3>
       </div>

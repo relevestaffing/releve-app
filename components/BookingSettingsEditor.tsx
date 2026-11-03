@@ -112,6 +112,7 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
       </div>
 
       {/* Weekly hours */}
+      <div data-save-scope style={{ display: 'grid', gap: 18 }}>
       <div className="card">
         <div className="card-head"><h3>Weekly hours</h3></div>
         <div className="ff" style={{ maxWidth: 340 }}>
@@ -239,10 +240,11 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
         </div>
       </div>
 
-      <div className="card tight row" style={{ gap: 14, alignItems: 'center', flexWrap: 'wrap', position: 'sticky', bottom: 12, zIndex: 5 }}>
+      <div className="card tight row" data-save-bar style={{ gap: 14, alignItems: 'center', flexWrap: 'wrap', position: 'sticky', bottom: 12, zIndex: 5 }}>
         <button className="btn solid" disabled={busy || !dirty || bad} onClick={save}>{busy ? 'Saving…' : dirty ? 'Save changes' : 'Saved'}</button>
         {bad && <span className="small">Each set of hours must end after it starts.</span>}
         {dirty && !bad && <span className="small muted">Changes show on the website within a minute of saving.</span>}
+      </div>
       </div>
 
       {/* Calls */}

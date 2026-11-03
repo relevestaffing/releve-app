@@ -47,7 +47,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
   }
 
   return (
-    <div className="stack">
+    <div className="stack" data-save-scope>
       {/* ---------- stage one ---------- */}
       <div className="card">
         <div className="card-head">

@@ -68,7 +68,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
   }
 
   return (
-    <div className="stack">
+    <div className="stack" data-save-scope>
       <div className="card">
         <div className="card-head">
           <h3>Your areas of expertise</h3>

@@ -36,7 +36,7 @@ export default function PulseForm({ placementId, talentName, existing }: {
   }
 
   return (
-    <div className="card">
+    <div className="card" data-save-scope>
       <div className="card-head">
         <h3>{existing ? 'Your answer this month' : `How is it going with ${firstName(talentName)}?`}</h3>
         {existing && <span className="pill good"><span className="dot" />Filed</span>}

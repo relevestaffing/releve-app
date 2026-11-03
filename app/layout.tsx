@@ -2,6 +2,7 @@ import './globals.css';
 import './evergreen.css';
 import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
+import SaveLock from '@/components/SaveLock';
 import SWRegister from '@/components/SWRegister';
 import Splash from '@/components/Splash';
 
@@ -98,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Splash />
-        {children}<Toaster /><SWRegister />
+        {children}<Toaster /><SaveLock /><SWRegister />
       </body>
     </html>
   );

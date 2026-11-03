@@ -39,7 +39,7 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
   }
 
   return (
-    <div className="card">
+    <div className="card" data-save-scope>
       <div className="card-head">
         <h3>How you would like to be paid</h3>
         {initial?.confirmed_at

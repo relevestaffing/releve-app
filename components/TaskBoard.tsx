@@ -272,7 +272,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
             {side === 'client' ? `Assign something to ${counterpart}` : 'Add a task'}
           </button>
         ) : (
-          <form onSubmit={add} className="task-form tb-compose">
+          <form onSubmit={add} className="task-form tb-compose" data-keep-open>
             <div className="ff"><label htmlFor={`tf-title-${placementId}`}>What needs doing</label>
               <input id={`tf-title-${placementId}`} name="title" required autoFocus placeholder="Rebuild the board pack for Thursday" /></div>
             <div className="ff"><label htmlFor={`tf-detail-${placementId}`}>Detail <span className="muted">(what good looks like, where things are, who has seen it before)</span></label>
@@ -651,7 +651,7 @@ function TaskTalk({ task, me, side, counterpart, question, onSent }: {
             <p>{c.body}</p>
           </div>
         ))}
-      <form onSubmit={send}>
+      <form onSubmit={send} data-keep-open>
         <label className="sr-only" htmlFor={`tc-${task.id}`}>{question ? 'Your question' : 'Your comment'}</label>
         <textarea id={`tc-${task.id}`} name="body" rows={2} required
           placeholder={question ? `What do you need from ${counterpart} to move this on?` : side === 'client' ? `A note for ${counterpart}` : 'Add a comment'} />
