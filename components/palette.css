@@ -58,3 +58,18 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
   html body .attention li .att-line,html body .attention li .att-body b{font-size:15px;line-height:1.55}
   html body .attention li > .btn{grid-column:2;width:auto;justify-self:start;margin:0;align-self:start}
 }
+/* CREAM BARS ON PHONES (2 Nov 2026, Nona): the top bar and the floating bottom bar were deep
+   fern and blended into the dark wall. Both are now cream, so they read as their own pieces
+   against the page: the fern logo on the top bar, fern lettering on the bottom bar. */
+@media (max-width:900px){
+  html body .shell::after{
+    background:url(/logo-fern.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(250,248,242,.95);
+    border-bottom:1px solid rgba(53,68,58,.14)}
+  html body .menu-trigger{box-shadow:0 4px 14px -6px rgba(34,48,42,.28),inset 0 0 0 1px rgba(53,68,58,.16)}
+  html body .quickbar{
+    background:rgba(250,248,242,.96);
+    box-shadow:0 18px 40px -16px rgba(34,48,42,.38),inset 0 0 0 1px rgba(53,68,58,.14)}
+  html body .quickbar a{color:#6E8073}
+  html body .quickbar a.on,html body .quickbar .on{color:#35443A;background:rgba(53,68,58,.06)}
+  html body .quickbar a.on::before{background:#35443A}
+}
