@@ -5,7 +5,7 @@
    is the only texture: Nona found texture inside texture, or two textured
    bands side by side, messy, so everything that sits on or beside the wall is
    plain, flat colour. Loaded by SunWall, so it reaches every page with the wall. */
-:root{--wall:#1B231B;--wall-deep:#141B15;--wall-raised:#1F271F;--paper-white:#FDFCF8;--lime:#EEEAE1}
+:root{--wall:#1A241E;--wall-deep:#131C17;--wall-raised:#1E2822;--paper-white:#FDFCF8;--lime:#EEEAE1}
 /* under the wall, and past its edges */
 html,body,.shell{background:var(--wall)!important}
 /* the sidebar: a plain band of the wall's deepest olive */
