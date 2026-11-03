@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasServiceKey, adminClient } from '@/lib/supabase/admin';
 import { corsHeaders, preflight } from '@/lib/cors';
+import { publicFormAllowed } from '@/lib/booking-http';
 import { send, shell, p, esc, trainingWelcome } from '@/lib/email';
 import { sendBookingInvite } from '@/lib/lead-booking';
 import { unsubscribeUrl, listUnsubscribeHeaders } from '@/lib/subscribers';
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
   /* Browsers always send Origin on a cross-site POST. One that names a site
      other than ours is not our form (QA, 30 Oct 2026). */
   const origin = req.headers.get('origin');
-  if (origin && !/^https:\/\/((www|app)\.)?relevestaffing\.com$/i.test(origin) && !/^http:\/\/localhost(:\d+)?$/i.test(origin))
+  if (!origin || (!/^https:\/\/((www|app)\.)?relevestaffing\.com$/i.test(origin) && !/^http:\/\/localhost(:\d+)?$/i.test(origin)))
     return fail('Not permitted.', 403);
 
   let body: any;
@@ -98,6 +99,11 @@ export async function POST(req: Request) {
 
   if (name.length < 2) return fail('Please tell us your name.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail('That email address does not look right.');
+
+  /* Rate limit, shared with /api/apply; fails closed (security pass, 2 Nov 2026). */
+  const allowed = await publicFormAllowed(adminClient(), req, email);
+  if (allowed === 'limited') return fail('Too many requests from this address today. Please email hello@relevestaffing.com instead.', 429);
+  if (allowed === 'unsure') return fail('We could not accept that just now. Please try again in a few minutes.', 503);
 
   const sb = adminClient();
 

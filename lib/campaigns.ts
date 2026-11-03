@@ -161,7 +161,7 @@ const ANGLES: Record<Lane, string[]> = {
     'We interview many, you meet one: why one prepared candidate beats a pile of resumes.',
     'Relief, not one more person to manage: the Client Success Manager and the Talent Success Manager.',
     'The 14-day path from one conversation to a professional at work.',
-    'Why Relève takes ten new clients a year, and what that attention looks like for each one.'
+    'What support after day one looks like: how a placed professional is checked in on and kept on track.'
   ]
 };
 const LANES: Record<'Tuesday' | 'Thursday', Lane[]> = { Tuesday: ['tips', 'trends'], Thursday: ['stories', 'method'] };
@@ -175,7 +175,7 @@ function pickAngle(day: 'Tuesday' | 'Thursday', n: number) {
 
 const VOICE = `You write Relève's twice-weekly email to business owners and founders. Every email must do two things: give the reader something genuinely useful or moving, and make booking a free 30-minute discovery call feel like the natural next step.
 
-About Relève: a premium virtual executive staffing agency. It places a vetted, fully managed virtual professional (executive assistants and other remote staff, from the Philippines and Latin America) with founders, and supports them for the life of the relationship through a Client Success Manager and a Talent Success Manager. Every candidate is vetted on six fronts: the business is studied first and the role built around it; tested for the role with a graded, paid work sample; matched to how the owner works through the Relève Signature working-style and personality assessment; background checked and verified; "we interview many, you meet one"; and a person signs off before anyone is presented. They are prepared for the role before day one. First candidate within 14 days. Up to two replacements. Talent at 30% of the cost of a local hire. Relève takes ten new clients a year, deliberately. Relève's founder, Sage Jackson, spent seven years as an executive assistant to CEOs and high-net-worth entrepreneurs and six years recruiting before founding Relève.
+About Relève: a premium virtual executive staffing agency. It places a vetted, fully managed virtual professional (executive assistants and other remote staff, from the Philippines and Latin America) with founders, and supports them for the life of the relationship through a Client Success Manager and a Talent Success Manager. Every candidate is vetted on six fronts: the business is studied first and the role built around it; tested for the role with a graded, paid work sample; matched to how the owner works through the Relève Signature working-style and personality assessment; background checked and verified; "we interview many, you meet one"; and a person signs off before anyone is presented. They are prepared for the role before day one. First candidate within 14 days. Up to two replacements. Talent at 30% of the cost of a local hire. Relève's founder, Sage Jackson, spent seven years as an executive assistant to CEOs and high-net-worth entrepreneurs and six years recruiting before founding Relève.
 
 Positioning: trust and relief, the feeling of "Consider it handled." The reader's real fears are "can I trust someone with this?" and "will they add work instead of removing it?" Never lead with cost, cheapness, offshore savings, or "fix your inbox". Cost may appear only as a supporting line.
 
@@ -191,7 +191,7 @@ const FORMAT = `Reply with ONLY a JSON object and nothing else: no notes, no dra
 {"subject": "...", "preheader": "...", "paragraphs": ["...", "..."], "cta_label": "..."}
 - subject: under 55 characters, the hook.
 - preheader: under 90 characters, adds to the subject without repeating it.
-- paragraphs: 6 to 9 paragraphs of two to four sentences each, 350 to 550 words in total, written as Sage in the first person. Open warmly in context, then lead with the value and let it breathe; this is a letter, not a blurb. Do NOT write a greeting like "Hello" or "Hi" (a greeting with the reader's first name is added above your text), a sign-off, an invitation to book, or a closing line like "Consider it handled": those are added around your text. You may mark ONE short, quotable line as a pull quote by starting that paragraph with "> ". You may include ONE short checklist by writing two to four consecutive paragraphs that each start with "- ". End with one final paragraph that starts with "P.S. " giving one more reason to book the call (for example that Relève takes only ten new clients a year). Plain text only, no markdown beyond the "> " and "- " markers, no links or URLs in the text.
+- paragraphs: 6 to 9 paragraphs of two to four sentences each, 350 to 550 words in total, written as Sage in the first person. Open warmly in context, then lead with the value and let it breathe; this is a letter, not a blurb. Do NOT write a greeting like "Hello" or "Hi" (a greeting with the reader's first name is added above your text), a sign-off, an invitation to book, or a closing line like "Consider it handled": those are added around your text. You may mark ONE short, quotable line as a pull quote by starting that paragraph with "> ". You may include ONE short checklist by writing two to four consecutive paragraphs that each start with "- ". End with one final paragraph that starts with "P.S. " giving one more reason to book the call (for example that the first candidate arrives within 14 days). Never mention how many clients Relève takes. Plain text only, no markdown beyond the "> " and "- " markers, no links or URLs in the text.
 - cta_label: 2 to 5 words for the booking button, e.g. "Book your Zoom coffee".`;
 
 const CTA_URL = 'https://relevestaffing.com/discovery';
@@ -347,15 +347,16 @@ ${BODY_OPEN}
       <a href="${esc(cta)}" style="display:inline-block;background-color:#FFFFFF;color:#35443A;text-decoration:none;font-family:${SANS};font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:15px 28px;">${esc(c.cta_label || 'Book your Zoom coffee')}</a>
     </td></tr></table>
   </td></tr>
-  <tr><td class="w px" style="${LIGHT}padding:0 48px 34px;">
-    <img src="${APP()}/consider-it-handled.png" width="250" height="38" alt="Consider it handled," style="display:block;border:0;margin:0 0 4px;width:250px;height:auto;font-family:${SERIF};font-size:17px;color:#26312B;">
-    <div class="fern" style="font-family:${SERIF};font-size:30px;color:#35443A;line-height:1.15;margin:4px 0 8px;">Sage</div>
-    <div class="mute" style="font-family:${SANS};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#5F7466;">Sage Jackson &nbsp;&middot;&nbsp; Founder, Relève</div>
-    ${ps ? `<p class="mute" style="margin:26px 0 0;font-family:${SERIF};font-style:italic;font-size:15.5px;line-height:1.7;color:#4C6353;">P.S. ${esc(ps)}</p>` : ''}
+  <tr><td class="w px" style="${LIGHT}padding:4px 48px 30px;">
+    <img src="${APP()}/consider-it-handled.png" width="230" height="35" alt="Consider it handled." style="display:block;border:0;margin:0 0 10px;width:230px;height:auto;font-family:${SERIF};font-size:17px;color:#26312B;">
+    <div class="fern" style="font-family:${SERIF};font-size:22px;color:#35443A;line-height:1.2;">Sage Jackson</div>
+    <div class="mute" style="font-family:${SANS};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#5F7466;margin-top:5px;">Founder, Relève</div>
   </td></tr>
-  <tr><td class="w px" style="${LIGHT}padding:22px 48px 36px;border-top:1px solid #DDE5DC;font-family:${SANS};font-size:12px;line-height:1.75;color:#5F7466;">
-    <span class="mute" style="color:#5F7466;">You're receiving The Relève Letter because you shared your email with Relève.<br>
-    <a href="${esc(unsub)}" style="color:#35443A;text-decoration:underline;">Unsubscribe</a> &nbsp;&middot;&nbsp; Relève Staffing LLC, ${esc(address)}</span>
+  ${ps ? `<tr><td class="w px" style="${LIGHT}padding:0 48px 34px;"><div style="border-top:1px solid #DDE5DC;padding-top:22px;"><p class="mute" style="margin:0;font-family:${SERIF};font-style:italic;font-size:15.5px;line-height:1.7;color:#4C6353;">P.S. ${esc(ps)}</p></div></td></tr>` : ''}
+  <tr><td class="w px" align="center" style="${LIGHT}padding:26px 48px 38px;border-top:1px solid #DDE5DC;text-align:center;font-family:${SANS};font-size:12px;line-height:1.8;color:#5F7466;">
+    <span class="mute" style="color:#5F7466;">You're receiving The Relève Letter because you shared your email with Relève.</span><br>
+    <a href="${esc(unsub)}" style="color:#35443A;text-decoration:underline;">Unsubscribe</a><br>
+    <span class="mute" style="color:#5F7466;">Relève Staffing LLC, ${esc(address)}</span>
   </td></tr>
 </table></td></tr></table></body></html>`;
   const text = [

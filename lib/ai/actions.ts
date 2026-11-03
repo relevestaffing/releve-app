@@ -107,6 +107,17 @@ export async function getAction(id: string): Promise<ActionRow | null> {
   return (data ?? null) as ActionRow | null;
 }
 
+/* Claims a proposal for one run: the first caller stamps confirmed_at,
+   a second simultaneous click finds it taken (security pass, 2 Nov 2026). */
+export async function claimAction(id: string): Promise<boolean> {
+  if (!hasServiceKey()) return false;
+  const { data } = await adminClient().from('ai_actions')
+    .update({ confirmed_at: new Date().toISOString() })
+    .eq('id', id).eq('status', 'proposed').is('confirmed_at', null)
+    .select('id');
+  return (data ?? []).length === 1;
+}
+
 export async function finishAction(id: string, status: 'done' | 'failed' | 'dismissed', result: unknown) {
   if (!hasServiceKey()) return;
   await adminClient().from('ai_actions').update({ status, result, confirmed_at: new Date().toISOString() }).eq('id', id);

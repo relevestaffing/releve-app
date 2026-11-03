@@ -3400,3 +3400,36 @@ html.js .rv-d4{transition-delay:.23s} html.js .rv-d5{transition-delay:.29s} html
   .btn:active,.qa-tile:active,.ask-fab:active{transform:none}
   .modal,.tb-panel,.ask-panel{animation:none}
 }
+
+
+/* ===== the wordmark nav + the white Ask Relève pill (2 Nov 2026) =====
+   The bottom bar is set like the wordmark's EXECUTIVE STAFFING line: no icons,
+   tracked Marcellus capitals, and the È accent from the logo over the page
+   you are on. Ask Relève is a small white pill with a hairline that draws
+   itself beneath the words. */
+.quickbar a{gap:0;flex-direction:column;justify-content:center;font-family:'Marcellus',serif}
+.quickbar a span{font-size:8.6px;letter-spacing:.24em;text-transform:uppercase;padding-left:.24em}
+.quickbar a.on{position:relative}
+.quickbar a.on::before{content:"";position:absolute;top:8px;left:50%;width:9px;height:2.4px;border-radius:2px;background:#B0C4B2;transform:translateX(-50%) rotate(30deg)}
+@media (max-width:400px){.quickbar a span{letter-spacing:.14em;padding-left:.14em}}
+@media (max-width:640px){
+  .quickbar{padding:0;gap:0}
+  .quickbar a{padding:22px 0 20px;border-radius:999px;background:none!important;color:#7F9183}
+  .quickbar a.on{color:#F4F1E8}
+  .quickbar a.on::before{top:10px}
+}
+.ask-fab{background:#FAF8F2;color:var(--fern);border:0;border-radius:999px;padding:12px 22px 15px;gap:0;
+  font-size:9px;letter-spacing:.26em;
+  box-shadow:0 16px 30px -14px rgba(34,48,42,.5),inset 0 0 0 1px rgba(53,68,58,.26)}
+.ask-fab:hover{box-shadow:0 20px 36px -14px rgba(34,48,42,.55),inset 0 0 0 1px rgba(53,68,58,.4)}
+.ask-fab .ask-fab-label{display:inline;padding-left:.26em;position:relative}
+.ask-fab::after{content:"";position:absolute;left:24px;right:22px;bottom:8px;height:1px;background:var(--fern);
+  transform-origin:left;animation:askDraw 6s cubic-bezier(.5,0,.2,1) 1.2s infinite}
+.ask-fab.open{background:#FAF8F2}
+.ask-fab.open::after{animation:none;opacity:0}
+@keyframes askDraw{0%{transform:scaleX(0);opacity:1}30%{transform:scaleX(1);opacity:1}72%{transform:scaleX(1);opacity:1}86%{transform:scaleX(1);opacity:0}100%{transform:scaleX(0);opacity:0}}
+@media (max-width:820px){
+  .ask-fab{right:14px;bottom:calc(84px + env(safe-area-inset-bottom));padding:11px 20px 14px}
+  .ask-fab-label{display:inline}
+}
+@media (prefers-reduced-motion:reduce){.ask-fab::after{animation:none;transform:none;opacity:.7}}

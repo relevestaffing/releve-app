@@ -28,6 +28,14 @@ export async function POST(req: Request) {
     try { out.drafted = await draftUpcoming(); }
     catch (e: any) { out.draftError = e?.message ?? String(e); }
   }
-  /* A slow draft retries next hour on its own; only a send failure alerts. */
-  return NextResponse.json(out, { status: out.sendError ? 500 : 200 });
+  /* A slow draft retries next hour on its own. A draft failure inside the
+     last day before a send is a real problem, so it answers 500 and Netlify's
+     function log shows it (QA, 2 Nov 2026). */
+  const late = Boolean(out.draftError) && (() => {
+    const now = new Date();
+    const pt = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const d = pt.getDay(); const h = pt.getHours();
+    return (d === 1 || d === 3) || ((d === 2 || d === 4) && h < 9);
+  })();
+  return NextResponse.json(out, { status: out.sendError || late ? 500 : 200 });
 }

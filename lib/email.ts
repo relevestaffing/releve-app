@@ -183,7 +183,7 @@ export function shell(
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FFFFFF;">
   <tr><td style="padding:0 4px 22px;border-bottom:1px solid #D3E0D4;text-align:center;">
-    <a href="${SITE}" style="text-decoration:none;"><img src="${SITE}/logo-fern.png" width="220" height="66" alt="Relève Executive Staffing" style="display:block;margin:0 auto;border:0;width:220px;height:auto;font-family:Georgia,serif;font-size:19px;letter-spacing:6px;text-transform:uppercase;color:#35443A;"></a>
+    <a href="https://relevestaffing.com" style="text-decoration:none;"><img src="${SITE}/logo-fern.png" width="220" height="66" alt="Relève Executive Staffing" style="display:block;margin:0 auto;border:0;width:220px;height:auto;font-family:Georgia,serif;font-size:19px;letter-spacing:6px;text-transform:uppercase;color:#35443A;"></a>
   </td></tr>
   <tr><td style="padding:32px 4px 30px;font-family:Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.65;color:#35443A;">
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:24px;line-height:1.3;color:#35443A;margin:0 0 18px;">${headline}</h1>
@@ -234,7 +234,7 @@ const rawTemplates = {
       subject: 'Your Relève account is ready',
       text: `${name ? name + ',' : 'Hello,'}\n\nYou have been invited to join the Relève roster, the assessed and verified group we put in front of executives.\n\nSign in at ${SITE} using this email address. There is no password; we send you a link.\n\nThere are a few things to do before you can be matched: a twenty to twenty-five minute assessment, your availability, and verifying who you are. Your dashboard walks you through them.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
       html: shell('Your account is ready',
-        p(`${name ? name + ',' : 'Hello,'}`) +
+        p(`${name ? esc(name) + ',' : 'Hello,'}`) +
         p('You have been invited to join the Relève roster, the assessed and verified group we put in front of executives.') +
         p('There is no password. Sign in with this email address and we send you a link.') +
         p('Before you can be matched there are a few things to do: a twenty to twenty-five minute assessment, your availability, and verifying who you are. Your dashboard walks you through them in order.'),
@@ -248,7 +248,7 @@ const rawTemplates = {
       subject: 'Your Relève account is open',
       text: `${name ? name + ',' : 'Hello,'}\n\nYour Relève account is open at ${SITE}/app. Sign in with this address. There is no password; we send a link.\n\nYour account walks you through the rest in order: the search deposit, then the Executive Signature, about fifteen minutes, and your availability. Everything after that is ours.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
       html: shell('Your account is open',
-        p(`${name ? name + ',' : 'Hello,'}`) +
+        p(`${name ? esc(name) + ',' : 'Hello,'}`) +
         p('Everything about your search runs through here. Sign in with this address. There is no password; we send you a link.') +
         p('Your account walks you through the rest in order: the search deposit, then the Executive Signature, about fifteen minutes, and your availability. Every candidate you see will have been scored against that profile before their name reaches you.'),
         { label: 'Open your account', href: `${SITE}/app` }, links)
@@ -273,37 +273,53 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Sign your Client Services Agreement', href: o.docsUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
-      { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
-      { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' },
-      { n: 4, label: 'Add Relève to your phone or computer as an app (guide attached)', href: `${SITE}/guides/Add-Releve-to-your-device.pdf`, cta: 'Open the guide' }
+      { n: 1, label: 'Sign your Client Services Agreement', note: 'Two minutes, signed right on screen.', href: o.docsUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
+      { n: 2, label: `Pay your ${amount} deposit`, note: 'Credited in full toward your first month once you are placed.', href: o.payUrl, cta: `Pay ${amount}` },
+      { n: 3, label: 'Set up your Relève account', note: 'Your private home for the search, from first candidate to day one.', href: SITE, cta: 'Set up account' },
+      { n: 4, label: 'Add Relève to your phone or computer', note: 'A one-page guide with pictures is attached. It takes a minute.', href: `${SITE}/guides/Add-Releve-to-your-device.pdf`, cta: 'Open the guide' }
     ];
-    /* A plain numbered list on the white page: a hairline between steps, the
-       number in the serif, the action as a quiet text link beneath the label.
-       The boxed cards with a solid button each read as three competing ads;
-       this reads as a letter. */
-    const stepRow = (s: typeof steps[number], i: number) => `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #D3E0D4;${i === steps.length - 1 ? 'border-bottom:1px solid #D3E0D4;' : ''}">
+    const SERIF = "Georgia,'Times New Roman',serif", SANS = 'Helvetica,Arial,sans-serif';
+    const card = (s: typeof steps[number]) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px;background:#F1F6F1;border-radius:6px;">
         <tr>
-          <td style="width:34px;padding:18px 0;vertical-align:top;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#4E6B57;">${s.n}</td>
-          <td style="padding:18px 0;vertical-align:top;font-family:Helvetica,Arial,sans-serif;">
-            <div style="font-size:15.5px;color:#35443A;">${s.label}</div>
-            <div style="margin-top:5px;font-size:13.5px;"><a href="${s.href}" style="color:#35443A;text-decoration:underline;">${s.cta} &rarr;</a></div>
+          <td width="64" valign="top" style="padding:22px 0 22px 20px;">
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr><td width="38" height="38" align="center" valign="middle" style="width:38px;height:38px;background:#35443A;border-radius:19px;font-family:${SERIF};font-size:18px;color:#FFFFFF;line-height:38px;">${s.n}</td></tr></table>
+          </td>
+          <td valign="top" style="padding:20px 22px 20px 6px;font-family:${SANS};">
+            <div style="font-family:${SERIF};font-size:18px;line-height:1.3;color:#35443A;">${s.label}</div>
+            <div style="margin-top:5px;font-size:13.5px;line-height:1.55;color:#4E6B57;">${s.note}</div>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px;"><tr><td style="background:#35443A;border-radius:3px;"><a href="${s.href}" style="display:inline-block;padding:10px 20px;font-size:13px;letter-spacing:.5px;color:#FFFFFF;text-decoration:none;">${s.cta} &rarr;</a></td></tr></table>
           </td>
         </tr>
       </table>`;
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
+    const hello = firstName ? `Welcome, ${firstName}.` : 'Welcome to Relève.';
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"></head>
+<body style="margin:0;padding:0;background:#EAF1EA;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EAF1EA;padding:32px 14px;"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+  <tr><td align="center" style="padding:0 0 22px;"><a href="https://relevestaffing.com" style="text-decoration:none;"><img src="${SITE}/logo-fern.png" width="190" alt="Relève Executive Staffing" style="display:block;margin:0 auto;border:0;width:190px;height:auto;font-family:${SERIF};font-size:19px;letter-spacing:6px;color:#35443A;"></a></td></tr>
+  <tr><td style="background:#35443A;border-radius:8px 8px 0 0;padding:46px 40px 42px;text-align:center;">
+    <div style="font-family:${SANS};font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#B0C4B2;">Your search is open</div>
+    <div style="font-family:${SERIF};font-size:34px;line-height:1.2;color:#FFFFFF;margin-top:14px;">${esc(hello)}</div>
+    <div style="font-family:${SERIF};font-style:italic;font-size:17px;line-height:1.5;color:#DCE7DC;margin-top:12px;">Four small steps, and the search begins.</div>
+  </td></tr>
+  <tr><td style="background:#FFFFFF;padding:34px 34px 8px;font-family:${SANS};font-size:15.5px;line-height:1.7;color:#35443A;">
+    <p style="margin:0 0 24px;">Lovely connecting with you today. We check every candidate on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.</p>
+    ${steps.map(card).join('')}
+  </td></tr>
+  <tr><td style="background:#FFFFFF;border-radius:0 0 8px 8px;padding:14px 34px 40px;font-family:${SANS};font-size:15.5px;line-height:1.7;color:#35443A;">
+    <p style="margin:0 0 6px;">We are already thinking about who is right for you. Talk soon.</p>
+    <img src="${SITE}/consider-it-handled.png" width="230" alt="Consider it handled." style="display:block;border:0;margin:10px 0 0;width:230px;height:auto;font-family:${SERIF};font-style:italic;font-size:17px;color:#35443A;">
+  </td></tr>
+  <tr><td style="padding:20px 8px 0;text-align:center;font-family:${SANS};font-size:11.5px;line-height:1.6;color:#4E6B57;">
+    Relève Executive Staffing &middot; <a href="https://relevestaffing.com" style="color:#35443A;">relevestaffing.com</a><br>Replies to this address reach a person, not a mailbox nobody reads.
+  </td></tr>
+</table></td></tr></table></body></html>`;
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.\n\nTo open the search, sign the Client Services Agreement, pay your ${amount} deposit, set up your Relève account, and add it to your phone or computer as an app:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
-      html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-        p(`${o.name ? o.name + ',' : 'Hello,'}`) +
-        p(`Lovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.`) +
-        p(`To open the search, sign the Client Services Agreement, pay your ${amount} deposit, set up your Relève account, and add it to your phone or computer as an app.`) +
-        steps.map((st, i) => stepRow(st, i)).join('') +
-        `<p style="margin:20px 0 0;font-size:13px;color:#35443A;">Your deposit is credited in full toward your first month once you are placed.</p>` +
-        `<p style="margin:20px 0 0;">We are already thinking about who is right for you. Talk soon.</p>` +
-        `<p style="margin:14px 0 0;">Relève</p>`)
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. We check every candidate on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.\n\nFour small steps, and we begin:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}\n   ${s.note}`).join('\n\n')}\n\nWe are already thinking about who is right for you. Talk soon.\n\nConsider it handled.\nRelève`,
+      html
     };
   },
 
@@ -363,7 +379,7 @@ const rawTemplates = {
     subject: role === 'client' ? 'Your Relève account is open' : 'Your profile is live',
     text: `${name ? name + ',' : 'Hello,'}\n\n${role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.'}\n\nOne thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.\n\nOn iPhone: open ${SITE}/app in Safari, tap the Share icon, then "Add to Home Screen."\nOn Android: open it in Chrome, tap the menu (⋮), then "Install app" (or "Add to Home Screen").\nOn Mac: open it in Safari, choose File, then "Add to Dock" (in Chrome: menu, Cast, save, and share, then "Install page as app").\n\nA step-by-step guide with pictures is attached, and here: ${SITE}/guides/Add-Releve-to-your-device.pdf\n\n${SITE}/app\n\nRelève`,
     html: shell(role === 'client' ? 'Your Relève account is open' : 'Your profile is live',
-      p(`${name ? name + ',' : 'Hello,'}`) +
+      p(`${name ? esc(name) + ',' : 'Hello,'}`) +
       p(role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.') +
       p('One thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.') +
       `<div style="margin:0 0 12px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On iPhone</div>` +
@@ -380,8 +396,8 @@ const rawTemplates = {
     subject: `Interview confirmed: ${o.when}`,
     text: `${o.name},\n\nYour interview with ${o.withWhom} is confirmed for ${o.when}.\n\n${o.url ? `Join here: ${o.url}\n\n` : 'The joining link will follow.\n\n'}It is in your account at ${SITE} as well.\n\nRelève`,
     html: shell('Interview confirmed',
-      p(`${o.name},`) +
-      p(`Your interview with <b>${o.withWhom}</b> is confirmed for <b>${o.when}</b>.`) +
+      p(`${esc(o.name)},`) +
+      p(`Your interview with <b>${esc(o.withWhom)}</b> is confirmed for <b>${esc(o.when)}</b>.`) +
       p(o.url ? 'The joining link is below and in your account.' : 'The joining link will follow shortly.'),
       o.url ? { label: 'Join the interview', href: o.url } : { label: 'See it in your account', href: `${SITE}/app/interviews` })
   }),
@@ -393,8 +409,8 @@ const rawTemplates = {
     subject: `Your interview needs a new time`,
     text: `${o.name},\n\nYour interview with ${o.withWhom}, previously set for ${o.when}, has been cancelled. Nothing further is needed from you. We will be in touch with a new time.\n\n${SITE}/app/interviews\n\nRelève`,
     html: shell('Your interview needs a new time',
-      p(`${o.name},`) +
-      p(`Your interview with <b>${o.withWhom}</b>, previously set for <b>${o.when}</b>, has been cancelled.`) +
+      p(`${esc(o.name)},`) +
+      p(`Your interview with <b>${esc(o.withWhom)}</b>, previously set for <b>${esc(o.when)}</b>, has been cancelled.`) +
       p('Nothing further is needed from you. We will be in touch with a new time.'),
       { label: 'See it in your account', href: `${SITE}/app/interviews` })
   }),
@@ -403,7 +419,7 @@ const rawTemplates = {
     subject: 'Your end of week report',
     text: `${name},\n\nIt is Friday. Four things, about two minutes: your hours, the tasks you accomplished, a win from the week, and any concerns.\n\n${SITE}/app/checkin\n\nThis goes to us, never to the executive. Say what is actually true. It is the only way we can help.\n\nRelève`,
     html: shell('Your end of week report',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Four things, about two minutes: your hours, the tasks you accomplished, a win from the week, and any concerns.') +
       p('<b>This comes to us, never to the executive.</b> Say what is actually true. It is the only way we can be useful to you.'),
       { label: 'File your report', href: `${SITE}/app/checkin` })
@@ -413,7 +429,7 @@ const rawTemplates = {
     subject: 'You are verified',
     text: `${name},\n\nEverything checks out. You are cleared and can be matched.\n\n${SITE}\n\nRelève`,
     html: shell('You are verified',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Everything checks out. You are cleared, and you can now be matched to an executive.') +
       p('Nothing you sent is ever shown to an executive. They see that you are verified, never the documents.'),
       { label: 'Open your account', href: SITE })
@@ -437,7 +453,7 @@ const rawTemplates = {
     subject: 'Your agreement is ready to sign',
     text: `${name},\n\nYour Relève contractor agreement and NDA are ready. Sign it in your account. It takes about two minutes.\n\n${SITE}/app/vetting\n\nRelève`,
     html: shell('Ready to sign',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Your contractor agreement and NDA are ready. Sign it in your account. It takes about two minutes.'),
       { label: 'Sign your agreement', href: `${SITE}/app/vetting` })
   }),
@@ -472,7 +488,7 @@ const rawTemplates = {
     subject: 'Your Client Services Agreement is ready to sign',
     text: `${name},\n\nYour Relève Client Services Agreement is ready. Sign it in your account. It takes about two minutes.\n\n${SITE}/agreement\n\nRelève`,
     html: shell('Ready to sign',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Your Client Services Agreement is ready. Sign it in your account. It takes about two minutes.'),
       { label: 'Sign your agreement', href: `${SITE}/agreement` })
   }),
@@ -484,7 +500,7 @@ const rawTemplates = {
     subject: 'Your Client Services Agreement is fully signed',
     text: `${name},\n\nYour Client Services Agreement is fully signed and on file with both signatures.\n\n${SITE}/app\n\nRelève`,
     html: shell('Fully signed',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Your Client Services Agreement is fully signed and on file with both signatures, yours and Relève’s.'),
       { label: 'Open your account', href: `${SITE}/app` })
   }),
@@ -526,10 +542,10 @@ const rawTemplates = {
     subject: `Your placement starts ${o.startsOn}`,
     text: `${o.name},\n\n${o.side === 'client' ? `${o.withWhom} starts with you on ${o.startsOn}.` : `You start with ${o.withWhom} on ${o.startsOn}.`}\n\nYour account has your 90-Day Success Plan waiting: the kick-off call, the tools to share, the rhythm to agree, and the first things to hand over. It is short, and the first week goes considerably better when it is followed.\n\n${SITE}/app/care\n\nRelève`,
     html: shell(o.side === 'client' ? 'Your placement starts' : 'You start soon',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(o.side === 'client'
-        ? `<b>${o.withWhom}</b> starts with you on <b>${o.startsOn}</b>.`
-        : `You start with <b>${o.withWhom}</b> on <b>${o.startsOn}</b>.`) +
+        ? `<b>${esc(o.withWhom)}</b> starts with you on <b>${esc(o.startsOn)}</b>.`
+        : `You start with <b>${esc(o.withWhom)}</b> on <b>${esc(o.startsOn)}</b>.`) +
       p('Your account has your 90-Day Success Plan waiting: the kick-off call, the tools to share, the rhythm to agree, and the first things to hand over. It is short, and the first week goes considerably better when it is followed.'),
       { label: 'Open your onboarding plan', href: `${SITE}/app/care` })
   }),
@@ -538,7 +554,7 @@ const rawTemplates = {
     subject: 'Relève: email is working',
     text: `${name},\n\nIf you are reading this, the platform can send email. Applications, approvals, interview confirmations and invitations will all reach people.\n\nRelève`,
     html: shell('Email is working',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('If you are reading this, the platform can send email. Applications, approvals, interview confirmations and invitations will all reach people.'))
   }),
 
@@ -548,8 +564,8 @@ const rawTemplates = {
     subject: `We have your application: ${o.role}`,
     text: `${o.name},\n\nThank you for applying for ${o.role}. Your application is with us and a person will read it. We do not screen with software.\n\nIf it looks like a fit, the next thing is a short call with us: twenty to thirty minutes, a conversation rather than a test. We will write with a time. If it is not a fit this time, we will tell you that too rather than leave you waiting.\n\nRelève`,
     html: shell('We have your application',
-      p(`${o.name},`) +
-      p(`Thank you for applying for <b>${o.role}</b>. Your application is with us and a person will read it. We do not screen with software.`) +
+      p(`${esc(o.name)},`) +
+      p(`Thank you for applying for <b>${esc(o.role)}</b>. Your application is with us and a person will read it. We do not screen with software.`) +
       p('If it looks like a fit, the next thing is a short call with us: twenty to thirty minutes, a conversation rather than a test. We will write with a time.') +
       p('If it is not a fit this time, we will tell you that too rather than leave you waiting.'))
   }),
@@ -605,9 +621,9 @@ const rawTemplates = {
     subject: `A call about your application: ${o.role}`,
     text: `${o.name},\n\nWe have read your application for ${o.role} and we would like to talk.\n\n${o.when}\nAbout ${o.minutes} minutes.\n${o.url ? `\nJoin here: ${o.url}\n` : '\nWe will send the joining link before the call.\n'}\nThis is a conversation, not a test. We want to hear how you work and answer whatever you want to ask about Relève. Nothing to prepare.\n\nIf that time does not suit you, reply to this email and we will find another. Saying so costs you nothing.\n\nRelève`,
     html: shell('We would like to talk',
-      p(`${o.name},`) +
-      p(`We have read your application for <b>${o.role}</b> and we would like to talk.`) +
-      p(`<b>${o.when}</b><br>About ${o.minutes} minutes.`) +
+      p(`${esc(o.name)},`) +
+      p(`We have read your application for <b>${esc(o.role)}</b> and we would like to talk.`) +
+      p(`<b>${esc(o.when)}</b><br>About ${o.minutes} minutes.`) +
       p('This is a conversation, not a test. We want to hear how you work, and to answer whatever you want to ask about Relève. There is nothing to prepare.') +
       p('If that time does not suit you, reply to this email and we will find another. Saying so costs you nothing.'),
       o.url ? { label: 'Join the call', href: o.url } : undefined)
@@ -617,8 +633,8 @@ const rawTemplates = {
     subject: 'Your Relève call has moved',
     text: `${o.name},\n\nYour call has been moved to:\n\n${o.when}\n${o.url ? `\nJoin here: ${o.url}\n` : ''}\nIf this one does not suit you either, reply and we will find another.\n\nRelève`,
     html: shell('Your call has moved',
-      p(`${o.name},`) +
-      p(`Your call is now <b>${o.when}</b>.`) +
+      p(`${esc(o.name)},`) +
+      p(`Your call is now <b>${esc(o.when)}</b>.`) +
       p('If this one does not suit you either, reply and we will find another.'),
       o.url ? { label: 'Join the call', href: o.url } : undefined)
   }),
@@ -654,7 +670,7 @@ const rawTemplates = {
     subject: 'Your candidate is ready to meet',
     text: `${o.name},\n\nWe have someone for you. ${o.candidate} has been vetted on six fronts, background checked, matched against your Signature and the role you described, and briefed on how you work.\n\nRead the match in your account and tell us yes or no. That is all we need.\n\n${SITE}/app/pipeline\n\nRelève`,
     html: shell('Your candidate is ready to meet',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`We have someone for you. <b>${o.candidate}</b> has been vetted on six fronts, background checked, matched against your Signature and the role you described, and briefed on how you work.`) +
       p('Read the match and tell us yes or no. That is all we need.'),
       { label: 'See your candidate', href: `${SITE}/app/pipeline` })
@@ -676,7 +692,7 @@ const rawTemplates = {
     subject: `${o.who} declined ${o.candidate}`,
     text: `${o.name},\n\n${o.who} has declined ${o.candidate}.${o.reason ? `\n\nReason: ${o.reason}` : ''}${o.note ? `\nIn their words: “${o.note}”` : ''}\n\nThe candidate has not been told. Release the next person from Matching.\n\n${SITE}/console/matching\n\nRelève`,
     html: shell('A candidate was declined',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${o.who}</b> has declined <b>${o.candidate}</b>.`) +
       (o.reason || o.note
         ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #9A7B3F;">${o.reason ? `<b>${esc(o.reason)}</b>` : ''}${o.reason && o.note ? '<br>' : ''}${o.note ? `“${esc(o.note)}”` : ''}</p>`
@@ -693,7 +709,7 @@ const rawTemplates = {
       subject: `Your offer from Relève: ${role}`,
       text: `${name},\n\nThere is an offer waiting in your account: ${role}, starting ${when}.\n\nThe role, the hours and the terms are all there. Have a read and say yes or no. Nothing is settled until both sides have answered.\n\n${SITE}/app\n\nRelève`,
       html: shell('There is an offer waiting for you',
-        p(`${name},`) +
+        p(`${esc(name)},`) +
         p(`<b>${role}</b>, starting <b>${when}</b>.`) +
         p('The role, the hours and the terms are in your account. Have a read and say yes or no.') +
         p('Nothing is settled until both sides have answered.'),
@@ -705,7 +721,7 @@ const rawTemplates = {
     subject: `Payment received: ${o.amount}`,
     text: `${o.name},\n\nWe have received ${o.amount}${o.number ? ` against invoice ${o.number}` : ''}. Nothing further is needed.\n\nYour billing page has the full history: ${SITE}/app/billing\n\nRelève`,
     html: shell('Payment received',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`We have received <b>${o.amount}</b>${o.number ? ` against invoice <b>${o.number}</b>` : ''}. Nothing further is needed from you.`) +
       p('Bank transfers can take a few days to clear, so this may arrive a little after the debit appeared on your statement.'),
       { label: 'See your billing', href: `${SITE}/app/billing` })
@@ -718,7 +734,7 @@ const rawTemplates = {
     subject: `A payment needs another try: ${o.amount}`,
     text: `${o.name},\n\nThe ${o.amount}${o.number ? ` for invoice ${o.number}` : ''} did not go through this time. Most often a bank declined a debit that clears on its own the next attempt. Retry it any time from your billing page, or let us know if you would rather use a different method.\n\n${SITE}/app/billing\n\nRelève`,
     html: shell('A payment needs another try',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`The <b>${o.amount}</b>${o.number ? ` for invoice <b>${o.number}</b>` : ''} did not go through this time. Most often a bank declined a debit that clears on its own the next attempt.`) +
       p('Retry it any time from your billing page, or write in if you would rather use a different payment method.'),
       { label: 'Retry the payment', href: `${SITE}/app/billing` })
@@ -744,7 +760,7 @@ const rawTemplates = {
     subject: `Your pay is on its way: ${o.amount}`,
     text: `${o.name},\n\n${o.amount} for ${o.period} is on its way to you.${o.reference ? ` Reference: ${o.reference}.` : ''}\n\nSee it any time on your pay page.\n\n${SITE}/app/pay\n\nRelève`,
     html: shell('Your pay is on its way',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${o.amount}</b> for ${o.period} is on its way to you.${o.reference ? ` Reference: <b>${esc(o.reference)}</b>.` : ''}`) +
       p('You can see this any time on your pay page.'),
       { label: 'See your pay', href: `${SITE}/app/pay` })
@@ -754,7 +770,7 @@ const rawTemplates = {
     subject: `A problem with your ${o.period} payment`,
     text: `${o.name},\n\nYour ${o.amount} payment for ${o.period} did not go through this time. We are on it. No action is needed from you, but write in if you would like an update.\n\n${SITE}/app/pay\n\nRelève`,
     html: shell('A problem with your payment',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`Your <b>${o.amount}</b> payment for ${o.period} did not go through this time.`) +
       p('We are on it. No action is needed from you, but write in any time if you would like an update.'),
       { label: 'See your pay', href: `${SITE}/app/pay` })
@@ -771,9 +787,9 @@ const rawTemplates = {
       : `${o.who} (${o.side}) said ${o.answer === 'yes' ? 'yes' : 'no'} to the offer for ${o.role}.${o.reason ? `\n\nReason: ${o.reason}` : ''}\n\n${o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.'}\n\n${SITE}/console/offers\n\nRelève`,
     html: shell(o.both ? 'Both sides said yes' : `${o.who} said ${o.answer}`,
       (o.both
-        ? p(`Both sides have accepted the offer for <b>${o.role}</b>.`) +
+        ? p(`Both sides have accepted the offer for <b>${esc(o.role)}</b>.`) +
           p('Make the placement from Matching, Offers. That opens their shared task list, the 90-Day Success Plan and the end of week reports.')
-        : p(`<b>${o.who}</b> (${o.side}) said <b>${o.answer}</b> to the offer for <b>${o.role}</b>.`) +
+        : p(`<b>${o.who}</b> (${o.side}) said <b>${o.answer}</b> to the offer for <b>${esc(o.role)}</b>.`) +
           (o.reason ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #9A7B3F;">${o.reason}</p>` : '') +
           p(o.answer === 'yes' ? 'Waiting on the other side.' : 'The offer is closed. Decide what happens next from Matching, Offers.')),
       { label: 'Open Offers', href: `${SITE}/console/offers` })
@@ -787,8 +803,8 @@ const rawTemplates = {
       subject: `Confirmed: ${o.role}`,
       text: `${o.name},\n\nBoth sides have said yes. ${o.withWhom} and you are starting ${when}: ${o.role}.\n\nRelève confirms the start and sets up your shared workspace: the task list, the 90-Day Success Plan and the weekly rhythm. You will get one more email when it is live.\n\n${SITE}/app\n\nRelève`,
       html: shell('Confirmed',
-        p(`${o.name},`) +
-        p(`Both sides have said yes. <b>${o.withWhom}</b> and you are starting <b>${when}</b>: ${o.role}.`) +
+        p(`${esc(o.name)},`) +
+        p(`Both sides have said yes. <b>${esc(o.withWhom)}</b> and you are starting <b>${when}</b>: ${o.role}.`) +
         p('Relève confirms the start and sets up your shared workspace: the task list, the 90-Day Success Plan and the weekly rhythm. You will get one more email when it is live.'),
         { label: 'Open your account', href: `${SITE}/app` })
     };
@@ -824,7 +840,7 @@ const rawTemplates = {
       ? `Your time off from ${o.from} to ${o.to} is approved.${o.cover ? ` Cover: ${o.cover}.` : ''} Let the executive know your handover before you go.`
       : `We could not approve time off from ${o.from} to ${o.to} this time. Your Talent Success Manager will write to you about it. Reply here if you want to talk it through.`}\n\n${SITE}/app/care\n\nRelève`,
     html: shell(o.approved ? 'Your time off is approved' : 'About your time off',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(o.approved
         ? `Your time off from <b>${o.from}</b> to <b>${o.to}</b> is approved.${o.cover ? ` Cover: ${o.cover}.` : ''} Let the executive know your handover before you go.`
         : `We could not approve time off from <b>${o.from}</b> to <b>${o.to}</b> this time. Your Talent Success Manager will write to you about it. Reply here if you want to talk it through.`),
@@ -836,7 +852,7 @@ const rawTemplates = {
     subject: `Feedback from Relève: ${o.period}`,
     text: `${o.name},\n\nYour Talent Success Manager has written up ${o.period}: what is going well, and one thing to build on. It is in your account.\n\n${SITE}/app/care\n\nRelève`,
     html: shell('There is feedback waiting for you',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`Your Talent Success Manager has written up <b>${o.period}</b>: what is going well, and one thing to build on.`),
       { label: 'Read it', href: `${SITE}/app/care` })
   }),
@@ -846,7 +862,7 @@ const rawTemplates = {
     subject: `New task from ${o.from}: ${o.title}`,
     text: `${o.name},\n\n${o.from} added a task for you: ${o.title}.${o.due ? `\nDue ${o.due}.` : ''}${o.priority ? `\nPriority: ${o.priority}.` : ''}\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('A new task for you',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${esc(o.from)}</b> added a task for you: <b>${esc(o.title)}</b>.${o.due ? ` Due <b>${esc(o.due)}</b>.` : ''}${o.priority ? ` Priority: ${esc(o.priority)}.` : ''}`),
       { label: 'Open your tasks', href: `${SITE}/app/tasks` })
   }),
@@ -854,7 +870,7 @@ const rawTemplates = {
     subject: `Ready for your review: ${o.title}`,
     text: `${o.name},\n\n${o.by} has finished ${o.title} and it is waiting for your review. Accept it, or send it back with a note.\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('Ready for your review',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${esc(o.by)}</b> has finished <b>${esc(o.title)}</b>. It is waiting for your review: accept it, or send it back with a note.`),
       { label: 'Review it', href: `${SITE}/app/tasks` })
   }),
@@ -862,7 +878,7 @@ const rawTemplates = {
     subject: `Accepted: ${o.title}`,
     text: `${o.name},\n\n${o.by} accepted ${o.title}. It is done and off the list.\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('Accepted',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${esc(o.by)}</b> accepted <b>${esc(o.title)}</b>. It is done and off the list.`),
       { label: 'Your tasks', href: `${SITE}/app/tasks` })
   }),
@@ -870,7 +886,7 @@ const rawTemplates = {
     subject: `One more pass: ${o.title}`,
     text: `${o.name},\n\n${o.by} sent ${o.title} back with a note:\n\n“${o.note}”\n\nIt is back on your list as in progress.\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('One more pass',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${esc(o.by)}</b> sent <b>${esc(o.title)}</b> back with a note:`) +
       `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #35443A;">“${esc(o.note)}”</p>` +
       p('It is back on your list as in progress.'),
@@ -880,7 +896,7 @@ const rawTemplates = {
     subject: `Past its date: ${o.title}`,
     text: `${o.name},\n\n${o.title} was due ${o.due} and is still open. If it is done, mark it finished; if something is in the way, ask ${o.executive} a question on the task so nobody is left wondering.\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('Past its date',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${esc(o.title)}</b> was due ${esc(o.due)} and is still open. If it is done, mark it finished. If something is in the way, ask ${esc(o.executive)} a question on the task so nobody is left wondering.`),
       { label: 'Open your tasks', href: `${SITE}/app/tasks` })
   }),
@@ -897,7 +913,7 @@ const rawTemplates = {
     subject: `Done: ${o.title}`,
     text: `${o.name},\n\n${o.by} marked a task done: ${o.title}.\n\n${SITE}/app/tasks\n\nRelève`,
     html: shell('A task is done',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(`<b>${esc(o.by)}</b> marked a task done: <b>${esc(o.title)}</b>.`),
       { label: 'See the list', href: `${SITE}/app/tasks` })
   }),
@@ -909,7 +925,7 @@ const rawTemplates = {
       ? `Your Taking The Watch for ${o.discipline} has been reviewed and you cleared it. You are now eligible to be put forward for ${o.discipline} roles.`
       : `Your Taking The Watch for ${o.discipline} has been reviewed and did not clear this time.`}${o.feedback ? `\n\nFeedback: ${o.feedback}` : ''}\n\n${SITE}/app/watch\n\nRelève`,
     html: shell(o.cleared ? 'You cleared it' : 'Your Watch has been reviewed',
-      p(`${o.name},`) +
+      p(`${esc(o.name)},`) +
       p(o.cleared
         ? `Your Taking The Watch for <b>${o.discipline}</b> has been reviewed and you cleared it. You are now eligible to be put forward for ${o.discipline} roles.`
         : `Your Taking The Watch for <b>${o.discipline}</b> has been reviewed and did not clear this time.`) +
@@ -924,8 +940,8 @@ const rawTemplates = {
       ? 'If a replacement is owed under the guarantee, we are already on it and will write with the next candidate.'
       : 'Your profile stays with us and you are back on the roster for the next role. Your Talent Success Manager will be in touch.'}\n\n${SITE}/app\n\nRelève`,
     html: shell('Your placement has ended',
-      p(`${o.name},`) +
-      p(`Your placement with <b>${o.withWhom}</b> ended on <b>${o.endedOn}</b>.`) +
+      p(`${esc(o.name)},`) +
+      p(`Your placement with <b>${esc(o.withWhom)}</b> ended on <b>${o.endedOn}</b>.`) +
       p(o.side === 'client'
         ? 'If a replacement is owed under the guarantee, we are already on it and will write with the next candidate.'
         : 'Your profile stays with us and you are back on the roster for the next role. Your Talent Success Manager will be in touch.'),
@@ -937,7 +953,7 @@ const rawTemplates = {
     subject: `Interview cancelled: ${o.who} and ${o.withWhom}`,
     text: `${o.who} cancelled the interview with ${o.withWhom} that was set for ${o.when}. Both were told a new time is coming. Book it from Introductions.\n\n${SITE}/console/interviews\n\nRelève`,
     html: shell('An interview needs rebooking',
-      p(`<b>${o.who}</b> cancelled the interview with <b>${o.withWhom}</b> set for ${o.when}.`) +
+      p(`<b>${o.who}</b> cancelled the interview with <b>${esc(o.withWhom)}</b> set for ${o.when}.`) +
       p('Both were told a new time is coming. Book it from Introductions.'),
       { label: 'Open Introductions', href: `${SITE}/console/interviews` })
   }),
@@ -947,7 +963,7 @@ const rawTemplates = {
     subject: `Meeting link owed: ${o.who} and ${o.withWhom}, ${o.when}`,
     text: `An interview was booked between ${o.who} and ${o.withWhom} for ${o.when}, but no meeting link could be made (Zoom is not connected). Both sides were told the link is coming. Send it from Introductions.\n\n${SITE}/console/interviews\n\nRelève`,
     html: shell('A meeting link is owed',
-      p(`An interview was booked between <b>${o.who}</b> and <b>${o.withWhom}</b> for ${o.when}, but no meeting link could be made, because Zoom is not connected.`) +
+      p(`An interview was booked between <b>${o.who}</b> and <b>${esc(o.withWhom)}</b> for ${o.when}, but no meeting link could be made, because Zoom is not connected.`) +
       p('Both sides were told the link is coming. Send it from Introductions.'),
       { label: 'Open Introductions', href: `${SITE}/console/interviews` })
   }),
@@ -1022,7 +1038,7 @@ export function signatureNudge(name: string): Message {
     subject: 'Your Signature, whenever you have fifteen minutes',
     text: `${name},\n\nYour search is open and we are ready to source against it. The one thing we need from you is your Executive Signature.\n\nAbout fifteen minutes, and it saves as you go, so you can stop and come back.\n\n${SITE}/app/signature\n\nRelève`,
     html: shell('Your Signature, whenever you have fifteen minutes',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Your search is open and we are ready to source against it. The one thing we need from you is your Executive Signature.') +
       p('About fifteen minutes, and it saves as you go.'),
       { label: 'Take the Signature', href: `${SITE}/app/signature` })
@@ -1038,7 +1054,7 @@ export function pulseNudge(name: string, month: string, placementId: string): Me
     subject: `A minute on ${month}`,
     text: `${name},\n\nA short one: how has this month been?\n\nFive taps and two boxes, and it goes to us rather than to the person you work with, so say what is actually true.\n\n${SITE}/app/care\n\nRelève`,
     html: shell('How has this month been?',
-      p(`${name},`) +
+      p(`${esc(name)},`) +
       p('Five taps and two boxes. It takes about a minute.') +
       p('<b>This comes to us, never to the person you work with.</b> If something is not right, this is the cheapest possible moment to say so.'),
       { label: 'File this month', href: `${SITE}/app/care` })

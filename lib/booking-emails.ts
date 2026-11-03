@@ -42,11 +42,11 @@ export function confirmedEmail(b: Booking, host: string, rescheduled = false): M
     html: shell(head,
       p(`${esc(first(b.name))},`) +
       p(`${lead} The invitation is attached, so it goes straight onto your calendar.`) +
-      p(`${minutes(b)} with ${esc(host)}. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.`) +
+      p(`${minutes(b)} with ${esc(host)}. We arrive prepared with what you told us, and you leave knowing what comes off your plate first, who takes it over, and how your 14-day search works.`) +
       tagline(),
       b.joinUrl ? { label: 'Join on Zoom', href: b.joinUrl } : undefined,
       { label: 'Reschedule or cancel', href: manage }),
-    text: `${first(b.name)},\n\n${rescheduled ? `Your discovery call with Relève is now ${l.text}.` : `Your discovery call with Relève is confirmed for ${l.text}.`} The invitation is attached, so it goes straight onto your calendar.\n\n${minutes(b)} with ${host}. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
+    text: `${first(b.name)},\n\n${rescheduled ? `Your discovery call with Relève is now ${l.text}.` : `Your discovery call with Relève is confirmed for ${l.text}.`} The invitation is attached, so it goes straight onto your calendar.\n\n${minutes(b)} with ${host}. We arrive prepared with what you told us, and you leave knowing what comes off your plate first, who takes it over, and how your 14-day search works.${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
     icalEvent: { method: 'REQUEST', filename: 'releve-discovery-call.ics', content: bookingIcs(b, { method: 'REQUEST', host, sequence: rescheduled ? 1 : 0 }) }
   };
 }

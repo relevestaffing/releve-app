@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { preflight } from '@/lib/cors';
 import { guard, one, zoneOk } from '@/lib/booking-http';
 import { adminClient } from '@/lib/supabase/admin';
+import { publicFormAllowed } from '@/lib/booking-http';
 import { bookingReady, createBooking, getBookingSettings, manageUrl, SlotTaken } from '@/lib/booking';
 import { sendConfirmed, tellTeam } from '@/lib/booking-emails';
 import { todayInPacific } from '@/lib/money-public';
@@ -37,6 +38,11 @@ export async function POST(req: Request) {
   if (name.length < 2) return fail('Please tell us your name.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail('That email address does not look right.');
   if (phone.replace(/\D/g, '').length < 7) return fail('Please add a phone number we can reach you on.');
+
+  /* Rate limit, shared with /api/apply; fails closed (security pass, 2 Nov 2026). */
+  const allowed = await publicFormAllowed(adminClient(), req, email);
+  if (allowed === 'limited') return fail('Too many bookings from this address today. Please email hello@relevestaffing.com instead.', 429);
+  if (allowed === 'unsure') return fail('We could not book that just now. Please try again in a few minutes.', 503);
   if (!start || isNaN(Date.parse(start))) return fail('Please choose a time.');
 
   let b;

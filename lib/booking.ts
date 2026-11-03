@@ -160,6 +160,9 @@ export type Booking = {
   start: string; end: string; timezone: string;
   zoomId: string | null; joinUrl: string | null; eventId: string | null;
   source: string | null; created_at: string; cancelled_at?: string | null; rescheduled_from?: string | null;
+  /* The calendar UID stays the same across reschedules so the guest's calendar
+     replaces the old time instead of keeping both (QA, 2 Nov 2026). */
+  uid?: string; sequence?: number;
 };
 
 export async function listBookings(opts: { fromISO?: string; includeCancelled?: boolean } = {}): Promise<Booking[]> {
@@ -185,7 +188,9 @@ async function putBooking(b: Booking) {
 /* The guest's private link: the booking id signed with the server secret,
    so it cannot be guessed or altered. */
 function secret() {
-  return process.env.BOOKING_SECRET || process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'releve';
+  const s = process.env.BOOKING_SECRET || process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!s) throw new Error('No signing secret is configured for booking links.');
+  return s;
 }
 export function manageToken(id: string) {
   const sig = crypto.createHmac('sha256', secret()).update(id).digest('base64url').slice(0, 22);
@@ -255,6 +260,17 @@ export async function createBooking(o: {
   const { settings: s, slots } = await openSlots({ ignoreBookingId: o.rescheduleOf?.id });
   const startISO = new Date(o.start).toISOString();
   if (!slots.includes(startISO)) throw new SlotTaken('That time is no longer available.');
+  /* Claim the slot before the slow Zoom and calendar calls, so two people
+     who pass the check at the same moment cannot both book it (QA, 2 Nov 2026). */
+  {
+    const { error: claimErr } = await adminClient().from('content_settings')
+      .insert({ key: `slot:${startISO}`, value: { at: new Date().toISOString(), email: o.email }, updated_at: new Date().toISOString() });
+    if (claimErr) {
+      if (String(claimErr.code) === '23505' || /duplicate|unique/i.test(claimErr.message ?? '')) {
+        if (!o.rescheduleOf || o.rescheduleOf.start !== startISO) throw new SlotTaken('That time was just taken. Please choose another.');
+      } else console.error('[booking] slot claim failed', claimErr.message);
+    }
+  }
   const end = new Date(Date.parse(startISO) + s.durationMin * 60000).toISOString();
   const id = crypto.randomUUID();
 
@@ -286,9 +302,11 @@ export async function createBooking(o: {
   const b: Booking = {
     id, status: 'booked', name: o.name, email: o.email, phone: o.phone, org: o.org ?? null, notes: o.notes ?? null,
     start: startISO, end, timezone: o.timezone, zoomId: zoom?.id ?? null, joinUrl: zoom?.url ?? null, eventId,
-    source: o.source ?? null, created_at: new Date().toISOString(), rescheduled_from: o.rescheduleOf?.id ?? null
+    source: o.source ?? null, created_at: new Date().toISOString(), rescheduled_from: o.rescheduleOf?.id ?? null,
+    uid: o.rescheduleOf?.uid ?? o.rescheduleOf?.id ?? id, sequence: (o.rescheduleOf?.sequence ?? 0) + 1
   };
-  await putBooking(b);
+  try { await putBooking(b); }
+  catch (e) { try { await adminClient().from('content_settings').delete().eq('key', `slot:${startISO}`); } catch {} throw e; }
   return b;
 }
 
@@ -298,6 +316,7 @@ export async function cancelBooking(b: Booking): Promise<Booking> {
   try { if (b.eventId) await deleteCalendarEvent(b.eventId); } catch (e) { console.error('[booking] calendar delete failed', e); }
   const done: Booking = { ...b, status: 'cancelled', cancelled_at: new Date().toISOString() };
   await putBooking(done);
+  try { await adminClient().from('content_settings').delete().eq('key', `slot:${b.start}`); } catch {}
   return done;
 }
 
@@ -310,8 +329,8 @@ export function bookingIcs(b: Booking, opts: { method: 'REQUEST' | 'CANCEL'; hos
   const lines = [
     'BEGIN:VCALENDAR', 'PRODID:-//Releve Executive Staffing//Booking//EN', 'VERSION:2.0', `METHOD:${opts.method}`,
     'BEGIN:VEVENT',
-    `UID:${b.id}@relevestaffing.com`,
-    `SEQUENCE:${opts.sequence ?? 0}`,
+    `UID:${b.uid ?? b.id}@relevestaffing.com`,
+    `SEQUENCE:${(b.sequence ?? 0) + (opts.sequence ?? 0)}`,
     `DTSTAMP:${icsStamp(new Date().toISOString())}`,
     `DTSTART:${icsStamp(b.start)}`, `DTEND:${icsStamp(b.end)}`,
     `SUMMARY:${icsText(`Relève discovery call with ${opts.host}`)}`,

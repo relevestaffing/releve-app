@@ -47,7 +47,8 @@ export async function getGroups(): Promise<Group[]> {
 /* ---------- links ---------- */
 
 export function sign(id: string, n: number | string) {
-  const secret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || 'releve-dev-only';
+  const secret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  if (!secret) throw new Error('No signing secret is configured for content links.');
   return createHmac('sha256', secret).update(`${id}:${n}`).digest('hex').slice(0, 24);
 }
 export function imageUrl(id: string, n: number, fmt: 'jpg' | 'png' = 'jpg') {
@@ -85,7 +86,7 @@ export async function tablesReady() {
 
 /* ---------- writing: Claude drafts in Relève's voice ---------- */
 
-const FACTS = `About Relève: a premium virtual executive staffing agency. It places a vetted, fully supported virtual professional (executive assistants and other remote staff, from the Philippines and Latin America) with founders and business owners, and stays with them for the life of the relationship through a Client Success Manager and a Talent Success Manager. Every candidate is vetted on six fronts: the business is studied first and the role built around it; tested for the role; matched to how the owner works through the Relève Signature working-style and personality assessment; background checked and verified; "we interview many, you meet one"; and a named approval before anyone is presented. Prepared for the role before day one. First candidate within 14 days. Up to two replacements. Talent at 30% of the cost of a local hire. Relève takes ten new clients a year, deliberately. Relève professionals already use AI in their daily work and can help owners map and build automations. The founder is Sage Jackson.
+const FACTS = `About Relève: a premium virtual executive staffing agency. It places a vetted, fully supported virtual professional (executive assistants and other remote staff, from the Philippines and Latin America) with founders and business owners, and stays with them for the life of the relationship through a Client Success Manager and a Talent Success Manager. Every candidate is vetted on six fronts: the business is studied first and the role built around it; tested for the role; matched to how the owner works through the Relève Signature working-style and personality assessment; background checked and verified; "we interview many, you meet one"; and a named approval before anyone is presented. Prepared for the role before day one. First candidate within 14 days. Up to two replacements. Talent at 30% of the cost of a local hire. Relève professionals already use AI in their daily work and can help owners map and build automations. The founder is Sage Jackson.
 
 Positioning: trust and relief, the feeling of "Consider it handled." The real fears are "can I trust someone with this?" and "will they add work instead of removing it?" Hires rarely fail on skill; they fail on fit: the right resume, the wrong working style. Owners get their time back for the work that grows the business. Never lead with cost, cheapness, offshore savings or "fix your inbox"; 14 days and 30% are supporting facts only.
 
@@ -136,7 +137,7 @@ The purpose of every post on Instagram, Facebook and LinkedIn (Nona, 31 October)
 - About 3 in 10: book a discovery call at relevestaffing.com/discovery, where Sage gives a free live audit of what to delegate.
 - About 2 in 10: "comment HANDLED" to be sent the free training (comments build reach and start a conversation in messages).
 - About 1 in 10: explore relevestaffing.com (how matching works, the Signature assessment).
-On Instagram the link lives in the bio, so write "link in bio" plus the page name; on Facebook and LinkedIn write the full address. Always Relève branded, always worth stopping for, never a hard sell. Scarcity is true and quiet: Relève opens only ten new client spots a year.`;
+On Instagram the link lives in the bio, so write "link in bio" plus the page name; on Facebook and LinkedIn write the full address. Always Relève branded, always worth stopping for, never a hard sell.`;
 
 const DESIGN = `You also design each graphic. The house look is a clean, modern "ledger": Marcellus headlines, figures and text in a modern sans, fine rules, the real working artifact on the page. You choose a layout for every single graphic and every carousel slide, and you fill its fields. Layouts:
 - "statement": a headline that lands on its own, plus a short line under it. Use sparingly, at most once a week per account.
@@ -154,6 +155,7 @@ const DESIGN = `You also design each graphic. The house look is a clean, modern 
 Every slide in a carousel can use a different layout: mix step with rules, number, compare, chart and message so the reader sees the real thing. Across the week use at least five different layouts and never the same layout on two posts in a row. Each week, every client-facing account (Instagram + Facebook, the groups) includes at least: one "quiz" or "flags" post, one "notes" or "search" post, and one "comment" post (a card, or a carousel whose last slide is the comment layout) offering Handled Business, the free training at relevestaffing.com/training. Keep every figure honest arithmetic or clearly illustrative. Headlines under 70 characters, rows under 70, no em dashes.`;
 
 const FORMAT_RULES: Record<string, string> = {
+  ig_client: `For the Relève Instagram and Facebook page, talking to founders and business owners. The same post is copied to the Relève LinkedIn page and the LinkedIn groups, so the LinkedIn caption must stand on its own. Return JSON: {"posts":[{"topic":"...","hook":"first line","format":"card" or "carousel","caption_ig":"Instagram caption, 600 to 1200 characters, \\n for breaks, hashtags at the end","caption_fb":"Facebook caption, 400 to 900 characters, conversational","caption_li":"LinkedIn caption, 500 to 1100 characters","card":{"layout":"...","title":"...","body":"..."} for a card, or "slides":[{"layout":"...","title":"...","body":"..."}] for a carousel}]}. A carousel has 5 to 8 slides (never fewer than 3): slide 1 is a "cover", the middle slides each show one real thing, the last is a "cta". Use the layouts and their own fields exactly as named above; a card is one layout with its fields.`,
   li_personal: `Return JSON: {"posts":[{"topic":"...","hook":"first line","text":"the full post, 900 to 1500 characters, line breaks as \\n","image_idea":"one sentence naming ONE real, candid photo-moment from Sage's own life that would suit the post (a boat, a window seat, the car between meetings, a walk); the post itself must never describe it"}]}`,
   li_group: `These go to four LinkedIn groups of business owners as free training. Pure value, no sales pitch; the only invitation is a soft line at the end of the caption pointing to the free training at relevestaffing.com/training. Each teaches one concrete thing a founder can do this week, usually how to hand a specific area of the business to a virtual professional and what changes. Return JSON: {"posts":[{"topic":"...","hook":"...","format":"carousel","caption":"LinkedIn caption, 500 to 1100 characters, \\n for breaks","slides":[{"title":"...","body":"..."}]} ...]}. A carousel has 7 or 8 slides, each {"layout","title","body", plus the layout's own fields}: slide 1 is a "cover" (a specific, concrete promise as title, for example the outcome and the time it takes; a short subtitle as body), the middle slides each teach one step and show the real thing (mix step, rules, number, compare, chart and message), the last slide is a "cta" that sums up and invites them to the free training (body mentions relevestaffing.com/training).`,
   ig_careers: `For the Relève Careers Instagram and Facebook, talking to experienced remote professionals in the Philippines and Latin America who want a real career with a US executive. Tagline "Take the watch." but always say plainly what Relève Careers is: remote careers supporting US founders and executives, matched to how they work, prepared for the role before day one, supported by a Talent Success Manager. Respect and aspiration, never pity. Calls to action point to applying on relevestaffing.com (Careers). Return JSON: {"posts":[...]} each {"topic","hook","format":"card"|"carousel","caption_ig":"300 to 900 characters, up to 5 hashtags","caption_fb":"conversational, 200 to 600 characters","caption_li":"professional, 300 to 700 characters","card":{"layout","kicker","quote","sub", plus the layout's fields} or "slides":[{"layout","title","body", plus the layout's fields}] with 5 to 7 slides}.`
@@ -163,32 +165,80 @@ function clean(s: unknown, max: number) {
   return String(s ?? '').replace(/[–—]/g, ', ').replace(/[ \t]+\n/g, '\n').trim().slice(0, max);
 }
 
+/* Read the JSON out of a model answer, forgiving the usual slips: code
+   fences, raw line breaks inside strings, trailing commas, text around it. */
+function parseLoose(text: string): any {
+  const a = text.indexOf('{'); const b = text.lastIndexOf('}');
+  if (a < 0 || b < a) throw new Error('no json');
+  const raw = text.slice(a, b + 1);
+  try { return JSON.parse(raw); } catch { /* repair below */ }
+  let out = ''; let inStr = false; let esc = false;
+  for (const ch of raw) {
+    if (inStr) {
+      if (esc) { out += ch; esc = false; }
+      else if (ch === '\\') { out += ch; esc = true; }
+      else if (ch === '"') { out += ch; inStr = false; }
+      else if (ch === '\n') out += '\\n';
+      else if (ch === '\r') out += '';
+      else if (ch === '\t') out += '\\t';
+      else out += ch;
+    } else { if (ch === '"') inStr = true; out += ch; }
+  }
+  out = out.replace(/,\s*([}\]])/g, '$1');
+  return JSON.parse(out);
+}
+
+function extractPosts(j: any): any[] {
+  if (Array.isArray(j)) return j.filter(x => x && typeof x === 'object');
+  if (!j || typeof j !== 'object') return [];
+  if (Array.isArray(j.posts)) return j.posts.filter((x: any) => x && typeof x === 'object');
+  if (j.post && typeof j.post === 'object') return [j.post];
+  if (j.hook || j.topic || j.card || j.slides || j.caption || j.caption_ig) return [j];
+  const arr = Object.values(j).find(v => Array.isArray(v) && v.length && typeof v[0] === 'object') as any[] | undefined;
+  return arr ?? [];
+}
+
+const FALLBACK_MODEL = 'claude-sonnet-5-5';
+
+/* Ask Claude for JSON. It does not give up on the first hiccup: a busy
+   service, a timeout or an unreadable answer is retried (twice on Opus, then
+   once on Sonnet) before it counts as a failure (2 Nov 2026). */
+let hardDeadline = 0;            /* set by draftWeek: the worker's own time limit */
+let lastDraftError = '';         /* the last per-post failure, so the alert can name it */
 async function askClaude(system: string, brief: string, maxTokens = 16000): Promise<any> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error('Add ANTHROPIC_API_KEY in Netlify so Claude can write the posts.');
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 600000);
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({
-      model: process.env.ANTHROPIC_CONTENT_MODEL || 'claude-opus-5-5',
-      max_tokens: maxTokens, system, messages: [{ role: 'user', content: brief }]
-    }),
-    signal: ctl.signal
-  }).catch(() => null).finally(() => clearTimeout(timer));
-  if (!res) throw new Error('Could not reach the AI service.');
-  if (!res.ok) {
-    let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch { /* */ }
-    throw new Error(`The AI service refused the request (${res.status})${detail ? `: ${detail}` : ''}.`);
+  const primary = process.env.ANTHROPIC_CONTENT_MODEL || 'claude-opus-5-5';
+  const models = [primary, primary, FALLBACK_MODEL];
+  let last = 'The AI did not answer.';
+  for (let i = 0; i < models.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, i * 4000));
+    const left = hardDeadline ? hardDeadline - Date.now() : Infinity;
+    if (left < 30000) throw new Error('Out of time before the worker is stopped; the next round continues.');
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), Math.min(270000, left - 5000));
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: models[i],
+        max_tokens: maxTokens, system, messages: [{ role: 'user', content: brief }]
+      }),
+      signal: ctl.signal
+    }).catch(() => null).finally(() => clearTimeout(timer));
+    if (!res) { last = 'Could not reach the AI service.'; continue; }
+    if (!res.ok) {
+      let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch { /* */ }
+      last = `The AI service refused the request (${res.status})${detail ? `: ${detail}` : ''}.`;
+      if (res.status === 401 || res.status === 403) throw new Error(last);
+      continue;
+    }
+    const data: any = await res.json().catch(() => null);
+    const text = (data?.content ?? []).filter((b: any) => b?.type === 'text').map((b: any) => b.text).join('');
+    try { return parseLoose(text); }
+    catch { last = data?.stop_reason === 'max_tokens' ? 'The AI ran out of room before finishing the posts.' : 'The AI sent back posts that could not be read.'; }
   }
-  const data: any = await res.json();
-  const text = (data?.content ?? []).filter((b: any) => b?.type === 'text').map((b: any) => b.text).join('');
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start < 0 || end < start) throw new Error('The AI sent back something that was not a set of posts.');
-  try { return JSON.parse(text.slice(start, end + 1)); }
-  catch { throw new Error(data?.stop_reason === 'max_tokens' ? 'The AI ran out of room before finishing the posts.' : 'The AI sent back posts that could not be read.'); }
+  throw new Error(`${last} (tried three times)`);
 }
 
 async function askClaudeVision(system: string, brief: string, image: { bytes: Buffer; type: string }, maxTokens = 4000): Promise<any> {
@@ -245,9 +295,12 @@ function design(x: any) {
 }
 
 function normalize(channel: Channel, raw: any, wanted: Format): Drafted {
-  const slides = (Array.isArray(raw?.slides) ? raw.slides : []).map((s: any) => ({ ...design(s), title: clean(s?.title, 140), body: clean(s?.body, 420) }))
+  const rawSlides = Array.isArray(raw?.slides) ? raw.slides : Array.isArray(raw?.graphic?.slides) ? raw.graphic.slides : Array.isArray(raw?.carousel?.slides) ? raw.carousel.slides : Array.isArray(raw?.graphic) ? raw.graphic : [];
+  const slides = rawSlides.map((s: any) => ({ ...design(s), title: clean(s?.title ?? s?.headline ?? s?.heading ?? s?.quote, 140), body: clean(s?.body ?? s?.sub ?? s?.subtitle ?? s?.text ?? s?.note, 420) }))
     .filter((s: Slide) => s.title).slice(0, 10);
-  const card = raw?.card?.quote ? { ...design(raw.card), kicker: clean(raw.card.kicker, 40), quote: clean(raw.card.quote, 200), sub: clean(raw.card.sub, 200) || undefined } : null;
+  const rc = raw?.card ?? (raw?.graphic && !Array.isArray(raw.graphic) ? raw.graphic : null) ?? raw?.image ?? null;
+  const cq = rc?.quote ?? rc?.headline ?? rc?.title;
+  const card = cq ? { ...design(rc), kicker: clean(rc.kicker, 40), quote: clean(cq, 200), sub: clean(rc.sub ?? rc.body ?? rc.subtitle, 200) || undefined } : null;
   const script = raw?.script?.hook ? {
     hook: clean(raw.script.hook, 300), close: clean(raw.script.close, 400),
     beats: (raw.script.beats ?? []).map((b: unknown) => clean(b, 500)).filter(Boolean).slice(0, 8),
@@ -256,11 +309,12 @@ function normalize(channel: Channel, raw: any, wanted: Format): Drafted {
   let format: Format = wanted;
   if (wanted === 'card' && !card && slides.length) format = 'carousel';
   if (wanted === 'carousel' && !slides.length && card) format = 'card';
-  const caption = clean(raw?.text ?? raw?.caption ?? raw?.caption_ig, 3000);
+  const caps = raw?.captions ?? {};
+  const caption = clean(raw?.text ?? raw?.caption ?? raw?.caption_ig ?? caps.instagram ?? caps.ig ?? caps.linkedin, 3000);
   return {
-    topic: clean(raw?.topic, 200), hook: clean(raw?.hook, 300), format, caption,
-    caption_fb: raw?.caption_fb ? clean(raw.caption_fb, 2000) : undefined,
-    caption_li: raw?.caption_li ? clean(raw.caption_li, 3000) : undefined,
+    topic: clean(raw?.topic ?? raw?.point ?? raw?.direction ?? raw?.hook, 200), hook: clean(raw?.hook, 300), format, caption,
+    caption_fb: (raw?.caption_fb ?? caps.facebook ?? caps.fb) ? clean(raw?.caption_fb ?? caps.facebook ?? caps.fb, 2000) : undefined,
+    caption_li: (raw?.caption_li ?? caps.linkedin) ? clean(raw?.caption_li ?? caps.linkedin, 3000) : undefined,
     card, slides, script, image_idea: raw?.image_idea ? clean(raw.image_idea, 300) : undefined
   };
 }
@@ -336,15 +390,27 @@ async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 
      week is written in parts of up to three posts; each later part is told
      what the earlier ones already covered, so the week still varies. */
   const out: Drafted[] = [];
-  for (let at = 0; at < formats.length; at += 3) {
-    const part = formats.slice(at, at + 3);
+  for (let at = 0; at < formats.length; at += 1) {
+    const part = formats.slice(at, at + 1);
     const done = out.length
       ? `\n\nYou are writing posts ${at + 1} to ${at + part.length} of ${formats.length} for this week. Already written this week (use different topics, layouts and next steps, and cover the weekly minimums the earlier posts did not):\n- ${out.map(d => `${d.topic} | layouts: ${[d.card?.layout, ...(d.slides ?? []).map((x: any) => x.layout)].filter(Boolean).join(', ') || d.format}`).join('\n- ')}`
-      : formats.length > 3 ? `\n\nYou are writing posts 1 to ${part.length} of ${formats.length} for this week; the rest are written next.` : '';
+      : formats.length > 1 ? `\n\nYou are writing post 1 of ${formats.length} for this week; the rest are written next.` : '';
     const partBrief = brief.replace(`Write ${formats.length} posts, in this order of format: ${formats.join(', ')}.`, `Write ${part.length} posts, in this order of format: ${part.join(', ')}.`) + done;
-    const j = await askClaude(system, partBrief);
-    const posts: any[] = Array.isArray(j?.posts) ? j.posts : [];
-    if (posts.length < part.length) throw new Error(`The AI wrote ${posts.length} of ${part.length} ${CHANNELS[channel].label} posts.`);
+    /* The answer is accepted in any of the shapes the model uses, but a post
+       is only kept when it is whole: a topic, a hook, a caption and its
+       graphic. Anything less is asked for again (3 tries), and the model's raw
+       answer is kept in the settings table so a failure can be diagnosed. */
+    let posts: any[] = [];
+    let lastRaw: any = null;
+    for (let tryNo = 0; tryNo < 3; tryNo++) {
+      if (hardDeadline && Date.now() > hardDeadline - 30000) break;
+      lastRaw = await askClaude(system, partBrief + '\n\nReturn exactly one JSON object shaped {"posts":[ ... ]} with the post inside the posts array, even when it is a single post. No text outside the JSON. Use exactly these keys on the post and no others for content: topic, hook, format, caption_ig, caption_fb, caption_li, and either card (for a card) or slides (for a carousel), each card or slide using the field names given above (title, body, layout and that layout\'s own fields). Do not rename them (not graphic, captions, headline as the only title field, or point).');
+      const got = extractPosts(lastRaw);
+      const whole = got.filter(g => { const n = normalize(channel, g, part[0]); return n.topic && n.hook && n.caption && (n.card || (n.slides?.length ?? 0) >= 3); });
+      if (whole.length >= part.length) { posts = whole; break; }
+      await putSetting('draft:debug', { at: new Date().toISOString(), channel, tryNo, raw: JSON.stringify(lastRaw).slice(0, 3000) }).catch(() => {});
+    }
+    if (posts.length < part.length) throw new Error(`The AI wrote ${posts.length} whole ${CHANNELS[channel].label} posts out of ${part.length}.`);
     part.forEach((f, i) => out.push(normalize(channel, posts[i], f)));
   }
   return out;
@@ -356,6 +422,50 @@ function statusFor(channel: Channel, format: Format) {
   if (channel === 'li_page_client' || channel === 'li_page_careers') return pageAccess() ? 'scheduled' : 'manual';
   if (format === 'video') return 'needs_video';
   return 'scheduled';
+}
+
+/* Which of the week's daily client posts still do not exist. */
+export async function missingSlots(monday: string): Promise<string[]> {
+  const want = WEEK_PLAN.filter(x => x.channel === 'ig_client').map(x => `${monday}-ig_client-${DAY_KEYS[x.day]}`);
+  const { data } = await sb().from('content_posts').select('slot').in('slot', want);
+  const have = new Set(((data ?? []) as { slot: string }[]).map(r => r.slot));
+  return want.filter(w => !have.has(w));
+}
+
+/* Tell the team when something in the content engine breaks: an email and a
+   phone push. The same problem alerts at most once every 3 hours. */
+export async function alertAdmins(key: string, headline: string, detail: string) {
+  try {
+    const last = await getSetting<{ at: string }>(`alert:${key}`);
+    if (last && Date.now() - new Date(last.at).getTime() < 3 * 3600000) return;
+    await putSetting(`alert:${key}`, { at: new Date().toISOString() });
+    const subject = `Relève content needs you: ${headline}`;
+    await toTeam(subject, headline, p(esc(detail)) + p('Open the Content tab and press Redraft the week, or reply to Claude in the console.'), `${headline}\n\n${detail}`);
+    const { sendPushToEmail } = await import('./push');
+    const admins = await teamEmailsAdmin();
+    await Promise.all(admins.map(e => sendPushToEmail(e, { title: 'Content needs you', body: `${headline}. ${detail}`.slice(0, 180), url: '/console/content', tag: `alert-${key}` })));
+  } catch (e) { console.error('[content] alert failed', e); }
+}
+
+/* Draft a week and see it through: if anything is still missing it starts
+   itself again (up to 6 rounds), and if it still cannot finish it alerts. */
+export async function runDraft(monday: string, attempt = 1) {
+  await putSetting(`draft:${monday}`, { status: 'drafting', at: new Date().toISOString(), attempt });
+  let err = ''; let made: string[] = [];
+  try { made = await draftWeek(monday); } catch (e: any) { err = String(e?.message ?? e).slice(0, 300); }
+  const missing = await missingSlots(monday);
+  if (!missing.length) {
+    await putSetting(`draft:${monday}`, { status: 'done', at: new Date().toISOString(), made: made.length, attempt });
+    if (made.length) await previewWeek(monday);
+    return;
+  }
+  if (attempt < 6 && await kick('draft_week', { week: monday, attempt: attempt + 1 })) {
+    await putSetting(`draft:${monday}`, { status: 'drafting', at: new Date().toISOString(), attempt, note: `${missing.length} still to write, trying again` });
+    return;
+  }
+  const why = err || lastDraftError || 'The AI could not finish every post.';
+  await putSetting(`draft:${monday}`, { status: 'failed', at: new Date().toISOString(), error: why, attempt });
+  await alertAdmins(`draft-${monday}`, `The week of ${monday} is not fully written (${missing.length} of 6 posts missing)`, why);
 }
 
 /* Draft the whole week that starts on `monday`. Re-running fills only the
@@ -376,19 +486,22 @@ export async function draftWeek(monday: string) {
      it is on) are drafted. */
   const families: ('ig_client' | 'ig_careers')[] = ['ig_client'];  // careers removed 2 Nov 2026
 
-  /* All four accounts are written at once (Opus is slower than Sonnet, and
-     the worker has 15 minutes), then saved in order. */
-  const plans = families.map(ch => WEEK_PLAN.filter(s => s.channel === ch && !existing.has(`${monday}-${ch}-${DAY_KEYS[s.day]}`)));
-  const written = await Promise.all(families.map((ch, k) => plans[k].length
-    ? draftChannel(ch, plans[k].map(s => s.format), hooks,
-        '', seasonFor(monday))
-    : Promise.resolve([])));
-  for (const [k, ch] of families.entries()) {
-    const plan = plans[k];
-    if (!plan.length) continue;
-    const drafts = written[k];
-    for (let i = 0; i < plan.length; i++) {
-      const s = plan[i], d = drafts[i];
+  /* One post at a time, each saved the moment it is written, so a hiccup
+     never costs the week: whatever is saved stays, and the next run (it
+     re-starts itself, see runDraft) only fills what is still empty. Stops
+     before the worker's 15 minutes run out. */
+  const deadline = Date.now() + 11 * 60000;
+  hardDeadline = deadline; lastDraftError = '';
+  const earlier: string[] = (await listWeek(monday)).filter(r => r.channel === 'ig_client' && r.status !== 'skipped' && r.topic)
+    .map(r => `${r.topic} | layouts: ${[(r.card as any)?.layout, ...((r.slides ?? []) as any[]).map(x => x?.layout)].filter(Boolean).join(', ') || r.format}`);
+  for (const ch of families) {
+    const plan = WEEK_PLAN.filter(s => s.channel === ch && !existing.has(`${monday}-${ch}-${DAY_KEYS[s.day]}`));
+    for (const s of plan) {
+      if (Date.now() > deadline) break;
+      const extra = earlier.length ? `Already written this week (use different topics, layouts and next steps, and cover the weekly minimums these did not):\n- ${earlier.join('\n- ')}` : '';
+      let d: Drafted;
+      try { [d] = await draftChannel(ch, [s.format], hooks, extra, seasonFor(monday)); }
+      catch (e: any) { lastDraftError = String(e?.message ?? e).slice(0, 300); console.error('[content] one post failed:', lastDraftError); continue; }
       const slot = `${monday}-${ch}-${DAY_KEYS[s.day]}`;
       const at = slotTime(monday, s.day, s.hour, s.minute).toISOString();
       const { data: row, error } = await sb().from('content_posts').insert({
@@ -399,9 +512,10 @@ export async function draftWeek(monday: string) {
       if (error) { if (/duplicate/i.test(error.message)) continue; throw new Error(error.message); }
       made.push(slot);
       hooks.unshift(d.hook);
+      earlier.push(`${d.topic} | layouts: ${[d.card?.layout, ...(d.slides ?? []).map((x: any) => x.layout)].filter(Boolean).join(', ') || d.format}`);
 
       /* The copies (one post a day): the client post goes, identical, to the
-         LinkedIn page and the groups; a careers post goes to its page. */
+         LinkedIn page and the groups. */
       const targets: Channel[] = ch === 'ig_client'
         ? COPY_PLAN.filter(c => c.days.includes(s.day)).map(c => c.channel)
         : (pageFor(ch) ? [pageFor(ch) as Channel] : []);
@@ -689,7 +803,7 @@ export async function dailyDigest(now = new Date()) {
 
 export async function tick(now = new Date()) {
   const out: Record<string, unknown> = {};
-  try { out.published = await publishDue(now); } catch (e: any) { out.publishError = e?.message ?? String(e); }
+  try { out.published = await publishDue(now); } catch (e: any) { out.publishError = e?.message ?? String(e); await alertAdmins('publish', 'A scheduled post could not be published', String(out.publishError)); }
 
   const pt = pacificParts(now);
   if (pt.wd >= 1 && pt.wd <= 6 && pt.h >= 7) {
@@ -703,16 +817,13 @@ export async function tick(now = new Date()) {
     const next = weekStart(now, 1);
     const lock = await getSetting<{ status: string; at: string }>(`draft:${next}`);
     const stuck = lock?.status === 'drafting' && Date.now() - new Date(lock.at).getTime() > 30 * 60000;
-    const retry = lock?.status === 'failed' && Date.now() - new Date(lock.at).getTime() > 3 * 3600000;
+    const retry = lock?.status === 'failed' && Date.now() - new Date(lock.at).getTime() > 45 * 60000;
     if (!lock || stuck || retry) {
-      await putSetting(`draft:${next}`, { status: 'drafting', at: now.toISOString() });
-      try {
-        out.drafted = await draftWeek(next);
-        await putSetting(`draft:${next}`, { status: 'done', at: new Date().toISOString() });
-        await previewWeek(next);
-      } catch (e: any) {
+      try { await runDraft(next); out.drafted = true; }
+      catch (e: any) {
         out.draftError = e?.message ?? String(e);
         await putSetting(`draft:${next}`, { status: 'failed', at: new Date().toISOString(), error: out.draftError });
+        await alertAdmins(`draft-${next}`, 'Drafting next week crashed', String(out.draftError));
       }
     }
   }
@@ -720,7 +831,7 @@ export async function tick(now = new Date()) {
      Pacific, so any edits made after Thursday's draft are in what she
      receives. Once per week. */
   if (pt.wd === 0 && pt.h >= 8) {
-    try { out.va = await exportForVA(weekStart(now, 1)); } catch (e: any) { out.vaError = e?.message ?? String(e); }
+    try { out.va = await exportForVA(weekStart(now, 1)); } catch (e: any) { out.vaError = e?.message ?? String(e); await alertAdmins('va', 'The weekly send to the VA failed', String(out.vaError)); }
   }
   return out;
 }

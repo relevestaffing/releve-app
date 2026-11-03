@@ -21,6 +21,8 @@ export async function POST(req: Request) {
   if (!str(endpoint, 1024) || !String(endpoint).startsWith('https://') || !str(p256dh, 256) || !str(auth, 256))
     return NextResponse.json({ error: 'That subscription was incomplete.' }, { status: 400 });
 
+  const { data: owned } = await adminClient().from('push_subscriptions').select('user_id').eq('endpoint', endpoint).maybeSingle();
+  if (owned && owned.user_id !== me.id) return NextResponse.json({ error: 'That device is registered to another account.' }, { status: 409 });
   const { error } = await adminClient().from('push_subscriptions').upsert({
     user_id: me.id, endpoint, p256dh, auth,
     user_agent: (req.headers.get('user-agent') || '').slice(0, 300),

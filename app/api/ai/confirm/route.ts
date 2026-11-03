@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { isOwner } from '@/lib/money';
-import { getAction, finishAction, planFor } from '@/lib/ai/actions';
+import { getAction, finishAction, claimAction, planFor } from '@/lib/ai/actions';
 import { safeMessage } from '@/lib/errors';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
   if (!row) return NextResponse.json({ error: 'That proposal is gone.' }, { status: 404 });
   if (row.user_id !== me.id) return NextResponse.json({ error: 'That proposal is not yours.' }, { status: 403 });
   if (row.status !== 'proposed') return NextResponse.json({ error: `Already ${row.status}.` }, { status: 409 });
+  if (!(await claimAction(id))) return NextResponse.json({ error: 'That proposal is already being handled.' }, { status: 409 });
 
   if (decision === 'dismiss') {
     await finishAction(id, 'dismissed', null);

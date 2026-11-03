@@ -1,3 +1,4 @@
+import { cronAllowed } from '../../lib/cron-auth';
 import { createClient } from '@supabase/supabase-js';
 import { auditDraft } from '../../lib/ai';
 
@@ -8,8 +9,7 @@ import { auditDraft } from '../../lib/ai';
    the caller at once with 202. The console polls the draft until it fills in.
    Called only by /api/admin/audits, with the shared CRON_SECRET. */
 export default async (req: Request) => {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers.get('x-cron-key') !== secret) return new Response('not permitted', { status: 401 });
+  if (!cronAllowed(req)) return new Response('not permitted', { status: 401 });
   const body = await req.json().catch(() => ({} as any));
   const id = String(body?.id ?? '');
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

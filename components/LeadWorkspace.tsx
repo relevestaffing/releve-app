@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { composeFromHello } from '@/lib/compose';
 import { useRouter } from 'next/navigation';
 import type { Prospect, ProspectStage } from '@/lib/prospects-public';
 import { PROSPECT_STAGES, PROSPECT_SOURCES, STAGE_GROUPS, stageLabel, stageColor, stageGroup, sourceLabel, followUpDue, isOpenStage } from '@/lib/prospects-public';
@@ -755,7 +756,7 @@ export function LeadDetail({ p, team, today, onStage, onOwner, onFollow, onField
       </dl>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-        <a className="btn sm solid" href={`mailto:${p.email}`}><Icon.mail />&nbsp;Email {p.full_name.split(' ')[0]}</a>
+        <a className="btn sm solid" href={composeFromHello(p.email)} target="_blank" rel="noreferrer"><Icon.mail />&nbsp;Email {p.full_name.split(' ')[0]}</a>
         {p.stage === 'won' && <a className="btn sm" href={`/console/people?onboard=${encodeURIComponent(p.email)}&name=${encodeURIComponent(p.full_name)}`}>Send onboarding</a>}
         {!isOpenStage(p.stage) ? null : <button className="btn sm" onClick={() => onFollow(addDays(today, 3))}>Follow up in 3 days</button>}
       </div>

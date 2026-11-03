@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { composeFromHello } from '@/lib/compose';
 import { useRouter } from 'next/navigation';
 import { saving } from './Toast';
 import { PROSPECT_SOURCES, sourceLabel } from '@/lib/prospects-public';
@@ -46,7 +47,7 @@ export default function LeadContact({ lead }: { lead: Prospect }) {
           {lead.call_at && <><dt>Discovery call</dt><dd>{new Date(lead.call_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</dd></>}
         </dl>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-          {lead.email && <a className="btn sm solid" href={`mailto:${lead.email}`}>Email them</a>}
+          {lead.email && <a className="btn sm solid" href={composeFromHello(lead.email)} target="_blank" rel="noreferrer">Email them</a>}
           {siteHref && <a className="btn sm ghost" href={siteHref} target="_blank" rel="noreferrer">Open website</a>}
         </div>
       </div>

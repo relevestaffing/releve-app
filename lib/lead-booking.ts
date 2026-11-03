@@ -49,14 +49,15 @@ export function bookingInvite(o: { name: string; email: string }): Message {
   return {
     kind: INVITE_KIND,
     from: SENDER,
-    subject: 'Your discovery call with Relève',
-    html: shell('Your discovery call.',
+    subject: 'Let\'s find a time to talk',
+    html: shell('Let\'s find a time to talk.',
       p(`${esc(first)},`) +
-      p('Thank you for reaching out to Relève.') +
-      p('If you already chose a time, you are set: your confirmation is in your inbox. If you did not finish, choose your time below. Thirty minutes, and we come prepared with what you told us.') +
+      p('Thank you for reaching out to Relève. We would like to hear about your business and what you want off your plate.') +
+      p('Choose a time that suits you for a thirty-minute call. We will arrive prepared with everything you told us.') +
+      `<p style="margin:0 0 15px;font-size:13.5px;color:#4E6B57;">Already booked a time? Your confirmation is in your inbox and there is nothing more to do.</p>` +
       tagline(),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\nThank you for reaching out to Relève.\n\nIf you already chose a time, you are set: your confirmation is in your inbox. If you did not finish, choose your time here. Thirty minutes, and we come prepared with what you told us.\n\n${link}\n\nConsider it handled.\nRelève`
+    text: `${first},\n\nThank you for reaching out to Relève. We would like to hear about your business and what you want off your plate.\n\nChoose a time that suits you for a thirty-minute call. We will arrive prepared with everything you told us.\n\nChoose your time: ${link}\n\nAlready booked a time? Your confirmation is in your inbox and there is nothing more to do.\n\nConsider it handled.\nRelève`
   };
 }
 
@@ -65,22 +66,22 @@ export function bookingFollowUp(o: { name: string; email: string; handoff?: stri
   const link = bookLink(o.name, o.email);
   const what = o.handoff ? o.handoff.toLowerCase() : null;
   const opener = what
-    ? `Yesterday you told us you want to hand off ${esc(what)}. Your discovery call is still open.`
-    : 'Yesterday you asked about Relève. Your discovery call is still open.';
+    ? `Yesterday you asked about Relève and told us you want to hand off ${esc(what)}. We would love to start there.`
+    : 'Yesterday you asked about Relève. We would love to hear what you want off your plate.';
   const openerText = what
-    ? `Yesterday you told us you want to hand off ${what}. Your discovery call is still open.`
-    : 'Yesterday you asked about Relève. Your discovery call is still open.';
+    ? `Yesterday you asked about Relève and told us you want to hand off ${what}. We would love to start there.`
+    : 'Yesterday you asked about Relève. We would love to hear what you want off your plate.';
   return {
     kind: FOLLOW_UP_KIND,
     from: SENDER,
-    subject: 'Your discovery call is still open',
-    html: shell('Still yours.',
+    subject: 'Thirty minutes to lighten your week',
+    html: shell('Let\'s lighten your week.',
       p(`${esc(first)},`) +
       p(opener) +
-      p('Thirty minutes to map what comes off your plate first and the professional who takes it. We take on ten new clients a year.') +
+      p('In thirty minutes we map what comes off your plate first and who takes it over. No pitch, just a plan.') +
       tagline(),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\n${openerText}\n\nThirty minutes to map what comes off your plate first and the professional who takes it. We take on ten new clients a year.\n\nChoose your time: ${link}\n\nConsider it handled.\nRelève`
+    text: `${first},\n\n${openerText}\n\nIn thirty minutes we map what comes off your plate first and who takes it over. No pitch, just a plan.\n\nChoose your time: ${link}\n\nConsider it handled.\nRelève`
   };
 }
 

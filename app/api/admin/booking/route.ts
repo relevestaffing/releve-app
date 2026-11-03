@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
-import { hasServiceKey } from '@/lib/supabase/admin';
+import { hasServiceKey, adminClient } from '@/lib/supabase/admin';
+import { todayInPacific } from '@/lib/money-public';
 import { cancelBooking, getBooking, getBookingSettings, listBookings, saveBookingSettings } from '@/lib/booking';
 import { sendCancelled, tellTeam } from '@/lib/booking-emails';
 
@@ -45,6 +46,10 @@ export async function POST(req: Request) {
   const b = await getBooking(String(body?.id ?? ''));
   if (!b) return NextResponse.json({ error: 'That booking was not found.' }, { status: 404 });
   const done = await cancelBooking(b);
+  try {
+    await adminClient().from('prospects').update({ stage: 'contacted', call_at: null, next_follow_up: todayInPacific(), last_touched_at: new Date().toISOString() })
+      .eq('email', b.email).eq('stage', 'booked');
+  } catch (e) { console.error('[admin/booking] lead update failed', e); }
   const s = await getBookingSettings();
   if (!body?.quietly) await sendCancelled(done, s.page.host);
   await tellTeam('cancelled', done, true);
