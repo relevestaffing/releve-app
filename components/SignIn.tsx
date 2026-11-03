@@ -88,7 +88,7 @@ export default function SignIn({ initialError }: { initialError?: string }) {
               <div className="auth-welcome">
                 <span className="eyebrow-rule" aria-hidden="true" />
                 <h2>Welcome to Relève</h2>
-                <p>{live ? 'Sign in to continue.' : 'Preview mode: sign-in is skipped and nothing is saved.'}</p>
+                <p>{live ? 'Your team, your time, and everything in between, all in one place. Sign in to continue.' : 'Preview mode: sign-in is skipped and nothing is saved.'}</p>
               </div>
               <form onSubmit={magicLink}>
                 <div className="ff">
