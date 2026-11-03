@@ -90,6 +90,64 @@ export function planFor(kind: string, params: Record<string, unknown>, founderEm
   }
 }
 
+/* ---------- what the founder reads before confirming ---------- */
+
+/* The confirmation card shows THIS sentence, built by the server from the
+   kind and the record it points at, never the model's own summary. A
+   prompt-injected email or lead note can talk the model into proposing a
+   send under an innocent label; it cannot change what this says
+   (security pass, 2 Nov 2026). */
+const when = (iso: string | null | undefined) => iso
+  ? new Date(iso).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+  : 'no time set';
+const CHANNEL_WORDS: Record<string, string> = {
+  li_personal: "Sage's personal LinkedIn post", li_group: 'LinkedIn group post', ig_client: 'Instagram and Facebook post',
+  ig_careers: 'Careers post', li_page_client: 'Relève LinkedIn page post', li_page_careers: 'Careers LinkedIn page post'
+};
+const VERB: Record<string, string> = {
+  content_hold: 'Hold', content_resume: 'Release back to its schedule', content_skip: 'Skip', content_unskip: 'Put back on its schedule',
+  content_post_now: 'PUBLISH RIGHT NOW to its networks', content_redraft: 'Have Claude rewrite', content_write_image: 'Rewrite from its photo',
+  campaign_hold: 'Hold', campaign_resume: 'Put back on schedule (SENDS to the whole list if its time has passed)',
+  campaign_cancel: 'Skip', campaign_redraft: 'Have Claude rewrite', campaign_test: 'Send a test copy to you of'
+};
+
+export async function describeAction(kind: string, params: Record<string, unknown>): Promise<string> {
+  const cat = ACTION_CATALOG.find(a => a.kind === kind);
+  if (!cat) return 'Unknown action.';
+  if (!hasServiceKey()) return cat.describe;
+  const sb = adminClient();
+  const id = String(params.id ?? '');
+  try {
+    if (kind.startsWith('content_') && uuid(id)) {
+      const { data: p } = await sb.from('content_posts').select('channel, topic, hook, publish_at, status').eq('id', id).maybeSingle();
+      if (!p) return `${VERB[kind]}: a post that could not be found (${id.slice(0, 8)}).`;
+      const name = (p.topic || p.hook || 'untitled').toString().slice(0, 90);
+      return `${VERB[kind]} the ${CHANNEL_WORDS[p.channel] ?? 'post'} "${name}" (${p.status}, set for ${when(p.publish_at)}).`;
+    }
+    if (kind === 'content_approve_week' || kind === 'content_draft_week') {
+      const week = String(params.week ?? '');
+      const { count } = await sb.from('content_posts').select('id', { count: 'exact', head: true }).eq('week_start', week).eq('status', 'held');
+      return kind === 'content_approve_week'
+        ? `Release every held post for the week of ${week} (${count ?? 0} held now) so they publish on schedule.`
+        : `Draft the posts for the week of ${week} (fills the empty slots only).`;
+    }
+    if (kind.startsWith('campaign_') && uuid(id)) {
+      const { data: c } = await sb.from('campaigns').select('subject, send_at, status').eq('id', id).maybeSingle();
+      if (!c) return `${VERB[kind]}: a Letter that could not be found (${id.slice(0, 8)}).`;
+      const { count } = await sb.from('subscribers').select('id', { count: 'exact', head: true }).eq('subscribed', true);
+      return `${VERB[kind]} The Relève Letter "${String(c.subject).slice(0, 90)}" (${c.status}, ${when(c.send_at)}, list of ${count ?? 0}).`;
+    }
+    if (kind === 'campaign_draft_next') return 'Draft the next Relève Letter now (it stays held for review on its usual schedule).';
+    if (kind === 'search_reopen' || kind === 'search_close') {
+      const cid = String(params.client_id ?? '');
+      const { data: c } = uuid(cid) ? await sb.from('profiles').select('full_name, email').eq('id', cid).maybeSingle() : { data: null };
+      const who = c ? `${c.full_name ?? c.email}` : `a client that could not be found (${cid.slice(0, 8)})`;
+      return kind === 'search_reopen' ? `Reopen the search for ${who}.` : `Close the open search for ${who} (${params.reason === 'on_hold' ? 'on hold' : 'withdrawn'}).`;
+    }
+  } catch { /* fall through to the catalog wording */ }
+  return cat.describe;
+}
+
 /* ---------- the log (supabase/part57-ai.sql) ---------- */
 
 export async function recordProposals(userId: string, proposals: Proposal[]): Promise<ActionRow[]> {
