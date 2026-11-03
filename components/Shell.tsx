@@ -4,7 +4,8 @@ import { configured, type Profile } from '@/lib/supabase/server';
 import { getSelfProfile } from '@/lib/store';
 import DemoSwitch from './DemoSwitch';
 import MobileNav from './MobileNav';
-import QuickBar from './QuickBar';
+import QuickBar, { quickItems } from './QuickBar';
+import HomeJump from './HomeJump';
 import Motion from './Motion';
 import PageLift from './PageLift';
 import PullRefresh from './PullRefresh';
@@ -29,6 +30,7 @@ import './experience.css';
 import './smooth.css';
 import SunWall from '@/components/SunWall';
 import HeaderScroll from '@/components/HeaderScroll';
+import './appframe.css';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
    four labelled groups is a product. Nothing is removed — everything stays
@@ -307,6 +309,13 @@ export default async function Shell({
   const placedOnly = !!clientStage && clientStage.placed && !clientStage.hiring;
   const clientTour = profile.role === 'client' ? await execInTour(profile.id) : false;
   const home = HOME[profile.role] ?? '/app';
+  /* Home on a phone lists every room the four tabs do not reach, so the drawer
+     is never the only way to a second screen. */
+  const isHome = active === '/app' || active === '/console';
+  const tabHrefs = new Set(quickItems(profile.role, clientTour, placedOnly).map(t => t.href));
+  const jump = isHome
+    ? nav.flatMap(g => g.items).filter(n => n.href !== home && !tabHrefs.has(n.href)).slice(0, 6)
+    : [];
   const profileHref = clientTour ? undefined : PROFILE[profile.role];
   /* Sage, 19 October: the console greets her by name, not the shared inbox. */
   const shownName = profile.role === 'admin' && (!profile.full_name || profile.full_name.includes('@'))
@@ -325,7 +334,7 @@ export default async function Shell({
         name={shownName}
         org={profile.org_name}
         profileHref={profileHref} unread={unread} messagesHref={messagesHref} />
-      <div className="shell">
+      <div className="shell" data-title={isHome ? undefined : title}>
         <aside className="side">
           <Link href={home} className="side-logo"><img src="/logo-white.png" alt="Relève" /></Link>
           {profileHref ? (
@@ -387,6 +396,7 @@ export default async function Shell({
               <PushSetup compact />
             )}
             {children}
+            {isHome && <HomeJump items={jump} unreadHref={messagesHref} unread={unread} />}
             {/* Last in the DOM, first on the screen: both carry order:-2 in the
                 phone stylesheet. Putting them after the content means the
                 page's first real block is also .page-body's :first-child, which

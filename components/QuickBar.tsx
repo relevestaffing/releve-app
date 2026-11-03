@@ -54,6 +54,13 @@ const CLIENT_TOUR = [
   { href: '/app/messages', label: 'Messages',  icon: 'message' }
 ];
 
+/* The four tabs a role has right now. Shared with Home, which lists the rest. */
+export function quickItems(role: string, tour: boolean, placedOnly: boolean) {
+  return role === 'client'
+    ? (tour ? CLIENT_TOUR : placedOnly ? CLIENT_PLACED : PRIMARY.client)
+    : (PRIMARY[role] ?? PRIMARY.talent);
+}
+
 export default function QuickBar({ role, active, placedOnly = false, tour = false, unread = 0 }: {
   role: string; active: string; unread?: number;
   /* true for an executive with a placement and no open search */
@@ -61,9 +68,7 @@ export default function QuickBar({ role, active, placedOnly = false, tour = fals
   /* true for an executive who has not taken the deposit step yet */
   tour?: boolean;
 }) {
-  const items = role === 'client'
-    ? (tour ? CLIENT_TOUR : placedOnly ? CLIENT_PLACED : PRIMARY.client)
-    : (PRIMARY[role] ?? PRIMARY.talent);
+  const items = quickItems(role, tour, placedOnly);
   return (
     <nav className="quickbar" aria-label="Quick actions">
       {items.map(p => (
