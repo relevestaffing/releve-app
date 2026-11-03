@@ -5,7 +5,7 @@ import { unsubscribeUrl, listUnsubscribeHeaders } from '@/lib/subscribers';
 /* Relève's email campaign (29 October 2026).
    ------------------------------------------
    Nona's call: twice a week, Tuesdays and Thursdays at 9:00 AM Pacific, from
-   The Relève Letter <letter@relevestaffing.com>, drafted by Claude and sent
+   The Relève Letter <hello@relevestaffing.com>, drafted by Claude and sent
    automatically unless she holds it. Each draft is written two days ahead
    and emailed to the team as a preview with a link to hold or edit it.
 
@@ -33,7 +33,7 @@ const TZ = 'America/Los_Angeles';
 const SEND_HOUR = 9;                        // 9:00 AM Pacific
 const SEND_DAYS = [2, 4];                   // Tuesday, Thursday
 const DRAFT_LEAD_HOURS = 48;                // drafts are written two days ahead
-const FROM = () => process.env.CAMPAIGN_FROM || 'The Relève Letter <letter@relevestaffing.com>';
+const FROM = () => process.env.CAMPAIGN_FROM || 'The Relève Letter <hello@relevestaffing.com>';
 const REPLY_TO = 'hello@relevestaffing.com';
 const APP = () => (process.env.NEXT_PUBLIC_APP_URL || 'https://app.relevestaffing.com').replace(/\/+$/, '');
 export const mailingAddress = () => (process.env.CAMPAIGN_MAILING_ADDRESS || '').trim();
