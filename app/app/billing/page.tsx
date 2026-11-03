@@ -83,7 +83,7 @@ export default async function Billing() {
 
       <div className="money-strip">
         <div className="money-stat">
-          <div className="n">{live.length ? money(monthly) : DASH}</div>
+          <div className="n">{live.length ? money(monthly) : 'Not started'}</div>
           <div className="k">{live.length ? 'Per month' : 'Per month, from your start date'}</div>
         </div>
         <div className={`money-stat ${owed > 0 ? 'alert' : ''}`}>

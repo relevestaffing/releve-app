@@ -377,7 +377,7 @@ export default async function Shell({
             {/* The grace banner, on every client page, so an open invoice is
                 seen well before the fourteen-day gate. */}
             {profile.role === 'client' && <BillingBanner clientId={profile.id} />}
-            {profile.role !== 'admin' && !clientTour && (
+            {profile.role !== 'admin' && !clientTour && active === '/app' && (
               <PushSetup compact />
             )}
             {children}

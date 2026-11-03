@@ -26,3 +26,24 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
   html body .btn,html body .card,html body .card.stat,html body .money-stat,html body table.data,
   html body .ff input,html body .ff select,html body .ff textarea{border-radius:0!important}
 }
+/* PHONE TIDY (3 Nov 2026): a quiet bar with the logo behind the menu button so it never
+   floats over a card; tabs and saved views stay on one line and scroll; a person's three
+   actions sit on one row; a row's company name gives way to its menu. */
+@media (max-width:900px){
+  html body .shell::after{content:'';position:fixed;z-index:49;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
+    background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(20,27,21,.94);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(203,198,164,.12);pointer-events:none}
+  html body .menu-trigger{z-index:50}
+  html body .ws-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
+    -webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}
+  html body .ws-views::-webkit-scrollbar{display:none}
+  html body .ws-view{flex:none}
+  html body .ws-record .ws-tabs{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
+  html body .ws-tabs > *{flex:none}
+  html body .acct-actions{flex-wrap:nowrap;width:100%}
+  html body .acct-actions .btn{flex:1 1 auto;justify-content:center;padding-left:10px;padding-right:10px;letter-spacing:.12em;white-space:nowrap}
+  html body .acct-actions .acct-more{flex:0 0 44px}
+  html body .ws-name small{display:none}
+  html body .mobile-action:has(.acct-actions){padding-left:0}
+  html body:has(.chat-card .composer) .ask-fab{display:none}
+}
