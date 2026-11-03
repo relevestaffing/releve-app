@@ -2,7 +2,7 @@ import { createHmac } from 'crypto';
 import { hasServiceKey, adminClient, teamEmailsAdmin } from './supabase/admin';
 import { send, shell, p, esc } from './email';
 import {
-  WEEK_PLAN, DAY_KEYS, DAY_NAMES, slotTime, weekStart, whenLabel, dayLabel, pacificParts, pageFor, CHANNELS,
+  WEEK_PLAN, DAY_KEYS, DAY_NAMES, slotTime, weekStart, whenLabel, dayLabel, pacificParts, pageFor, CHANNELS, COPY_PLAN, COPY_CHANNELS,
   type Channel, type ContentPost, type Format, type Slide, type Card, type Script
 } from './content-model';
 import { igPublishImages, igStartReel, igFinishReel, fbPublishImages, fbPublishVideo, type MetaConn } from './social-meta';
@@ -155,8 +155,7 @@ Every slide in a carousel can use a different layout: mix step with rules, numbe
 
 const FORMAT_RULES: Record<string, string> = {
   li_personal: `Return JSON: {"posts":[{"topic":"...","hook":"first line","text":"the full post, 900 to 1500 characters, line breaks as \\n","image_idea":"one sentence naming ONE real, candid photo-moment from Sage's own life that would suit the post (a boat, a window seat, the car between meetings, a walk); the post itself must never describe it"}]}`,
-  li_group: `These go to four LinkedIn groups of business owners as free training. Pure value, no sales pitch; the only invitation is a soft line at the end of the caption pointing to the free training at relevestaffing.com/training. Each teaches one concrete thing a founder can do this week, usually how to hand a specific area of the business to a virtual professional and what changes. Return JSON: {"posts":[{"topic":"...","hook":"...","format":"carousel","caption":"LinkedIn caption, 500 to 1100 characters, \\n for breaks","slides":[{"title":"...","body":"..."}]} ...]}. A carousel has 7 or 8 slides, each {"layout","title","body", plus the layout's own fields}: slide 1 is a "cover" (a specific, concrete promise as title, for example the outcome and the time it takes; a short subtitle as body), the middle slides each teach one step and show the real thing (mix step, rules, number, compare, chart and message), the last slide is a "cta" that sums up and invites them to the free training (body mentions relevestaffing.com/training). For the one post marked video, return instead {"topic","hook","format":"video","caption","script":{"hook":"the first sentence said to camera","beats":["4 to 6 short spoken beats"],"close":"the closing line and invitation","onscreen":["3 to 5 short on-screen text lines"]}}; it should run 60 to 90 seconds spoken, in Sage's first person voice.`,
-  ig_client: `For the Relève Instagram and Facebook. Return JSON: {"posts":[...]} where each post is {"topic","hook","format":"card"|"carousel","caption_ig":"Instagram caption: a contrarian hook first line, then three short actionable steps, then why it matters, then the post's one next step (training, discovery call, comment HANDLED or the website, link in bio). 500 to 1200 characters, \\n for breaks, up to 5 relevant hashtags at the end","caption_fb":"Facebook version: casual and conversational, speaking straight to the reader, 300 to 700 characters, ends with the post's next step and its full address","caption_li":"LinkedIn page version: professional, 400 to 900 characters, ends with the post's next step and its full address","card":{"layout":"one of the layouts","kicker":"2 to 4 word label naming what it is, e.g. THE INBOX RULE, HANDOFF SCRIPT, THE MATH","quote":"the headline, under 70 characters","sub":"one short line that makes it concrete (the tool, the time, the result), plus the layout's own fields"} for a card, or "slides":[{"layout","title","body", plus the layout's own fields}] with 6 to 8 slides for a carousel (cover first, last slide a cta or comment layout carrying the post's next step)}.`,
+  li_group: `These go to four LinkedIn groups of business owners as free training. Pure value, no sales pitch; the only invitation is a soft line at the end of the caption pointing to the free training at relevestaffing.com/training. Each teaches one concrete thing a founder can do this week, usually how to hand a specific area of the business to a virtual professional and what changes. Return JSON: {"posts":[{"topic":"...","hook":"...","format":"carousel","caption":"LinkedIn caption, 500 to 1100 characters, \\n for breaks","slides":[{"title":"...","body":"..."}]} ...]}. A carousel has 7 or 8 slides, each {"layout","title","body", plus the layout's own fields}: slide 1 is a "cover" (a specific, concrete promise as title, for example the outcome and the time it takes; a short subtitle as body), the middle slides each teach one step and show the real thing (mix step, rules, number, compare, chart and message), the last slide is a "cta" that sums up and invites them to the free training (body mentions relevestaffing.com/training).`,
   ig_careers: `For the Relève Careers Instagram and Facebook, talking to experienced remote professionals in the Philippines and Latin America who want a real career with a US executive. Tagline "Take the watch." but always say plainly what Relève Careers is: remote careers supporting US founders and executives, matched to how they work, prepared for the role before day one, supported by a Talent Success Manager. Respect and aspiration, never pity. Calls to action point to applying on relevestaffing.com (Careers). Return JSON: {"posts":[...]} each {"topic","hook","format":"card"|"carousel","caption_ig":"300 to 900 characters, up to 5 hashtags","caption_fb":"conversational, 200 to 600 characters","caption_li":"professional, 300 to 700 characters","card":{"layout","kicker","quote","sub", plus the layout's fields} or "slides":[{"layout","title","body", plus the layout's fields}] with 5 to 7 slides}.`
 };
 
@@ -326,7 +325,7 @@ async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 
     style ? `How these posts should be built (the team's reference, follow it closely for structure, pacing and tone, but keep every fact and rule above):\n${style}` : '',
     `Write ${formats.length} posts, in this order of format: ${formats.join(', ')}.`,
     PILLARS,
-    channel === 'li_personal' || channel === 'li_group' ? LI_REFERENCE : '',
+    channel === 'li_personal' || channel === 'li_group' || channel === 'ig_client' ? LI_REFERENCE : '',
     channel === 'li_personal' ? '' : DESIGN,
     FORMAT_RULES[channel],
     season ? `Keep Relève current. ${season}` : '',
@@ -367,18 +366,22 @@ export async function draftWeek(monday: string) {
   const made: string[] = [];
   /* Careers posts are paused until a careers Facebook page is chosen in the
      Content tab (31 Oct 2026: the careers page did not come through Meta). */
-  const careersOn = Boolean((await getSetting<MetaConn>('conn:meta'))?.careers);
+  /* A redone week waits for approval: its new posts are drafted held. */
+  const holdNew = Boolean((await getSetting<{ on: boolean }>(`hold:${monday}`))?.on);
+  const heldFields = holdNew ? { hold_reason: 'Waiting for your approval.' } : {};
   /* li_personal is photo-first (written from Sage's uploaded photo), so it is
      NOT drafted here. The other channels are written by Opus as before. */
-  const families: ('li_group' | 'ig_client' | 'ig_careers')[] =
-    careersOn ? ['li_group', 'ig_client', 'ig_careers'] : ['li_group', 'ig_client'];
+  /* One post a day (2 Nov 2026): the client post is written once and copied
+     to the LinkedIn page and the groups, so only ig_client (and careers, when
+     it is on) are drafted. */
+  const families: ('ig_client' | 'ig_careers')[] = ['ig_client'];  // careers removed 2 Nov 2026
 
   /* All four accounts are written at once (Opus is slower than Sonnet, and
      the worker has 15 minutes), then saved in order. */
   const plans = families.map(ch => WEEK_PLAN.filter(s => s.channel === ch && !existing.has(`${monday}-${ch}-${DAY_KEYS[s.day]}`)));
   const written = await Promise.all(families.map((ch, k) => plans[k].length
     ? draftChannel(ch, plans[k].map(s => s.format), hooks,
-        ch === 'li_group' ? 'One of these is the week\'s face-to-camera video (the one marked video). The rest are carousels.' : '', seasonFor(monday))
+        '', seasonFor(monday))
     : Promise.resolve([])));
   for (const [k, ch] of families.entries()) {
     const plan = plans[k];
@@ -389,7 +392,7 @@ export async function draftWeek(monday: string) {
       const slot = `${monday}-${ch}-${DAY_KEYS[s.day]}`;
       const at = slotTime(monday, s.day, s.hour, s.minute).toISOString();
       const { data: row, error } = await sb().from('content_posts').insert({
-        slot, week_start: monday, channel: ch, format: d.format, publish_at: at, status: statusFor(ch, d.format),
+        slot, week_start: monday, channel: ch, format: d.format, publish_at: at, status: holdNew ? 'held' : statusFor(ch, d.format), ...heldFields,
         topic: d.topic, hook: d.hook, caption: d.caption, caption_fb: d.caption_fb ?? null,
         card: d.card ?? null, slides: d.slides ?? [], script: d.script ?? null, image_idea: d.image_idea ?? null
       }).select('id').single();
@@ -397,20 +400,16 @@ export async function draftWeek(monday: string) {
       made.push(slot);
       hooks.unshift(d.hook);
 
-      /* The copies: Instagram/Facebook posts go to the matching LinkedIn page,
-         and the group video also goes to Instagram as a Reel and to the page. */
-      const page = pageFor(ch);
-      const copies: { channel: Channel; format: Format; caption: string; caption_fb?: string | null; status: string; offset: number }[] = [];
-      if (page) copies.push({ channel: page, format: d.format, caption: d.caption_li || d.caption, status: statusFor(page, d.format), offset: 0 });
-      if (ch === 'li_group' && d.format === 'video') {
-        copies.push({ channel: 'ig_client', format: 'video', caption: d.caption, status: 'needs_video', offset: 7.5 * 3600000 });
-        copies.push({ channel: 'li_page_client', format: 'video', caption: d.caption, status: 'needs_video', offset: 7.5 * 3600000 });
-      }
-      for (const c of copies) {
+      /* The copies (one post a day): the client post goes, identical, to the
+         LinkedIn page and the groups; a careers post goes to its page. */
+      const targets: Channel[] = ch === 'ig_client'
+        ? COPY_PLAN.filter(c => c.days.includes(s.day)).map(c => c.channel)
+        : (pageFor(ch) ? [pageFor(ch) as Channel] : []);
+      for (const target of targets) {
         await sb().from('content_posts').insert({
-          slot: `${slot}-${c.channel}${c.format === 'video' ? '-video' : ''}`, week_start: monday, channel: c.channel, format: c.format,
-          publish_at: new Date(new Date(at).getTime() + c.offset).toISOString(), status: c.status,
-          topic: d.topic, hook: d.hook, caption: c.caption, caption_fb: c.channel.startsWith('ig_') ? (d.caption_fb ?? null) : null,
+          slot: `${slot}-${target}`, week_start: monday, channel: target, format: d.format, publish_at: at,
+          status: holdNew ? 'held' : d.format === 'video' ? 'needs_video' : statusFor(target, d.format), ...heldFields,
+          topic: d.topic, hook: d.hook, caption: d.caption_li || d.caption || d.hook, caption_fb: null,
           card: d.card ?? null, slides: d.slides ?? [], script: d.script ?? null, parent_id: row.id
         });
       }
@@ -437,7 +436,7 @@ export async function draftWeek(monday: string) {
 
 /* Rewrite one post in place (same channel, format and slot). */
 export async function redraftPost(post: ContentPost) {
-  const family = (post.channel === 'li_page_client' ? 'ig_client' : post.channel === 'li_page_careers' ? 'ig_careers' : post.channel) as 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers';
+  const family = (post.channel === 'li_page_client' || post.channel === 'li_group' ? 'ig_client' : post.channel === 'li_page_careers' ? 'ig_careers' : post.channel) as 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers';
   const [d] = await draftChannel(family, [post.format], [post.hook ?? '', ...(await recentHooks())].filter(Boolean),
     post.format === 'video' ? 'This one is the face-to-camera video.' : '');
   const caption = post.channel.startsWith('li_page') ? (d.caption_li || d.caption) : d.caption;
@@ -446,6 +445,15 @@ export async function redraftPost(post: ContentPost) {
     card: d.card ?? null, slides: d.slides ?? [], script: d.script ?? null, image_idea: d.image_idea ?? post.image_idea,
     written_by: 'claude'
   } as any);
+  /* The copies (LinkedIn page, groups) carry the same new post. */
+  const { data: kids } = await sb().from('content_posts').select('id,status').eq('parent_id', post.id).in('channel', COPY_CHANNELS);
+  for (const k of (kids ?? []) as { id: string; status: string }[]) {
+    if (k.status === 'posted' || k.status === 'publishing') continue;
+    await updatePost(k.id, {
+      topic: d.topic, hook: d.hook, caption: d.caption_li || d.caption, card: d.card ?? null, slides: d.slides ?? [],
+      script: d.script ?? null, written_by: 'claude'
+    } as any);
+  }
 }
 
 /* ---------- publishing ---------- */
@@ -638,17 +646,24 @@ export async function dailyDigest(now = new Date()) {
   const li = await getSetting<LinkedInConn>('conn:linkedin');
   const liDays = li ? Math.floor((new Date(li.expires_at).getTime() - now.getTime()) / 86400000) : null;
 
-  const manual = ((todays ?? []) as ContentPost[]).filter(x => x.status === 'manual');
+  const manualAll = ((todays ?? []) as ContentPost[]).filter(x => x.status === 'manual');
+  /* One post a day: the LinkedIn page copy and the groups copy are the same
+     post, so they arrive as one block. */
+  const groupParents = new Set(manualAll.filter(x => x.channel === 'li_group' && x.parent_id).map(x => x.parent_id));
+  const pageParents = new Set(manualAll.filter(x => x.channel.startsWith('li_page') && x.parent_id).map(x => x.parent_id));
+  const manual = manualAll.filter(x => !(x.channel.startsWith('li_page') && x.parent_id && groupParents.has(x.parent_id)));
   const blocks: string[] = [];
   for (const m of manual) {
     const files = m.format === 'carousel'
       ? `<a href="${pdfUrl(m.id)}" style="color:#35443A;">Download the carousel (PDF for LinkedIn)</a>`
       : m.format === 'card' ? `<a href="${imageUrl(m.id, 0)}" style="color:#35443A;">Download the graphic</a>`
       : m.video_path ? `<a href="${mediaUrl(m.video_path)}" style="color:#35443A;">Download your video</a>` : 'Record the video from the script in the Content tab.';
+    const both = m.channel === 'li_group' && Boolean(m.parent_id) && pageParents.has(m.parent_id);
+    const title = both ? 'LinkedIn page + groups' : CHANNELS[m.channel].label;
     const where = m.channel === 'li_group'
-      ? (groups.length ? groups.map(g => g.url ? `<a href="${esc(g.url)}" style="color:#35443A;">${esc(g.name || g.url)}</a>` : esc(g.name)).join(' · ') : 'Add your four groups in the Content tab.')
+      ? (both ? 'Post it on the Relève LinkedIn page (or schedule it there), then in the groups: ' : '') + (groups.length ? groups.map(g => g.url ? `<a href="${esc(g.url)}" style="color:#35443A;">${esc(g.name || g.url)}</a>` : esc(g.name)).join(' · ') : 'Add your four groups in the Content tab.')
       : `${esc(CHANNELS[m.channel].label)}: post it, or schedule it in LinkedIn.`;
-    blocks.push(`<h2 style="font-family:Georgia,serif;font-weight:normal;font-size:18px;color:#35443A;margin:22px 0 8px;">${esc(CHANNELS[m.channel].label)} · ${esc(whenLabel(m.publish_at))}</h2>` +
+    blocks.push(`<h2 style="font-family:Georgia,serif;font-weight:normal;font-size:18px;color:#35443A;margin:22px 0 8px;">${esc(title)} · ${esc(whenLabel(m.publish_at))}</h2>` +
       p(where) + p(files) + pre(m.caption));
   }
   const notes: string[] = [];
@@ -665,7 +680,7 @@ export async function dailyDigest(now = new Date()) {
     manual.length ? `Today's posts to share: ${manual.length}` : 'Content: a few things need you',
     manual.length ? 'Today, ready to post.' : 'A few things need you.',
     (notes.length ? `<ul style="padding-left:18px;margin:0 0 15px;">${notes.map(n => `<li style="margin:0 0 6px;">${n}</li>`).join('')}</ul>` : '') + blocks.join(''),
-    [...notes.map(n => n.replace(/<[^>]+>/g, '')), ...manual.map(m => `${CHANNELS[m.channel].label} ${whenLabel(m.publish_at)}\n${m.caption}`)].join('\n\n')
+    [...notes.map(n => n.replace(/<[^>]+>/g, '')), ...manual.map(m => `${m.channel === 'li_group' && m.parent_id && pageParents.has(m.parent_id) ? 'LinkedIn page + groups' : CHANNELS[m.channel].label} ${whenLabel(m.publish_at)}\n${m.caption}`)].join('\n\n')
   );
   return true;
 }
@@ -733,7 +748,12 @@ export async function exportForVA(monday: string, force = false) {
   const prev = await getSetting<{ status: string; at: string }>(key);
   if (prev?.status === 'done' && !force) return { skipped: true };
   if (!vaConfigured()) throw new Error('The Google service account is not set up.');
-  const posts = (await listWeek(monday)).filter(forVA).sort((a, b) => a.publish_at.localeCompare(b.publish_at));
+  const sorted = (await listWeek(monday)).filter(forVA).sort((a, b) => a.publish_at.localeCompare(b.publish_at));
+  /* One post a day: when a day's page copy and groups copy are the same post,
+     the VA gets one entry (one file) telling her to post it in both places. */
+  const groupParents = new Set(sorted.filter(p => p.channel === 'li_group' && p.parent_id).map(p => p.parent_id));
+  const pageParents = new Set(sorted.filter(p => p.channel.startsWith('li_page') && p.parent_id).map(p => p.parent_id));
+  const posts = sorted.filter(p => !(p.channel.startsWith('li_page') && p.parent_id && groupParents.has(p.parent_id)));
   if (!posts.length) { await putSetting(key, { status: 'done', at: new Date().toISOString(), files: 0 }); return { files: 0 }; }
   await putSetting(key, { status: 'sending', at: new Date().toISOString() });
   try {
@@ -747,8 +767,9 @@ export async function exportForVA(monday: string, force = false) {
     if (groups.length) parts.push(`The four groups:\n${groups.map((g, i) => `${i + 1}. ${g.name || 'Group'}${g.url ? ` ${g.url}` : ''}`).join('\n')}\n`);
     let files = 0;
     for (const p of posts) {
-      const where = p.channel === 'li_group' ? 'LinkedIn groups (post in all four)' : CHANNELS[p.channel].label;
-      const base = `${short(p.publish_at)} - ${p.channel === 'li_group' ? 'Groups' : 'LinkedIn page'} - ${p.format}`.replace(/[,/]/g, '');
+      const both = p.channel === 'li_group' && Boolean(p.parent_id) && pageParents.has(p.parent_id);
+      const where = p.channel === 'li_group' ? (both ? 'The Relève LinkedIn page, then all four LinkedIn groups (the same post in each)' : 'LinkedIn groups (post in all four)') : CHANNELS[p.channel].label;
+      const base = `${short(p.publish_at)} - ${p.channel === 'li_group' ? (both ? 'Page and groups' : 'Groups') : 'LinkedIn page'} - ${p.format}`.replace(/[,/]/g, '');
       let file = '';
       if (p.format === 'carousel' && imageCount(p)) {
         const { bytes } = await fetchBytes(pdfUrl(p.id));

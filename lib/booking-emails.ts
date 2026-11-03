@@ -1,4 +1,4 @@
-import { send, shell, p, esc } from '@/lib/email';
+import { send, shell, p, esc, tagline } from '@/lib/email';
 import type { Message } from '@/lib/email';
 import { teamEmails } from '@/lib/work';
 import { bookingIcs, manageUrl, type Booking } from '@/lib/booking';
@@ -43,7 +43,7 @@ export function confirmedEmail(b: Booking, host: string, rescheduled = false): M
       p(`${esc(first(b.name))},`) +
       p(`${lead} The invitation is attached, so it goes straight onto your calendar.`) +
       p(`${minutes(b)} with ${esc(host)}. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.`) +
-      p('Consider it handled.'),
+      tagline(),
       b.joinUrl ? { label: 'Join on Zoom', href: b.joinUrl } : undefined,
       { label: 'Reschedule or cancel', href: manage }),
     text: `${first(b.name)},\n\n${rescheduled ? `Your discovery call with Relève is now ${l.text}.` : `Your discovery call with Relève is confirmed for ${l.text}.`} The invitation is attached, so it goes straight onto your calendar.\n\n${minutes(b)} with ${host}. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
@@ -61,7 +61,7 @@ export function cancelledEmail(b: Booking, host: string): Message {
       p(`${esc(first(b.name))},`) +
       p(`Your discovery call for ${esc(l.text)} is cancelled, and it has been taken off your calendar.`) +
       p('Whenever the timing is right, choose a new time below.') +
-      p('Consider it handled.'),
+      tagline(),
       { label: 'Choose a new time', href: 'https://relevestaffing.com/book/' }),
     text: `${first(b.name)},\n\nYour discovery call for ${l.text} is cancelled, and it has been taken off your calendar.\n\nWhenever the timing is right, choose a new time: https://relevestaffing.com/book/\n\nConsider it handled.\nRelève`,
     icalEvent: { method: 'CANCEL', filename: 'releve-discovery-call.ics', content: bookingIcs(b, { method: 'CANCEL', host, sequence: 2 }) }

@@ -210,7 +210,7 @@ export default function PeopleWorkspace({ title, noun, rows: allRows, cols, sect
           <div className="ws-p-hero">
             <Avatar name={current.name} url={current.photo} size="lg" />
             <div className="nm">
-              <div style={{ fontFamily: "'Marcellus',serif", fontSize: 28, lineHeight: 1.2 }}>{current.name}</div>
+              <div style={{ fontFamily: "var(--sub)", fontSize: 28, lineHeight: 1.2 }}>{current.name}</div>
               <div className="ws-muted" style={{ fontSize: 14, marginTop: 2 }}>{current.sub}</div>
             </div>
             {current.company && <Avatar name={current.company} company size="lg" title={current.company} />}

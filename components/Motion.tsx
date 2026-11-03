@@ -58,6 +58,11 @@ export default function Motion() {
     hasMounted.current = true;
 
     document.documentElement.classList.add('rv-live');
+    /* The head script's failsafe (rv-off, added at 2.2s if the app has not
+       hydrated yet) pins every block visible with !important, which also
+       freezes the page transitions. On a slow phone launch hydration often
+       lands after 2.2s, so once the app is alive the failsafe is lifted. */
+    document.documentElement.classList.remove('rv-off');
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const bar = document.querySelector('.topbar');

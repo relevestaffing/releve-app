@@ -58,7 +58,7 @@ export default function WatchBoard({ items }: { items: Item[] }) {
         <div key={it.discipline} className="card" style={{ padding: '18px 20px' }}>
           <div className="row between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 16 }}>{it.name}</b>
+              <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)', fontSize: 16 }}>{it.name}</b>
               {it.timeLimitMinutes && (
                 <div className="xs muted">Time-boxed at {Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours once started</div>
               )}

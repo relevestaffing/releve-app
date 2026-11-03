@@ -98,3 +98,32 @@ export async function appendToDoc(docId: string, tabId: string | null, text: str
     body: JSON.stringify({ requests: [{ insertText: { endOfSegmentLocation: tab ? { tabId: tab } : {}, text } }] })
   });
 }
+
+
+/* ---------- read-only, for the founder's assistant ---------- */
+
+/* The text of a Google Doc, tab by tab, cut to `cap` characters. */
+export async function readDocText(docId: string, cap = 14000): Promise<string> {
+  const doc = await google(`https://docs.googleapis.com/v1/documents/${docId}?includeTabsContent=true`);
+  const textOf = (content: any[] = []): string => content.map((el: any) => {
+    if (el.paragraph) return (el.paragraph.elements ?? []).map((e: any) => e.textRun?.content ?? '').join('');
+    if (el.table) return (el.table.tableRows ?? []).map((r: any) => (r.tableCells ?? []).map((c: any) => textOf(c.content).trim()).join(' | ')).join('\n') + '\n';
+    return '';
+  }).join('');
+  const out: string[] = [];
+  const walk = (tabs: any[] = []) => tabs.forEach(t => {
+    out.push(`=== TAB: ${t.tabProperties?.title ?? 'untitled'} (id ${t.tabProperties?.tabId}) ===\n${textOf(t.documentTab?.body?.content)}`);
+    walk(t.childTabs);
+  });
+  if (doc.tabs?.length) walk(doc.tabs); else out.push(textOf(doc.body?.content));
+  const text = `Document: ${doc.title ?? ''}\n` + out.join('\n');
+  /* The newest writing is at the end of each tab, so keep the tail when it is long. */
+  return text.length > cap ? '[earlier text cut]\n' + text.slice(-cap) : text;
+}
+
+/* What is inside a Drive folder, newest first. */
+export async function listFolder(folderId: string, max = 40) {
+  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+  const j = await google(`${DRIVE}?q=${q}&pageSize=${max}&orderBy=modifiedTime%20desc&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType,modifiedTime,size)`);
+  return (j.files ?? []) as { id: string; name: string; mimeType: string; modifiedTime: string; size?: string }[];
+}

@@ -81,7 +81,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
     <div className="brief-read">
       <div className="row between" style={{ gap: 14, flexWrap: 'wrap' }}>
         <div>
-          <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)' }}>{view.role_title}</b>
+          <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)' }}>{view.role_title}</b>
           {view.stage && <span className="pill" style={{ marginLeft: 10 }}>{view.stage}</span>}
           <span className={`pill ${hiring ? 'good' : ''}`} style={{ marginLeft: 8 }}>
             <span className="dot" />{hiring ? 'Hiring' : 'Not hiring'}

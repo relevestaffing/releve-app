@@ -136,7 +136,7 @@ export default async function ExecProfile() {
                     <div className="grid-2">
                       {L2_SHOWN.map(t => (
                         <div key={t.key} style={{ marginBottom: 18 }}>
-                          <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
+                          <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
                           {facetDetail('client', sig.facets).filter(f => f.trait === t.key).map(f => (
                             <div className="row between" key={f.key} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)', gap: 14 }}>
                               <span className="small">{f.name}</span>
@@ -169,7 +169,7 @@ export default async function ExecProfile() {
             </div>
             {brief.stage && <span className="pill">{brief.stage}</span>}
           </div>
-          <p style={{ fontFamily: 'var(--display)', fontSize: 21, color: 'var(--fern)', marginBottom: 14 }}>{brief.role_title}</p>
+          <p style={{ fontFamily: 'var(--sub)', fontSize: 21, color: 'var(--fern)', marginBottom: 14 }}>{brief.role_title}</p>
           <dl className="brief-facts">
             {brief.scope && <><dt>Owns</dt><dd>{brief.scope}</dd></>}
             {brief.hours && <><dt>Hours</dt><dd>{brief.hours}</dd></>}

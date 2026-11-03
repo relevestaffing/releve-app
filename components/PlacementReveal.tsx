@@ -49,8 +49,7 @@ export default function PlacementReveal({
   return (
     <div className="rv-screen">
       <div className="rv-mark">
-        <div className="rv-mark-tick" />
-        <div className="rv-mark-word">RELÈVE</div>
+        <img className="rv-mark-logo" src="/logo-white.png" alt="Relève Executive Staffing" width="1200" height="360" />
       </div>
 
       <div className="rv-ticks" aria-hidden="true">
@@ -71,7 +70,7 @@ export default function PlacementReveal({
 
       <div className="rv-content">
         <div className="rv-eyebrow">Your placement is confirmed</div>
-        <h1 className="rv-h1">Consider it handled.</h1>
+        <h1 className="rv-h1"><img className="rv-tagline" src="/consider-it-handled-cream.png" alt="Consider it handled." width={2755} height={414} /></h1>
 
         <div className="rv-card">
           <div className="rv-row">
@@ -99,7 +98,7 @@ export default function PlacementReveal({
           min-height: 100vh;
           background: var(--fern);
           color: var(--cream);
-          font-family: 'Tenor Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -123,11 +122,7 @@ export default function PlacementReveal({
           transform: rotate(18deg);
           border-radius: 2px;
         }
-        .rv-mark-word {
-          font-family: 'Marcellus', serif;
-          letter-spacing: 0.14em;
-          font-size: 14px;
-        }
+        .rv-mark-logo { display: block; width: 150px; height: auto; }
         .rv-ticks {
           position: absolute;
           inset: 0;
@@ -183,6 +178,14 @@ export default function PlacementReveal({
           opacity: 0;
           animation: rv-rise 0.8s ease-out 0.45s forwards;
         }
+        .rv-tagline {
+          display: block;
+          margin: 0 auto;
+          transform: translateX(-3%);
+          height: 84px;
+          width: auto;
+          max-width: 100%;
+        }
         .rv-card {
           background: rgba(240, 242, 238, 0.06);
           border: 1px solid rgba(240, 242, 238, 0.18);
@@ -216,7 +219,7 @@ export default function PlacementReveal({
           display: inline-block;
           background: var(--cream);
           color: var(--fern);
-          font-family: 'Tenor Sans', sans-serif;
+          font-family: 'Poppins', sans-serif;
           font-size: 14.5px;
           letter-spacing: 0.03em;
           padding: 15px 34px;
@@ -252,6 +255,9 @@ export default function PlacementReveal({
         @media (max-width: 480px) {
           .rv-h1 {
             font-size: 32px;
+          }
+          .rv-tagline {
+            height: 58px;
           }
           .rv-card {
             padding: 22px 20px;

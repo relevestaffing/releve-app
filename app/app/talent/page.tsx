@@ -152,7 +152,7 @@ export default async function TalentProfile() {
                 <div className="grid-2">
                   {L2_SHOWN.map(t => (
                     <div key={t.key} style={{ marginBottom: 18 }}>
-                      <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
+                      <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)', fontSize: 15 }}>{t.name}</b>
                       {facetsOf(t.key).map(f => (
                         <div className="row between" key={f.key} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)', gap: 14 }}>
                           <span className="small">{f.name}</span>

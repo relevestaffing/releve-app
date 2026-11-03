@@ -348,7 +348,7 @@ ${BODY_OPEN}
     </td></tr></table>
   </td></tr>
   <tr><td class="w px" style="${LIGHT}padding:0 48px 34px;">
-    <p class="ink" style="margin:0 0 2px;font-family:${SERIF};font-size:17px;line-height:1.7;color:#26312B;">Consider it handled,</p>
+    <img src="${APP()}/consider-it-handled.png" width="250" height="38" alt="Consider it handled," style="display:block;border:0;margin:0 0 4px;width:250px;height:auto;font-family:${SERIF};font-size:17px;color:#26312B;">
     <div class="fern" style="font-family:${SERIF};font-size:30px;color:#35443A;line-height:1.15;margin:4px 0 8px;">Sage</div>
     <div class="mute" style="font-family:${SANS};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#5F7466;">Sage Jackson &nbsp;&middot;&nbsp; Founder, Relève</div>
     ${ps ? `<p class="mute" style="margin:26px 0 0;font-family:${SERIF};font-style:italic;font-size:15.5px;line-height:1.7;color:#4C6353;">P.S. ${esc(ps)}</p>` : ''}

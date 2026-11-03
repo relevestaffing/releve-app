@@ -1,4 +1,4 @@
-import { send, shell, p, esc } from '@/lib/email';
+import { send, shell, p, esc, tagline } from '@/lib/email';
 import type { Message } from '@/lib/email';
 import type { CalendarEvent } from '@/lib/calendar';
 import { adminClient } from '@/lib/supabase/admin';
@@ -54,7 +54,7 @@ export function bookingInvite(o: { name: string; email: string }): Message {
       p(`${esc(first)},`) +
       p('Thank you for reaching out to Relève.') +
       p('If you already chose a time, you are set: your confirmation is in your inbox. If you did not finish, choose your time below. Thirty minutes, and we come prepared with what you told us.') +
-      p('Consider it handled.'),
+      tagline(),
       { label: 'Choose your time', href: link }),
     text: `${first},\n\nThank you for reaching out to Relève.\n\nIf you already chose a time, you are set: your confirmation is in your inbox. If you did not finish, choose your time here. Thirty minutes, and we come prepared with what you told us.\n\n${link}\n\nConsider it handled.\nRelève`
   };
@@ -78,7 +78,7 @@ export function bookingFollowUp(o: { name: string; email: string; handoff?: stri
       p(`${esc(first)},`) +
       p(opener) +
       p('Thirty minutes to map what comes off your plate first and the professional who takes it. We take on ten new clients a year.') +
-      p('Consider it handled.'),
+      tagline(),
       { label: 'Choose your time', href: link }),
     text: `${first},\n\n${openerText}\n\nThirty minutes to map what comes off your plate first and the professional who takes it. We take on ten new clients a year.\n\nChoose your time: ${link}\n\nConsider it handled.\nRelève`
   };
@@ -198,7 +198,7 @@ export function callConfirmation(o: { name: string; event: CalendarEvent }): Mes
       p(`${esc(first)},`) +
       p(`Your discovery call with Relève is confirmed for <b>${esc(timeLine)}</b>. It is already on your calendar.`) +
       p('Thirty minutes. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.') +
-      p('Consider it handled.'),
+      tagline(),
       join ? { label: 'Join on Zoom', href: join } : undefined,
       changes.length ? changes : undefined),
     text: `${first},\n\nYour discovery call with Relève is confirmed for ${timeLine}. It is already on your calendar.\n\nThirty minutes. We arrive prepared with what you told us, and you leave knowing exactly who comes off your plate first and how your 14-day search works.${join ? `\n\nJoin on Zoom: ${join}` : ''}${reschedule ? `\nReschedule: ${reschedule}` : ''}${cancel ? `\nCancel: ${cancel}` : ''}\n\nConsider it handled.\nRelève`

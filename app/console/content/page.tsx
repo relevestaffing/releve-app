@@ -36,7 +36,7 @@ export default async function Content({ searchParams }: { searchParams: Promise<
       ])
     : [[], [], null, null, null, null, null];
 
-  const rows = posts.map(p => ({
+  const rows = posts.filter(p => !p.channel.endsWith('careers')).map(p => ({
     ...p,
     when: whenLabel(p.publish_at), day: dayLabel(p.publish_at),
     images: Array.from({ length: imageCount(p) }, (_, i) => imageUrl(p.id, i, 'png')),

@@ -25,7 +25,7 @@ export function Radar({ series, size = 320, axes, note = true }: {
             <g key={a.key}>
               <line x1={cx} y1={cy} x2={x} y2={y} stroke="rgba(53,68,58,.12)" strokeWidth="1" />
               <text x={lx} y={ly + dy} textAnchor={anch} fontFamily="Marcellus,serif" fontSize="10"
-                letterSpacing="1.4" fill="#7D9080">{a.name.toUpperCase()}</text>
+                letterSpacing="1.4" fill="#999474">{a.name.toUpperCase()}</text>
             </g>
           );
         })}
@@ -112,8 +112,8 @@ export function Portrait({ id, name, cls, url }: { id: string; name: string; cls
   /* a real photo when there is one; a calm generated plate when there is not */
   if (url) return <div className={`avatar ${cls ?? ''}`} role="img" aria-label={name}
     style={{ backgroundImage: `url("${url.replace(/"/g, '%22')}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />;
-  const plates = [['#DDE5DC','#B0C4B2','#7D9080'],['#E6E2D8','#CDC7B6','#9A9280'],['#D8E1DA','#A9BFAE','#6E8574'],
-                  ['#E9E5DC','#C8C2B0','#8E8A78'],['#D2DDD5','#9FB7A6','#61796A'],['#E2E6DF','#BCC9BB','#84947F']];
+  const plates = [['#E9E7D8','#CDC8A7','#999474'],['#E6E2D8','#CDC7B6','#9A9280'],['#E5E3D4','#C9C39F','#8F8A64'],
+                  ['#E9E5DC','#C8C2B0','#8E8A78'],['#E2DFCD','#C2BC94','#847E56'],['#E2E6DF','#CFCCB5','#9D9876']];
   const n = [...id].reduce((s, c) => s + c.charCodeAt(0), 0) % plates.length;
   const [a, b, c] = plates[n];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="100" height="100" fill="url(#g)"/><circle cx="50" cy="39" r="16" fill="${c}" opacity=".5"/><path d="M17 95c0-19 15-31 33-31s33 12 33 31z" fill="${c}" opacity=".5"/></svg>`;
