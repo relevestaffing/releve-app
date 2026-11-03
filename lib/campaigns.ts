@@ -181,15 +181,17 @@ Positioning: trust and relief, the feeling of "Consider it handled." The reader'
 
 The hook: the subject line is what gets the email opened. Make it intriguing and specific: a surprising claim, an open loop, a sharp question, or a concrete moment. It must be honest (the email delivers on it), never clickbait, never all-caps, no "Re:" or "Fwd:" tricks. The first sentence must pay the subject off and pull the reader into the second.
 
-Voice: high-end, calm, direct, warm but never chatty. Short paragraphs. Specific and concrete. Speak to the reader as "you". American English. Say "virtual" so it is clear the staff are remote. Use "prepared" rather than "trained", "supported" or "handled" rather than "managed" when describing talent.
+Voice: high-end, calm, direct, warm but never chatty. Write the way a thoughtful founder talks to one owner across a table: plain words, contractions (I'm, don't, you'll), paragraphs of two to four sentences with a natural mix of long and short sentences. Specific and concrete, with one small real moment the reader can picture. Speak to the reader as "you". American English. Say "virtual" so it is clear the staff are remote. Use "prepared" rather than "trained", "supported" or "handled" rather than "managed" when describing talent.
 
-Hard rules: no em dashes or en dashes anywhere (use commas, periods or colons). No prices or plan names. No invented clients, testimonials, quotes, names or statistics. Composite founder stories must read as illustrative ("Picture a coach who...", "We hear this often:"), never as a named or real client. Any number must come either from the facts above or from a source you found by searching, and then you name the source in the sentence (for example "according to Gallup"). Write as Sage, the founder, in the first person ("I", "me"): warm and personal, like a letter to one owner, never corporate and never like AI. Do not write a greeting, a sign-off, an invitation to book, or a line like "Consider it handled": the greeting, the sign-off, the invitation and the booking button are added around your text. The letter must still read for any kind of business owner, not one industry. No emojis. No exclamation marks. Never threaten or shame the reader; point toward the better outcome.`;
+Hard rules: no em dashes or en dashes anywhere (use commas, periods or colons). No prices or plan names. No invented clients, testimonials, quotes, names or statistics. Composite founder stories must read as illustrative ("Picture a coach who...", "We hear this often:"), never as a named or real client. Any number must come either from the facts above or from a source you found by searching, and then you name the source in the sentence (for example "according to Gallup"). Write as Sage, the founder, in the first person ("I", "me"): warm and personal, like a letter to one owner, never corporate and never like AI. Do not write a greeting, a sign-off, an invitation to book, or a line like "Consider it handled": the greeting, the sign-off, the invitation and the booking button are added around your text. The letter must still read for any kind of business owner, not one industry. No emojis. No exclamation marks. Never threaten or shame the reader; point toward the better outcome.
+
+Sound human, not like a template: never open with a bare rule, label, slogan or "Here is the test"; the first paragraph starts like a real note, with a sentence or two of context for why you are writing this week, and only then the idea. Do not stack several one-sentence paragraphs for drama. Avoid "It is not X, it is Y" constructions, lists of three adjectives, "Here is the thing", "Let that sink in", and any line that sounds like a slogan or a LinkedIn post. If a sentence would feel strange said aloud to one person, rewrite it.`;
 
 const FORMAT = `When you are done, return only a JSON object as the last thing you write:
 {"subject": "...", "preheader": "...", "paragraphs": ["...", "..."], "cta_label": "..."}
 - subject: under 55 characters, the hook.
 - preheader: under 90 characters, adds to the subject without repeating it.
-- paragraphs: 6 to 10 short paragraphs, 350 to 550 words in total, written as Sage in the first person. Lead with the value and let it breathe; this is a letter, not a blurb. Do NOT write a greeting, a sign-off, an invitation to book, or a closing line like "Consider it handled": those are added around your text. You may mark ONE short, quotable line as a pull quote by starting that paragraph with "> ". You may include ONE short checklist by writing two to four consecutive paragraphs that each start with "- ". End with one final paragraph that starts with "P.S. " giving one more reason to book the call (for example that Relève takes only ten new clients a year). Plain text only, no markdown beyond the "> " and "- " markers, no links or URLs in the text.
+- paragraphs: 6 to 9 paragraphs of two to four sentences each, 350 to 550 words in total, written as Sage in the first person. Open warmly in context, then lead with the value and let it breathe; this is a letter, not a blurb. Do NOT write a greeting like "Hello" or "Hi" ("Hello, {name}" is added above your text), a sign-off, an invitation to book, or a closing line like "Consider it handled": those are added around your text. You may mark ONE short, quotable line as a pull quote by starting that paragraph with "> ". You may include ONE short checklist by writing two to four consecutive paragraphs that each start with "- ". End with one final paragraph that starts with "P.S. " giving one more reason to book the call (for example that Relève takes only ten new clients a year). Plain text only, no markdown beyond the "> " and "- " markers, no links or URLs in the text.
 - cta_label: 2 to 5 words for the booking button, e.g. "Book your Zoom coffee".`;
 
 const CTA_URL = 'https://relevestaffing.com/discovery';
@@ -271,11 +273,25 @@ function withUtm(url: string, slot: string) {
   return u.toString();
 }
 
-export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragraphs' | 'cta_label' | 'cta_url' | 'slot' | 'send_at'>, token: string | null) {
+/* Gmail and Outlook "dark mode" re-colour any light background they find, which
+   turned the letter charcoal and hid the fern logo. A solid colour is what they
+   rewrite; a background-image is left alone, so every surface carries both. */
+const LIGHT = 'background-color:#FFFFFF;background-image:linear-gradient(#FFFFFF,#FFFFFF);';
+const FERN = 'background-color:#35443A;background-image:linear-gradient(#35443A,#35443A);';
+export const BODY_OPEN = `<body class="w" bgcolor="#FFFFFF" style="margin:0;padding:0;${LIGHT}">`;
+
+const firstNameOf = (n?: string | null) => {
+  const t = String(n ?? '').trim().split(/\s+/)[0] ?? '';
+  return /^[A-Za-zÀ-ÿ'’-]{2,24}$/.test(t) ? t.charAt(0).toUpperCase() + t.slice(1) : '';
+};
+
+export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragraphs' | 'cta_label' | 'cta_url' | 'slot' | 'send_at'>, token: string | null, fullName?: string | null) {
   const unsub = token ? unsubscribeUrl(token) : `${APP()}/unsubscribe`;
   const address = mailingAddress() || '[mailing address goes here]';
   const cta = withUtm(c.cta_url || CTA_URL, c.slot);
   const logo = `${APP()}/logo-fern.png`;
+  const first = firstNameOf(fullName);
+  const greeting = first ? `Hello ${esc(first)},` : 'Hello,';
   let date = '';
   try { date = new Date(c.send_at).toLocaleDateString('en-US', { timeZone: TZ, month: 'long', day: 'numeric', year: 'numeric' }); } catch { /* */ }
 
@@ -286,11 +302,13 @@ export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragra
   const ps = psIdx >= 0 ? c.paragraphs[psIdx].trim().replace(/^p\.?\s*s\.?[:.\s]*/i, '') : '';
   const flow = c.paragraphs.filter((_, i) => i !== psIdx);
 
-  const para = (p: string) => `<p style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.78;color:#2B352F;">${esc(p)}</p>`;
-  const quote = (p: string) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 28px;"><tr><td style="border-left:2px solid #35443A;padding:4px 0 4px 22px;"><div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:22px;line-height:1.45;color:#26312B;">${esc(p)}</div></td></tr></table>`;
-  const list = (items: string[]) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 26px;">${items.map((it, k) => `<tr><td style="padding:16px 0;border-top:1px solid #E3DCCB;${k === items.length - 1 ? 'border-bottom:1px solid #E3DCCB;' : ''}font-family:Georgia,serif;"><span style="font-style:italic;font-size:20px;color:#35443A;">${String(k + 1).padStart(2, '0')}</span><span style="font-size:16.5px;color:#2B352F;">&nbsp;&nbsp;${esc(it)}</span></td></tr>`).join('')}</table>`;
+  const SERIF = "Georgia,'Times New Roman',serif";
+  const SANS = 'Helvetica,Arial,sans-serif';
+  const para = (p: string) => `<p class="ink" style="margin:0 0 20px;font-family:${SERIF};font-size:17px;line-height:1.75;color:#26312B;">${esc(p)}</p>`;
+  const quote = (p: string) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 26px;"><tr><td class="w" style="${LIGHT}border-left:2px solid #35443A;padding:4px 0 4px 20px;"><div class="fern" style="font-family:${SERIF};font-style:italic;font-size:21px;line-height:1.5;color:#35443A;">${esc(p)}</div></td></tr></table>`;
+  const list = (items: string[]) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 26px;">${items.map((it, k) => `<tr><td class="w" style="${LIGHT}padding:15px 0;border-top:1px solid #DDE5DC;${k === items.length - 1 ? 'border-bottom:1px solid #DDE5DC;' : ''}font-family:${SERIF};"><span class="fern" style="font-style:italic;font-size:19px;color:#35443A;">${String(k + 1).padStart(2, '0')}</span><span class="ink" style="font-size:16.5px;line-height:1.6;color:#26312B;">&nbsp;&nbsp;${esc(it)}</span></td></tr>`).join('')}</table>`;
 
-  let bodyHtml = ''; let i = 0;
+  let bodyHtml = para(greeting); let i = 0;
   while (i < flow.length) {
     const p = (flow[i] || '').trim();
     if (p.startsWith('> ')) { bodyHtml += quote(p.slice(2).trim()); i++; continue; }
@@ -298,38 +316,51 @@ export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragra
     bodyHtml += para(p); i++;
   }
 
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>${esc(c.subject)}</title></head>
-<body style="margin:0;padding:0;background:#E6E1D4;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#E6E1D4;">${esc(c.preheader || '')}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E6E1D4;padding:34px 14px;">
-<tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FBF8F1;">
-  <tr><td style="padding:46px 56px 34px;text-align:center;">
-    <img src="${logo}" width="226" alt="Relève Executive Staffing" style="display:block;margin:0 auto;width:226px;max-width:70%;height:auto;">
-    <div style="font-family:Helvetica,Arial,sans-serif;font-size:10.5px;letter-spacing:4px;text-transform:uppercase;color:#9AA89C;margin-top:24px;">The Letter${date ? ` &nbsp;&middot;&nbsp; ${esc(date)}` : ''}</div>
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"><title>${esc(c.subject)}</title>
+<style>
+:root{color-scheme:light only;supported-color-schemes:light only}
+@media (prefers-color-scheme:dark){
+  .w{background-color:#FFFFFF!important;background-image:linear-gradient(#FFFFFF,#FFFFFF)!important}
+  .f{background-color:#35443A!important;background-image:linear-gradient(#35443A,#35443A)!important}
+  .ink{color:#26312B!important}.fern{color:#35443A!important}.mute{color:#5F7466!important}.onf{color:#FFFFFF!important}
+}
+@media only screen and (max-width:620px){
+  .px{padding-left:26px!important;padding-right:26px!important}
+  .pad{padding-left:0!important;padding-right:0!important}
+}
+</style></head>
+${BODY_OPEN}
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#FFFFFF;">${esc(c.preheader || '')}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="w" bgcolor="#FFFFFF" style="${LIGHT}"><tr><td align="center" class="w" style="${LIGHT}padding:0 0 24px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="w" bgcolor="#FFFFFF" style="max-width:600px;${LIGHT}border-top:3px solid #35443A;">
+  <tr><td class="w px" style="${LIGHT}padding:44px 48px 30px;text-align:center;">
+    <img src="${logo}" width="210" alt="Relève Executive Staffing" style="display:block;margin:0 auto;width:210px;max-width:68%;height:auto;border:0;">
+    <div class="mute" style="font-family:${SANS};font-size:10.5px;letter-spacing:2.5px;text-transform:uppercase;color:#5F7466;margin-top:22px;white-space:nowrap;">The Letter${date ? ` &nbsp;&middot;&nbsp; ${esc(date)}` : ''}</div>
   </td></tr>
-  <tr><td style="border-top:1px solid #E3DCCB;font-size:0;line-height:0;">&nbsp;</td></tr>
-  <tr><td style="padding:40px 56px 8px;">${bodyHtml}</td></tr>
-  <tr><td style="padding:10px 56px 34px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#35443A;"><tr><td style="padding:30px 34px;">
-      <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:19px;color:#F3EFE6;line-height:1.5;">If you want, I will do this with you.</div>
-      <p style="margin:12px 0 20px;font-family:Georgia,serif;font-size:15.5px;line-height:1.7;color:#CBD4CC;">Book a free delegation audit on a Zoom coffee. We will look at your real week together and map the first things to hand off, in order. No pitch, just the plan.</p>
-      <a href="${esc(cta)}" style="display:inline-block;background:#FBF8F1;color:#35443A;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;padding:15px 30px;">${esc(c.cta_label || 'Book your Zoom coffee')}</a>
+  <tr><td class="w px" style="${LIGHT}padding:0 48px;"><div style="border-top:1px solid #DDE5DC;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+  <tr><td class="w px" style="${LIGHT}padding:34px 48px 6px;">${bodyHtml}</td></tr>
+  <tr><td class="w px" style="${LIGHT}padding:8px 48px 32px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="f" bgcolor="#35443A" style="${FERN}"><tr><td class="f" style="${FERN}padding:30px 30px;">
+      <div class="onf" style="font-family:${SERIF};font-style:italic;font-size:20px;line-height:1.4;color:#FFFFFF;">I'd be glad to do this with you.</div>
+      <p class="onf" style="margin:12px 0 22px;font-family:${SERIF};font-size:15.5px;line-height:1.7;color:#E4ECE4;">Book a free 30-minute Zoom coffee. We'll look at your real week together and map the first things to hand off, in order. No pitch, just a plan.</p>
+      <a href="${esc(cta)}" style="display:inline-block;background-color:#FFFFFF;color:#35443A;text-decoration:none;font-family:${SANS};font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:15px 28px;">${esc(c.cta_label || 'Book your Zoom coffee')}</a>
     </td></tr></table>
   </td></tr>
-  <tr><td style="padding:0 56px 36px;">
-    <p style="margin:0 0 4px;font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.7;color:#2B352F;">Consider it handled,</p>
-    <div style="font-family:Georgia,'Times New Roman',serif;font-size:30px;color:#26312B;line-height:1.1;margin:6px 0 8px;">Sage</div>
-    <div style="font-family:Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8A9A8C;">Sage Jackson &nbsp;&middot;&nbsp; Founder, Relève</div>
-    ${ps ? `<p style="margin:26px 0 0;font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:15.5px;line-height:1.7;color:#6E7F71;">P.S. ${esc(ps)}</p>` : ''}
+  <tr><td class="w px" style="${LIGHT}padding:0 48px 34px;">
+    <p class="ink" style="margin:0 0 2px;font-family:${SERIF};font-size:17px;line-height:1.7;color:#26312B;">Consider it handled,</p>
+    <div class="fern" style="font-family:${SERIF};font-size:30px;color:#35443A;line-height:1.15;margin:4px 0 8px;">Sage</div>
+    <div class="mute" style="font-family:${SANS};font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#5F7466;">Sage Jackson &nbsp;&middot;&nbsp; Founder, Relève</div>
+    ${ps ? `<p class="mute" style="margin:26px 0 0;font-family:${SERIF};font-style:italic;font-size:15.5px;line-height:1.7;color:#4C6353;">P.S. ${esc(ps)}</p>` : ''}
   </td></tr>
-  <tr><td style="padding:24px 56px 40px;border-top:1px solid #E3DCCB;font-family:Helvetica,Arial,sans-serif;font-size:12px;line-height:1.75;color:#8A9A8C;">
-    You are receiving The Relève Letter because you shared your email with Relève.<br>
-    <a href="${esc(unsub)}" style="color:#35443A;text-decoration:underline;">Unsubscribe</a> &nbsp;&middot;&nbsp; Relève Staffing LLC, ${esc(address)}
+  <tr><td class="w px" style="${LIGHT}padding:22px 48px 36px;border-top:1px solid #DDE5DC;font-family:${SANS};font-size:12px;line-height:1.75;color:#5F7466;">
+    <span class="mute" style="color:#5F7466;">You're receiving The Relève Letter because you shared your email with Relève.<br>
+    <a href="${esc(unsub)}" style="color:#35443A;text-decoration:underline;">Unsubscribe</a> &nbsp;&middot;&nbsp; Relève Staffing LLC, ${esc(address)}</span>
   </td></tr>
 </table></td></tr></table></body></html>`;
   const text = [
+    greeting.replace(/&amp;/g, '&'),
+    '',
     ...flow.map(p => (p || '').replace(/^[>\-]\s*/, '')),
     '',
     `${c.cta_label || 'Book your Zoom coffee'}: ${cta}`,
@@ -340,7 +371,7 @@ export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragra
     ...(ps ? ['', `P.S. ${ps}`] : []),
     '',
     '---',
-    'You are receiving The Relève Letter because you shared your email with Relève.',
+    "You're receiving The Relève Letter because you shared your email with Relève.",
     `Unsubscribe: ${unsub}`,
     `Relève Staffing LLC, ${address}`
   ].join('\n');
@@ -353,10 +384,10 @@ async function previewToTeam(c: Campaign, note?: string) {
   const team = await teamEmailsAdmin().catch(() => [] as string[]);
   if (!team.length) return;
   const { html: inner } = renderEmail(c, null);
-  const banner = `<div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#35443A;background:#F1F6F1;padding:14px 18px;margin:0 0 6px;">
+  const banner = `<div style="font-family:Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#35443A;background:#EAF1EA;padding:14px 18px;margin:0;">
 <b>Preview.</b> This email sends <b>${esc(whenLabel(c.send_at))}</b> to everyone on the list unless you hold it.
 ${note ? `<br>${esc(note)}` : ''}<br><a href="${APP()}/console/campaigns" style="color:#35443A;">Review, edit or hold it in the console</a></div>`;
-  const html = inner.replace('<body style="margin:0;padding:0;background:#E6E1D4;">', `<body style="margin:0;padding:0;background:#E6E1D4;">${banner}`);
+  const html = inner.replace(BODY_OPEN, `${BODY_OPEN}${banner}`);
   for (const to of team) {
     await send(to, {
       kind: 'campaignPreview',
@@ -396,14 +427,15 @@ export async function draftUpcoming(now = new Date(), force = false) {
 
 async function recipientsFor(id: string) {
   /* Queue everyone subscribed right now; the primary key keeps it idempotent. */
-  const { data: subs } = await sb().from('subscribers').select('id, email, unsubscribe_token').eq('subscribed', true);
+  const { data: subs } = await sb().from('subscribers').select('id, email, unsubscribe_token, full_name').eq('subscribed', true);
   const rows = (subs ?? []).map((s: any) => ({ campaign_id: id, subscriber_id: s.id, email: s.email }));
   for (let i = 0; i < rows.length; i += 500) {
     await sb().from('campaign_sends').upsert(rows.slice(i, i + 500), { onConflict: 'campaign_id,subscriber_id', ignoreDuplicates: true });
   }
   const tokens = new Map((subs ?? []).map((s: any) => [s.id, s.unsubscribe_token as string]));
   const subscribed = new Set((subs ?? []).map((s: any) => s.id));
-  return { tokens, subscribed };
+  const names = new Map((subs ?? []).map((s: any) => [s.id, (s.full_name as string) || null]));
+  return { tokens, subscribed, names };
 }
 
 export async function sendCampaign(c: Campaign, deadline = Date.now() + 18000) {
@@ -424,7 +456,7 @@ export async function sendCampaign(c: Campaign, deadline = Date.now() + 18000) {
     .update({ status: 'sending', hold_reason: null, updated_at: new Date().toISOString() })
     .eq('id', c.id).or(`status.eq.scheduled,and(status.eq.sending,updated_at.lt.${lease})`).select('id');
   if (!claimed?.length) return { sentNow: 0, done: false, busy: true };
-  const { tokens, subscribed } = await recipientsFor(c.id);
+  const { tokens, subscribed, names } = await recipientsFor(c.id);
   const { data: queue } = await sb().from('campaign_sends').select('subscriber_id, email, status').eq('campaign_id', c.id).neq('status', 'sent');
   let sentNow = 0;
   for (const q of (queue ?? []) as any[]) {
@@ -434,7 +466,7 @@ export async function sendCampaign(c: Campaign, deadline = Date.now() + 18000) {
       continue;
     }
     const token = tokens.get(q.subscriber_id) || null;
-    const { html, text } = renderEmail(c, token);
+    const { html, text } = renderEmail(c, token, names.get(q.subscriber_id) ?? null);
     const ok = await send(q.email, {
       kind: 'campaign', subject: c.subject, text, html, from: FROM(),
       headers: { ...(token ? listUnsubscribeHeaders(token) : {}), 'Reply-To': REPLY_TO }
