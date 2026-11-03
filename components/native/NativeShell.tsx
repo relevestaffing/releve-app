@@ -128,7 +128,41 @@ export default function NativeShell() {
     }
     const h1 = document.querySelector('.topbar h1');
     titleAt.current = h1 ? h1.getBoundingClientRect().bottom + window.scrollY - 52 : 80;
+    /* one orchestrated rise out of depth as the screen lands, then it rests */
+    const root = document.documentElement;
+    root.classList.remove('nv-land'); void root.offsetWidth; root.classList.add('nv-land');
+    const t = window.setTimeout(() => root.classList.remove('nv-land'), 1400);
+    return () => window.clearTimeout(t);
   }, [path]);
+
+  /* depth under the bar: as a panel slides under the top bar it recedes and dims, the way
+     cards do in Wallet; as the wall scrolls it drifts slower than the page (parallax) */
+  useEffect(() => {
+    if (!active) return;
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (calm) return;
+    let tick = false;
+    const top = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nv-top')) || 48;
+    const read = () => {
+      tick = false;
+      const edge = top() + 8;
+      document.querySelectorAll<HTMLElement>('main.main > .page-body > *, main.main > .page-body > .stack > *').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.height < 40) return;
+        const gone = Math.min(1, Math.max(0, (edge - r.top) / Math.max(120, r.height * .7)));
+        if (gone <= 0) { if (el.dataset.nvDepth) { el.style.transform = ''; el.style.opacity = ''; delete el.dataset.nvDepth; } return; }
+        el.dataset.nvDepth = '1';
+        el.style.transform = `perspective(1100px) translateZ(${-90 * gone}px) translateY(${18 * gone}px)`;
+        el.style.opacity = String(1 - .55 * gone);
+      });
+      const wall = document.querySelector<HTMLElement>('main.main > .sun-page');
+      if (wall) wall.style.transform = `translateY(${Math.min(0, -window.scrollY * .1)}px)`;
+    };
+    const on = () => { if (!tick) { tick = true; requestAnimationFrame(read); } };
+    read();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => { window.removeEventListener('scroll', on); document.querySelectorAll<HTMLElement>('[data-nv-depth]').forEach(el => { el.style.transform = ''; el.style.opacity = ''; delete el.dataset.nvDepth; }); };
+  }, [active, path]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('rv-native', active);
@@ -309,7 +343,7 @@ export default function NativeShell() {
         <div className="nv-right">
           <button type="button" className="nv-btn nv-ask" aria-label="Ask Relève"
             onClick={() => document.querySelector<HTMLButtonElement>('.ask-fab')?.click()}>
-            <span>R</span><i aria-hidden="true" />
+            <span>Ask</span>
           </button>
         </div>
       </header>
@@ -317,6 +351,7 @@ export default function NativeShell() {
       <nav className="nv-tabs" aria-label="Main" style={{ ['--n' as any]: n, ['--i' as any]: Math.max(0, lens) }}
         data-lens={lens < 0 ? 'off' : 'on'}>
         <span className="nv-lens" aria-hidden="true" />
+        <span className="nv-sheen" aria-hidden="true" />
         {ctx.tabs.map((t, i) => (
           <Link key={t.href} href={t.href} className="nv-tab" aria-current={i === tab && !more ? 'page' : undefined}
             data-title={t.label}>
