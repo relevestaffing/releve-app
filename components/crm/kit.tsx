@@ -196,7 +196,7 @@ export type StageDef = { key: string; label: string; color: string };
 export function StageChip({ stage, stages, onPick, readOnly = false }: {
   stage: string; stages: StageDef[]; onPick?: (s: string) => void; readOnly?: boolean;
 }) {
-  const s = stages.find(x => x.key === stage) ?? { key: stage, label: stage, color: '#6E8073' };
+  const s = stages.find(x => x.key === stage) ?? { key: stage, label: stage, color: '#888466' };
   if (readOnly || !onPick) return <span className="ws-stage" style={{ ['--c' as any]: s.color, cursor: 'default' }}>{s.label}</span>;
   return (
     <Menu className="ws-stage" style={{ ['--c' as any]: s.color }} label={`Stage: ${s.label}`} width={220}
