@@ -146,7 +146,7 @@
 .ws-chip.today,.ws-chip.soon{color:var(--ws-green)}
 .ws-chip > span{overflow:hidden;text-overflow:ellipsis}
 /* tags: soft tinted squares in the stage's own colour, Relève's spaced capitals */
-.ws-stage,.ws-tag{--c:#6E8073;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;font-family:var(--ws-serif);font-size:11px;letter-spacing:.12em;
+.ws-stage,.ws-tag{--c:#888466;display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;font-family:var(--ws-serif);font-size:11px;letter-spacing:.12em;
   text-transform:uppercase;white-space:nowrap;border:0;
   background:color-mix(in srgb,var(--c) 15%,#fff)!important;color:color-mix(in srgb,var(--c) 78%,#101814)!important}
 .ws-stage{cursor:pointer;transition:background .12s}
@@ -155,7 +155,7 @@
 .ws-tag{--c:#7A847D}
 .ws-tag.good{--c:#3F7553}.ws-tag.warn{--c:#A7792F}.ws-tag.bad{--c:#A4483A}
 .ws-fresh{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
-.ws-fresh.g{background:#4E8A62}.ws-fresh.a{background:#C9A050}.ws-fresh.r{background:#B5574A}.ws-fresh.n{background:#CFD3CD}
+.ws-fresh.g{background:#4E8A62}.ws-fresh.a{background:#C9A050}.ws-fresh.r{background:#B5574A}.ws-fresh.n{background:#D6D4CA}
 .ws-ring circle{transition:stroke-dashoffset .6s cubic-bezier(.2,.7,.3,1)}
 
 .ws-pop{position:fixed;z-index:1200;background:#fff;min-width:200px;max-width:300px;padding:5px;border:1px solid var(--ws-line);font-family:var(--ws-ui);font-size:13.5px;
@@ -224,7 +224,7 @@
 .ws-p-top .sp{flex:1}
 .ws-p-top .crumb{font-size:12px;color:var(--ws-faint)}
 .ws-mark{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border:1px solid var(--ws-line);background:#fff;font-size:13px;color:var(--ws-ink);cursor:pointer;transition:all .15s}
-.ws-mark:hover{border-color:var(--ws-leaf);color:var(--ws-leaf);background:#F1F5EF}
+.ws-mark:hover{border-color:var(--ws-leaf);color:var(--ws-leaf);background:#F6F5EE}
 .ws-mark.done{background:var(--ws-leaf);border-color:var(--ws-leaf);color:#fff}
 .ws-mark svg{width:13px;height:13px}
 .ws-icon{width:30px;height:30px;display:grid;place-items:center;border:0;background:none;cursor:pointer;color:var(--ws-sub);text-decoration:none;transition:background .12s}

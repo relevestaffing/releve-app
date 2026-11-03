@@ -15,16 +15,15 @@ export default function Splash() {
   const [phase, setPhase] = useState<'show' | 'hide' | 'gone'>('show');
   useEffect(() => {
     const start = (window as any).__rvSplashStart || Date.now();
-    const wait = Math.max(0, 500 - (Date.now() - start));
+    const wait = Math.max(0, 850 - (Date.now() - start));
     const t1 = setTimeout(() => setPhase('hide'), wait);
-    const t2 = setTimeout(() => setPhase('gone'), wait + 600);
+    const t2 = setTimeout(() => setPhase('gone'), wait + 700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
   if (phase === 'gone') return null;
   return (
     <div id="rv-splash" aria-hidden="true" className={phase === 'hide' ? 'rv-splash-done' : undefined}>
-      <div className="rv-word">RELÈVE<span className="rv-sheen" aria-hidden="true">RELÈVE</span></div>
-      <div className="rv-sub">Executive Staffing</div>
+      <img className="rv-logo" src="/logo-fern.png" alt="" width="1200" height="360" decoding="sync" fetchPriority="high" />
       <div className="rv-bar"><i></i></div>
     </div>
   );

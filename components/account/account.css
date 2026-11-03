@@ -19,7 +19,7 @@
 .card.acct-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0!important;margin-bottom:18px}
 .acct-cell{padding:22px 24px 20px;border-left:1px solid rgba(53,68,58,.1);min-width:0}
 .acct-cell:first-child{border-left:0}
-.acct-k{font-family:'Marcellus',Georgia,serif;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#6E7F71;margin-bottom:10px}
+.acct-k{font-family:'Marcellus',Georgia,serif;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#878266;margin-bottom:10px}
 .acct-v{font-family:'Marcellus',Georgia,serif;font-size:22px;line-height:1.2;color:#22302A;margin-bottom:6px;overflow-wrap:anywhere}
 .acct-v a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(53,68,58,.25)}
 .acct-v a:hover{border-bottom-color:#35443A}
@@ -46,7 +46,7 @@
 .acct-h{font-family:'Marcellus',Georgia,serif;font-size:18px;font-weight:400;color:#22302A;margin:0 0 12px}
 .acct-row-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .acct-row-head .acct-h{margin:0}
-.acct-empty{display:flex;flex-direction:column;gap:4px;padding:26px 22px;border:1px dashed rgba(53,68,58,.2);color:#5C6B60;font-size:14px}
+.acct-empty{display:flex;flex-direction:column;gap:4px;padding:26px 22px;border:1px dashed rgba(53,68,58,.2);color:#726E55;font-size:14px}
 .acct-empty b{font-weight:500;color:#22302A}
 
 .acct-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:8px 28px;padding:22px 24px;border:1px solid rgba(53,68,58,.12);background:#FDFCF8;margin-bottom:22px}
@@ -79,7 +79,7 @@
 .acct-table td.bar span{display:block;height:8px;background:#4E7A5C}
 .acct-table td.bar span.over{background:#C4963E}
 .acct-table .acct-over{color:#7A5A1E}
-.acct-note-cell{color:#5C6B60;font-size:13px;max-width:280px}
+.acct-note-cell{color:#726E55;font-size:13px;max-width:280px}
 @media (max-width:700px){.acct-table{display:block;overflow-x:auto;white-space:nowrap}}
 .acct-foot-link{margin-top:14px;font-size:13px}
 .acct-foot-link a{color:#35443A}
@@ -95,9 +95,9 @@
 /* the assign and archive dialogs */
 .acct-assign,.acct-confirm{color:#22302A}
 .acct-assign-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
-.acct-assign-head h3,.acct-confirm h3{font-family:'Marcellus',Georgia,serif;font-weight:400;font-size:26px;margin:2px 0 0}
+.acct-assign-head h3,.acct-confirm h3{font-family:'Lora',Georgia,serif;font-weight:400;font-size:26px;margin:2px 0 0}
 .acct-eyebrow{font-family:'Marcellus',Georgia,serif;font-size:11px;letter-spacing:2.4px;text-transform:uppercase}
-.acct-step{display:block;font-family:'Marcellus',Georgia,serif;font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#5C6B60;margin:16px 0 8px}
+.acct-step{display:block;font-family:'Marcellus',Georgia,serif;font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#726E55;margin:16px 0 8px}
 .acct-find{width:100%;display:flex}
 .acct-find input{flex:1}
 .acct-picks{max-height:248px;overflow-y:auto;overscroll-behavior:contain;border:1px solid rgba(53,68,58,.14);margin-top:8px}

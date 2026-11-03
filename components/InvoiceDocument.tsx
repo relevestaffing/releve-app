@@ -46,7 +46,7 @@ export default function InvoiceDocument({ inv, actions }: {
         .invoice-doc table.lines td{padding:14px 0;border-bottom:1px solid var(--line);vertical-align:top;font-size:14.5px}
         .invoice-doc .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
         .invoice-doc .meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:28px 0}
-        .invoice-doc .meta .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);margin-bottom:4px}
+        .invoice-doc .meta .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);margin-bottom:4px;font-family:'Marcellus',serif}
         .invoice-doc .total td{border-bottom:none;font-family:'Marcellus',serif;font-size:19px;color:var(--fern);padding-top:18px}
         @media (max-width:640px){.invoice-doc{padding:26px 20px!important}.invoice-doc .meta{grid-template-columns:1fr 1fr}}
         @media print{
@@ -69,8 +69,7 @@ export default function InvoiceDocument({ inv, actions }: {
 
       <div className="row between" style={{ alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontFamily: 'Marcellus, serif', fontSize: 26, letterSpacing: '.32em', textTransform: 'uppercase', color: 'var(--fern)' }}>Relève</div>
-          <div className="xs muted" style={{ letterSpacing: '.24em', textTransform: 'uppercase', marginTop: 4 }}>Executive Staffing</div>
+          <img src="/logo-fern.png" alt="Relève Executive Staffing" width="1200" height="360" style={{ display: 'block', width: 210, height: 'auto' }} />
           <div className="small" style={{ marginTop: 14, lineHeight: 1.6 }}>
             {INVOICE_ENTITY.name}<br />{INVOICE_ENTITY.email}<br />{INVOICE_ENTITY.country}
           </div>

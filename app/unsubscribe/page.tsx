@@ -15,7 +15,7 @@ export default async function Unsubscribe({ searchParams }: { searchParams: Prom
         <div className="auth-card">
           <UnsubscribeForm token={t ?? ''} />
         </div>
-        <p className="small muted" style={{ marginTop: 26 }}>Relève Executive Staffing · Consider it handled.</p>
+        <img className="auth-tagline" src="/consider-it-handled.png" alt="Consider it handled." width={2755} height={414} />
       </div>
     </div>
   );

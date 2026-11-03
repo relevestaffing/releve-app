@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { configured } from '@/lib/supabase/server';
 import { saveCalendar } from '@/lib/store';
-import { send, templates } from '@/lib/email';
+import { send, templates, appGuideAttachment } from '@/lib/email';
 import { noteSigninTrouble } from '@/lib/signin-watch';
 import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
 
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
 
       if (user.email) {
         const { data: fresh } = await sb.from('profiles').select('full_name, role').eq('id', user.id).maybeSingle();
-        await send(user.email, templates.profileWelcome((fresh as any)?.full_name ?? null, (fresh as any)?.role ?? null));
+        await send(user.email, { ...templates.profileWelcome((fresh as any)?.full_name ?? null, (fresh as any)?.role ?? null), attachments: await appGuideAttachment() });
       }
     }
   }

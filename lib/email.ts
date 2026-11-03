@@ -43,11 +43,26 @@ function transport() {
   return cached;
 }
 
+/* The step-by-step "add Relève to your phone or computer" guide, fetched from
+   the app's own public folder and attached to the first welcome email. If it
+   cannot be fetched the email still goes, with the link in its body. */
+let guideCache: Attachment | null = null;
+export async function appGuideAttachment(): Promise<Attachment[]> {
+  try {
+    if (!guideCache) {
+      const r = await fetch(`${SITE}/guides/Add-Releve-to-your-device.pdf`);
+      if (!r.ok) return [];
+      guideCache = { filename: 'Add-Releve-to-your-device.pdf', content: Buffer.from(await r.arrayBuffer()), contentType: 'application/pdf' };
+    }
+    return [guideCache];
+  } catch { return []; }
+}
+
 /* One built message. Every template returns this shape, and `kind` is the
    template's own name — added automatically at the bottom of this file, so a
    new template cannot be added without also being loggable. */
 export type Attachment = { filename: string; content: Buffer; contentType: string };
-export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[]; headers?: Record<string, string> };
+export type Message = { subject: string; text: string; html: string; kind: string; from?: string; attachments?: Attachment[]; headers?: Record<string, string>; icalEvent?: { method: string; filename?: string; content: string } };
 
 /* Mirror a transactional notification to the recipient's push devices.
    Best-effort and gated: marketing (campaign*) emails never push, and any
@@ -103,7 +118,7 @@ export async function sendOrThrow(to: string, msg: Message) {
   }
   try {
     const info = await transport().sendMail({
-      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers
+      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent
     });
     await record(msg.kind, to, msg.subject, true);
     await pushMirror(to, msg);
@@ -125,7 +140,7 @@ export async function send(to: string, msg: Message) {
     return false;
   }
   try {
-    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers });
+    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent });
     await record(msg.kind, to, msg.subject, true);
     await pushMirror(to, msg);
     return true;
@@ -168,8 +183,7 @@ export function shell(
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#FFFFFF;">
   <tr><td style="padding:0 4px 22px;border-bottom:1px solid #D3E0D4;text-align:center;">
-    <div style="font-family:Georgia,'Times New Roman',serif;font-size:19px;letter-spacing:6px;text-transform:uppercase;color:#35443A;">Relève</div>
-    <div style="font-family:Helvetica,Arial,sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#35443A;margin-top:6px;">Executive Staffing</div>
+    <a href="${SITE}" style="text-decoration:none;"><img src="${SITE}/logo-fern.png" width="220" height="66" alt="Relève Executive Staffing" style="display:block;margin:0 auto;border:0;width:220px;height:auto;font-family:Georgia,serif;font-size:19px;letter-spacing:6px;text-transform:uppercase;color:#35443A;"></a>
   </td></tr>
   <tr><td style="padding:32px 4px 30px;font-family:Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.65;color:#35443A;">
     <h1 style="font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:24px;line-height:1.3;color:#35443A;margin:0 0 18px;">${headline}</h1>
@@ -189,6 +203,8 @@ export function shell(
 </table></td></tr></table></body></html>`;
 }
 export const p = (s: string) => `<p style="margin:0 0 15px;">${s}</p>`;
+/** The Relève signature tagline, set in Simple Serenity Script (image, so it renders the same in every mail client). */
+export const tagline = () => `<p style="margin:4px 0 0;"><img src="${SITE}/consider-it-handled.png" width="250" height="38" alt="Consider it handled." style="display:block;border:0;width:250px;height:auto;font-family:Georgia,serif;font-style:italic;font-size:17px;color:#35443A;"></p>`;
 
 /* HTML-escapes a value before it goes into a template built from someone
    else's typed text. Only newApplication needs this: it is the one message
@@ -259,7 +275,8 @@ const rawTemplates = {
     const steps = [
       { n: 1, label: 'Sign your Client Services Agreement', href: o.docsUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, href: o.payUrl, cta: `Pay ${amount}` },
-      { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' }
+      { n: 3, label: 'Set up your Relève account', href: SITE, cta: 'Set up account' },
+      { n: 4, label: 'Add Relève to your phone or computer as an app (guide attached)', href: `${SITE}/guides/Add-Releve-to-your-device.pdf`, cta: 'Open the guide' }
     ];
     /* A plain numbered list on the white page: a hairline between steps, the
        number in the serif, the action as a quiet text link beneath the label.
@@ -278,11 +295,11 @@ const rawTemplates = {
     const firstName = o.name ? o.name.split(/\s+/)[0] : '';
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.\n\nTo open the search, sign the Client Services Agreement, pay your ${amount} deposit, and set up your Relève account:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nLovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.\n\nTo open the search, sign the Client Services Agreement, pay your ${amount} deposit, set up your Relève account, and add it to your phone or computer as an app:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}`).join('\n')}\n\nYour deposit is credited in full toward your first month once you are placed.\n\nWe are already thinking about who is right for you. Talk soon.\n\nRelève`,
       html: shell(`Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
         p(`${o.name ? o.name + ',' : 'Hello,'}`) +
         p(`Lovely connecting with you today. Our next job is to find the person you can hand this to. We check them on six fronts, match them to how you work and prepare them for your role before day one, then support them after, so you don't have to.`) +
-        p(`To open the search, sign the Client Services Agreement, pay your ${amount} deposit, and set up your Relève account.`) +
+        p(`To open the search, sign the Client Services Agreement, pay your ${amount} deposit, set up your Relève account, and add it to your phone or computer as an app.`) +
         steps.map((st, i) => stepRow(st, i)).join('') +
         `<p style="margin:20px 0 0;font-size:13px;color:#35443A;">Your deposit is credited in full toward your first month once you are placed.</p>` +
         `<p style="margin:20px 0 0;">We are already thinking about who is right for you. Talk soon.</p>` +
@@ -344,7 +361,7 @@ const rawTemplates = {
      high-end candidate or client experience should look like on a phone. */
   profileWelcome: (name: string | null, role: 'client' | 'talent' | 'admin' | null = null) => ({
     subject: role === 'client' ? 'Your Relève account is open' : 'Your profile is live',
-    text: `${name ? name + ',' : 'Hello,'}\n\n${role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.'}\n\nOne thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.\n\nOn iPhone: open ${SITE}/app in Safari, tap the Share icon, then "Add to Home Screen."\nOn Android: open it in Chrome, tap the menu (⋮), then "Install app" (or "Add to Home Screen").\n\n${SITE}/app\n\nRelève`,
+    text: `${name ? name + ',' : 'Hello,'}\n\n${role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.'}\n\nOne thing worth doing now: put it on your home screen. Opened that way it behaves like any other app: full screen, no address bar, one tap away.\n\nOn iPhone: open ${SITE}/app in Safari, tap the Share icon, then "Add to Home Screen."\nOn Android: open it in Chrome, tap the menu (⋮), then "Install app" (or "Add to Home Screen").\nOn Mac: open it in Safari, choose File, then "Add to Dock" (in Chrome: menu, Cast, save, and share, then "Install page as app").\n\nA step-by-step guide with pictures is attached, and here: ${SITE}/guides/Add-Releve-to-your-device.pdf\n\n${SITE}/app\n\nRelève`,
     html: shell(role === 'client' ? 'Your Relève account is open' : 'Your profile is live',
       p(`${name ? name + ',' : 'Hello,'}`) +
       p(role === 'client' ? 'Your Relève account is open.' : 'Your Relève profile is up and running.') +
@@ -352,7 +369,10 @@ const rawTemplates = {
       `<div style="margin:0 0 12px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On iPhone</div>` +
       `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Safari, tap the Share icon, then "Add to Home Screen."</p></div>` +
       `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On Android</div>` +
-      `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Chrome, tap the menu (⋮), then "Install app."</p></div>`,
+      `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Chrome, tap the menu (⋮), then "Install app."</p></div>` +
+      `<div style="margin:0 0 15px;"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#4E6B57;margin-bottom:5px;">On Mac</div>` +
+      `<p style="margin:0;padding:12px 16px;background:#F1F6F1;border-left:2px solid #B0C4B2;">Open this in Safari, choose File, then "Add to Dock." In Chrome: menu, Cast, save, and share, then "Install page as app."</p></div>` +
+      `<p style="margin:0 0 15px;">A step-by-step guide with pictures is attached to this email. <a href="${SITE}/guides/Add-Releve-to-your-device.pdf" style="color:#35443A;">Open it here</a> if you do not see the attachment.</p>`,
       { label: role === 'client' ? 'Open Relève' : 'Open your profile', href: `${SITE}/app` })
   }),
 

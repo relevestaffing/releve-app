@@ -40,6 +40,7 @@ export default async function Signals() {
         { href: '/console/reports', label: 'Reports' },
         { href: '/console/signals', label: 'Match accuracy' },
         { href: '/console/calendar', label: 'Calendar' },
+        { href: '/console/booking', label: 'Booking page' },
         { href: '/console/team', label: 'Team' }
       ]} />
 

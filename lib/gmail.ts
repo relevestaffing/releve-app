@@ -3,7 +3,8 @@
    form does. Same service account and hand-signed JWT as lib/calendar.ts,
    asking for the Gmail readonly scope instead. Only headers and Gmail's own
    short snippet are read, plus a resume attachment when a job seeker
-   sends one (filed with their application). Never message bodies.
+   sends one (filed with their application). The import never reads bodies;
+   searchInbox and readInboxMessage at the end are for the founder's assistant only.
 
    Needs one thing beyond the calendar setup: in Google Workspace admin,
    Security → Access and data control → API controls → Domain-wide
@@ -160,4 +161,49 @@ export async function resumeAttachment(messageId: string): Promise<{ name: strin
     }
   } catch { /* no resume is no reason to drop the applicant */ }
   return null;
+}
+
+
+/* ---------- search and read, for the founder's assistant only ---------- */
+
+/* Gmail search syntax over the whole mailbox. Returns headers and Gmail's own snippet. */
+export async function searchInbox(q: string, max = 12): Promise<{ rows: { id: string; from: string; subject: string; at: string; snippet: string }[]; reason?: string }> {
+  const { token, why } = await accessToken();
+  if (!token) return { rows: [], reason: why };
+  const auth = { authorization: `Bearer ${token}` };
+  const base = `https://gmail.googleapis.com/gmail/v1/users/${encodeURIComponent(MAILBOX())}`;
+  const list = await fetch(`${base}/messages?maxResults=${Math.min(max, 20)}&q=${encodeURIComponent(q)}`, { headers: auth, cache: 'no-store' });
+  if (!list.ok) return { rows: [], reason: `Gmail would not search (${list.status}).` };
+  const ids = ((await list.json()).messages ?? []) as { id: string }[];
+  const rows = await Promise.all(ids.map(async ({ id }) => {
+    const r = await fetch(`${base}/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`, { headers: auth, cache: 'no-store' });
+    if (!r.ok) return null;
+    const m = await r.json();
+    const h: Record<string, string> = {};
+    for (const x of (m.payload?.headers ?? []) as any[]) h[String(x.name).toLowerCase()] = String(x.value ?? '');
+    return { id: m.id as string, from: h['from'] ?? '', subject: h['subject'] ?? '', at: new Date(Number(m.internalDate)).toISOString(), snippet: String(m.snippet ?? '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&') };
+  }));
+  return { rows: rows.filter(Boolean) as any };
+}
+
+/* One message's plain text, cut to `cap` characters. */
+export async function readInboxMessage(id: string, cap = 6000): Promise<{ text: string; reason?: string }> {
+  const { token, why } = await accessToken();
+  if (!token) return { text: '', reason: why };
+  const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/${encodeURIComponent(MAILBOX())}/messages/${encodeURIComponent(id)}?format=full`, { headers: { authorization: `Bearer ${token}` }, cache: 'no-store' });
+  if (!r.ok) return { text: '', reason: `Gmail would not open that message (${r.status}).` };
+  const m = await r.json();
+  const h: Record<string, string> = {};
+  for (const x of (m.payload?.headers ?? []) as any[]) h[String(x.name).toLowerCase()] = String(x.value ?? '');
+  const dec = (d: string) => Buffer.from(d.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+  let plain = '', html = '';
+  const walk = (part: any) => {
+    if (!part) return;
+    if (part.mimeType === 'text/plain' && part.body?.data) plain += dec(part.body.data);
+    else if (part.mimeType === 'text/html' && part.body?.data) html += dec(part.body.data);
+    (part.parts ?? []).forEach(walk);
+  };
+  walk(m.payload);
+  const body = plain || html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+  return { text: `From: ${h['from']}\nTo: ${h['to']}\nDate: ${h['date']}\nSubject: ${h['subject']}\n\n${body.trim().slice(0, cap)}` };
 }

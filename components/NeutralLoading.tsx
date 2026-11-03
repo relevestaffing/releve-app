@@ -10,8 +10,7 @@ export default function NeutralLoading() {
     <SkelShell>
       <div role="status" aria-live="polite" className="sr-only">Loading</div>
       <div className="rv-wait" aria-hidden="true">
-        <div className="rv-wait-word">RELÈVE</div>
-        <div className="rv-wait-sub">One moment</div>
+        <img className="rv-wait-logo" src="/logo-fern.png" alt="" width="1200" height="360" />
         <div className="rv-wait-bar"><i /></div>
       </div>
     </SkelShell>

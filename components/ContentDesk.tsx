@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
 import Portal from './Portal';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import { CHANNELS, STATUS_LABEL, STATUS_PILL, type ContentPost, type Slide } from '@/lib/content-model';
+import { CHANNELS, STATUS_LABEL, STATUS_PILL, isCopyPost, type ContentPost, type Slide } from '@/lib/content-model';
 
 /* The Content tab. One week at a time: the week at a glance, the day you are
    looking at, and every post for that day as a card you open in place. The
@@ -115,7 +115,7 @@ function PhotoWeek({ posts, onRefresh }: { posts: Row[]; onRefresh: () => void }
           <div key={p.id} title={p.day} style={{ width: 74, height: 74, border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#F3EFE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {p.imageSrc
               ? <img src={p.imageSrc} alt={p.day} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#8A9A8C' }}>{p.day || `#${i + 1}`}</span>}
+              : <span style={{ fontFamily: 'Marcellus, serif', fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#8A9A8C' }}>{p.day || `#${i + 1}`}</span>}
           </div>
         ))}
       </div>
@@ -143,6 +143,11 @@ export default function ContentDesk(props: Props) {
   }
 
   const count = (f: (p: Row) => boolean) => posts.filter(f).length;
+  /* One post a day (2 Nov 2026): the LinkedIn page and group copies of a post
+     are shown inside it, not as separate posts. */
+  const masters = posts.filter(p => !isCopyPost(p));
+  const kidsOf = (p: Row) => posts.filter(k => k.parent_id === p.id && isCopyPost(k) && k.status !== 'skipped');
+  const oldStyle = posts.some(p => p.status !== 'skipped' && ((p.channel === 'li_group' && !p.parent_id) || p.format === 'video'));
   const needsYou = count(p => NEEDS.includes(p.status));
   const held = count(p => p.status === 'held');
   const days = Array.from(new Set(posts.map(p => p.day)));
@@ -193,11 +198,15 @@ export default function ContentDesk(props: Props) {
             'Claude is writing the week. It takes a few minutes; the preview email follows.')}>
           {drafting ? 'Writing the week…' : posts.length ? 'Fill any empty slots' : (props.week === props.thisWeek ? 'Write this week now' : 'Write next week now')}
         </button>}
+        {props.week >= props.thisWeek && posts.length > 0 && <button className="btn sm ghost" disabled={!!busy || drafting || !setup.ready}
+          onClick={() => { if (confirm('Redo the whole week? The current posts are set aside and Claude writes the week again, held for your approval. Your personal LinkedIn photos stay.')) run('redo', 'redo_week', { week: props.week }, 'Claude is rewriting the week. It takes a few minutes.'); }}>
+          Redo the week
+        </button>}
       </div>
 
       {/* ---- the week at a glance ---- */}
       <div className="grid-4">
-        <div className="card stat"><div className="eyebrow">This week</div><div className="score">{count(p => p.status !== 'skipped')}</div></div>
+        <div className="card stat"><div className="eyebrow">This week</div><div className="score">{masters.filter(p => p.status !== 'skipped').length}</div></div>
         <div className="card stat"><div className="eyebrow">Posts itself</div><div className="score">{count(p => p.status === 'scheduled')}</div></div>
         <div className="card stat"><div className="eyebrow">Needs you</div><div className="score">{needsYou}</div></div>
         <div className="card stat"><div className="eyebrow">Posted</div><div className="score">{count(p => p.status === 'posted')}</div></div>
@@ -220,15 +229,30 @@ export default function ContentDesk(props: Props) {
       )}
       {props.draftNext?.status === 'failed' && <p className="small" style={{ margin: '-8px 0 0' }}><span className="pill crit">Drafting stopped</span> {props.draftNext.error}</p>}
 
+      {oldStyle && (
+        <div className="card cd-approve">
+          <div>
+            <div className="crumb">One post a day</div>
+            <h3 style={{ margin: '4px 0 0' }}>This week still has separate group posts</h3>
+            <p className="small muted" style={{ margin: '8px 0 0', maxWidth: '52ch' }}>
+              Each day{'’'}s main post can go to Instagram, Facebook, the LinkedIn page and the groups as the same post. This sets the separate group posts and the face-to-camera videos aside, and gives each day{'’'}s post a groups copy.
+            </p>
+          </div>
+          <button className="btn sm solid" disabled={!!busy} onClick={() => run('unify', 'unify_week', { week: props.week }, 'Done. Each day is now one post.')}>
+            {busy === 'unify' ? 'Working…' : 'Make it one post a day'}
+          </button>
+        </div>
+      )}
+
       {props.week >= props.thisWeek && <PhotoWeek posts={posts} onRefresh={() => router.refresh()} />}
 
       {/* ---- the week ---- */}
       {posts.length > 0 ? (
-        <DayRail days={days} today={props.today} posts={posts} showSkipped={showSkipped} setShowSkipped={setShowSkipped}
+        <DayRail days={days} today={props.today} posts={masters} showSkipped={showSkipped} setShowSkipped={setShowSkipped}
           render={(list) => (
             <div className="cd-list">
               {list.map(p => (
-                <PostCard key={`${p.id}-${p.updated_at}`} p={p} open={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)}
+                <PostCard key={`${p.id}-${p.updated_at}`} p={p} kids={kidsOf(p)} open={open === p.id} onToggle={() => setOpen(open === p.id ? null : p.id)}
                   onClose={() => setOpen(null)} groups={props.groups} busy={busy} run={run} />
               ))}
             </div>
@@ -328,13 +352,14 @@ function Thumb({ p }: { p: Row }) {
   return <span className="cd-thumb ph" aria-hidden="true">{glyph}</span>;
 }
 
-function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
-  p: Row; open: boolean; onToggle: () => void; onClose: () => void; groups: { name: string; url: string }[];
+function PostCard({ p, kids, open, onToggle, onClose, groups, busy, run }: {
+  p: Row; kids: Row[]; open: boolean; onToggle: () => void; onClose: () => void; groups: { name: string; url: string }[];
   busy: string; run: (k: string, a: string, b?: Record<string, unknown>, ok?: string) => Promise<any>;
 }) {
   const router = useRouter();
   const [caption, setCaption] = useState(p.caption);
   const [captionFb, setCaptionFb] = useState(p.caption_fb ?? '');
+  const [captionLi, setCaptionLi] = useState((kids.find(k => k.channel.startsWith('li_page')) ?? kids[0])?.caption ?? '');
   const [card, setCard] = useState(p.card ?? { kicker: '', quote: '', sub: '' });
   const [slidesText, setSlidesText] = useState((p.slides ?? []).map(s => `${s.title}\n${s.body}`).join('\n\n'));
   const [uploading, setUploading] = useState(false);
@@ -359,6 +384,7 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
   function save() {
     const body: Record<string, unknown> = { id: p.id, caption };
     if (p.channel.startsWith('ig_')) body.caption_fb = captionFb;
+    if (kids.length) body.caption_li = captionLi;
     if (p.format === 'card') body.card = card;
     if (p.format === 'carousel') body.slides = slidesText.split(/\n\s*\n/).map(b => {
       const [title, ...rest] = b.trim().split('\n'); return { title: title ?? '', body: rest.join(' ') } as Slide;
@@ -394,8 +420,14 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
     else fallback();
   }
 
-  const ticks = p.results?.groups ?? {};
-  const sub = `${p.when.replace(/^\w+, /, '')} · ${CHANNELS[p.channel].label}${p.format === 'video' ? ' · video' : p.format === 'carousel' ? ` · carousel of ${p.slides.length}` : ''}`;
+  const groupPost = p.channel === 'li_group' ? p : kids.find(k => k.channel === 'li_group');
+  const ticks = groupPost?.results?.groups ?? {};
+  const dest = kids.length
+    ? [...(p.channel === 'ig_careers' ? ['Careers Instagram', 'Facebook'] : ['Instagram', 'Facebook']),
+       ...(kids.some(k => k.channel.startsWith('li_page')) ? ['LinkedIn page'] : []),
+       ...(kids.some(k => k.channel === 'li_group') ? ['LinkedIn groups'] : [])].join(' · ')
+    : CHANNELS[p.channel].label;
+  const sub = `${p.when.replace(/^\w+, /, '')} · ${dest}${p.format === 'video' ? ' · video' : p.format === 'carousel' ? ` · carousel of ${p.slides.length}` : ''}`;
   return (
     <div className={`cd-row${open ? ' open' : ''}${p.status === 'skipped' ? ' faded' : ''}`}>
       <div className="cd-rowhead" onClick={onToggle} role="button" aria-expanded={open}>
@@ -470,12 +502,33 @@ function PostCard({ p, open, onToggle, onClose, groups, busy, run }: {
             <div className="ff"><label>Facebook caption</label><textarea rows={5} value={captionFb} readOnly={done} onChange={e => setCaptionFb(e.target.value)} /></div>
           )}
 
-          {p.channel === 'li_group' && (
+          {kids.length > 0 && (
+            <div className="ff"><label>LinkedIn caption (page and groups)</label>
+              <textarea rows={6} value={captionLi} readOnly={done} onChange={e => setCaptionLi(e.target.value)} /></div>
+          )}
+
+          {kids.length > 0 && (
+            <div className="ff"><label>Goes to</label>
+              {[{ id: p.id, label: p.channel === 'ig_careers' ? 'Careers Instagram + Facebook' : 'Instagram + Facebook', status: p.status, channel: p.channel }, ...kids.map(k => ({ id: k.id, label: CHANNELS[k.channel].label, status: k.status, channel: k.channel }))].map(d => (
+                <div key={d.id} className="row between" style={{ gap: 10, padding: '6px 0', flexWrap: 'wrap' }}>
+                  <span className="small">{d.label}</span>
+                  <span className="row" style={{ gap: 8, alignItems: 'center' }}>
+                    <span className={STATUS_PILL[d.status]}>{STATUS_LABEL[d.status]}</span>
+                    {d.status === 'manual' && d.channel.startsWith('li_page') && (
+                      <button className="btn sm ghost" disabled={!!busy} onClick={() => run('m' + d.id, 'mark_posted', { id: d.id }, 'Marked as posted')}>Mark as posted</button>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {groupPost && (
             <div className="ff"><label>Posted in</label>
               {groups.map((g, i) => (
                 <label key={i} className="check-line">
                   <input type="checkbox" checked={Boolean(ticks[i])} disabled={!!busy}
-                    onChange={e => run('g' + p.id + i, 'group_tick', { id: p.id, i, on: e.target.checked })} />
+                    onChange={e => run('g' + groupPost.id + i, 'group_tick', { id: groupPost.id, i, on: e.target.checked })} />
                   <span>{g.url ? <a href={g.url} target="_blank" rel="noreferrer">{g.name || `Group ${i + 1}`}</a> : (g.name || `Group ${i + 1}`)}</span>
                 </label>
               ))}
@@ -513,7 +566,6 @@ function Connections({ meta, linkedin, liDays, setup, run, busy }: {
   run: (k: string, a: string, b?: Record<string, unknown>, ok?: string) => Promise<any>; busy: string;
 }) {
   const [client, setClient] = useState(meta?.client ?? '');
-  const [careers, setCareers] = useState(meta?.careers ?? '');
   return (
     <div className="card">
       <div className="card-head"><div><div className="crumb">Where it posts</div><h3>Connected accounts</h3></div></div>
@@ -526,14 +578,8 @@ function Connections({ meta, linkedin, liDays, setup, run, busy }: {
                   <option value="">Not chosen</option>
                   {meta.pages.map(p => <option key={p.id} value={p.id}>{p.name}{p.ig ? ` · @${p.ig}` : ' · no Instagram linked'}</option>)}
                 </select></div>
-              <div className="ff" style={{ flex: '1 1 240px', marginBottom: 0 }}><label>Careers</label>
-                <select value={careers} onChange={e => setCareers(e.target.value)}>
-                  <option value="">Not chosen</option>
-                  {meta.pages.map(p => <option key={p.id} value={p.id}>{p.name}{p.ig ? ` · @${p.ig}` : ' · no Instagram linked'}</option>)}
-                </select></div>
-              <button className="btn sm" disabled={!!busy} onClick={() => run('map', 'map_meta', { client: client || null, careers: careers || null }, 'Saved')}>Save</button>
+              <button className="btn sm" disabled={!!busy} onClick={() => run('map', 'map_meta', { client: client || null, careers: null }, 'Saved')}>Save</button>
             </div>
-            {!meta.careers && <span className="xs muted" style={{ display: 'block' }}>Careers posts are paused. Choose a careers page here and they start again with the next week Claude writes.</span>}
             <span className="xs muted">Connected{meta.user ? ` by ${meta.user}` : ''}. <a href="/api/content/connect/meta">Reconnect</a></span>
           </>
         ) : setup.metaApp ? <a className="btn sm solid" href="/api/content/connect/meta">Connect Instagram + Facebook</a>

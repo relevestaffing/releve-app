@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
 import {
-  getPost, updatePost, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA, writePostFromImage
+  getPost, updatePost, listWeek, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA, writePostFromImage
 } from '@/lib/content';
-import { isManual, type ContentPost, type Slide } from '@/lib/content-model';
+import { isManual, COPY_CHANNELS, COPY_PLAN, pacificParts, type ContentPost, type Slide } from '@/lib/content-model';
 import { pageAccess } from '@/lib/social-linkedin';
 import type { MetaConn } from '@/lib/social-meta';
 
@@ -23,13 +23,21 @@ const nodash = (s: unknown, max: number) => String(s ?? '').replace(/[–—]/g,
 /* Where a post goes back to when it is released from a hold. */
 function readyStatus(p: ContentPost): ContentPost['status'] {
   if (p.channel === 'li_personal') return (p.image_path && (p.caption ?? '').trim()) ? 'scheduled' : 'needs_image';
-  if (p.format === 'video' && p.channel !== 'li_group') {
+  if (p.format === 'video' && !(p.channel === 'li_group' && !p.parent_id)) {
     if (!p.video_path) return 'needs_video';
+    if (p.channel === 'li_group') return 'manual';
     return p.channel === 'li_page_client' && !pageAccess() ? 'manual' : 'scheduled';
   }
   if (p.channel === 'li_group') return 'manual';
   if (isManual(p.channel) && !pageAccess()) return 'manual';
   return 'scheduled';
+}
+
+/* A day's post and its copies (LinkedIn page, groups) are one post: hold,
+   release and skip apply to all of them. */
+async function copiesOf(p: ContentPost): Promise<ContentPost[]> {
+  const { data } = await adminClient().from('content_posts').select('*').eq('parent_id', p.id).in('channel', COPY_CHANNELS);
+  return ((data ?? []) as ContentPost[]).filter(k => k.status !== 'posted' && k.status !== 'publishing');
 }
 
 const ok = (extra: Record<string, unknown> = {}) => NextResponse.json({ ok: true, ...extra });
@@ -52,6 +60,23 @@ export async function POST(req: Request) {
         await putSetting(`draft:${week}`, { status: 'done', at: new Date().toISOString() });
         return ok({ made: made.length });
       }
+      case 'redo_week': {
+        /* Throw the week away and write it again under the current rules. The
+           old posts are set aside (kept, skipped, slots freed); Sage's photo
+           posts stay. The new week is drafted held, for approval. */
+        const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : '';
+        if (!week) return bad('Which week?');
+        const stamp = Date.now();
+        for (const p of await listWeek(week)) {
+          if (p.channel === 'li_personal' || p.status === 'posted' || p.status === 'publishing' || /-r\d{10,}$/.test(p.slot)) continue;
+          await updatePost(p.id, { slot: `${p.slot}-r${stamp}`, status: 'skipped' } as any);
+        }
+        await putSetting(`hold:${week}`, { on: true });
+        await putSetting(`draft:${week}`, { status: 'drafting', at: new Date().toISOString() });
+        if (await kick('draft_week', { week })) return ok({ queued: true });
+        await putSetting(`draft:${week}`, { status: 'failed', at: new Date().toISOString(), error: 'The background worker could not be reached.' });
+        return bad('The background worker could not be reached. Check CRON_SECRET in Netlify.', 503);
+      }
       case 'approve_week': {
         /* Nona approves a week: every held post goes back to its schedule,
            and the VA's Doc and Drive get the approved week. */
@@ -63,6 +88,7 @@ export async function POST(req: Request) {
           if ((p.hold_reason ?? '').startsWith('Writing')) continue;
           await updatePost(p.id, { status: readyStatus(p), hold_reason: null, error: null } as any);
         }
+        await putSetting(`hold:${week}`, { on: false });
         const va = await getSetting<{ status: string; note?: string }>(`va:${week}`);
         if (va?.note?.startsWith('paused')) { await putSetting(`va:${week}`, { status: 'sending', at: new Date().toISOString() }); await kick('va_export', { week }); }
         return ok({ released: (held ?? []).length });
@@ -100,6 +126,38 @@ export async function POST(req: Request) {
       }
     }
 
+    if (b.action === 'unify_week') {
+      /* A week drafted before 2 Nov 2026 has its own group posts. Set those
+         aside and give each day's client post a groups copy instead. The
+         face-to-camera videos are set aside too. */
+      const week = /^\d{4}-\d{2}-\d{2}$/.test(String(b.week)) ? String(b.week) : '';
+      if (!week) return bad('Which week?');
+      const rows = await listWeek(week);
+      const live = (p: ContentPost) => p.status !== 'skipped';
+      let set_aside = 0, made = 0;
+      /* Separate group posts and every face-to-camera video are set aside. */
+      for (const g of rows.filter(p => live(p) && ((p.channel === 'li_group' && !p.parent_id) || p.format === 'video'))) {
+        await updatePost(g.id, { status: 'skipped' } as any); set_aside++;
+      }
+      const groupDay = COPY_PLAN.find(c => c.channel === 'li_group')!.days;
+      const dayOf = (p: ContentPost) => p.publish_at.slice(0, 10);
+      const keptGroupDays = new Set<string>();
+      for (const m of rows.filter(p => p.channel === 'ig_client' && !p.parent_id && p.format !== 'video' && live(p))) {
+        if (!groupDay.includes(pacificParts(new Date(m.publish_at)).wd) || keptGroupDays.has(dayOf(m))) continue;
+        if (rows.some(p => p.channel === 'li_group' && p.parent_id === m.id && live(p))) continue;
+        const page = rows.find(p => p.channel === 'li_page_client' && p.parent_id === m.id && p.format === m.format && live(p));
+        const held = m.status === 'held';
+        const { error } = await adminClient().from('content_posts').insert({
+          slot: `${m.slot}-li_group`, week_start: week, channel: 'li_group', format: m.format, publish_at: m.publish_at,
+          status: held ? 'held' : 'manual', hold_reason: held ? m.hold_reason : null,
+          topic: m.topic, hook: m.hook, caption: page?.caption || m.caption, caption_fb: null,
+          card: m.card, slides: m.slides, script: m.script, parent_id: m.id
+        });
+        if (!error) made++;
+      }
+      return ok({ set_aside, made });
+    }
+
     const post = b.id ? await getPost(String(b.id)) : null;
     if (!post) return bad('Which post?');
     const done = post.status === 'posted' || post.status === 'publishing';
@@ -108,15 +166,18 @@ export async function POST(req: Request) {
       case 'hold':
         if (done) return bad('This one has already gone out.', 409);
         await updatePost(post.id, { status: 'held', hold_reason: 'Held by the team.' } as any);
+        for (const k of await copiesOf(post)) await updatePost(k.id, { status: 'held', hold_reason: 'Held by the team.' } as any);
         break;
       case 'resume':
       case 'unskip':
         if (done) return bad('This one has already gone out.', 409);
         await updatePost(post.id, { status: readyStatus(post), hold_reason: null, error: null } as any);
+        for (const k of await copiesOf(post)) await updatePost(k.id, { status: readyStatus(k), hold_reason: null, error: null } as any);
         break;
       case 'skip':
         if (done) return bad('This one has already gone out.', 409);
         await updatePost(post.id, { status: 'skipped' } as any);
+        for (const k of await copiesOf(post)) await updatePost(k.id, { status: 'skipped' } as any);
         break;
       case 'edit': {
         if (done) return bad('This one has already gone out.', 409);
@@ -134,6 +195,13 @@ export async function POST(req: Request) {
         };
         if (!patch.caption && 'caption' in b) return bad('The post needs some words.');
         await updatePost(post.id, patch);
+        const kids = await copiesOf(post);
+        if (kids.length) {
+          const kp: any = { written_by: 'team' };
+          if ('caption_li' in b) { const t = nodash(b.caption_li, 3000); if (t) kp.caption = t; }
+          for (const f of ['hook', 'card', 'slides', 'script']) if (f in patch) kp[f] = patch[f];
+          if (Object.keys(kp).length > 1) for (const k of kids) await updatePost(k.id, kp);
+        }
         break;
       }
       case 'redraft':

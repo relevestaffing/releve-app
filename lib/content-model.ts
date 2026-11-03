@@ -24,8 +24,8 @@ export type ContentPost = {
 
 export const CHANNELS: Record<Channel, { label: string; short: string; where: string }> = {
   li_personal:     { label: "Sage's LinkedIn",        short: 'LinkedIn',        where: 'Posts itself once the picture is in' },
-  li_group:        { label: 'LinkedIn groups',        short: 'Groups',          where: 'Post by hand in all four groups' },
-  ig_client:       { label: 'Instagram + Facebook',   short: 'Relève IG + FB',  where: 'Posts itself' },
+  li_group:        { label: 'LinkedIn groups',        short: 'Groups',          where: 'Same post as the day\u2019s main one. Post by hand in all four groups' },
+  ig_client:       { label: 'Instagram + Facebook',   short: 'Relève IG + FB',  where: 'Posts itself to Instagram and Facebook. Its copies go to the LinkedIn page and the groups' },
   ig_careers:      { label: 'Careers IG + FB',        short: 'Careers IG + FB', where: 'Posts itself' },
   li_page_client:  { label: 'Relève LinkedIn page',   short: 'LinkedIn page',   where: 'Schedule in LinkedIn until page access is approved' },
   li_page_careers: { label: 'Careers LinkedIn page',  short: 'Careers page',    where: 'Schedule in LinkedIn until page access is approved' }
@@ -44,12 +44,23 @@ export const STATUS_PILL: Record<PostStatus, string> = {
 export type SlotPlan = { channel: Channel; day: number; hour: number; minute: number; format: Format };
 export const WEEK_PLAN: SlotPlan[] = [
   ...[1, 2, 3, 4, 5, 6].map(d => ({ channel: 'li_personal' as Channel, day: d, hour: 8, minute: 0, format: 'text' as Format })),
-  /* Groups: Monday to Friday, a carousel each day except Wednesday's video. */
-  ...[1, 2, 3, 4, 5].map(d => ({ channel: 'li_group' as Channel, day: d, hour: 9, minute: 30, format: (d === 3 ? 'video' : 'carousel') as Format })),
-  /* Client account: alternate a single quote card and a carousel. */
+  /* One post a day (2 November 2026). The client post is the day's single
+     post: it goes to Instagram, Facebook, the Relève LinkedIn page and the
+     four LinkedIn groups, identical everywhere (see COPY_PLAN). Days alternate a
+     card and a carousel. Face-to-camera videos are off (2 Nov 2026). */
   ...[1, 2, 3, 4, 5, 6].map(d => ({ channel: 'ig_client' as Channel, day: d, hour: 11, minute: 0, format: (d % 2 ? 'card' : 'carousel') as Format })),
-  ...[1, 3, 5].map(d => ({ channel: 'ig_careers' as Channel, day: d, hour: 12, minute: 0, format: (d === 3 ? 'carousel' : 'card') as Format }))
+  /* Careers posts removed from the app (2 Nov 2026); rebuild if needed. */
 ];
+/* Where each day's single client post is copied to, by day (1 = Monday). The
+   copies hold the same words and graphics and are posted by hand (or by the
+   LinkedIn page once LinkedIn approves page access). */
+export const COPY_PLAN: { channel: Channel; days: number[] }[] = [
+  { channel: 'li_page_client', days: [1, 2, 3, 4, 5, 6] },
+  { channel: 'li_group', days: [1, 2, 3, 4, 5] }
+];
+export const COPY_CHANNELS: Channel[] = ['li_group', 'li_page_client', 'li_page_careers'];
+/* A copy of another post, shown inside that post rather than on its own. */
+export const isCopyPost = (p: { parent_id: string | null; channel: Channel }) => Boolean(p.parent_id) && COPY_CHANNELS.includes(p.channel);
 export const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 export const DAY_KEYS = ['', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 

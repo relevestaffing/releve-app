@@ -27,6 +27,8 @@ import { listInterviews } from '@/lib/store';
 import { listInvoicesFor, money, isOwner } from '@/lib/money';
 import { fmtWhen } from '@/lib/words';
 import { SHARED, CLIENT, TALENT, FOUNDER } from './knowledge';
+import { NOTES } from './notes';
+import { EYES } from './eyes';
 import { BOOK_SECTIONS } from './book';
 import { ACTION_CATALOG, type Proposal } from './actions';
 
@@ -191,7 +193,7 @@ function bookLookup(query: string, cap = 24000) {
 
 function systemFor(p: Profile, founder: boolean, account: string) {
   const seat = p.role === 'client' ? 'an executive (a client)' : p.role === 'talent' ? 'a talent (a candidate or a placed professional)' : founder ? 'the founder, Sage Jackson, working in her console' : 'a member of the Relève team in the console';
-  const knowledge = p.role === 'client' ? SHARED + CLIENT : p.role === 'talent' ? SHARED + TALENT : SHARED + CLIENT + TALENT + FOUNDER;
+  const knowledge = p.role === 'client' ? SHARED + CLIENT : p.role === 'talent' ? SHARED + TALENT : SHARED + CLIENT + TALENT + FOUNDER + (founder ? NOTES : '');
   const rules = `You are Relève's assistant inside the Relève app. You are talking with ${seat}.
 
 How you speak: Relève's voice. Calm, warm, specific, short. Plain sentences, no bullet points unless listing steps, no exclamation marks, no emojis, never an em dash or en dash (use a comma, a colon or a full stop). Say "handled" and "supported", never "managed". Call people by role: "your Client Success Manager", "your Talent Success Manager". Never call a person "a talent" to their face.
@@ -206,11 +208,11 @@ How you carry a conversation: like Relève's best client success person on a cha
 
 Links: when a page in the app would help, give it as a markdown link with a short label, for example [Open your tasks](/app/tasks) or [See the placement](/console/placements/ID). Only link paths that exist in the knowledge or account summary.
 
-Formatting: plain text. Short paragraphs. If you list steps, number them. Keep answers under 160 words unless the person asks for detail.`;
+Formatting: plain text. Short paragraphs. If you list steps, number them. Keep answers under 160 words unless the person asks for detail.${p.role === 'admin' ? ' When you looked something up, you may go to 250 words.' : ''}`;
 
   const founderRules = founder ? `
 
-You are talking with the founder. You may use the lookup tools freely to answer from live data; call them before answering questions about people, posts, the Letter, invoices, interviews or queues, and cite what you found. When she asks you to change or fix something, do not do it yourself: call propose_action with the exact kind and parameters, and a one-line summary in plain words. She will see a card and confirm with one click; the server then executes and logs it. If what she wants is not in the catalog, say which console page does it, in one line. Propose at most three actions per reply. Available action kinds:\n${ACTION_CATALOG.map(a => `- ${a.kind}: ${a.describe} Params: ${a.params}`).join('\n')}` : p.role === 'admin' ? `
+You are talking with the founder. She expects to ask any question about Relève and get an answer. Answer from live data: call the lookup tools before answering anything about people, posts, the Letter, invoices, interviews, queues, placements, tasks, messages, applications, leads, payments, the VA's Doc or Drive folder, the inbox or the social connections, and say what you found. Never answer "I can't tell" before trying: db_query reads any table, va_doc and va_drive read the VA's Doc and folder, inbox_search reads hello@, social_status shows the connections. Run several lookups in one turn when the question needs them. Only when something truly cannot be seen (the browser, Netlify, Supabase dashboard, a third party site) say exactly what you could not see and the single place she can check. Lead with the answer, then the evidence. When she asks you to change or fix something, do not do it yourself: call propose_action with the exact kind and parameters, and a one-line summary in plain words. She will see a card and confirm with one click; the server then executes and logs it. If what she wants is not in the catalog, say which console page does it, in one line. Propose at most three actions per reply. Available action kinds:\n${ACTION_CATALOG.map(a => `- ${a.kind}: ${a.describe} Params: ${a.params}`).join('\n')}` : p.role === 'admin' ? `
 
 You are talking with a team member, not the founder. You may use the lookup tools. You cannot propose actions; point to the console page instead.` : '';
 
@@ -237,6 +239,7 @@ export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent
   const tools: any[] = [];
   if (p.role === 'admin') {
     for (const [name, t] of Object.entries(LOOKUPS)) tools.push({ name, description: t.description, input_schema: t.input });
+    if (founder) for (const [name, t] of Object.entries(EYES)) tools.push({ name, description: t.description, input_schema: t.input });
     if (founder) tools.push({
       name: 'propose_action',
       description: 'Propose one change for the founder to confirm. Never executes on its own.',
@@ -254,7 +257,7 @@ export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent
   const proposals: Proposal[] = [];
   const parts: string[] = [];
 
-  for (let round = 0; round < 5; round++) {
+  for (let round = 0; round < 7; round++) {
     const left = BUDGET_MS - (Date.now() - started);
     if (left < 4000) { if (!parts.length) { const t = 'That took longer than the page allows. Ask again in a narrower way.'; parts.push(t); emit({ t: 'text', d: t }); } break; }
     const ctl = new AbortController();
@@ -262,7 +265,7 @@ export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL(), max_tokens: 1200, system, messages, stream: true, ...(tools.length ? { tools } : {}) }),
+      body: JSON.stringify({ model: MODEL(), max_tokens: 1800, system, messages, stream: true, ...(tools.length ? { tools } : {}) }),
       signal: ctl.signal
     }).catch(() => null);
     if (!res) { clearTimeout(timer); throw new Error('The assistant did not answer in time. Try again.'); }
@@ -330,12 +333,13 @@ export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent
           else if (proposals.length >= 3) out = 'Three proposals already; stop here.';
           else { proposals.push({ kind: cat.kind, params: u.input.params ?? {}, summary: nodash(String(u.input.summary ?? cat.describe)).slice(0, 240) }); out = 'Proposed. The founder sees a confirmation card.'; }
         } else if (LOOKUPS[u.name]) out = await LOOKUPS[u.name].run(u.input ?? {});
+        else if (founder && EYES[u.name]) out = await EYES[u.name].run(u.input ?? {});
         else out = 'No such tool.';
       } catch (e: any) { out = `Lookup failed: ${String(e?.message ?? e).slice(0, 200)}`; }
       results.push({ type: 'tool_result', tool_use_id: u.id, content: String(out).slice(0, 20000) });
     }
     messages.push({ role: 'user', content: results });
-    if (round < 4 && roundText.trim()) emit({ t: 'text', d: '\n\n' });
+    if (round < 6 && roundText.trim()) emit({ t: 'text', d: '\n\n' });
   }
 
   let reply = parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();

@@ -73,7 +73,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
           return (
             <div key={d} style={{ marginBottom: 22 }}>
               <div className="row between" style={{ marginBottom: 10 }}>
-                <b style={{ fontFamily: 'var(--display)', color: 'var(--fern)', fontSize: 15 }}>
+                <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)', fontSize: 15 }}>
                   {DISCIPLINE[d]?.name ?? d}
                 </b>
                 {years ? <span className="xs muted">{years} years</span> : null}

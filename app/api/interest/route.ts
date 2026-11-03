@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { hasServiceKey, adminClient } from '@/lib/supabase/admin';
 import { corsHeaders, preflight } from '@/lib/cors';
 import { send, shell, p, esc, trainingWelcome } from '@/lib/email';
+import { sendBookingInvite } from '@/lib/lead-booking';
 import { unsubscribeUrl, listUnsubscribeHeaders } from '@/lib/subscribers';
 import { teamEmails } from '@/lib/work';
 import { todayInPacific } from '@/lib/money-public';
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
      open lead, just move their clock forward and say thank you. */
   try {
     const { data: open } = await sb.from('prospects')
-      .select('id').eq('email', email)
+      .select('id, stage, call_at').eq('email', email)
       .not('stage', 'in', '("won","lost")').limit(1).maybeSingle();
     if (open?.id) {
       await sb.from('prospects')
@@ -116,6 +117,8 @@ export async function POST(req: Request) {
         .then(() => {}, () => {});   // last_touched_at may not exist pre-migration
       await notify(name, email, org, need);
       if (isTraining(need)) await welcome(name, email);
+      else if (!open.call_at && !['booked', 'held', 'proposal'].includes(String(open.stage)))
+        await sendBookingInvite(name, email);
       return NextResponse.json({ ok: true }, { headers: cors });
     }
   } catch { /* a failed lookup is no reason to turn a lead away */ }
@@ -139,7 +142,10 @@ export async function POST(req: Request) {
   }
 
   await notify(name, email, org, need);
+  /* Training signups get the training welcome (it carries the booking link
+     too); everyone else gets the booking link the moment they come in. */
   if (isTraining(need)) await welcome(name, email);
+  else await sendBookingInvite(name, email);
   return NextResponse.json({ ok: true }, { headers: cors });
 }
 

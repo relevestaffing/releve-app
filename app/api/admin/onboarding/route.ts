@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
-import { send, templates } from '@/lib/email';
+import { send, templates, appGuideAttachment } from '@/lib/email';
 import { SITE } from '@/lib/stripe';
 import { depositLinkReady, signDepositLink } from '@/lib/deposit-link';
 import { safeMessage } from '@/lib/errors';
@@ -126,9 +126,10 @@ export async function POST(req: Request) {
     await markProspectWon(email, pendingId);
 
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app`;   // the dashboard carries the deposit button
-    const sent = await send(email, templates.depositReady({
-      name: firstName(greetName, ''), payUrl, cents, docsUrl
-    }));
+    const sent = await send(email, {
+      ...templates.depositReady({ name: firstName(greetName, ''), payUrl, cents, docsUrl }),
+      attachments: await appGuideAttachment()
+    });
 
     return NextResponse.json({
       ok: true, emailed: sent,

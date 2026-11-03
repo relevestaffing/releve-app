@@ -215,7 +215,7 @@ export default async function Interviews() {
               {m.brief?.role_title && (
                 <>
                   <div className="eyebrow" style={{ marginTop: 22, marginBottom: 10 }}>The role</div>
-                  <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--fern)' }}>{m.brief.role_title}</p>
+                  <p style={{ fontFamily: 'var(--sub)', fontSize: 19, color: 'var(--fern)' }}>{m.brief.role_title}</p>
                   <dl className="brief-facts">
                     {m.brief.scope && <><dt>Owns</dt><dd>{m.brief.scope}</dd></>}
                     {m.brief.hours && <><dt>Hours</dt><dd>{m.brief.hours}</dd></>}

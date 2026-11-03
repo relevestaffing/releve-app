@@ -14,7 +14,7 @@ export default function Interested() {
         <div className="auth-card">
           <InterestedForm />
         </div>
-        <p className="small muted" style={{ marginTop: 26 }}>Relève Executive Staffing · Consider it handled.</p>
+        <img className="auth-tagline" src="/consider-it-handled.png" alt="Consider it handled." width={2755} height={414} />
       </div>
     </div>
   );

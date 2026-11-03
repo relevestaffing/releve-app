@@ -16,7 +16,7 @@ export default async function AuditView({ params }: { params: Promise<{ token: s
     return (
       <main className="audit-wrap">
         <AuditStyle />
-        <div className="audit-mast"><span className="audit-word">Relève</span><span className="audit-sub">Executive Staffing</span></div>
+        <div className="audit-mast"><img className="audit-logo" src="/logo-fern.png" alt="Relève Executive Staffing" width="1200" height="360" /></div>
         <div className="audit-gone">
           <h1>That link is not active</h1>
           <p>Ask your Relève contact to send a fresh one, or reply to the email it came from and we will help.</p>
@@ -36,8 +36,7 @@ export default async function AuditView({ params }: { params: Promise<{ token: s
     <main className="audit-wrap">
       <AuditStyle />
       <div className="audit-mast">
-        <span className="audit-word">Relève</span>
-        <span className="audit-sub">Executive Staffing</span>
+        <img className="audit-logo" src="/logo-fern.png" alt="Relève Executive Staffing" width="1200" height="360" />
       </div>
       <article className="audit-body" dangerouslySetInnerHTML={{ __html: html }} />
       <footer className="audit-foot">
@@ -50,15 +49,16 @@ export default async function AuditView({ params }: { params: Promise<{ token: s
 function AuditStyle() {
   return (
     <style>{`
-      :root{--fern:#35443A;--ink:#22302A;--body:#3C463F;--sage:#6E8073;--cream:#F3EFE6;--paper:#FAF8F2;--rule:rgba(53,68,58,.16);--pale:#B0C4B2}
+      :root{--fern:#35443A;--ink:#22302A;--body:#3C463F;--sage:#888466;--cream:#F3EFE6;--paper:#FAF8F2;--rule:rgba(53,68,58,.16);--pale:#CDC8A7}
       body{background:var(--paper)}
-      .audit-wrap{max-width:760px;margin:0 auto;padding:46px 22px 90px;font-family:'Tenor Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--body);line-height:1.7}
+      .audit-wrap{max-width:760px;margin:0 auto;padding:46px 22px 90px;font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--body);line-height:1.7}
       .audit-mast{text-align:center;border-bottom:1px solid var(--rule);padding-bottom:26px;margin-bottom:40px}
+      .audit-logo{display:block;margin:0 auto;width:min(300px,70vw);height:auto}
       .audit-word{display:block;font-family:'Marcellus',serif;font-size:30px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink)}
-      .audit-sub{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--sage);margin-top:8px}
+      .audit-sub{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--sage);margin-top:8px;font-family:'Marcellus',serif}
       .audit-body h1{font-family:'Marcellus',serif;font-weight:400;color:var(--ink);font-size:30px;line-height:1.2;margin:0 0 10px;letter-spacing:-.01em}
-      .audit-body h2{font-family:'Marcellus',serif;font-weight:400;color:var(--fern);font-size:21px;margin:40px 0 12px;padding-top:18px;border-top:1px solid var(--rule)}
-      .audit-body h3{font-family:'Marcellus',serif;font-weight:400;color:var(--fern);font-size:16px;margin:26px 0 8px}
+      .audit-body h2{font-family:'Lora',Georgia,serif;font-weight:400;color:var(--fern);font-size:21px;margin:40px 0 12px;padding-top:18px;border-top:1px solid var(--rule)}
+      .audit-body h3{font-family:'Lora',Georgia,serif;font-weight:400;color:var(--fern);font-size:16px;margin:26px 0 8px}
       .audit-body p{margin:0 0 15px}
       .audit-body strong{color:var(--ink);font-weight:400}
       .audit-body ul,.audit-body ol{margin:0 0 18px;padding-left:22px}

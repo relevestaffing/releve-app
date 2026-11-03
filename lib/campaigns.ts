@@ -319,7 +319,7 @@ export function renderEmail(c: Pick<Campaign, 'subject' | 'preheader' | 'paragra
     </td></tr></table>
   </td></tr>
   <tr><td style="padding:0 56px 36px;">
-    <p style="margin:0 0 4px;font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.7;color:#2B352F;">Consider it handled,</p>
+    <img src="${APP()}/consider-it-handled.png" width="250" height="38" alt="Consider it handled," style="display:block;border:0;margin:0 0 4px;width:250px;height:auto;font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#2B352F;">
     <div style="font-family:Georgia,'Times New Roman',serif;font-size:30px;color:#26312B;line-height:1.1;margin:6px 0 8px;">Sage</div>
     <div style="font-family:Helvetica,Arial,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8A9A8C;">Sage Jackson &nbsp;&middot;&nbsp; Founder, Relève</div>
     ${ps ? `<p style="margin:26px 0 0;font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:15.5px;line-height:1.7;color:#6E7F71;">P.S. ${esc(ps)}</p>` : ''}

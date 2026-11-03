@@ -106,12 +106,12 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   }
 
   const wrap: React.CSSProperties = compact
-    ? { border: '1px solid #D8DED6', background: '#F7F5EF', padding: '16px 18px' }
+    ? { border: '1px solid #E2E0D2', background: '#F7F5EF', padding: '16px 18px' }
     : { background: '#35443A', color: '#F3EFE6', padding: '26px 24px' };
-  const head: React.CSSProperties = { fontFamily: 'var(--display)', fontSize: compact ? 17 : 22, margin: '0 0 6px', color: compact ? '#26312B' : '#FBF8F1' };
-  const sub: React.CSSProperties = { fontSize: 14.5, lineHeight: 1.6, margin: '0 0 14px', color: compact ? '#516053' : '#CBD4CC' };
+  const head: React.CSSProperties = { fontFamily: 'var(--sub)', fontSize: compact ? 17 : 22, margin: '0 0 6px', color: compact ? '#26312B' : '#FBF8F1' };
+  const sub: React.CSSProperties = { fontSize: 14.5, lineHeight: 1.6, margin: '0 0 14px', color: compact ? '#516053' : '#D8D6C7' };
   const btn: React.CSSProperties = { display: 'inline-block', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', padding: '13px 24px', background: compact ? '#35443A' : '#FBF8F1', color: compact ? '#FBF8F1' : '#35443A' };
-  const stepList: React.CSSProperties = { margin: '0 0 14px', padding: 0, listStyle: 'none', fontSize: 14.5, lineHeight: 1.7, color: compact ? '#3A463D' : '#E7ECE6' };
+  const stepList: React.CSSProperties = { margin: '0 0 14px', padding: 0, listStyle: 'none', fontSize: 14.5, lineHeight: 1.7, color: compact ? '#3A463D' : '#EEECE4' };
 
   if (state === 'on') {
     if (compact) return null;
@@ -136,9 +136,10 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
           <li><b>4.</b> You will be asked to turn on notifications. Tap <b>Allow</b>.</li>
         </ol>
         <p style={{ ...sub, margin: 0, fontStyle: 'italic' }}>Notifications can only be turned on from the Home Screen app, not this Safari tab.</p>
+        <p style={{ ...sub, margin: '8px 0 0' }}><a href="/guides/Add-Releve-to-your-device.pdf" target="_blank" rel="noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Step-by-step guide with pictures (PDF)</a></p>
         {compact && (
           <button onClick={() => { setHidden(true); try { localStorage.setItem('releve_push_nudge_dismissed', '1'); } catch {} }}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#7A8A7C', fontSize: 13, textDecoration: 'underline', marginTop: 12, padding: 0 }}>
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#918D73', fontSize: 13, textDecoration: 'underline', marginTop: 12, padding: 0 }}>
             Not now
           </button>
         )}
@@ -171,7 +172,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
         </button>
         {compact && (
           <button onClick={() => { setHidden(true); try { localStorage.setItem('releve_push_nudge_dismissed', '1'); } catch {} }}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#7A8A7C', fontSize: 13, textDecoration: 'underline' }}>
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#918D73', fontSize: 13, textDecoration: 'underline' }}>
             Not now
           </button>
         )}
