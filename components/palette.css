@@ -20,3 +20,9 @@ html body .card.dark,html body .ask-panel,html body .tier.feature{background:var
 /* the CRM keeps its bright paper; its board canvas is plain limewash */
 .ws.ws-x{--ws-canvas:var(--lime)}
 html body .ws.ws-x .ws-board{background:var(--lime)!important}
+/* AUDIT 3 NOV: square corners on phones too, the same as the desktop and the website.
+   The floating quick bar and the Ask button keep their shape. */
+@media (max-width:900px){
+  html body .btn,html body .card,html body .card.stat,html body .money-stat,html body table.data,
+  html body .ff input,html body .ff select,html body .ff textarea{border-radius:0!important}
+}

@@ -9,7 +9,7 @@
 
 .ws,.ws-panel,.ws-pop,.ws-bulk{
   --ws-paper:#FDFCF8; --ws-canvas:#F5F3EC; --ws-line:#E6E2D8; --ws-line-2:#EEEBE4; --ws-hover:#F6F4EE;
-  --ws-sel:#E9EEE5; --ws-ink:#1F2B25; --ws-sub:#66716A; --ws-faint:#9AA39C; --ws-fern:#35443A; --ws-leaf:#4E7A5C;
+  --ws-sel:#ECE9DE; --ws-ink:#1F2B25; --ws-sub:#5E5B45; --ws-faint:#7E7A5C; --ws-fern:#35443A; --ws-leaf:#4E7A5C;
   --ws-red:#A4483A; --ws-amber:#A7792F; --ws-green:#3F7553;
   --ws-ui:'Poppins',system-ui,sans-serif; --ws-serif:'Marcellus',Georgia,serif}
 .ws{background:var(--ws-paper);color:var(--ws-ink);position:relative;margin-bottom:28px;font-family:var(--ws-ui);font-weight:400;font-size:14px;line-height:1.45;
