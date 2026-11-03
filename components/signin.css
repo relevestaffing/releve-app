@@ -6,30 +6,30 @@
    tagline so it reads on the wall. Scoped to .auth only. */
 html body .auth{padding:48px 20px}
 html body .auth > div{width:100%;max-width:372px;display:flex;flex-direction:column;align-items:center}
-html body .auth .auth-logo{width:176px;margin:0 auto 34px}
-html body .auth .auth-card{width:100%;padding:40px 34px 34px;text-align:left}
-html body .auth .auth-welcome{text-align:center;margin:0 0 30px}
-html body .auth .auth-welcome .eyebrow-rule{display:block;width:28px;height:1px;background:var(--fern);opacity:.35;margin:0 auto 18px}
-html body .auth .auth-welcome h2{font-family:'Marcellus',serif;font-weight:400;font-size:27px;line-height:1.2;letter-spacing:.01em;color:var(--ink);margin:0 0 10px;text-wrap:balance}
+html body .auth .auth-logo{width:176px;margin:0 auto 40px}
+html body .auth .auth-card{width:100%;padding:46px 36px 40px;text-align:left}
+html body .auth .auth-welcome{text-align:center;margin:0 0 36px}
+html body .auth .auth-welcome .eyebrow-rule{display:block;width:28px;height:1px;background:var(--fern);opacity:.35;margin:0 auto 22px}
+html body .auth .auth-welcome h2{font-family:'Marcellus',serif;font-weight:400;font-size:27px;line-height:1.2;letter-spacing:.01em;color:var(--ink);margin:0 0 14px;text-wrap:balance}
 html body .auth .auth-welcome p{font-size:13.5px;line-height:1.7;font-weight:300;color:var(--sage);margin:0 auto;max-width:30ch;text-wrap:balance}
-html body .auth .ff{margin-bottom:14px;gap:8px}
+html body .auth .ff{margin-bottom:16px;gap:10px}
 html body .auth .ff label{font-size:10.5px;letter-spacing:.26em;color:var(--sage)}
 html body .auth .ff input{border-radius:0!important;border:1px solid rgba(53,68,58,.22);background:#fff;padding:14px 15px;font-size:15px;font-weight:300;box-shadow:none;transition:border-color .25s}
 html body .auth .ff input:focus{outline:none;border-color:var(--fern);box-shadow:0 0 0 3px rgba(53,68,58,.08)}
 html body .auth .ff input::placeholder{color:rgba(60,70,63,.42)}
 html body .auth .auth-card .btn.solid{border-radius:0!important;padding:15px 20px;font-size:12px;letter-spacing:.24em}
-html body .auth .divider{margin:22px 0;font-size:10px;letter-spacing:.3em;color:rgba(110,128,115,.8)}
+html body .auth .divider{margin:26px 0;font-size:10px;letter-spacing:.3em;color:rgba(110,128,115,.8)}
 html body .auth .divider::before,html body .auth .divider::after{background:rgba(53,68,58,.12)}
 html body .auth .gbtn{border-radius:0!important;border:1px solid rgba(53,68,58,.22);padding:13px;font-size:13px;font-weight:300;letter-spacing:.04em}
 html body .auth .gbtn:not(:disabled):hover{border-color:var(--fern);background:#fff}
 html body .auth .auth-sent{text-align:center}
 html body .auth .auth-sent .note{font-size:14px;font-weight:300;line-height:1.65;color:var(--body)}
-html body .auth .auth-tagline{height:30px;margin:34px auto 0;opacity:.9;transform:none}
+html body .auth .auth-tagline{height:30px;margin:40px auto 0;opacity:.9;transform:none}
 @media (max-width:600px){
   html body .auth > div{max-width:340px}
-  html body .auth .auth-logo{width:150px;margin-bottom:28px}
-  html body .auth .auth-card{padding:32px 24px 26px}
-  html body .auth .auth-welcome{margin-bottom:24px}
+  html body .auth .auth-logo{width:150px;margin-bottom:32px}
+  html body .auth .auth-card{padding:38px 26px 32px}
+  html body .auth .auth-welcome{margin-bottom:30px}
   html body .auth .auth-welcome h2{font-size:24px}
-  html body .auth .auth-tagline{height:26px;margin-top:28px}
+  html body .auth .auth-tagline{height:26px;margin-top:32px}
 }
