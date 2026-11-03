@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import './palette.css';
 import { S, mix, lightAt, hourNow, sunShadow } from '@/lib/sun';
 
 /* The window wall, lit by the sun of the viewer's own clock (Nona, 2 November
