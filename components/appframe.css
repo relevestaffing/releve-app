@@ -22,20 +22,19 @@
     width:auto!important;max-width:none!important;margin:0!important;transform:none!important;
     display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:0!important;
     padding:0 0 env(safe-area-inset-bottom)!important;border:0!important;border-radius:0!important;
-    border-top:1px solid rgba(53,68,58,.18)!important;
-    background:rgba(250,248,242,.97)!important;
-    -webkit-backdrop-filter:blur(18px) saturate(1.1);backdrop-filter:blur(18px) saturate(1.1);
-    box-shadow:0 -14px 30px -24px rgba(8,14,11,.55)!important}
+    border-top:1px solid rgba(214,221,226,.12)!important;
+    background:#101813!important;box-shadow:none!important}
   html body .quickbar a{
     position:relative;height:var(--tabs);padding:0!important;border-radius:0!important;background:none!important;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6E8073}
+    display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8A9C8D}
+  html body .quickbar a:not(.on):not([data-pending]) span{color:#8A9C8D!important}
   html body .quickbar a span{font-size:9px;letter-spacing:.2em;padding-left:.2em}
-  html body .quickbar a.on,html body .quickbar .on{color:#22302A;background:none!important}
+  html body .quickbar a.on,html body .quickbar .on,html body .quickbar a.on span{color:#F3F3EA!important;background:none!important}
   /* the page you are on: a rule across the top of its tab */
   html body .quickbar a.on::before{
-    top:-1px;left:16%;right:16%;width:auto;height:2px;border-radius:0;background:#35443A;transform:none}
-  html body .quickbar a[data-pending]{color:#22302A;background:none!important}
-  html body .quickbar a[data-pending]::before{content:"";position:absolute;top:-1px;left:16%;right:16%;height:2px;background:#35443A}
+    top:-1px;left:16%;right:16%;width:auto;height:2px;border-radius:0;background:#C9D3CB;transform:none}
+  html body .quickbar a[data-pending],html body .quickbar a[data-pending] span{color:#F3F3EA!important;background:none!important}
+  html body .quickbar a[data-pending]::before{content:"";position:absolute;top:-1px;left:16%;right:16%;height:2px;background:#C9D3CB}
   html body .page-body{padding-bottom:calc(var(--tabs) + env(safe-area-inset-bottom) + 30px)!important}
 
   /* ── Ask Relève: a word in the top bar ── */
@@ -44,7 +43,7 @@
     height:38px;padding:0 6px!important;display:flex;align-items:center;
     background:none!important;background-image:none!important;box-shadow:none!important;border-radius:0!important;
     color:#fff;transition:color .4s ease!important}
-  html body .shell.scrolled ~ .ask-fab{color:#35443A}
+  html body .shell.scrolled ~ .ask-fab{color:#fff}
   html body .ask-fab::after{left:6px!important;right:4px!important;top:auto!important;bottom:7px!important;width:auto!important;height:1px!important;border-radius:0!important;background:currentColor!important}
   html body .ask-fab:active{box-shadow:none!important;transform:none!important;opacity:.7}
   html body .ask-fab.open{display:none}
@@ -56,10 +55,19 @@
   html body .shell[data-title]::before{
     content:attr(data-title);position:fixed;z-index:50;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
     padding:calc(22px + env(safe-area-inset-top)) 104px 0;box-sizing:border-box;text-align:center;
-    font-family:'Marcellus',serif;font-size:12px;line-height:20px;letter-spacing:.2em;text-transform:uppercase;color:#35443A;
+    font-family:'Marcellus',serif;font-size:12px;line-height:20px;letter-spacing:.2em;text-transform:uppercase;color:#EEF0E8;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s ease}
   html body .shell[data-title].scrolled::before{opacity:1}
-  html body .shell[data-title].scrolled::after{background:rgba(250,248,242,.95)}
+  
+
+  /* ── the banner is solid: nothing shows through it or above it ── */
+  html body .shell.scrolled::after,html body .shell[data-title].scrolled::after{
+    background:#101813!important;border-bottom:1px solid rgba(214,221,226,.1)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+  html body .shell.scrolled:not([data-title])::after{background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,#101813!important}
+  html body .shell.scrolled .menu-trigger{color:#F3F3EA}
+  html.rv-standalone body .rv-back.scrolled{color:#fff}
+  /* pull to refresh drops from under the banner, never over it */
+  html body .ptr{top:calc(64px + env(safe-area-inset-top) + 6px);z-index:40}
 
   /* ── a shorter title block ── */
   html body .topbar{padding:calc(64px + env(safe-area-inset-top) + 8px) 22px 22px!important}
@@ -91,3 +99,94 @@
   .home-jump i{font-style:normal;margin-left:9px;color:#B0C4B2}
 }
 @media (min-width:901px){.home-jump{display:none}}
+
+/* ═════════════════════ MIDNIGHT (Nona chose direction B, 3 November 2026) ═════════════════════
+   "Simplicity, high end, million dollar feel." On phones the white slabs are gone:
+   the page stays in the dark green, and every surface is a raised olive panel with
+   a hairline edge and cream text. Colour roles are re-pointed on the surface itself,
+   so everything written for light paper (var(--ink), var(--fern), var(--sage) ...)
+   reads correctly on it without touching a single component. Desktop is unchanged. */
+@media (max-width:900px){
+  html body .page-body :is(.card,.setup,.qa-tile,a.money-stat,.money-stat,.choose-card,.today-card,.founder-band,.stat,.pick,.req-choice):not(.dark):not(.card .card):not(.setup .card),
+  html body :is(.modal,.tb-panel){
+    background:#17211B!important;background-image:none!important;
+    border:1px solid rgba(214,221,226,.12)!important;box-shadow:none!important;color:#C8D0C7;
+    --fern:#E8EDE4;--ink:#F3F3EA;--body:#C8D0C7;--sage:#9CAC9E;--muted:#8D9C8F;--pale:#6F8173;
+    --cream:#212D26;--paper:#17211B;--white:#17211B;--mist:#26342C;
+    --line:rgba(214,221,226,.14);--line-strong:rgba(214,221,226,.26);
+    --good:#86B492;--warn:#D1B070;--crit:#D98B7C}
+  html body .page-body .card.dark{border:1px solid rgba(214,221,226,.16)!important;box-shadow:none!important}
+
+  /* panels inside panels stay flat on the surface they sit on */
+  html body .page-body .card .card:not(.dark):not(.stat){background:#1D2922!important;border:1px solid rgba(214,221,226,.1)!important;box-shadow:none!important}
+
+  /* status: a word and a dot, never a pale block */
+  html body .page-body .pill{background:none!important;background-image:none!important;padding:0!important;box-shadow:none!important;
+    border:0!important;color:#9CAC9E!important;letter-spacing:.18em;font-size:10px}
+  html body .page-body .pill.good{color:#86B492!important}
+  html body .page-body .pill.warn{color:#D1B070!important}
+  html body .page-body .pill.crit,html body .page-body .pill.bad{color:#D98B7C!important}
+
+  /* fields */
+  html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){
+    background:#0F1712!important;color:#EEF0E8!important;border-color:rgba(214,221,226,.24)!important}
+  html body :is(input,textarea)::placeholder{color:#7F9183!important}
+  html body :is(.card,.modal,.tb-panel) :is(input,select,textarea):focus{border-color:#C9D3CB!important;box-shadow:0 0 0 1px #C9D3CB!important}
+
+  /* tables */
+  html body table.data{background:transparent!important}
+  html body table.data :is(th,td){border-color:rgba(214,221,226,.12)!important;color:#C8D0C7}
+  html body table.data th{color:#9CAC9E!important;background:transparent!important}
+  html body table.data tr:hover td{background:rgba(232,237,228,.04)!important}
+
+  /* the dividers inside panels */
+  html body .page-body :is(.card,.setup) :is(hr,.rule,.divider){border-color:rgba(214,221,226,.14)!important;background:rgba(214,221,226,.14)!important}
+
+  /* the CRM workspace carries its own light paper variables: re-point them */
+  html body :is(.ws,.ws-panel,.ws-pop,.ws-bulk){
+    --ws-paper:#17211B;--ws-canvas:#101813;--ws-line:rgba(214,221,226,.14);--ws-line-2:rgba(214,221,226,.09);--ws-hover:rgba(232,237,228,.05);
+    --ws-sel:rgba(232,237,228,.1);--ws-ink:#F3F3EA;--ws-sub:#B7C1B6;--ws-faint:#8D9C8F;--ws-fern:#46604F;--ws-leaf:#86B492;
+    --ws-red:#D98B7C;--ws-amber:#D1B070;--ws-green:#86B492;color:#F3F3EA}
+  html body .ws{box-shadow:none!important;border:1px solid rgba(214,221,226,.12)}
+  html body :is(.ws-tile,.ws-add,.ws-tbtn .badge){color:#F3F3EA!important}
+  html body :is(.ws-search input,.ws-view,.ws-cb,.ws-name b.editable:hover,.ws-name input.inl,.ws-quick input,.ws-quick select,.ws-chip:hover,.ws-card,.ws-mark,.ws-edit:hover,.ws-edit:focus,.ws-details,.ws-pop input,.ws-pop select){
+    background:#0F1712!important;color:#EEF0E8!important;border-color:rgba(214,221,226,.2)!important}
+  html body :is(.ws-pop,.ws-panel){background:#1B2720!important;color:#F3F3EA!important;border:1px solid rgba(214,221,226,.16)!important;box-shadow:0 18px 40px -16px rgba(0,0,0,.7)!important}
+  html body .ws-stage{background:rgba(232,237,228,.08)!important;color:#C8D0C7!important}
+  html body .ws-mark.done{background:#46604F!important;color:#F3F3EA!important}
+  html body .ws-card{background:#1D2922!important}
+  html body .page-body .card .empty-card:not(.dark):not(.stat){background:transparent!important;border:0!important;box-shadow:none!important}
+
+  /* install-on-phone note: a panel, not a cream slab */
+  html body .push-setup{background:#17211B!important;border:1px solid rgba(214,221,226,.12)!important;box-shadow:none!important}
+  html body .push-setup :is(div,p,li,ol,b,a){color:#C8D0C7!important}
+  html body .push-setup > div:first-child{color:#F3F3EA!important}
+  html body .push-setup button{background:#E8EDE4!important;color:#17211B!important}
+
+  /* an empty state sits on its panel, it is not a second panel */
+  html body .page-body .card .empty-card{background:transparent!important;border:0!important;box-shadow:none!important}
+
+  /* every other light surface the app names */
+  html body :is(.picker-chosen,.cd-day,.cd-nudge,.composer,.confirm-row,.drawer,.firstrun,.founder-tile,.match-card,.method-step,.money-strip,.next-step,.owner-select,.picker-list,.push-bar,.rolefit,.role-card,.setup-next,.status-menu,.tally-row,.tb-row,.tb-compose,.end-why,.chip-note,.rationale,.fortnight-bar,.nav-drawer,.brand-error-card,.dir-head,.slot,.date-cell,.cd-row,.lead-table):not(.dark){
+    background:#1D2922!important;background-image:none!important;border-color:rgba(214,221,226,.12)!important;box-shadow:none!important;color:#C8D0C7;
+    --fern:#E8EDE4;--ink:#F3F3EA;--body:#C8D0C7;--sage:#9CAC9E;--muted:#8D9C8F;--pale:#6F8173;--cream:#26342C;--paper:#1D2922;--white:#1D2922;--mist:#26342C;
+    --line:rgba(214,221,226,.14);--line-strong:rgba(214,221,226,.26)}
+  html body .picker-chosen{background:#17211B!important}
+  html body .next-step{background:#17211B!important;border:1px solid rgba(214,221,226,.12)!important}
+  html body .avail-cell{background:#0F1712!important;border-color:rgba(214,221,226,.18)!important}
+  html body .avail-cell.on{background:#46604F!important;border-color:#46604F!important}
+  html body .ws-rowmenu{background:transparent!important;color:#C8D0C7!important;border-color:transparent!important}
+
+  /* first-run and sign-in sit on the same dark panel */
+  html body :is(.welcome-card,.auth-card){
+    background:#17211B!important;background-image:none!important;border:1px solid rgba(214,221,226,.12)!important;box-shadow:none!important;color:#C8D0C7;
+    --fern:#E8EDE4;--ink:#F3F3EA;--body:#C8D0C7;--sage:#9CAC9E;--muted:#8D9C8F;--pale:#6F8173;--cream:#26342C;--paper:#17211B;--white:#17211B;--mist:#26342C;
+    --line:rgba(214,221,226,.14);--line-strong:rgba(214,221,226,.26)}
+  html body :is(.welcome-card,.auth-card) :is(h1,h2,h3,.lede){color:#F3F3EA!important}
+
+  /* pull to refresh */
+  html body .ptr{background:#17211B;color:#E8EDE4;box-shadow:0 10px 26px -10px rgba(0,0,0,.7),inset 0 0 0 1px rgba(214,221,226,.18)}
+
+  /* the wall is calmer behind a dark page */
+  html body main.main > .sun-page{opacity:.8}
+}

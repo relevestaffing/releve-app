@@ -116,7 +116,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   if (state === 'on') {
     if (compact) return null;
     return (
-      <div style={wrap}>
+      <div className="push-setup" style={wrap}>
         <div style={head}>Notifications are on.</div>
         <p style={{ ...sub, margin: 0 }}>You will hear the moment something needs you on this device.</p>
       </div>
@@ -126,7 +126,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   // iPhone/iPad in Safari, not yet installed: show the install steps.
   if (env.plat === 'ios' && !env.standalone) {
     return (
-      <div style={wrap}>
+      <div className="push-setup" style={wrap}>
         <div style={head}>Put Relève on your phone</div>
         <p style={sub}>Add Relève to your Home Screen so it opens like an app and can reach you with notifications.</p>
         <ol style={{ ...stepList, counterReset: 'n', paddingLeft: 0 }}>
@@ -160,7 +160,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     </div>
   );
   return (
-    <div style={wrap}>
+    <div className="push-setup" style={wrap}>
       <div style={head}>Turn on notifications</div>
       <p style={sub}>
         Hear the moment something needs you: a message, an update on your placement, an interview or a reminder.
