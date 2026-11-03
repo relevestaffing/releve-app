@@ -23,6 +23,12 @@ import PaySetter from '@/components/PaySetter';
 import OnboardingStatus from '@/components/OnboardingStatus';
 import AccountManagerPicker from '@/components/AccountManagerPicker';
 import { teamRoles } from '@/lib/care';
+import Tabs from '@/components/crm/Tabs';
+import { Activity } from '@/components/crm/Activity';
+import { todayInPacific } from '@/lib/money-public';
+import { getAccount, assignOptions, isArchived } from '@/lib/account';
+import AccountActions from '@/components/account/AccountActions';
+import { Strip, PlacementTab, HoursTab, Messages } from '@/components/account/AccountParts';
 
 export const metadata = { title: 'Talent' };
 
@@ -67,6 +73,12 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     decisionsAbout(id),
     watchEarningsFor(id).catch(() => [] as Awaited<ReturnType<typeof watchEarningsFor>>)
   ]);
+  const [acct, options, archived, docs] = await Promise.all([
+    getAccount(id, 'talent'), assignOptions('talent'), isArchived(id),
+    listDocuments('person', id).catch(() => [])
+  ]);
+  const threadHref = `/console/messages?thread=${id}`;
+  const execHref = (c: string) => `/console/executive/${c}`;
 
   const type = sig ? archetype(sig.scores, 'talent') : null;
   const lines = sig ? talentSelfLines(sig.scores) : [];
@@ -101,12 +113,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
   const stateTone = (v?: { state: string } | null) =>
     !v ? '' : v.state === 'verified' ? 'good' : v.state === 'rejected' ? 'crit' : 'warn';
 
-  return (
-    <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
-      title={name}
-      crumb={[self.headline, self.location].filter(Boolean).join(' · ') || 'Talent file'}
-      action={<Link className="btn sm ghost" href="/console/bench">← Talent</Link>}>
-
+  const profileTab = (<>
       {/* The hero already carries the name and the headline; this card is the
          status line under it, not a second hero. */}
       <div className="card">
@@ -179,25 +186,6 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           </div>
 
           <div className="card">
-            <div className="card-head"><h3>What Relève pays</h3></div>
-            <PaySetter talentId={id} cents={pay[id] != null ? pay[id]! * 100 : null} />
-            <div className="hr" style={{ margin: '14px 0' }} />
-            <dl className="brief-facts">
-              <dt>Paid by</dt>
-              <dd>{payoutReady(payout)
-                ? <>{method?.label ?? payout?.method}{payout?.confirmed_at ? <span className="pill good" style={{ marginLeft: 8 }}>Checked</span> : <span className="pill warn" style={{ marginLeft: 8 }}>Not checked</span>}</>
-                : <span className="muted">No payment details yet</span>}</dd>
-              <dt>Tax form</dt>
-              <dd>{payout?.tax_form_on_file ? 'On file' : payout?.tax_residence ? 'Not on file' : <span className="muted">Not asked yet</span>}</dd>
-              <dt>Payments</dt>
-              <dd>{payments.length === 0 ? <span className="muted">None yet</span>
-                : payments.slice(0, 6).map(p => (
-                  <div key={p.id} className="xs">{periodLabel(p.period_start)} · {money(p.amount_cents)} · {p.state}</div>
-                ))}</dd>
-            </dl>
-          </div>
-
-          <div className="card">
             <div className="card-head"><h3>Availability</h3></div>
             {!avail.timezone?.trim() || !avail.windows?.length ? (
               <p className="small muted">Not set. No executive can book them until it is.</p>
@@ -251,7 +239,6 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      <Files kind="person" ownerId={id} docs={await listDocuments('person', id).catch(() => [])} />
 
       <div className="grid-2">
         <div className="card">
@@ -282,6 +269,54 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           )}
         </div>
       </div>
+    </>);
+
+  return (
+    <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory"
+      title={name}
+      crumb={[self.headline, self.location].filter(Boolean).join(' · ') || 'Talent'}
+      action={<AccountActions id={id} name={name} side="talent" options={options} archived={archived}
+        listHref="/console/bench" threadHref={threadHref} />}>
+      <div className="acct-back"><Link href="/console/bench">&larr; All talent</Link>
+        {archived && <span className="acct-tag warn">Archived</span>}</div>
+
+      <Strip a={acct} accountHref={execHref} />
+
+      <Tabs tabs={[
+        { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={execHref} emptyText="Use Assign placement at the top to place them with an executive." /> },
+        { key: 'hours', label: 'Hours', body: <HoursTab a={acct} /> },
+        { key: 'pay', label: 'Pay', body: (
+          <div className="acct-tab">
+            <PaySetter talentId={id} cents={pay[id] != null ? pay[id]! * 100 : null} />
+            <dl className="acct-kv wide" style={{ marginTop: 18 }}>
+              <dt>Paid by</dt>
+              <dd>{payoutReady(payout) ? <>{method?.label ?? payout?.method} {payout?.confirmed_at ? <span className="acct-tag good">Checked</span> : <span className="acct-tag warn">Not checked</span>}</> : <span className="ws-faint">No payment details yet</span>}</dd>
+              <dt>Tax form</dt>
+              <dd>{payout?.tax_form_on_file ? 'On file' : payout?.tax_residence ? 'Not on file' : <span className="ws-faint">Not asked yet</span>}</dd>
+            </dl>
+            <h4 className="acct-h" style={{ marginTop: 22 }}>Payments</h4>
+            {payments.length === 0 ? <div className="acct-empty"><b>No payments yet.</b><span>Monthly pay appears here once it is sent.</span></div> : (
+              <table className="acct-table">
+                <thead><tr><th>Month</th><th className="r">Amount</th><th>Status</th></tr></thead>
+                <tbody>{payments.map(p => (
+                  <tr key={p.id}><td>{periodLabel(p.period_start)}</td><td className="r"><b>{money(p.amount_cents)}</b></td>
+                    <td><span className={`acct-tag ${p.state === 'sent' ? 'good' : 'warn'}`}>{p.state === 'sent' ? 'Paid' : p.state}</span></td></tr>
+                ))}</tbody>
+              </table>
+            )}
+          </div>
+        ) },
+        { key: 'communication', label: 'Communication', body: (
+          <div className="acct-tab">
+            <Messages a={acct} name={name} threadHref={threadHref} />
+            <h4 className="acct-h" style={{ marginTop: 26 }}>Calls, emails and notes</h4>
+            <Activity type="talent" id={id} subjectName={name} today={todayInPacific()}
+              team={team.map((m: any) => ({ user_id: m.user_id, name: m.name }))} />
+          </div>
+        ) },
+        { key: 'files', label: 'Files', count: docs.length, body: <Files kind="person" ownerId={id} docs={docs} /> },
+        { key: 'profile', label: 'Profile', body: <div className="acct-profile">{profileTab}</div> }
+      ]} />
     </Shell>
   );
 }

@@ -17,6 +17,7 @@ import DeletePerson from '@/components/DeletePerson';
 import { teamRoles } from '@/lib/care';
 import { todayInPacific } from '@/lib/money-public';
 import PeopleWorkspace, { type PersonRow } from '@/components/crm/PeopleWorkspace';
+import { assignOptions } from '@/lib/account';
 
 export const metadata = { title: 'Talent' };
 
@@ -120,11 +121,13 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
     } as PersonRow))
   ];
 
+  const assignable = await assignOptions('talent');
+
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Talent">
       <DirectoryTabs active="talent" />
       <PeopleWorkspace
-        title="Talent" noun="talent" rows={rows} today={today} side="talent" activityType="talent" openId={sp.open ?? null}
+        title="Talent" noun="talent" rows={rows} today={today} side="talent" activityType="talent" assignOptions={assignable} openId={sp.open ?? null}
         team={team.map(m => ({ user_id: m.user_id, name: m.name }))}
         toolbar={<><TalentOnboardingSender /><AddPerson /></>}
         cols={[

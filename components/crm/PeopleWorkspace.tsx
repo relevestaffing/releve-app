@@ -1,8 +1,11 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, Icon, Menu, OwnerPicker, Panel, Sect, useKeys, cleanName, type Member } from './kit';
 import { Activity } from './Activity';
 import { toast } from '../Toast';
+import { AssignPlacement, type Pick } from '../account/AccountActions';
+import '../account/account.css';
 
 /* Executives and Talent in the same workspace as Leads (2 November 2026):
    saved views, search, sections that fold, a dense list with an owner you
@@ -21,12 +24,33 @@ export type PersonRow = {
 };
 export type Col = { key: string; label: string; width: string; opt?: boolean };
 
-export default function PeopleWorkspace({ title, noun, rows, cols, sections, views, team, today, side, activityType, toolbar, openId, empty }: {
+export default function PeopleWorkspace({ title, noun, rows: allRows, cols, sections, views, team, today, side, activityType, toolbar, openId, empty, assignOptions = [] }: {
   title: string; noun: string; rows: PersonRow[]; cols: Col[]; sections: { key: string; label: string; color: string }[];
   views: { key: string; label: string; warn?: boolean }[]; team: Member[]; today: string;
   side?: 'client' | 'talent'; activityType: 'client' | 'talent'; toolbar?: React.ReactNode; openId?: string | null;
-  empty: { title: string; text: string };
+  empty: { title: string; text: string }; assignOptions?: Pick[];
 }) {
+  /* Simpler (3 November 2026): a click opens the person's own account; the
+     row's menu assigns a placement or archives them in one step, with undo. */
+  const router = useRouter();
+  const [gone, setGone] = useState<Set<string>>(new Set());
+  const rows = useMemo(() => allRows.filter(r => !gone.has(r.id)), [allRows, gone]);
+  const [assignFor, setAssignFor] = useState<PersonRow | null>(null);
+  const open = (r: PersonRow) => { if (r.fullHref) router.push(r.fullHref); else { setFocus(r.id); setPanel(r.id); } };
+  async function setArchived(r: PersonRow, on: boolean) {
+    const res = await fetch('/api/admin/people', { method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action: on ? 'archive' : 'restore', ids: [r.id] }) }).catch(() => null);
+    const d = await res?.json().catch(() => ({}));
+    if (!res?.ok || d?.failed?.length) { toast.bad(d?.failed?.[0]?.why ?? d?.error ?? 'That did not save. Please try again.'); return false; }
+    return true;
+  }
+  async function archive(r: PersonRow) {
+    setGone(g => new Set(g).add(r.id));
+    if (!(await setArchived(r, true))) { setGone(g => { const n = new Set(g); n.delete(r.id); return n; }); return; }
+    toast.undo(`${r.name} is archived`, async () => {
+      if (await setArchived(r, false)) setGone(g => { const n = new Set(g); n.delete(r.id); return n; });
+    });
+  }
   const [owners, setOwners] = useState<Record<string, string | null>>(() => Object.fromEntries(rows.map(r => [r.id, r.ownerId ?? null])));
   useEffect(() => { setOwners(Object.fromEntries(rows.map(r => [r.id, r.ownerId ?? null]))); }, [rows]);
   const [view, setView] = useState(views[0]?.key ?? 'all');
@@ -84,7 +108,7 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
     '/': e => { e.preventDefault(); search.current?.focus(); },
     j: () => moveFocus(1), k: () => moveFocus(-1),
     ArrowDown: e => { if (!panel) { e.preventDefault(); moveFocus(1); } }, ArrowUp: e => { if (!panel) { e.preventDefault(); moveFocus(-1); } },
-    Enter: () => { if (focus && !panel) setPanel(focus); },
+    Enter: () => { const r = rows.find(x => x.id === focus); if (r && !panel) open(r); },
     Escape: () => { if (!panel && q) setQ(''); }
   });
 
@@ -138,12 +162,26 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
                 <div className="ws-sec-body">
                   {list.map(r => (
                     <div key={r.id} data-row={r.id} role="row" className={`ws-row${focus === r.id ? ' focus' : ''}${panel === r.id ? ' open' : ''}`}
-                      onClick={() => { setFocus(r.id); setPanel(r.id); }}>
+                      onClick={() => open(r)}>
                       <div />
                       <div>
                         <div className="ws-name"><Avatar name={r.name} url={r.photo} size="sm" />
                           <span className="t"><b>{r.name}</b><small>{r.sub}</small></span></div>
-                        <button className="ws-details" onClick={e => { e.stopPropagation(); setFocus(r.id); setPanel(r.id); }}>Details <Icon.chev /></button>
+                        {r.fullHref ? (
+                          <span onClick={e => e.stopPropagation()}>
+                            <Menu className="ws-rowmenu" label={`Actions for ${r.name}`} trigger={<span aria-hidden="true">&middot;&middot;&middot;</span>} width={220}>
+                              {close => (
+                                <div role="menu">
+                                  <button className="ws-opt" role="menuitem" onClick={() => { close(); open(r); }}><Icon.out />Open account</button>
+                                  <button className="ws-opt" role="menuitem" onClick={() => { close(); setAssignFor(r); }}><Icon.plus />Assign placement</button>
+                                  <button className="ws-opt acct-danger" role="menuitem" onClick={() => { close(); archive(r); }}><Icon.close />Archive</button>
+                                </div>
+                              )}
+                            </Menu>
+                          </span>
+                        ) : (
+                          <button className="ws-details" onClick={e => { e.stopPropagation(); setFocus(r.id); setPanel(r.id); }}>Details <Icon.chev /></button>
+                        )}
                       </div>
                       {cols.map(c => <div key={c.key} className={c.opt ? 'opt' : ''} onClick={e => { if ((e.target as HTMLElement).closest('button,a,input,select,label')) e.stopPropagation(); }}>{r.cells[c.key]}</div>)}
                       {side && <div className="opt" onClick={e => e.stopPropagation()}><OwnerPicker ownerId={owners[r.id] ?? null} team={team} onPick={o => setOwner(r, o)} label="Manager" /></div>}
@@ -160,6 +198,9 @@ export default function PeopleWorkspace({ title, noun, rows, cols, sections, vie
       <div className="ws-keys" aria-hidden="true">
         <span><kbd>/</kbd>search</span><span><kbd>j</kbd><kbd>k</kbd>move</span><span><kbd>Enter</kbd>open</span><span><kbd>Esc</kbd>close</span>
       </div>
+
+      {assignFor && side && <AssignPlacement id={assignFor.id} name={assignFor.name} side={side} options={assignOptions}
+        onClose={() => setAssignFor(null)} onDone={() => { setAssignFor(null); router.refresh(); }} />}
 
       {current && (
         <Panel crumb={`${noun === 'executives' ? 'Executive' : 'Talent'} · ${current.stage.label}`} onClose={() => setPanel(null)}

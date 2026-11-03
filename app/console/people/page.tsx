@@ -18,6 +18,7 @@ import { getClientAgreements } from '@/lib/agreement';
 import { teamRoles } from '@/lib/care';
 import { todayInPacific } from '@/lib/money-public';
 import PeopleWorkspace, { type PersonRow } from '@/components/crm/PeopleWorkspace';
+import { assignOptions } from '@/lib/account';
 import { Ring } from '@/components/crm/kit';
 
 export const metadata = { title: 'Executives' };
@@ -132,11 +133,13 @@ export default async function People({ searchParams }: { searchParams: Promise<{
     };
   });
 
+  const assignable = await assignOptions('client');
+
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title="Directory" crumb="Executives">
       <DirectoryTabs active="executives" />
       <PeopleWorkspace
-        title="Executives" noun="executives" rows={rows} today={today} side="client" activityType="client" openId={q.open ?? null}
+        title="Executives" noun="executives" rows={rows} today={today} side="client" activityType="client" assignOptions={assignable} openId={q.open ?? null}
         team={team.map(m => ({ user_id: m.user_id, name: m.name }))}
         toolbar={<OnboardingSender key="send" prefill={prefill} />}
         cols={[

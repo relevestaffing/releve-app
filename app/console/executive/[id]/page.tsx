@@ -5,13 +5,13 @@ import { redirect, notFound } from 'next/navigation';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { teamRoles } from '@/lib/care';
 import AccountManagerPicker from '@/components/AccountManagerPicker';
-import { listClients, getSearch, getSelfProfile, getAvailability } from '@/lib/store';
+import { listClients, getSearch, getAvailability } from '@/lib/store';
 import { signatureOf, archetype } from '@/lib/data';
-import { listInvoicesFor } from '@/lib/money';
-import { listAllPlacements } from '@/lib/work';
 import { getClientAgreement } from '@/lib/agreement';
-import { money, INVOICE_STATUS } from '@/lib/money-public';
-import { fmtDate, zoneLabel } from '@/lib/words';
+import { zoneLabel } from '@/lib/words';
+import { getAccount, assignOptions, isArchived } from '@/lib/account';
+import AccountActions from '@/components/account/AccountActions';
+import { Strip, PlacementTab, HoursTab, BillingTab, Messages } from '@/components/account/AccountParts';
 import Shell from '@/components/Shell';
 import Tabs from '@/components/crm/Tabs';
 import { Activity } from '@/components/crm/Activity';
@@ -43,17 +43,17 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
   const client = clients.find(c => c.key === id);
   if (!client) notFound();
 
-  /* Nothing here is worth failing the page over: a record that shows the
-     account with one empty card beats a record that will not open. */
-  const [brief, sig, self, avail, invoices, places, agreement, docs] = await Promise.all([
+  /* Nothing here is worth failing the page over: an account that shows with
+     one empty part beats an account that will not open. */
+  const [brief, sig, avail, agreement, docs, acct, options, archived] = await Promise.all([
     getSearch(id).catch(() => null),
     signatureOf(id, 'client').catch(() => null),
-    getSelfProfile(id).catch(() => ({} as any)),
     getAvailability(id, '').catch(() => ({ timezone: null, windows: [] } as any)),
-    listInvoicesFor(id).catch(() => []),
-    listAllPlacements().catch(() => []),
     getClientAgreement(id).catch(() => null),
-    listDocuments('person', id).catch(() => [])
+    listDocuments('person', id).catch(() => []),
+    getAccount(id, 'client'),
+    assignOptions('client'),
+    isArchived(id)
   ]);
 
   /* Who owns this account, and the team the picker chooses from. The owner
@@ -63,117 +63,53 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
     teamRoles().catch(() => []),
     accountManagerId(id, 'client')
   ]);
-
-  const mine = places.filter(p => p.client_id === id);
-  const live = mine.filter(p => !p.ended_on);
   const type = sig ? archetype((sig as any).scores, 'client') : null;
+  const threadHref = `/console/messages?thread=${id}`;
+  const talentHref = (t: string) => `/console/talent/${t}`;
 
-  const owedCents = invoices
-    .filter(i => i.status === 'sent' || i.status === 'failed')
-    .reduce((n, i) => n + i.amount_cents, 0);
-  const paidCents = invoices
-    .filter(i => i.status === 'paid')
-    .reduce((n, i) => n + i.amount_cents, 0);
-  const tone = (s: string) => INVOICE_STATUS.find(x => x.key === s)?.tone ?? '';
-  const label = (s: string) => INVOICE_STATUS.find(x => x.key === s)?.label ?? s;
-
+  /* The executive's account (3 November 2026). Nona: "if I go into an
+     executive's account, I need to see their placement, the communication,
+     their current billing, how many hours, what plan they are on, and it
+     needs to be really simple." The strip answers those at a glance; each
+     tab is one of them in full. */
   return (
     <Shell profile={profile} active="/console/directory"
       title={client.full_name}
       crumb={client.org_name || 'Executive'}
-      action={<Link className="btn sm ghost" href={`/console/people?open=${id}`}>← Executives</Link>}>
+      action={<AccountActions id={id} name={client.full_name} side="client" options={options} archived={archived}
+        listHref="/console/people" threadHref={threadHref} />}>
 
-      <div className="grid-3">
-        <div className="card stat"><div className="eyebrow">Paid to date</div>
-          <div className="score">{money(paidCents)}</div></div>
-        <div className="card stat"><div className="eyebrow">Outstanding</div>
-          <div className="score">{money(owedCents)}</div></div>
-        <div className="card stat"><div className="eyebrow">In seat</div>
-          <div className="score">{live.length}</div></div>
-      </div>
+      <div className="acct-back"><Link href="/console/people">&larr; All executives</Link>
+        {archived && <span className="acct-tag warn">Archived</span>}</div>
 
-      {/* The account as tabs (2 November 2026), the way Asana keeps a
-          project: what it is, who is placed, the money, the files, and the
-          history with notes and @mentions. */}
+      <Strip a={acct} accountHref={talentHref} />
+
       <Tabs tabs={[
-        { key: 'overview', label: 'Overview', body: (<>
-      <div className="card">
-        <div className="card-head"><h3>The account</h3>
-          <span className={`pill ${client.signed_in ? 'good' : 'warn'}`}>
-            <span className="dot" />{client.signed_in ? 'Signed in' : 'Not yet signed in'}</span></div>
-        <dl className="kv">
-          <dt>Company</dt><dd>{client.org_name || <span className="muted">Not given</span>}</dd>
-          <dt>Email</dt><dd>{client.email}</dd>
-          <dt>Timezone</dt><dd>{zoneLabel(avail?.timezone || client.timezone) || <span className="muted">Not given</span>}</dd>
-          <dt>Signature</dt><dd>{type ? type.n : 'Not completed yet'}</dd>
-          <dt>Agreement</dt><dd>{AGREEMENT_WORDS[agreement?.state ?? 'not_started'] ?? 'Not started'}</dd>
-          <dt>Open role</dt><dd>{brief?.role_title || 'No brief written yet'}</dd>
-        </dl>
-        {self?.bio && <p className="small" style={{ marginTop: 14 }}>{self.bio}</p>}
-        <div className="hr" style={{ margin: '14px 0' }} />
-        <AccountManagerPicker personId={id} side="client" team={team as any} current={csm} />
-      </div>
-
-        </>) },
-        { key: 'placements', label: 'Placements', count: mine.length, body: (<>
-      <div className="card">
-        <div className="card-head"><h3>Placements</h3>
-          {mine.length > 0 && <span className="pill">{mine.length} on file</span>}</div>
-        {mine.length === 0 ? (
-          <div className="empty"><span className="tick" />
-            <p className="small">Nobody placed yet.</p></div>
-        ) : (
-          <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Talent</th><th>Started</th><th>Status</th><th aria-label="Actions" /></tr></thead>
-            <tbody>
-              {mine.map(p => (
-                <tr key={p.id}>
-                  <td><b>{(p as any).talent_name ?? 'Talent'}</b></td>
-                  <td className="small muted">{fmtDate(p.started_on)}</td>
-                  <td><span className={`pill ${p.ended_on ? '' : 'good'}`}>
-                    <span className="dot" />{p.ended_on ? `Ended ${fmtDate(p.ended_on)}` : 'Live'}</span></td>
-                  <td style={{ textAlign: 'right' }}>
-                    <Link className="btn sm ghost" href={`/console/placements/${p.id}`}>Open</Link></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-        </>) },
-        { key: 'billing', label: 'Invoices', count: invoices.length, body: (<>
-      <div className="card">
-        <div className="card-head"><h3>Invoices</h3>
-          {invoices.length > 0 && <span className="pill">{invoices.length} on file</span>}</div>
-        {invoices.length === 0 ? (
-          <div className="empty"><span className="tick" />
-            <p className="small">Nothing invoiced yet.</p></div>
-        ) : (
-          <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Number</th><th>Issued</th><th className="amount">Amount</th><th>Status</th></tr></thead>
-            <tbody>
-              {invoices.map(i => (
-                <tr key={i.id}>
-                  <td className="small">{i.number ?? i.kind}</td>
-                  <td className="small muted">{fmtDate(i.issued_on)}</td>
-                  <td className="amount">{money(i.amount_cents)}</td>
-                  <td><span className={`pill ${tone(i.status)}`}>
-                    <span className="dot" />{label(i.status)}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-        </>) },
-        { key: 'files', label: 'Files', count: docs.length, body: (<>
-      <Files kind="person" ownerId={id} docs={docs} />
-
-        </>) },
-        { key: 'activity', label: 'Activity', body: (
-          <Activity type="client" id={id} subjectName={client.full_name} today={todayInPacific()}
-            team={team.map((m: any) => ({ user_id: m.user_id, name: m.name }))} />
+        { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={talentHref} emptyText="Use Assign placement at the top to place someone with them." /> },
+        { key: 'hours', label: 'Hours', body: <HoursTab a={acct} /> },
+        { key: 'billing', label: 'Billing', count: acct.billing.invoices.length, body: <BillingTab a={acct} /> },
+        { key: 'communication', label: 'Communication', body: (
+          <div className="acct-tab">
+            <Messages a={acct} name={client.full_name} threadHref={threadHref} />
+            <h4 className="acct-h" style={{ marginTop: 26 }}>Calls, emails and notes</h4>
+            <Activity type="client" id={id} subjectName={client.full_name} today={todayInPacific()}
+              team={team.map((m: any) => ({ user_id: m.user_id, name: m.name }))} />
+          </div>
+        ) },
+        { key: 'files', label: 'Files', count: docs.length, body: <Files kind="person" ownerId={id} docs={docs} /> },
+        { key: 'details', label: 'Details', body: (
+          <div className="acct-tab">
+            <dl className="acct-kv wide">
+              <dt>Company</dt><dd>{client.org_name || <span className="ws-faint">Not given</span>}</dd>
+              <dt>Email</dt><dd><a href={`mailto:${client.email}`}>{client.email}</a></dd>
+              <dt>Time zone</dt><dd>{zoneLabel(avail?.timezone || client.timezone) || <span className="ws-faint">Not given</span>}</dd>
+              <dt>Signed in</dt><dd>{client.signed_in ? 'Yes' : 'Not yet'}</dd>
+              <dt>Agreement</dt><dd>{AGREEMENT_WORDS[agreement?.state ?? 'not_started'] ?? 'Not started'}</dd>
+              <dt>Open role</dt><dd>{brief?.role_title || 'No brief written yet'}</dd>
+              <dt>Signature</dt><dd>{type ? type.n : 'Not completed yet'}</dd>
+            </dl>
+            <div style={{ marginTop: 18 }}><AccountManagerPicker personId={id} side="client" team={team as any} current={csm} /></div>
+          </div>
         ) }
       ]} />
     </Shell>

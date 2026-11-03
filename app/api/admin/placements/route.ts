@@ -5,7 +5,7 @@ import { setPlacementRate } from '@/lib/money';
 import { personEmail, getPlacement } from '@/lib/work';
 import { send, templates } from '@/lib/email';
 import { fmtDate } from '@/lib/words';
-import { toCents, rateInRange, todayInPacific } from '@/lib/money-public';
+import { toCents, rateInRange, todayInPacific, PLANS, PART_TIME_TOTAL_CENTS, type PlanKey } from '@/lib/money-public';
 import { ENDED_REASONS } from '@/lib/care-public';
 import { configured, supabaseServer } from '@/lib/supabase/server';
 import { safeMessage } from '@/lib/errors';
@@ -14,7 +14,7 @@ import { carryOverToReplacement } from '@/lib/experience';
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });
-  const { client_id, talent_id, started_on, rate, replaces_id, csm_id, tsm_id } = await req.json().catch(() => ({}));
+  const { client_id, talent_id, started_on, rate, replaces_id, csm_id, tsm_id, plan } = await req.json().catch(() => ({}));
   if (!client_id || !talent_id)
     return NextResponse.json({ error: 'pick both an executive and a talent' }, { status: 400 });
   if (client_id === talent_id)
@@ -22,7 +22,11 @@ export async function POST(req: Request) {
   /* The rate is set here rather than remembered later. Every hand-made
      placement used to arrive with none, which meant the monthly billing run
      skipped it silently and nothing was invoiced. */
-  const cents = rate ? toCents(String(rate)) : null;
+  /* Or a plan by name (the account page, 3 November 2026): the plan sets the
+     monthly rate and the minimum term, exactly as an offer would. */
+  const planKey = plan && plan in PLANS ? (plan as PlanKey) : null;
+  if (plan && !planKey) return NextResponse.json({ error: 'That is not one of the plans.' }, { status: 400 });
+  const cents = planKey ? PLANS[planKey].monthlyCents : rate ? toCents(String(rate)) : null;
   if (rate && (cents == null || !rateInRange(cents)))
     return NextResponse.json({
       error: 'That rate is outside the agreed range. Leave it blank to set it later in Billing.'
@@ -48,7 +52,13 @@ export async function POST(req: Request) {
 
   try {
     const id = await createPlacement(client_id, talent_id, started_on, replaces_id ?? null);
-    if (cents != null && id) await setPlacementRate(id, cents);
+    if (cents != null && id) await setPlacementRate(id, cents, planKey ? PLANS[planKey].months : undefined);
+    if (planKey === 'part_time_full' && id && configured()) {
+      try {
+        const sb = await supabaseServer();
+        await sb.from('placement_terms').update({ prepaid_total_cents: PART_TIME_TOTAL_CENTS }).eq('placement_id', id);
+      } catch { /* the rate and term stand; the prepaid total can be set in Billing */ }
+    }
     /* The placement inherits the account's owners: whoever already looks after
        this executive (profiles.csm_id) and this talent (profiles.tsm_id),
        unless the caller named someone. Those columns are new (part50), so this
