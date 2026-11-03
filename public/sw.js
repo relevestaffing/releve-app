@@ -20,8 +20,12 @@
    old entries just stop being requested. */
 const CACHE = 'releve-static-v1';
 
+const OFFLINE = '/offline.html';
+
 self.addEventListener('install', (event) => {
   self.skipWaiting();
+  /* the screen shown when there is no connection, kept ready (with the logo it uses) */
+  event.waitUntil(caches.open(CACHE).then(c => c.addAll([OFFLINE, '/logo-fern.png'])).catch(() => {}));
 });
 
 self.addEventListener('activate', (event) => {
@@ -31,6 +35,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
+  /* A page that cannot load because the phone is offline gets the Relève screen, never the browser's error. */
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(async () => (await caches.match(OFFLINE)) || Response.error()));
+    return;
+  }
   if (!url.pathname.startsWith('/_next/static/')) return; // everything else: network, always
 
   event.respondWith((async () => {

@@ -1,0 +1,61 @@
+/* App feel (Nona, 3 November 2026: "the app still doesn't feel like an app").
+   --------------------------------------------------------------------------
+   What makes a website feel like a website on a phone: text that selects when
+   you touch a heading, a grey flash on every tap, a pause before a tap does
+   anything, pinch and double-tap zoom, scrollbars, and no feedback under the
+   finger. This removes each of those, on touch screens only, so the desktop
+   app is untouched. Content people may want to copy (messages, fields, notes)
+   stays selectable. */
+
+html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+@media (pointer:coarse){
+  /* no 300ms wait, no double-tap zoom, on anything you can press */
+  html body :is(a,button,input,select,textarea,label,summary,[role=button],.btn,.pick,.opt,.req-choice,.quickbar,.menu-trigger){touch-action:manipulation}
+
+  /* chrome is not text: a long press on a tab or a title does nothing */
+  html body :is(button,a,nav,.topbar,.quickbar,.nav-drawer,.side-nav,.card-head,.eyebrow,.crumb,.pill,.chip,label,summary,.btn,h1,h2,h3,h4,.stat,.kpi){
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  html body :is(input,textarea,select,[contenteditable],[data-selectable],.bubble,.bubble *,.ask-bubble,.ask-bubble *,.thread p,.note-body,.note-body *){
+    -webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+  html body img{-webkit-touch-callout:none;-webkit-user-drag:none}
+
+  /* a press you can feel: the thing sinks a hair and dims, instantly */
+  html body :is(.btn,.quickbar a,.menu-trigger,.rv-back,.nav-drawer a,.side-nav a,.req-choice,.pick,.opt,.ask-chip,.sl-edit,a.card,.card[role=button]):active{
+    transform:scale(.97);opacity:.82;transition:transform .07s ease-out,opacity .07s ease-out}
+  html body .quickbar a:active{transform:scale(.94)}
+
+  /* the tab you touched lights up before the page has arrived */
+  html body .quickbar a[data-pending]{color:#35443A;background:rgba(53,68,58,.1)}
+  html body .quickbar:has(a[data-pending]) a.on:not([data-pending]){color:#6E8073;background:transparent}
+}
+
+/* installed on the Home Screen: no browser, so no pinch, no rubber-banding, no scrollbars */
+@media (display-mode:standalone){
+  html body{touch-action:pan-x pan-y;overscroll-behavior:none}
+  html{overscroll-behavior:none}
+  *{scrollbar-width:none}
+  *::-webkit-scrollbar{display:none}
+}
+
+/* pull down to refresh (PullRefresh.tsx) */
+.ptr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;z-index:80;width:40px;height:40px;margin-left:-20px;
+  display:grid;place-items:center;border-radius:50%;background:#FBF8F1;color:#35443A;pointer-events:none;
+  box-shadow:0 10px 26px -10px rgba(0,0,0,.5),inset 0 0 0 1px rgba(53,68,58,.14);will-change:transform,opacity}
+.ptr svg{width:22px;height:22px;transform:rotate(-90deg)}
+.ptr circle{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.ptr.busy svg{animation:ptrSpin .9s linear infinite}
+@keyframes ptrSpin{to{transform:rotate(270deg)}}
+
+/* back, for the installed app (it has no browser back button) */
+.rv-back{display:none}
+@media (max-width:900px){
+  html.rv-standalone body .rv-back{
+    display:flex;align-items:center;justify-content:center;position:fixed;z-index:50;
+    top:calc(12px + env(safe-area-inset-top));left:54px;width:36px;height:36px;border:0;border-radius:50%;
+    background:transparent;color:#fff;cursor:pointer;transition:color .4s ease}
+  html.rv-standalone body .rv-back.scrolled{color:#35443A}
+  html.rv-standalone body .rv-back svg{width:19px;height:19px}
+}
+
+@media (prefers-reduced-motion:reduce){.ptr.busy svg{animation:none}}

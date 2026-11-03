@@ -39,6 +39,22 @@ export default function MobileNav({ role, active, nav, who, name, org, profileHr
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
+  /* Swipe the menu away to the left, the way a drawer does in any app. (Opening by an edge swipe is
+     left to the system: on iPhone that edge is the back gesture.) */
+  useEffect(() => {
+    if (!open) return;
+    let sx = 0, sy = 0, on = false;
+    const start = (e: TouchEvent) => { const p = e.touches[0]; sx = p.clientX; sy = p.clientY; on = true; };
+    const end = (e: TouchEvent) => {
+      if (!on) return; on = false;
+      const p = e.changedTouches[0];
+      if (p.clientX - sx < -70 && Math.abs(p.clientY - sy) < 60) setOpen(false);
+    };
+    document.addEventListener('touchstart', start, { passive: true });
+    document.addEventListener('touchend', end, { passive: true });
+    return () => { document.removeEventListener('touchstart', start); document.removeEventListener('touchend', end); };
+  }, [open]);
+
   /* Close on Escape, and on a back gesture. */
   useEffect(() => {
     if (!open) return;

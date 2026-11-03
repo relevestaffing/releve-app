@@ -1,5 +1,6 @@
 import './globals.css';
 import './evergreen.css';
+import '@/components/appfeel.css';
 import type { Metadata, Viewport } from 'next';
 import Toaster from '@/components/Toast';
 import SaveLock from '@/components/SaveLock';

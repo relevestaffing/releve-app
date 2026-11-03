@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { haptic } from '@/lib/haptic';
 
 /* The Lift: how Relève moves between pages (Nona, 2 November 2026, chosen
    from three options in "Relève Page Transitions").
@@ -36,6 +37,7 @@ export default function PageLift() {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('rv-going');
+    document.querySelectorAll('.quickbar [data-pending]').forEach(x => x.removeAttribute('data-pending'));
     if (!root.classList.contains('rv-nav')) return;
     const t = window.setTimeout(() => root.classList.remove('rv-nav'), 1800);
     return () => window.clearTimeout(t);
@@ -43,6 +45,7 @@ export default function PageLift() {
 
   useEffect(() => {
     const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const phone = window.matchMedia('(max-width:900px)');
     let leaving = false;
 
     const glint = () => {
@@ -62,7 +65,12 @@ export default function PageLift() {
       if (url.pathname.startsWith('/api/') || /\.[a-z0-9]{2,5}$/i.test(url.pathname)) return;
 
       document.documentElement.classList.add('rv-nav');
+      /* the tab you touched lights up at once, with a tick under the finger where the phone has one */
+      if (a.closest('.quickbar')) { a.setAttribute('data-pending', ''); haptic(8); }
       if (calm.matches) return;               // arrival only, instantly, via CSS
+      /* Phones: no waiting for the lift to play out. The page starts loading the moment you touch
+         (an app does not pause half a second first); the new page still rises in when it arrives. */
+      if (phone.matches) { document.documentElement.classList.add('rv-going'); return; }
       if (leaving) { e.preventDefault(); return; }
 
       const els = Array.from(document.querySelectorAll<HTMLElement>(BLOCKS)).filter(el => {

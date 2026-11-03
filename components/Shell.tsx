@@ -7,6 +7,8 @@ import MobileNav from './MobileNav';
 import QuickBar from './QuickBar';
 import Motion from './Motion';
 import PageLift from './PageLift';
+import PullRefresh from './PullRefresh';
+import BackButton from './BackButton';
 import Flourish from './Flourish';
 import TermsGate from './TermsGate';
 import InvoiceGate from './InvoiceGate';
@@ -313,6 +315,8 @@ export default async function Shell({
     <>
       <Motion />
       <PageLift />
+      <PullRefresh />
+      <BackButton />
       <Flourish />
       <UnreadSync initial={unread} />
       {!configured() && <div className="demo-banner">Preview mode · nothing is saved</div>}
