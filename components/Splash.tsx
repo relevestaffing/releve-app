@@ -15,7 +15,7 @@ export default function Splash() {
   const [phase, setPhase] = useState<'show' | 'hide' | 'gone'>('show');
   useEffect(() => {
     const start = (window as any).__rvSplashStart || Date.now();
-    const wait = Math.max(0, 850 - (Date.now() - start));
+    const wait = Math.max(0, 1100 - (Date.now() - start)); /* held at least 1.1 s so it is always seen (Nona, 3 Nov 2026) */
     const t1 = setTimeout(() => setPhase('hide'), wait);
     const t2 = setTimeout(() => setPhase('gone'), wait + 700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
