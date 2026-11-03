@@ -9,7 +9,7 @@ type NavGroup = { group?: string; items: NavItem[] };
 /* Line icons at a single 1.25px stroke. Restrained on purpose — a luxury
    product does not want clip art in its chrome. */
 const ICONS: Record<string, React.ReactNode> = {
-  menu:  <><path d="M3.5 6h13M3.5 10h13M3.5 14h13" /></>,
+  menu:  <><path d="M3.5 7.5h13M3.5 12.5h13" /></>,
   close: <><path d="M5 5l10 10M15 5L5 15" /></>
 };
 

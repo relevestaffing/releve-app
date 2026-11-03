@@ -1765,10 +1765,11 @@ details.more .inner{padding-top:6px}
     display:flex;align-items:center;justify-content:center;
     position:fixed;top:calc(12px + env(safe-area-inset-top));left:14px;z-index:50;
     width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
-    background:rgba(53,68,58,.08);color:var(--fern)
+    background:transparent;color:#fff
   }
   .menu-trigger svg{width:19px;height:19px}
-  .menu-trigger:active{background:rgba(53,68,58,.16)}
+  .menu-trigger:active{background:rgba(255,255,255,.1)}
+  .shell.scrolled .menu-trigger:active{background:rgba(53,68,58,.16)}
 
   /* ---------- the quick-action strip: scrolls with the page, then sticks
      directly under the header — reachable and interactive the whole way
@@ -2615,7 +2616,7 @@ aside.side a:focus-visible,aside.side button:focus-visible{outline-color:var(--f
   .topbar.scrolled{border-bottom-color:rgba(53,68,58,.08);background:rgba(250,249,246,.92)}
   .topbar .crumb{font-size:10.5px;letter-spacing:.2em;color:var(--sage);margin-bottom:2px}
   .topbar h1{font-size:27px;line-height:1.15;letter-spacing:-.005em}
-  .menu-trigger{background:#FFFFFF;box-shadow:0 4px 14px -6px rgba(34,48,42,.35);width:38px;height:38px}
+  .menu-trigger{background:transparent;box-shadow:none;width:38px;height:38px}
 
   /* the floating tab bar */
   .quickbar{position:fixed;top:auto;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);

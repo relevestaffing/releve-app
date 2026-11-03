@@ -31,8 +31,12 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
    actions sit on one row; a row's company name gives way to its menu. */
 @media (max-width:900px){
   html body .shell::after{content:'';position:fixed;z-index:49;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
-    background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(20,27,21,.94);
-    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid rgba(200,207,212,.12);pointer-events:none}
+    background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,transparent;
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid transparent;pointer-events:none;
+    transition:background .4s ease,border-color .4s ease}
+  html body .shell.scrolled::after{
+    background:url(/logo-fern.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(250,248,242,.95);
+    border-bottom-color:rgba(53,68,58,.14)}
   html body .menu-trigger{z-index:50}
   html body .ws-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
     -webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}
@@ -58,14 +62,18 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
   html body .attention li .att-line,html body .attention li .att-body b{font-size:15px;line-height:1.55}
   html body .attention li > .btn{grid-column:2;width:auto;justify-self:start;margin:0;align-self:start}
 }
-/* CREAM BARS ON PHONES (2 Nov 2026, Nona): the top bar and the floating bottom bar were deep
-   fern and blended into the dark wall. Both are now cream, so they read as their own pieces
-   against the page: the fern logo on the top bar, fern lettering on the bottom bar. */
+/* TRANSPARENT-TO-CREAM HEADER (2 Nov 2026, Nona): the top bar starts invisible
+   over the dark SunWall, then fades to cream as the user scrolls past the
+   greeting. Logo and menu icon shift from white to fern. The bottom quickbar
+   stays cream always. The .scrolled class is toggled by HeaderScroll.tsx. */
 @media (max-width:900px){
-  html body .shell::after{
-    background:url(/logo-fern.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(250,248,242,.95);
-    border-bottom:1px solid rgba(53,68,58,.14)}
-  html body .menu-trigger{box-shadow:0 4px 14px -6px rgba(34,48,42,.28),inset 0 0 0 1px rgba(53,68,58,.16)}
+  /* menu trigger: no circle, starts white, fades to fern on scroll */
+  html body .menu-trigger{
+    background:transparent;color:#fff;box-shadow:none;
+    transition:color .4s ease}
+  html body .shell.scrolled .menu-trigger{color:var(--fern)}
+
+  /* quickbar stays cream */
   html body .quickbar{
     background:rgba(250,248,242,.96);
     box-shadow:0 18px 40px -16px rgba(34,48,42,.38),inset 0 0 0 1px rgba(53,68,58,.14)}

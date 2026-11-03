@@ -26,6 +26,7 @@ import { isOwner } from '@/lib/money';
 import './experience.css';
 import './smooth.css';
 import SunWall from '@/components/SunWall';
+import HeaderScroll from '@/components/HeaderScroll';
 
 /* Grouped, not flat. Fifteen undifferentiated links is a filing cabinet;
    four labelled groups is a product. Nothing is removed — everything stays
@@ -359,6 +360,7 @@ export default async function Shell({
         </aside>
         <main className="main">
           <SunWall page />
+          <HeaderScroll />
           <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
             <span className="band-light" aria-hidden="true" />
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
