@@ -3,6 +3,14 @@ import { useEffect, useRef } from 'react';
 import './palette.css';
 import { S, mix, lightAt, hourNow, sunShadow } from '@/lib/sun';
 
+/* Phones keep the wall at its evening dark whatever the hour (Nona, 3 Nov 2026: the
+   daylit plaster read too light on a phone). Desktop still follows the clock. */
+const PHONE_HOUR = 22;
+const wallHour = (t: number) => {
+  try { if (window.matchMedia('(max-width:900px)').matches && !new URLSearchParams(window.location.search).get('sun')) return PHONE_HOUR; } catch {}
+  return hourNow(t);
+};
+
 /* The window wall, lit by the sun of the viewer's own clock (Nona, 2 November
    2026: "I want it to have movement and the sun to move depending on the time
    of day"). It is her chosen photograph (option C, deep green plaster, late sun
@@ -105,7 +113,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
     const t0 = performance.now();
     let lastKey = '';
     const apply = () => {
-      const k = sunShadow(hourNow((performance.now() - t0) / 1000));
+      const k = sunShadow(wallHour((performance.now() - t0) / 1000));
       /* Writing to <html> restyles the whole page, so only when the shadow
          has actually moved enough to see (scroll performance, 2 Nov 2026). */
       const key = [Math.round(k.x), Math.round(k.y), Math.round(k.b / 2), k.a.toFixed(2), k.c.join(','), k.lx.toFixed(1)].join('|');
@@ -194,7 +202,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         const w = Math.round(cw * dpr), h = Math.round(ch * dpr);
         if (!w || !h) return;
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
-        const t = (now - t0) / 1000, L = lightAt(hourNow(t)), mob = phone.matches;
+        const t = (now - t0) / 1000, L = lightAt(wallHour(t)), mob = phone.matches;
         gl.uniform2f(U.res, w, h);
         gl.uniform2f(U.focus, room ? .85 : mob ? .82 : 1, page ? .35 : .45);
         gl.uniform1f(U.zoom, 1.05);
