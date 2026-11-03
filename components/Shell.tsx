@@ -6,6 +6,7 @@ import DemoSwitch from './DemoSwitch';
 import MobileNav from './MobileNav';
 import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
+import HomeStage from './native/HomeStage';
 import Motion from './Motion';
 import PageLift from './PageLift';
 import PullRefresh from './PullRefresh';
@@ -410,6 +411,8 @@ export default async function Shell({
             {profile.role !== 'admin' && !clientTour && active === '/app' && (
               <PushSetup compact />
             )}
+            {isHome && nativeOn && <HomeStage unreadHref={messagesHref} unread={unread}
+              rooms={[...quickItems(profile.role, clientTour, placedOnly).filter(t => t.href !== home), ...jump].slice(0, 8)} />}
             {children}
             {isHome && <HomeJump items={jump} unreadHref={messagesHref} unread={unread} />}
             {/* Last in the DOM, first on the screen: both carry order:-2 in the
