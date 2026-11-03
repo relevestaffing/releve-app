@@ -2,6 +2,7 @@
 import { useEffect, useState, useId } from 'react';
 import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
 import SunWall from '@/components/SunWall';
+import './signin.css';
 
 /* A message the friendliest way to say "that link didn't work" can manage —
    Supabase's own wording (e.g. "Email link is invalid or has expired") is
@@ -73,14 +74,22 @@ export default function SignIn({ initialError }: { initialError?: string }) {
         <div className="auth-card">
           {sent ? (
             <>
-              <h2 style={{ fontSize: 24, marginBottom: 12 }}>Check your email</h2>
-              <p className="note">A sign-in link is on its way to <b>{email}</b>. It is valid for one hour and opens your account directly. There is no password to remember.</p>
-              <button className="btn ghost sm" style={{ marginTop: 22 }} onClick={() => setSent(false)}>Use a different address</button>
+              <div className="auth-sent">
+                <div className="auth-welcome">
+                  <span className="eyebrow-rule" aria-hidden="true" />
+                  <h2>Check your email</h2>
+                </div>
+                <p className="note">A sign-in link is on its way to <b>{email}</b>. It is valid for one hour and opens your account directly.</p>
+                <button className="btn ghost sm" style={{ marginTop: 24 }} onClick={() => setSent(false)}>Use a different address</button>
+              </div>
             </>
           ) : (
             <>
-              <h2 style={{ fontSize: 24, marginBottom: live ? 22 : 10 }}>Sign in</h2>
-              {!live && <p className="note" style={{ marginBottom: 24 }}>Preview mode: sign-in is skipped and nothing is saved.</p>}
+              <div className="auth-welcome">
+                <span className="eyebrow-rule" aria-hidden="true" />
+                <h2>Welcome to Relève</h2>
+                <p>{live ? 'Sign in to continue.' : 'Preview mode: sign-in is skipped and nothing is saved.'}</p>
+              </div>
               <form onSubmit={magicLink}>
                 <div className="ff">
                   <label htmlFor={`${fid}-1`}>Email</label>
@@ -105,7 +114,7 @@ export default function SignIn({ initialError }: { initialError?: string }) {
             </>
           )}
         </div>
-        <p className="small muted" style={{ marginTop: 26 }}>Relève Executive Staffing · Consider it handled.</p>
+        <img className="auth-tagline" src="/consider-it-handled-cream.png" alt="Consider it handled." width={2755} height={414} />
       </div>
     </div>
   );
