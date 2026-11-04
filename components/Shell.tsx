@@ -6,7 +6,7 @@ import DemoSwitch from './DemoSwitch';
 import MobileNav from './MobileNav';
 import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
-import HomeStage, { type Lead } from './native/HomeStage';
+import HomeStage, { type Lead, MATERIALS } from './native/HomeStage';
 import Motion from './Motion';
 import PageLift from './PageLift';
 import PullRefresh from './PullRefresh';
@@ -341,6 +341,16 @@ export default async function Shell({
   const jump = isHome
     ? nav.flatMap(g => g.items).filter(n => n.href !== home && !tabHrefs.has(n.href)).slice(0, 6)
     : [];
+  /* The rooms Home shows as tiles. A room's own screen opens on the same
+     material as its tile (phone only), so a tap carries the picture in;
+     screens deeper than a room stay type only, so pages alternate. */
+  const roomList = [...quickItems(profile.role, clientTour, placedOnly).filter(t => t.href !== home),
+    ...nav.flatMap(g => g.items).filter(n => n.href !== home && !tabHrefs.has(n.href)).slice(0, 6)].slice(0, 8);
+  /* Every first-level screen gets its photo: the rooms first (same material
+     as their Home tile), then the rest of the menu in order. */
+  const firstLevel = [...roomList.map(r => r.href), ...nav.flatMap(g => g.items).map(n => n.href)]
+    .filter((h, i, all) => h !== home && all.indexOf(h) === i);
+  const roomAt = firstLevel.indexOf(active);
   const profileHref = clientTour ? undefined : PROFILE[profile.role];
   /* Sage, 19 October: the console greets her by name, not the shared inbox. */
   const shownName = profile.role === 'admin' && (!profile.full_name || profile.full_name.includes('@'))
@@ -352,6 +362,7 @@ export default async function Shell({
   let nativePref: string | undefined;
   try { nativePref = (await cookies()).get('rv_native')?.value; } catch { nativePref = undefined; }
   const nativeOn = process.env.NATIVE_ALL === '1' ? nativePref !== '0' : (nativePref === '1' || (founder && nativePref !== '0'));
+  const heroMat = nativeOn && !isHome && roomAt >= 0 ? MATERIALS[roomAt % MATERIALS.length] : null;
   const nativeCtx = JSON.stringify({
     on: nativeOn, role: profile.role, home, title, isHome, active,
     tabs: quickItems(profile.role, clientTour, placedOnly),
@@ -413,7 +424,8 @@ export default async function Shell({
         <main className="main">
           <SunWall page />
           <HeaderScroll />
-          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}`}>
+          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}${heroMat ? ' nv-hero' : ''}`}
+            style={heroMat ? { ['--hero' as any]: `url(/atmos/tiles/${heroMat}.webp)` } : undefined}>
             <span className="band-light" aria-hidden="true" />
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
             {/* Rendered again below, for mobile — see .topbar-action / .mobile-action
@@ -438,7 +450,7 @@ export default async function Shell({
               lead={lead ?? defaultLead(profile.role, unread, messagesHref)}
               greeting={title.split(',')[0]} name={firstName(shownName)} askHref={profile.role === 'admin' ? '/console/ask' : '/app/ask'}
               today={new Date(Date.now() - 8 * 3600 * 1000).getUTCDay()}
-              rooms={[...quickItems(profile.role, clientTour, placedOnly).filter(t => t.href !== home), ...jump].slice(0, 8)} />}
+              rooms={roomList} />}
             {children}
             {isHome && <HomeJump items={jump} unreadHref={messagesHref} unread={unread} />}
             {/* Last in the DOM, first on the screen: both carry order:-2 in the

@@ -411,3 +411,28 @@ html.rv-native body .page-body :is(.ask-compose,.ask-compose-row){background:tra
 html.rv-native body .page-body .ask-compose textarea{border:0!important}
 /* Today already says "All clear" at the top of Home; the empty Today card below would repeat it. */
 html.rv-native body .page-body > .today-card:has(.empty){display:none!important}
+
+/* ── The new look on every screen (3 Nov 2026, night) ──
+   A room's own screen opens on a photo card in that room's material, its name
+   set on the image (Open's Discover card). Deeper screens stay type only. */
+html.rv-native body .topbar.nv-hero{position:relative;overflow:hidden;isolation:isolate;box-sizing:border-box;
+  margin:calc(var(--nv-top) + 10px) 22px 30px!important;padding:20px!important;min-height:212px!important;
+  display:flex!important;flex-direction:column;justify-content:flex-end;border-radius:var(--nv-r);
+  background:var(--hero) 50% 50%/118% auto no-repeat,#1B261F!important;box-shadow:0 30px 60px -30px rgba(0,0,0,.85)!important;
+  animation:nvBreathe 30s ease-in-out infinite alternate}
+html.rv-native body .topbar.nv-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.12) 40%,rgba(8,13,10,.78))}
+html.rv-native body .topbar.nv-hero::after{content:"";position:absolute;inset:-40% -60%;z-index:-1;pointer-events:none;mix-blend-mode:soft-light;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,250,235,.7) 46%,rgba(255,250,235,.95) 50%,rgba(255,250,235,.7) 54%,transparent 70%);animation:nvSun 40s ease-in-out infinite alternate}
+html.rv-native body .topbar.nv-hero .crumb{display:block;position:static!important;line-height:1.3!important;color:rgba(239,235,224,.82)!important;margin-bottom:10px!important;text-shadow:0 1px 10px rgba(0,0,0,.4)}
+html.rv-native body .topbar.nv-hero .crumb::before{display:none!important}
+html.rv-native body .topbar.nv-hero :is(.crumb,h1){transform:none!important;animation:none!important;opacity:1!important}
+html.rv-native body .topbar.nv-hero .crumb::after{display:none!important}
+html.rv-native body .topbar :is(.crumb){transform:none!important;animation:none!important;opacity:1!important}
+html.rv-native body .topbar.nv-hero h1{font-size:34px!important;line-height:1.08!important;text-shadow:0 2px 18px rgba(0,0,0,.45)!important}
+html.rv-native body .topbar.nv-hero .topbar-action{display:none!important}
+/* tabs: the lit one glows, as on Home; no underline */
+html.rv-native body .page-body .tabs a{position:relative;font-weight:300!important;font-size:15px!important;border-bottom-color:transparent!important}
+html.rv-native body .page-body .tabs a[aria-current="page"],html.rv-native body .page-body .tabs a.on{font-weight:400!important;border-bottom-color:transparent!important}
+html.rv-native body .page-body .tabs a[aria-current="page"]::before,html.rv-native body .page-body .tabs a.on::before{content:"";position:absolute;inset:-18px -24px;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(200,207,212,.22),transparent)}
+html.rv-native body .page-body .tabs{position:relative;isolation:isolate;padding:8px 0!important}
+@media (prefers-reduced-motion:reduce){html.rv-native body .topbar.nv-hero,html.rv-native body .topbar.nv-hero::after{animation:none!important}}

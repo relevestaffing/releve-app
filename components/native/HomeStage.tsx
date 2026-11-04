@@ -26,7 +26,7 @@ export type Lead = {
 type Room = { href: string; label: string; icon?: string };
 /* hyper-real nature textures (Nona, 3 November 2026, from her Pinterest references, in Relève's cool palette): silver sculpted wood, grey-green dune, incense on sage plaster, driftwood on grey stucco, palm shadow on sage plaster, silver wood grain.
    Water is a short looping film; the rest breathe with a slow Ken Burns drift. */
-const MATERIALS = ['wood', 'dune', 'incense', 'driftwood', 'shadow', 'grain'];
+export const MATERIALS = ['wood', 'dune', 'incense', 'driftwood', 'shadow', 'grain'];
 const BY_WORD: [RegExp, string][] = [
   [/task/i, 'tasks'], [/bill|invoice|pay/i, 'card'], [/profile|signature/i, 'person'], [/role|placement|team|watch/i, 'briefcase'],
   [/recruit|directory|people|talent|roster/i, 'people'], [/match|candidate/i, 'person'], [/content|how|resource|skill|brief|log/i, 'book'],
