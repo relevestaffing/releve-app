@@ -97,7 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" as="image" href="/logo-fern.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=Marcellus&family=WindSong:wght@500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=WindSong:wght@500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
       </head>
       <body>
         <Splash />

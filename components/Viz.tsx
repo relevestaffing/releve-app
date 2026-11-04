@@ -24,7 +24,7 @@ export function Radar({ series, size = 320, axes, note = true }: {
           return (
             <g key={a.key}>
               <line x1={cx} y1={cy} x2={x} y2={y} stroke="rgba(53,68,58,.12)" strokeWidth="1" />
-              <text x={lx} y={ly + dy} textAnchor={anch} fontFamily="Marcellus,serif" fontSize="10"
+              <text x={lx} y={ly + dy} textAnchor={anch} fontFamily="Lora,serif" fontSize="10"
                 letterSpacing="1.4" fill="#999474">{a.name.toUpperCase()}</text>
             </g>
           );

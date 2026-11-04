@@ -1,7 +1,7 @@
 /* The sign-in page, the first thing anyone sees of Relève (Nona, 2 November
    2026: "make the box slightly smaller so it doesn't overwhelm the page, have
    something welcoming them to Relève, luxury, high end, premium").
-   A narrower card with more air, a centred welcome in Marcellus, hairline
+   A narrower card with more air, a centred welcome in Lora, hairline
    square-cornered fields and buttons (the site's square rule), the cream
    tagline so it reads on the wall. Scoped to .auth only. */
 html body .auth{padding:48px 20px}
@@ -10,7 +10,7 @@ html body .auth .auth-logo{width:176px;margin:0 auto 40px}
 html body .auth .auth-card{width:100%;padding:46px 36px 40px;text-align:left}
 html body .auth .auth-welcome{text-align:center;margin:0 0 24px}
 html body .auth .auth-welcome .eyebrow-rule{display:block;width:28px;height:1px;background:var(--fern);opacity:.35;margin:0 auto 22px}
-html body .auth .auth-welcome h2{font-family:'Marcellus',serif;font-weight:400;font-size:27px;line-height:1.2;letter-spacing:.01em;color:var(--ink);margin:0 0 14px;text-wrap:balance}
+html body .auth .auth-welcome h2{font-family:'Lora',serif;font-weight:400;font-size:27px;line-height:1.2;letter-spacing:.01em;color:var(--ink);margin:0 0 14px;text-wrap:balance}
 html body .auth .auth-welcome p{font-size:13px;line-height:1.75;font-weight:300;color:var(--sage);margin:0 -16px;max-width:none;text-wrap:balance}
 html body .auth .ff{margin-bottom:16px;gap:10px}
 html body .auth .ff label{font-size:10.5px;letter-spacing:.26em;color:var(--sage)}

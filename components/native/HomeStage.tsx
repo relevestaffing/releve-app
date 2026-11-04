@@ -16,8 +16,9 @@ import { Glyph, glyphFor } from './icons';
    glowing round button beside it; the rooms as plain words with the first
    lit; one Relève line from the Book's quote cards, changing daily; a short
    status line in spaced capitals; then the material tiles, smaller, under a
-   hairline label. A faint silver orbit turns slowly behind the line. No
-   Marcellus anywhere: Lora for titles, Poppins for everything else. */
+   hairline label. A faint silver orbit turns slowly behind the line. Lora for
+   titles and spaced capitals, Poppins for running text (Marcellus retired
+   3 November 2026). */
 export type Lead = {
   eyebrow?: string; title: string; meta?: string; href: string; cta?: string;
   stats?: { n: number | string; k: string }[]; statsLabel?: string; statsHref?: string;

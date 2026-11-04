@@ -304,7 +304,7 @@ export default async function ConsoleTeam() {
                 <tr key={i}>
                   <td className="xs" style={{ whiteSpace: 'nowrap' }}>{when(m.sent_at)}</td>
                   <td>
-                    <b style={{ fontFamily: 'Marcellus,serif', fontSize: 13.5 }}>{m.kind}</b>
+                    <b style={{ fontFamily: 'Lora,serif', fontSize: 13.5 }}>{m.kind}</b>
                     <div className="xs muted">{m.subject}</div>
                   </td>
                   <td className="xs">{m.to_addr}</td>

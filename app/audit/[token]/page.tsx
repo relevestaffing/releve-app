@@ -54,9 +54,9 @@ function AuditStyle() {
       .audit-wrap{max-width:760px;margin:0 auto;padding:46px 22px 90px;font-family:'Poppins',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--body);line-height:1.7}
       .audit-mast{text-align:center;border-bottom:1px solid var(--rule);padding-bottom:26px;margin-bottom:40px}
       .audit-logo{display:block;margin:0 auto;width:min(300px,70vw);height:auto}
-      .audit-word{display:block;font-family:'Marcellus',serif;font-size:30px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink)}
-      .audit-sub{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--sage);margin-top:8px;font-family:'Marcellus',serif}
-      .audit-body h1{font-family:'Marcellus',serif;font-weight:400;color:var(--ink);font-size:30px;line-height:1.2;margin:0 0 10px;letter-spacing:-.01em}
+      .audit-word{display:block;font-family:'Lora',serif;font-size:30px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink)}
+      .audit-sub{display:block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--sage);margin-top:8px;font-family:'Lora',serif}
+      .audit-body h1{font-family:'Lora',serif;font-weight:400;color:var(--ink);font-size:30px;line-height:1.2;margin:0 0 10px;letter-spacing:-.01em}
       .audit-body h2{font-family:'Lora',Georgia,serif;font-weight:400;color:var(--fern);font-size:21px;margin:40px 0 12px;padding-top:18px;border-top:1px solid var(--rule)}
       .audit-body h3{font-family:'Lora',Georgia,serif;font-weight:400;color:var(--fern);font-size:16px;margin:26px 0 8px}
       .audit-body p{margin:0 0 15px}
@@ -66,12 +66,12 @@ function AuditStyle() {
       .audit-body li input[type=checkbox]{margin-right:8px}
       .audit-body a{color:var(--fern)}
       .audit-body table{width:100%;border-collapse:collapse;margin:8px 0 24px;font-size:15px}
-      .audit-body th{font-family:'Marcellus',serif;font-weight:400;text-align:left;color:var(--fern);font-size:13px;letter-spacing:.04em;padding:11px 12px;border-bottom:1px solid var(--fern);vertical-align:top}
+      .audit-body th{font-family:'Lora',serif;font-weight:400;text-align:left;color:var(--fern);font-size:13px;letter-spacing:.04em;padding:11px 12px;border-bottom:1px solid var(--fern);vertical-align:top}
       .audit-body td{padding:11px 12px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--body)}
       .audit-body tr:last-child td{border-bottom:none}
       .audit-body table{overflow-x:auto;display:block}
       .audit-gone{text-align:center;padding:40px 0}
-      .audit-gone h1{font-family:'Marcellus',serif;font-weight:400;color:var(--ink);font-size:26px;margin:0 0 12px}
+      .audit-gone h1{font-family:'Lora',serif;font-weight:400;color:var(--ink);font-size:26px;margin:0 0 12px}
       .audit-foot{margin-top:54px;padding-top:22px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--sage);text-align:center}
       .audit-foot a{color:var(--sage)}
       @media (max-width:600px){.audit-wrap{padding:30px 16px 70px}.audit-body h1{font-size:25px}}

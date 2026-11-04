@@ -170,7 +170,7 @@ export default function PlacementReveal({
           animation: rv-rise 0.7s ease-out 0.2s forwards;
         }
         .rv-h1 {
-          font-family: 'Marcellus', serif;
+          font-family: 'Lora', serif;
           font-weight: 400;
           font-size: 46px;
           line-height: 1.18;
@@ -212,7 +212,7 @@ export default function PlacementReveal({
           color: var(--pale);
         }
         .rv-value {
-          font-family: 'Marcellus', serif;
+          font-family: 'Lora', serif;
           font-size: 17px;
         }
         .rv-cta {

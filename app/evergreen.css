@@ -9,7 +9,7 @@
    the band, the page laid on it) and takes everything else from
    relevestaffing.com and its /discovery page:
 
-   - Type is the website's: Marcellus for display, Tenor Sans for text,
+   - Type is the website's: Lora for display, Tenor Sans for text,
      letterspaced capitals for labels and buttons, the eyebrow with its
      rule in front.
    - Shadows are the website's: white cards resting on long soft shadows,
@@ -231,7 +231,7 @@ html.js .topbar .crumb{animation:egFade .9s var(--ease) both}
 .ask-panel .ask-bubble{background:transparent;border:0;padding:0;max-width:100%}
 .ask-panel .ask-bubble p{color:rgba(243,239,230,.9);font-size:15.5px;line-height:1.7}
 .ask-panel .ask-who,.ask-panel .ask-who span{color:var(--on-green-3)}
-.ask-panel .ask-msg.greet .ask-bubble p{font-family:'Marcellus',serif;font-size:24px;line-height:1.3;color:var(--on-green)}
+.ask-panel .ask-msg.greet .ask-bubble p{font-family:'Lora',serif;font-size:24px;line-height:1.3;color:var(--on-green)}
 .ask-panel .ask-link{color:var(--leaf)}
 .ask-panel .ask-bubble.mine{background:rgba(243,239,230,.07);border:1px solid var(--hair-green);padding:11px 15px 19px;max-width:84%;
   box-shadow:0 18px 40px -24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06)}

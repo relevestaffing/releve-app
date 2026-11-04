@@ -42,12 +42,12 @@ export default function InvoiceDocument({ inv, actions }: {
     <div className="invoice-doc card" style={{ maxWidth: 820, padding: '44px 48px' }}>
       <style>{`
         .invoice-doc table.lines{width:100%;border-collapse:collapse;margin:8px 0 0}
-        .invoice-doc table.lines th{font-family:'Marcellus',serif;font-weight:400;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);text-align:left;padding:12px 0;border-bottom:1px solid var(--line-strong)}
+        .invoice-doc table.lines th{font-family:'Lora',serif;font-weight:400;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);text-align:left;padding:12px 0;border-bottom:1px solid var(--line-strong)}
         .invoice-doc table.lines td{padding:14px 0;border-bottom:1px solid var(--line);vertical-align:top;font-size:14.5px}
         .invoice-doc .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
         .invoice-doc .meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:28px 0}
-        .invoice-doc .meta .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);margin-bottom:4px;font-family:'Marcellus',serif}
-        .invoice-doc .total td{border-bottom:none;font-family:'Marcellus',serif;font-size:19px;color:var(--fern);padding-top:18px}
+        .invoice-doc .meta .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);margin-bottom:4px;font-family:'Lora',serif}
+        .invoice-doc .total td{border-bottom:none;font-family:'Lora',serif;font-size:19px;color:var(--fern);padding-top:18px}
         @media (max-width:640px){.invoice-doc{padding:26px 20px!important}.invoice-doc .meta{grid-template-columns:1fr 1fr}}
         @media print{
           @page{margin:16mm}
@@ -75,7 +75,7 @@ export default function InvoiceDocument({ inv, actions }: {
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: 'Marcellus, serif', fontSize: 30, color: 'var(--fern)' }}>Invoice</div>
+          <div style={{ fontFamily: 'Lora, serif', fontSize: 30, color: 'var(--fern)' }}>Invoice</div>
           <div className="small" style={{ marginTop: 6 }}>{inv.number ?? 'Draft, not yet issued'}</div>
           <span className={`pill ${status.tone}`} style={{ marginTop: 10 }}>{status.label}</span>
         </div>

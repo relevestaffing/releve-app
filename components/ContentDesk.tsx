@@ -28,6 +28,8 @@ type Props = {
   liDays: number | null;
   today: string;
   sageStyle: string;
+  rules: string;
+  design: string;
   flash: { connected: string | null; error: string | null; setup: string | null };
 };
 
@@ -115,7 +117,7 @@ function PhotoWeek({ posts, onRefresh }: { posts: Row[]; onRefresh: () => void }
           <div key={p.id} title={p.day} style={{ width: 74, height: 74, border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#F3EFE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {p.imageSrc
               ? <img src={p.imageSrc} alt={p.day} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <span style={{ fontFamily: 'Marcellus, serif', fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#8A9A8C' }}>{p.day || `#${i + 1}`}</span>}
+              : <span style={{ fontFamily: 'Lora, serif', fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: '#8A9A8C' }}>{p.day || `#${i + 1}`}</span>}
           </div>
         ))}
       </div>
@@ -285,9 +287,11 @@ export default function ContentDesk(props: Props) {
 
       {/* ---- one-time setup, folded away ---- */}
       <details className="cd-more" open={needsSetup}>
-        <summary><span className="crumb">Setup</span><span className="sum-title">Connections, Sage{'’'}s style, and the four groups</span><span className="sum-caret" aria-hidden="true">{'›'}</span></summary>
+        <summary><span className="crumb">Setup</span><span className="sum-title">House rules, connections, Sage{'’'}s style, and the four groups</span><span className="sum-caret" aria-hidden="true">{'›'}</span></summary>
         <div className="stack" style={{ marginTop: 16, gap: 16 }}>
           <Connections meta={meta} linkedin={linkedin} liDays={liDays} setup={setup} run={run} busy={busy} />
+          <Standard which="house" crumb="Every post is written and checked against this" title="The Relève Content Standard" blurb="Who we write for, what every post must give, the voice, the banned list, captions per platform, the graphics, Sage’s personal posts, the next steps and the weekly mix." text={props.rules} run={run} busy={busy} />
+          <Standard which="design" crumb="Every graphic is designed and checked against this" title="The Relève Design Standard" blurb="The bar, type, colour, layout, material and motion, imagery and the logo, the Ledger graphics, the 2026 trends we follow, the tells of AI design we never use, and the check before anything is shown." text={props.design} run={run} busy={busy} />
           <Style text={props.sageStyle} run={run} busy={busy} />
           <Groups groups={props.groups} run={run} busy={busy} />
         </div>
@@ -608,6 +612,39 @@ function Style({ text, run, busy }: { text: string; run: (k: string, a: string, 
       <div className="ff"><label>The structure to follow <span className="muted">(paste a reference post or the script of a reel you like, and any notes)</span></label>
         <textarea rows={8} value={v} onChange={e => setV(e.target.value)} /></div>
       <button className="btn sm solid" disabled={!!busy} onClick={() => run('style', 'style', { channel: 'li_personal', text: v }, 'Saved. The next drafts follow it.')}>Save</button>
+    </div>
+  );
+}
+
+/* ---------- the house rules (3 November 2026) ---------- */
+
+function Standard({ which, crumb, title, blurb, text, run, busy }: { which: 'house' | 'design'; crumb: string; title: string; blurb: string; text: string; run: (k: string, a: string, b?: Record<string, unknown>, ok?: string) => Promise<any>; busy: string }) {
+  const [v, setV] = useState(text);
+  const [editing, setEditing] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const key = which === 'design' ? 'design' : 'rules';
+  return (
+    <div className="card">
+      <div className="card-head"><div><div className="crumb">{crumb}</div><h3>{title}</h3></div></div>
+      <p className="small muted" style={{ margin: '0 0 10px', maxWidth: '62ch' }}>{blurb}</p>
+      {editing ? (
+        <>
+          <div className="ff"><textarea rows={18} value={v} onChange={e => setV(e.target.value)} style={{ fontSize: 13, lineHeight: 1.55 }} /></div>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn sm solid" disabled={!!busy} onClick={async () => { const r = await run(key, 'rules', { text: v, which }, 'Saved. Every draft from now on follows it.'); if (r) { setV(r.text ?? v); setEditing(false); setSaved(true); } }}>Save</button>
+            <button className="btn sm" disabled={!!busy} onClick={() => { setV(text); setEditing(false); }}>Cancel</button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="small" style={{ whiteSpace: 'pre-wrap', maxHeight: 220, overflow: 'auto', fontSize: 13, lineHeight: 1.55, padding: '12px 0', borderTop: '1px solid rgba(0,0,0,.12)', borderBottom: '1px solid rgba(0,0,0,.12)', marginBottom: 12 }}>{v}</div>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button className="btn sm solid" disabled={!!busy} onClick={() => { setSaved(false); setEditing(true); }}>Edit</button>
+            <button className="btn sm" disabled={!!busy} onClick={async () => { const r = await run(key, 'rules', { text: '', which }, 'Back to the Relève standard.'); if (r?.text) { setV(r.text); setSaved(true); } }}>Reset to the Relève standard</button>
+            {saved ? <span className="small muted">Saved. Every draft follows it.</span> : null}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import type { ContentPost } from './content-model';
 /* The Relève graphics, drawn on the server (redesigned 31 October 2026).
    Nona chose "The Ledger" as the house look: annual-report precision, the
    real working artifact on the page (the math, the rules, the before and
-   after, the message to send), Marcellus headlines with Geist for figures
+   after, the message to send), Lora headlines with Geist for figures
    and text. To keep the feed from repeating, every post gets one of three
    Ledger colourways or, now and then, a guest look (the Desk, a paper
    document style, or After Hours, the dark message style), and Opus picks a
@@ -55,6 +55,7 @@ function lookFor(slot: string): Look {
   return LOOKS[ORDER[(day + week * 3 + acct) % ORDER.length]];
 }
 const weekNo = (slot: string) => {
+  if (/-launch\d/.test(slot)) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(slot); if (!m) return '';
   const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); const day = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
@@ -62,16 +63,37 @@ const weekNo = (slot: string) => {
 };
 
 /* ---------- fonts ---------- */
+/* The real Relève artwork (2 Nov 2026 rule): the logo and the
+   "Consider it handled." script are never typed in a font. */
+type Art = { logoFern: string; logoWhite: string; handled: string; handledCream: string };
+let art: Art | null = null;
+async function loadArt(): Promise<Art> {
+  if (art) return art;
+  const base = (process.env.NEXT_PUBLIC_APP_URL || 'https://app.relevestaffing.com').replace(/\/+$/, '');
+  const uri = async (f: string) => `data:image/png;base64,${Buffer.from(await (await fetch(`${base}/${f}`)).arrayBuffer()).toString('base64')}`;
+  const [a, b, c, d] = await Promise.all([uri('logo-fern.png'), uri('logo-white.png'), uri('consider-it-handled.png'), uri('consider-it-handled-cream.png')]);
+  art = { logoFern: a, logoWhite: b, handled: c, handledCream: d };
+  return art;
+}
+const isDark = (L: { key: string }) => L.key === 'ink' || L.key === 'night';
+/* 1200 x 360 lockup with EXECUTIVE STAFFING; 2755 x 414 script. */
+function Logo({ L, h = 80 }: { L: { key: string }; h?: number }) {
+  return <img src={isDark(L) ? art!.logoWhite : art!.logoFern} width={Math.round(h * 1200 / 360)} height={h} style={{ display: 'flex' }} />;
+}
+function Handled({ L, h = 44 }: { L: { key: string }; h?: number }) {
+  return <img src={isDark(L) ? art!.handledCream : art!.handled} width={Math.round(h * 2755 / 414)} height={h} style={{ display: 'flex' }} />;
+}
+
 let fonts: any[] | null = null;
 async function loadFonts() {
   if (fonts) return fonts;
   const base = (process.env.NEXT_PUBLIC_APP_URL || 'https://app.relevestaffing.com').replace(/\/+$/, '');
   const get = (f: string) => fetch(`${base}/fonts/${f}`).then(r => r.arrayBuffer());
   const [m, g4, g5, g6, gm] = await Promise.all([
-    get('Marcellus-Regular.ttf'), get('Geist-Regular.ttf'), get('Geist-Medium.ttf'), get('Geist-SemiBold.ttf'), get('GeistMono-Medium.ttf')
+    get('Lora-Regular.woff'), get('Geist-Regular.ttf'), get('Geist-Medium.ttf'), get('Geist-SemiBold.ttf'), get('GeistMono-Medium.ttf')
   ]);
   fonts = [
-    { name: 'Marcellus', data: m, weight: 400, style: 'normal' },
+    { name: 'Lora', data: m, weight: 400, style: 'normal' },
     { name: 'Geist', data: g4, weight: 400, style: 'normal' },
     { name: 'Geist', data: g5, weight: 500, style: 'normal' },
     { name: 'Geist', data: g6, weight: 600, style: 'normal' },
@@ -100,10 +122,7 @@ function Header({ L, left, right }: { L: Look; left: string; right: string }) {
   if (L.key === 'desk') {
     return (
       <div style={flex({ justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Geist', fontWeight: 500, fontSize: 21, letterSpacing: 3, color: L.soft })}>
-        <div style={flex({ alignItems: 'center', gap: 14 })}>
-          <div style={flex({ width: 34, height: 34, background: L.accent, color: L.onAccent, borderRadius: 8, alignItems: 'center', justifyContent: 'center', fontFamily: 'Marcellus', fontSize: 22, letterSpacing: 0 })}>R</div>
-          <span>RELÈVE</span>
-        </div>
+        <Logo L={L} />
         <span>{right}</span>
       </div>
     );
@@ -111,19 +130,20 @@ function Header({ L, left, right }: { L: Look; left: string; right: string }) {
   const ledger = L.key !== 'night';
   return (
     <div style={col({})}>
-      <div style={flex({ justifyContent: 'space-between', fontFamily: 'Geist', fontWeight: 500, fontSize: 21, letterSpacing: 4, color: L.ink })}>
-        <span>RELÈVE</span><span style={{ color: L.soft }}>{`${left}${left && right ? ' · ' : ''}${right}`}</span>
+      <div style={flex({ justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Geist', fontWeight: 500, fontSize: 21, letterSpacing: 4, color: L.ink })}>
+        <Logo L={L} /><span style={{ color: L.soft }}>{`${left}${left && right ? ' · ' : ''}${right}`}</span>
       </div>
       {ledger ? <div style={{ height: 3, background: L.strong, marginTop: 22 }} /> : null}
     </div>
   );
 }
 function Footer({ L, left, right }: { L: Look; left: string; right: string }) {
+  const script = right === 'CONSIDER IT HANDLED.';
   return (
     <div style={col({})}>
       {L.key === 'desk' || L.key === 'night' ? null : <div style={{ height: 1, background: L.line, marginBottom: 20 }} />}
-      <div style={flex({ justifyContent: 'space-between', fontFamily: 'Geist', fontSize: 21, letterSpacing: 2, color: L.soft })}>
-        <span>{left}</span><span>{right}</span>
+      <div style={flex({ justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Geist', fontSize: 21, letterSpacing: 2, color: L.soft })}>
+        <span>{left}</span>{script ? <Handled L={L} /> : <span>{right}</span>}
       </div>
     </div>
   );
@@ -165,7 +185,7 @@ function Kicker({ L, text }: { L: Look; text?: string }) {
   return <span style={{ fontFamily: L.key === 'night' ? 'Geist Mono' : 'Geist', fontWeight: 500, fontSize: 23, letterSpacing: 3, color: L.accent, marginBottom: 26 }}>{text.toUpperCase()}</span>;
 }
 function Head({ L, text, big }: { L: Look; text: string; big?: boolean }) {
-  return <div style={flex({ fontFamily: 'Marcellus', fontSize: headSize(text, big), lineHeight: 1.06, color: L.ink })}>{text}</div>;
+  return <div style={flex({ fontFamily: 'Lora', fontSize: headSize(text, big), lineHeight: 1.06, color: L.ink })}>{text}</div>;
 }
 function Body({ L, text, top = 30, strong }: { L: Look; text?: string; top?: number; strong?: boolean }) {
   if (!text) return null;
@@ -355,7 +375,7 @@ function CommentCta({ L, keyword, body }: { L: Look; keyword: string; body?: str
   return (
     <div style={col({ marginTop: 40 })}>
       <div style={flex({ alignItems: 'center', gap: 22, background: dark ? '#22302A' : '#FFFFFF', border: `1px solid ${L.line}`, borderRadius: 999, padding: '20px 26px 20px 20px', boxShadow: dark ? 'none' : '0 20px 50px rgba(18,26,22,0.12)' })}>
-        <div style={flex({ width: 60, height: 60, borderRadius: 30, background: L.accent, color: L.onAccent, alignItems: 'center', justifyContent: 'center', fontFamily: 'Marcellus', fontSize: 30 })}>Y</div>
+        <div style={flex({ width: 60, height: 60, borderRadius: 30, background: L.accent, color: L.onAccent, alignItems: 'center', justifyContent: 'center', fontFamily: 'Lora', fontSize: 30 })}>Y</div>
         <span style={{ fontFamily: 'Geist', fontWeight: 600, fontSize: 52, letterSpacing: 2, color: L.ink }}>{keyword.toUpperCase()}</span>
         <div style={{ width: 3, height: 50, background: L.accent }} />
         <div style={flex({ flexGrow: 1 })} />
@@ -403,7 +423,7 @@ function cardEl(p: Drawable, L: Look) {
   const d: Design = { ...c, layout: c.layout && c.layout !== 'cover' && c.layout !== 'step' ? c.layout : 'statement' };
   const kick = c.kicker ? c.kicker.toUpperCase() : '';
   return (
-    <Frame L={L} head={[`WEEK ${weekNo(p.slot)}`, kick]} foot={[isCareers(p) ? 'RELÈVE CAREERS' : 'RELEVESTAFFING.COM', d.layout === 'comment' ? 'COMMENT BELOW' : isCareers(p) ? 'APPLY · RELEVESTAFFING.COM' : 'CONSIDER IT HANDLED.']}>
+    <Frame L={L} head={[(weekNo(p.slot) ? `WEEK ${weekNo(p.slot)}` : ''), kick]} foot={[isCareers(p) ? 'RELÈVE CAREERS' : 'RELEVESTAFFING.COM', d.layout === 'comment' ? 'COMMENT BELOW' : isCareers(p) ? 'APPLY · RELEVESTAFFING.COM' : 'CONSIDER IT HANDLED.']}>
       <Page L={L} d={{ ...d, kicker: undefined }} title={c.quote} body={c.sub} big />
     </Frame>
   );
@@ -418,7 +438,7 @@ function slideEl(p: Drawable, L: Look, n: number) {
   const label = p.channel === 'li_group' ? 'FREE TRAINING' : isCareers(p) ? 'RELÈVE CAREERS' : 'FIELD GUIDE';
   const kicker = first ? (s.kicker || label) : layout === 'step' ? (s.kicker || `STEP ${n} OF ${total - 2}`) : s.kicker;
   return (
-    <Frame L={L} head={[`WEEK ${weekNo(p.slot)}`, label]} foot={['RELEVESTAFFING.COM', first ? `${page}   SWIPE →` : page]}>
+    <Frame L={L} head={[(weekNo(p.slot) ? `WEEK ${weekNo(p.slot)}` : ''), label]} foot={['RELEVESTAFFING.COM', first ? `${page}   SWIPE →` : page]}>
       <Page L={L} d={{ ...s, layout, kicker }} title={s.title} body={s.body} big={first || last} />
     </Frame>
   );
@@ -426,7 +446,10 @@ function slideEl(p: Drawable, L: Look, n: number) {
 
 /* One image of a post as PNG bytes. n counts from 0. */
 export async function renderSlidePng(p: Drawable, n: number): Promise<Buffer> {
-  const L = lookFor(p.slot);
+  /* A post may name its look (card.look or the first slide's look). */
+  const named = (p.format === 'card' ? (p.card as any)?.look : (p.slides as any)?.[0]?.look) as Look['key'] | undefined;
+  const L = named && LOOKS[named] ? LOOKS[named] : lookFor(p.slot);
+  await loadArt();
   const el = p.format === 'card' ? cardEl(p, L) : slideEl(p, L, n);
   const res = new ImageResponse(el, { width: W, height: H, fonts: await loadFonts() });
   return Buffer.from(await res.arrayBuffer());

@@ -55,7 +55,7 @@
   html:not(.rv-native) body .shell[data-title]::before{
     content:attr(data-title);position:fixed;z-index:50;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
     padding:calc(22px + env(safe-area-inset-top)) 104px 0;box-sizing:border-box;text-align:center;
-    font-family:'Marcellus',serif;font-size:12px;line-height:20px;letter-spacing:.2em;text-transform:uppercase;color:#EEF0E8;
+    font-family:'Lora',serif;font-size:12px;line-height:20px;letter-spacing:.2em;text-transform:uppercase;color:#EEF0E8;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s ease}
   html:not(.rv-native) body .shell[data-title].scrolled::before{opacity:1}
   
@@ -93,7 +93,7 @@
   .home-jump::-webkit-scrollbar{display:none}
   .home-jump a{
     flex:none;display:flex;align-items:center;min-height:46px;padding:0 22px 0 0;
-    font-family:'Marcellus',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap;
+    font-family:'Lora',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap;
     color:#DCE3DC;text-decoration:none;text-shadow:0 1px 14px rgba(8,14,11,.7)}
   .home-jump a:active{color:#fff}
   .home-jump i{font-style:normal;margin-left:9px;color:#B0C4B2}

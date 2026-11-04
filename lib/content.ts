@@ -5,6 +5,8 @@ import {
   WEEK_PLAN, DAY_KEYS, DAY_NAMES, slotTime, weekStart, whenLabel, dayLabel, pacificParts, pageFor, CHANNELS, COPY_PLAN, COPY_CHANNELS,
   type Channel, type ContentPost, type Format, type Slide, type Card, type Script
 } from './content-model';
+import { DEFAULT_RULES, hardChecks, modelReview } from './content-rules';
+import { DEFAULT_DESIGN, designChecks } from './design-standard';
 import { igPublishImages, igStartReel, igFinishReel, fbPublishImages, fbPublishVideo, type MetaConn } from './social-meta';
 import { linkedinPost, pageAccess, orgFor, type LinkedInConn } from './social-linkedin';
 import { vaConfigured, folderIn, upload, appendToDoc } from './google-va';
@@ -121,38 +123,32 @@ BANNED, because it reads as AI: describing or inventorying the image; explaining
 It has to read like a real person who is calm, experienced and a little tired of how complicated everyone makes this.
 `;
 
-const PILLARS = `The job of every post: make an established owner (1 to 10 people, at least $30k a month, still doing too much themselves; coaches and consultants, agency owners, real estate, e-commerce, professional services, health and wellness practices) think "these people know exactly how my week works", and move them one step closer to booking a discovery call with Sage, where she gives a free live audit of what to delegate.
+const PILLARS = `WHO READS THIS AND WHAT THEY SAID (audience research, November 2026; use it to choose angles and language, never quote it as statistics in a post):
+- Owners of 1 to 10 person businesses lose about 30% of their week to work that is not theirs (admin, customer replies, scheduling, bookkeeping, social); most already know what they would hand off first, and say what they lack is a person they can trust with it.
+- The pattern they describe, in their words: "the first time I tried to offload admin I spent more time double checking it than if I just did it myself"; "every few hours I'd get another message: can you check this?"; "how do I keep the standard without delegation becoming another full-time job"; "I just want someone reliable who shows up"; "most people miss the 10 to 20 hours they spent just getting to the hire"; "every bad VA hire I've seen, the owner handed over a role, not a system"; "the agency charged $1,500 and paid the VA $550"; "I replaced my assistant's tasks with an AI agent and it screws up 20% of the time".
+- Their objections to a remote assistant, in order: burned once before; agency markup; the time to find and vet; keeping quality without micromanaging; data and supplier security; language and judgment; "AI will do it".
+- What moves them to a vendor: proof you understand their specific week (85%), a perspective that challenges an assumption they hold (86%), a risk or opportunity they had not seen (91%).
+- The moment: AI is in most of their businesses and trusted in none of them unsupervised; costs are up; half want to grow without adding payroll; founder voices beat brand voices on every platform; saves and 60-second reads beat likes; external links in a LinkedIn post cost most of its reach.
 
-The quality bar, which every post must clear (Nona rejected a whole week of generic posts, so this is the most important instruction):
-- Universal, applies to ANY owner on the list above: never build a post around one industry or one platform, or around one industry's calendar moment. A post only a Shopify store, an e-commerce brand on Black Friday, a real estate agent, a law firm or a coach would read as theirs has failed this rule. The situation, the example and the tools must be ones every kind of owner recognises as their own week.
-- High end and modern: the voice of a top operator who has run founders' lives, not a marketer. Calm, exact, confident. Never cute, never motivational, never a fortune-cookie line.
-- Real-world applicable: every post hands the reader something they can use today: a rule they can copy, a script word for word, a checklist, a decision test, a template, the exact handoff steps, the numbers. Name real tools where natural (Gmail, Google Calendar, Calendly, Slack, Notion, Asana, Loom, QuickBooks, ChatGPT and other AI tools), choosing only tools used across industries, never one vertical's software.
-- Specific beats general: real situations every owner recognises as their own (the 11 pm inbox, the Sunday calendar shuffle, the client onboarding that stalls, the invoice nobody sent, the lead that went cold in 48 hours), real times, real numbers. Keep the specificity in the detail, never in the industry: the example proves you know how a week works, not that you only serve one kind of business. Math is welcome when it is plain arithmetic the reader can check (for example, "10 hours a week of admin at a $250 hourly value is $2,500 a week"). Never invent statistics, studies, clients, results or testimonials.
-- One idea per post, fully delivered. No filler, no throat clearing, no "In today's fast-paced world", no "Here's the thing", no "Let that sink in", no "game changer", no rhetorical question openers, no "Picture a founder who".
+THE ANGLES THAT COME OUT OF THAT (rotate; never two of the same kind in a row; each gives one usable thing): the handoff playbook for one area (inbox, calendar, lead follow-up, client onboarding, invoicing, social, CRM, travel, life admin) with the exact steps and the rules doc; the script for the first week with an assistant; the arithmetic of doing it yourself (hours, hourly value, the year); the hidden hours of hiring your own VA; hand over a system, not a role; why double-checking never ends and the handoff that ends it; what an assistant who runs your AI tools does with the 20% AI gets wrong; grow without adding payroll; access and security in plain English (levels, password manager, NDA, what an assistant never touches); the resume matched, the working style did not; burned by a VA once: what actually went wrong; the lead that waited two days; the self-score (are you ready for an executive assistant); red flags and green flags when hiring one; the assumption to drop ("stop hiring VAs; hire someone matched to how you work"); the talent's side (real people, real careers, with consent, never pity).
 
-Directions that pull clients (mix them across the week, never two of the same kind in a row): the exact first 5 tasks to hand off at your revenue level; a before and after of one real working week; the handoff playbook for one area (inbox, calendar, client onboarding, lead follow-up, invoicing, social, CRM hygiene, travel, life admin) with the steps; the scripts (what to say to your assistant, the rules doc, the weekly sync agenda); the hidden cost math of doing it yourself; the hiring mistake that makes owners say "VAs don't work" and how to avoid it (the resume matched, the working style did not); objections answered straight (trust, time zones, quality, security and access, "I tried it before"); behind the scenes of how Relève vets, matches with the Signature assessment and prepares someone before day one; what a prepared executive assistant does in the first 30, 60, 90 days; AI plus a person (what to automate, what still needs a human); decision tests (should you hire, who first, part time or full time); the mission, told with dignity: real careers for skilled professionals in the Philippines and Latin America.
+Keep every example universal: the inbox, the calendar, the lead, the invoice, the proposal, the client follow-up, the Sunday planning hour. Name only cross-industry tools (Gmail, Google Calendar, Calendly, Slack, Notion, Asana, Loom, QuickBooks, Zoom, ChatGPT and other AI tools). Never build a post around one industry, one platform or one vertical's calendar moment.
 
-The purpose of every post on Instagram, Facebook and LinkedIn (Nona, 31 October): get attention, then move owners into Relève's system so they become clients. Every post has exactly one next step, and across the week mix them:
-- About 4 in 10: the free training, Handled Business, at relevestaffing.com/training (it captures their email, so this is how strangers enter the system).
-- About 3 in 10: book a discovery call at relevestaffing.com/discovery, where Sage gives a free live audit of what to delegate.
-- About 2 in 10: "comment HANDLED" to be sent the free training (comments build reach and start a conversation in messages).
-- About 1 in 10: explore relevestaffing.com (how matching works, the Signature assessment).
-On Instagram the link lives in the bio, so write "link in bio" plus the page name; on Facebook and LinkedIn write the full address. Always Relève branded, always worth stopping for, never a hard sell.`;
+The purpose of every post on Instagram, Facebook and LinkedIn: get attention with something true and useful, then move owners into Relève's system so they become clients. Exactly one next step per post, and across the week: about 4 in 10 the free training, Handled Business, at relevestaffing.com/training; about 3 in 10 book a discovery call at relevestaffing.com/discovery, where Sage gives a free live audit of what to delegate; about 2 in 10 "comment HANDLED" to be sent the free training; about 1 in 10 explore relevestaffing.com. On Instagram the link lives in the bio, so write "link in bio" plus the page name; on Facebook and LinkedIn write the full address. Always Relève branded, always worth stopping for, never a hard sell.`;
 
-const DESIGN = `You also design each graphic. The house look is a clean, modern "ledger": Marcellus headlines, figures and text in a modern sans, fine rules, the real working artifact on the page. You choose a layout for every single graphic and every carousel slide, and you fill its fields. Layouts:
+const DESIGN = `You also design each graphic. The house look is a clean, modern "ledger": Lora headlines, figures and text in a modern sans, fine rules, the real working artifact on the page. You choose a layout for every single graphic and every carousel slide, and you fill its fields. Layouts:
 - "statement": a headline that lands on its own, plus a short line under it. Use sparingly, at most once a week per account.
 - "number": one big figure the reader can check ("number":"$2,500"), the headline is its label, "facts":[{"value":"10 h","label":"admin a week"},...] up to 3 showing the arithmetic.
 - "rules": a headline plus "rows":[3 to 5 short lines] that the reader can copy as is (rules, a checklist, the steps, the settings).
 - "compare": a headline plus "left":{"label":"Before","items":[3 to 4]} and "right":{"label":"After","items":[3 to 4]} (before and after, myth and reality, doing it yourself and handing it off).
-- "chart": a headline plus "bars":[{"label":"Your week now","parts":[{"pct":38,"label":"Admin"},{"pct":37,"label":"Client work"},{"pct":25,"label":"Growth"}]},{"label":"After the handoff","parts":[...]}] and a "note" that marks it illustrative.
-- "message": a headline plus "messages":[{"from":"you","text":"..."},{"from":"assistant","text":"..."}], the exact words to send or the reply a prepared assistant gives (2 or 3 messages).
+- (The "chart" and "message" layouts are retired, 3 November 2026: fake charts and chat-bubble mock-ups read as templates. Put a script in a "rules" layout as the exact lines to send, and arithmetic in a "number" layout.)
 - "notes": looks like an iPhone Notes page. The headline is the note's title in Sage's voice ("What I would hand off first at $40k a month"), "rows":[4 to 7 short lines], optional "note" for the date line.
 - "search": looks like a search box. The headline is the owner's real question typed in, in lower case ("how to stop answering every email myself"), "rows":[2 or 3 related searches]; the body answers it in one line. Great as a carousel cover.
 - "flags": hiring and working with an assistant, "left":{"label":"Red flags","items":[3 or 4]} and "right":{"label":"Green flags","items":[3 or 4]}. The green flags quietly describe how Relève works, without naming it.
 - "quiz": a self-score. The headline asks the question ("Are you ready for an executive assistant?"), "rows":[5 to 7 honest yes/no situations], "note": what the score means and the next step ("3 or more: book the free delegation audit").
 - "comment": the comment-to-get post. "keyword":"HANDLED", headline is the promise, body says "Comment HANDLED and we will send you Handled Business, the free training ..." Every caption for it repeats: comment HANDLED and we will send it.
 - Carousels only: "cover" for slide 1 (a concrete promise as title, the subtitle as body, optional "chips":[2 to 4 one-word labels]), "step" for a teaching slide (title plus a body under 45 words), "cta" for the last slide.
-Every slide in a carousel can use a different layout: mix step with rules, number, compare, chart and message so the reader sees the real thing. Across the week use at least five different layouts and never the same layout on two posts in a row. Each week, every client-facing account (Instagram + Facebook, the groups) includes at least: one "quiz" or "flags" post, one "notes" or "search" post, and one "comment" post (a card, or a carousel whose last slide is the comment layout) offering Handled Business, the free training at relevestaffing.com/training. Keep every figure honest arithmetic or clearly illustrative. Headlines under 70 characters, rows under 70, no em dashes.`;
+Every slide in a carousel can use a different layout: mix step with rules, number, compare, notes and search so the reader sees the real thing. Across the week use at least five different layouts and never the same layout on two posts in a row. Each week, every client-facing account (Instagram + Facebook, the groups) includes at least: one "quiz" or "flags" post, one "notes" or "search" post, and one "comment" post (a card, or a carousel whose last slide is the comment layout) offering Handled Business, the free training at relevestaffing.com/training. Keep every figure honest arithmetic or clearly illustrative. Headlines under 70 characters, rows under 70, no em dashes.`;
 
 const FORMAT_RULES: Record<string, string> = {
   ig_client: `For the Relève Instagram and Facebook page, talking to founders and business owners. The same post is copied to the Relève LinkedIn page and the LinkedIn groups, so the LinkedIn caption must stand on its own. Return JSON: {"posts":[{"topic":"...","hook":"first line","format":"card" or "carousel","caption_ig":"Instagram caption, 600 to 1200 characters, \\n for breaks, hashtags at the end","caption_fb":"Facebook caption, 400 to 900 characters, conversational","caption_li":"LinkedIn caption, 500 to 1100 characters","card":{"layout":"...","title":"...","body":"..."} for a card, or "slides":[{"layout":"...","title":"...","body":"..."}] for a carousel}]}. A carousel has 5 to 8 slides (never fewer than 3): slide 1 is a "cover", the middle slides each show one real thing, the last is a "cta". Use the layouts and their own fields exactly as named above; a card is one layout with its fields.`,
@@ -241,32 +237,71 @@ async function askClaude(system: string, brief: string, maxTokens = 16000): Prom
   throw new Error(`${last} (tried three times)`);
 }
 
+/* Phone photos can be huge (the AI takes at most about 5 MB). Shrink a big
+   JPEG to 1600 px on its longest side before it is sent. */
+async function fitForVision(img: { bytes: Buffer; type: string }): Promise<{ bytes: Buffer; type: string }> {
+  const okType = /jpe?g|png|webp/i.test(img.type);
+  if (okType && img.bytes.length < 3500000) return img;
+  if (/jpe?g/i.test(img.type) || !okType) {
+    try {
+      const mod: any = await import('jpeg-js'); const J = mod.default ?? mod;
+      const d = J.decode(img.bytes, { useTArray: true, formatAsRGBA: true, maxMemoryUsageInMB: 600 });
+      const k = Math.max(1, Math.ceil(Math.max(d.width, d.height) / 1600));
+      const w = Math.floor(d.width / k), h = Math.floor(d.height / k);
+      const out = Buffer.alloc(w * h * 4);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const si = ((y * k) * d.width + (x * k)) * 4, di = (y * w + x) * 4;
+        out[di] = d.data[si]; out[di + 1] = d.data[si + 1]; out[di + 2] = d.data[si + 2]; out[di + 3] = 255;
+      }
+      return { bytes: Buffer.from(J.encode({ data: out, width: w, height: h }, 82).data), type: 'image/jpeg' };
+    } catch { /* send it as it is */ }
+  }
+  return img;
+}
+
 async function askClaudeVision(system: string, brief: string, image: { bytes: Buffer; type: string }, maxTokens = 4000): Promise<any> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw new Error('Add ANTHROPIC_API_KEY in Netlify so Claude can write the posts.');
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 120000);
-  const media = /png/i.test(image.type) ? 'image/png' : /webp/i.test(image.type) ? 'image/webp' : 'image/jpeg';
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({
-      model: process.env.ANTHROPIC_CONTENT_MODEL || 'claude-opus-5-5',
-      max_tokens: maxTokens, system,
-      messages: [{ role: 'user', content: [
-        { type: 'image', source: { type: 'base64', media_type: media, data: image.bytes.toString('base64') } },
-        { type: 'text', text: brief }
-      ] }]
-    }),
-    signal: ctl.signal
-  }).catch(() => null).finally(() => clearTimeout(timer));
-  if (!res) throw new Error('Could not reach the AI service.');
-  if (!res.ok) { let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch { /* */ } throw new Error(`The AI service refused the request (${res.status})${detail ? `: ${detail}` : ''}.`); }
-  const data: any = await res.json();
-  const text = (data?.content ?? []).filter((b: any) => b?.type === 'text').map((b: any) => b.text).join('');
-  const start = text.indexOf('{'); const end = text.lastIndexOf('}');
-  if (start < 0 || end < start) throw new Error('The AI sent back something unreadable.');
-  try { return JSON.parse(text.slice(start, end + 1)); } catch { throw new Error('The AI sent back a post that could not be read.'); }
+  const img = await fitForVision(image);
+  const media = /png/i.test(img.type) ? 'image/png' : /webp/i.test(img.type) ? 'image/webp' : 'image/jpeg';
+  const primary = process.env.ANTHROPIC_CONTENT_MODEL || 'claude-opus-5-5';
+  const models = [primary, primary, FALLBACK_MODEL];
+  let last = 'The AI did not answer.';
+  for (let i = 0; i < models.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, i * 3000));
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 150000);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: models[i],
+        max_tokens: maxTokens, system,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: media, data: img.bytes.toString('base64') } },
+          { type: 'text', text: brief }
+        ] }]
+      }),
+      signal: ctl.signal
+    }).catch(() => null).finally(() => clearTimeout(timer));
+    if (!res) { last = 'Could not reach the AI service.'; continue; }
+    if (!res.ok) {
+      let detail = ''; try { detail = (await res.json())?.error?.message ?? ''; } catch { /* */ }
+      last = `The AI service refused the request (${res.status})${detail ? `: ${detail}` : ''}.`;
+      if (res.status === 401 || res.status === 403) throw new Error(last);
+      continue;
+    }
+    const data: any = await res.json().catch(() => null);
+    const text = (data?.content ?? []).filter((b: any) => b?.type === 'text').map((b: any) => b.text).join('');
+    try { return parseLoose(text); }
+    catch {
+      /* A plain-prose answer is still a post: use it as the text. */
+      const t = text.replace(/```[a-z]*/g, '').trim();
+      if (t.length > 300) return { text: t };
+      last = 'The AI sent back something unreadable.';
+    }
+  }
+  throw new Error(`${last} (tried three times)`);
 }
 
 type Drafted = {
@@ -291,6 +326,10 @@ function design(x: any) {
   if (Array.isArray(x?.messages)) out.messages = arr(x.messages, 3).map((m: any) => ({ from: m?.from === 'you' ? 'you' : 'assistant', text: clean(m?.text, 260) })).filter((m: any) => m.text);
   if (Array.isArray(x?.chips)) out.chips = arr(x.chips, 4).map((c: any) => clean(c, 24)).filter(Boolean);
   if (x?.keyword) out.keyword = clean(x.keyword, 16).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  /* Retired looks (3 Nov 2026): a chat-bubble mock-up becomes the lines to
+     send, set as rules; a fake chart becomes a statement. */
+  if (out.layout === 'message') { out.layout = 'rules'; if (!out.rows?.length && out.messages?.length) out.rows = out.messages.map((m: any) => m.text).slice(0, 5); delete out.messages; }
+  if (out.layout === 'chart') { out.layout = 'statement'; delete out.bars; }
   return out;
 }
 
@@ -370,17 +409,51 @@ Before writing each post, settle four things: the one point it makes, the best p
 Across a week, aim for roughly 40% posts that reach the right audience, 40% that teach, 20% that prove and invite (only these carry an offer).
 Writing habits from this playbook: plain words, complete connected sentences, mobile-friendly paragraphs, no bold, no em dashes. Avoid "It's not X, it's Y" reversals, stacked one-word fragments, repeated sentence openings, rhetorical questions (a question must expect a real answer), sentences that open with "Most", and the phrases "Here's the thing", "Here's why", "The secret?", "The best part?", "Let me explain". Never invent numbers, results, stories or quotes; if a real detail is needed, leave [Sage: add real example].`;
 
+/* The house rules the team keeps in the Content tab. They start from the
+   Content Standard in lib/content-rules.ts and can be edited without a deploy. */
+export async function houseRules(): Promise<string> {
+  const saved = (await getSetting<{ text: string }>('rules:house'))?.text?.trim();
+  return saved || DEFAULT_RULES;
+}
+
+/* The Design Standard (3 November 2026), kept the same way. */
+export async function houseDesign(): Promise<string> {
+  const saved = (await getSetting<{ text: string }>('rules:design'))?.text?.trim();
+  return saved || DEFAULT_DESIGN;
+}
+
+/* The editor's pass (3 November 2026). Every post is checked against the
+   house rules before it is saved: first the mechanical checks, then a fast
+   model read for the things a regex cannot see (one usable thing, universal,
+   one next step, the voice). Returns the problems, empty when it passes. */
+async function reviewPost(channel: Channel, d: Drafted, rules: string): Promise<string[]> {
+  const graphic = [
+    d.card ? [d.card.kicker, d.card.quote, d.card.sub, ...(d.card as any).rows ?? [], (d.card as any).note].filter(Boolean).join('\n') : '',
+    ...(d.slides ?? []).map((x: any) => [x.title, x.body, ...(x.rows ?? []), x.note].filter(Boolean).join('\n'))
+  ].filter(Boolean).join('\n');
+  const text = channel === 'li_personal' ? d.caption : [d.caption, d.caption_fb, d.caption_li].filter(Boolean).join('\n\n');
+  const hard = hardChecks({ hook: d.hook, text, graphic, channel });
+  const problems = [...hard.problems, ...(channel === 'li_personal' ? [] : designChecks(d))];
+  if (channel === 'li_personal' && (d.caption.length < 700)) return problems;
+  problems.push(...await modelReview({ rules, label: `channel ${channel}, format ${d.format}`, text: `Hook: ${d.hook}\n\n${text}`, graphic: graphic || undefined, timeoutMs: 60000 }));
+  return problems;
+}
+
 async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers', formats: Format[], hooks: string[], extra = '', season = '') {
   const system = channel === 'li_personal' ? `${SAGE}\n\n${FACTS}` : `You write Relève's social content.\n\n${FACTS}`;
   /* The team's own notes on how this account's posts should be built (a
      reference post or reel, a structure to follow), set in the Content tab. */
   const style = (await getSetting<{ text: string }>(`style:${channel}`))?.text?.trim();
+  const rules = await houseRules();
+  const designStd = channel === 'li_personal' ? '' : await houseDesign();
   const brief = [
+    `THE HOUSE RULES. Every post is checked against these before it is saved, and a post that fails is sent back:
+${rules}`,
     style ? `How these posts should be built (the team's reference, follow it closely for structure, pacing and tone, but keep every fact and rule above):\n${style}` : '',
     `Write ${formats.length} posts, in this order of format: ${formats.join(', ')}.`,
     PILLARS,
     channel === 'li_personal' || channel === 'li_group' || channel === 'ig_client' ? LI_REFERENCE : '',
-    channel === 'li_personal' ? '' : DESIGN,
+    channel === 'li_personal' ? '' : `${DESIGN}\n\nTHE DESIGN STANDARD. Every graphic is checked against this before it is saved, and a graphic that fails is sent back:\n${designStd}`,
     FORMAT_RULES[channel],
     season ? `Keep Relève current. ${season}` : '',
     extra,
@@ -402,16 +475,29 @@ async function draftChannel(channel: 'li_personal' | 'li_group' | 'ig_client' | 
        answer is kept in the settings table so a failure can be diagnosed. */
     let posts: any[] = [];
     let lastRaw: any = null;
-    for (let tryNo = 0; tryNo < 3; tryNo++) {
-      if (hardDeadline && Date.now() > hardDeadline - 30000) break;
-      lastRaw = await askClaude(system, partBrief + '\n\nReturn exactly one JSON object shaped {"posts":[ ... ]} with the post inside the posts array, even when it is a single post. No text outside the JSON. Use exactly these keys on the post and no others for content: topic, hook, format, caption_ig, caption_fb, caption_li, and either card (for a card) or slides (for a carousel), each card or slide using the field names given above (title, body, layout and that layout\'s own fields). Do not rename them (not graphic, captions, headline as the only title field, or point).');
+    let feedback = '';
+    let best: { n: any; problems: string[] } | null = null;
+    for (let tryNo = 0; tryNo < 4; tryNo++) {
+      lastRaw = await askClaude(system, partBrief + feedback + '\n\nReturn exactly one JSON object shaped {"posts":[ ... ]} with the post inside the posts array, even when it is a single post. No text outside the JSON. Use exactly these keys on the post and no others for content: topic, hook, format, caption_ig, caption_fb, caption_li, and either card (for a card) or slides (for a carousel), each card or slide using the field names given above (title, body, layout and that layout\'s own fields). Do not rename them (not graphic, captions, headline as the only title field, or point).');
       const got = extractPosts(lastRaw);
-      const whole = got.filter(g => { const n = normalize(channel, g, part[0]); return n.topic && n.hook && n.caption && (n.card || (n.slides?.length ?? 0) >= 3); });
-      if (whole.length >= part.length) { posts = whole; break; }
-      await putSetting('draft:debug', { at: new Date().toISOString(), channel, tryNo, raw: JSON.stringify(lastRaw).slice(0, 3000) }).catch(() => {});
+      const whole = got.map(g => normalize(channel, g, part[0])).filter(n => n.topic && n.hook && n.caption && (n.card || (n.slides?.length ?? 0) >= 3));
+      if (whole.length < part.length) {
+        await putSetting('draft:debug', { at: new Date().toISOString(), channel, tryNo, raw: JSON.stringify(lastRaw).slice(0, 3000) }).catch(() => {});
+        continue;
+      }
+      /* The editor's pass: a post that breaks the house rules goes back with
+         the reasons, up to twice; the cleanest draft is kept either way. */
+      const problems = await reviewPost(channel, whole[0], rules);
+      if (!best || problems.length < best.problems.length) best = { n: whole[0], problems };
+      if (!problems.length) break;
+      if (tryNo >= 2) break;
+      feedback = `\n\nYOUR PREVIOUS DRAFT WAS SENT BACK BY THE EDITOR. Fix every one of these, keep the same topic and format, and check the whole post against the house rules again before answering:\n- ${problems.join('\n- ')}`;
+      await putSetting('draft:editor', { at: new Date().toISOString(), channel, tryNo, problems }).catch(() => {});
     }
-    if (posts.length < part.length) throw new Error(`The AI wrote ${posts.length} whole ${CHANNELS[channel].label} posts out of ${part.length}.`);
-    part.forEach((f, i) => out.push(normalize(channel, posts[i], f)));
+    if (!best) throw new Error(`The AI wrote 0 whole ${CHANNELS[channel].label} posts out of ${part.length}.`);
+    if (best.problems.length) console.warn('[content] kept with notes:', best.problems.join(' | '));
+    posts = [best.n];
+    part.forEach((f, i) => out.push(posts[i]));
   }
   return out;
 }
@@ -577,25 +663,44 @@ export async function redraftPost(post: ContentPost) {
 export async function writePostFromImage(post: ContentPost): Promise<void> {
   if (post.channel !== 'li_personal' || !post.image_path) return;
   try {
-  const img = await fetchBytes(mediaUrl(post.image_path));
-  const system = `${SAGE}\n\n${FACTS}\n\n${LI_REFERENCE}`;
-  const brief = [
-    "The image above is a real, candid photo from Sage's own life that she has chosen for this post.",
-    'Write ONE LinkedIn post built entirely around THIS photo, following the style rules exactly. The first line is a belief or a lived fact in Sage\'s voice. Look at the photo only for its mood and for whether anything in it is true enough to mention; DO NOT describe or list what is in the image. Then the lesson for a business owner, in Sage\'s voice. End with a question or a quiet comment-to-DM invitation (for example a free Zoom-coffee delegation audit by DM). No links.',
-    'Keep it universal: the lesson must apply to ANY business owner, not one industry.',
-    'Return JSON only: {"hook":"the first line","text":"the full post, 900 to 1500 characters, line breaks as \\n","image_idea":"one sentence describing what this photo actually shows"}'
-  ].join('\n\n');
-  const raw = await askClaudeVision(system, brief, img, 4000);
-  const caption = clean(raw?.text, 3000);
-  if (!caption) throw new Error('No post text came back.');
-  await updatePost(post.id, {
-    hook: clean(raw?.hook, 300) || null, caption,
-    image_idea: raw?.image_idea ? clean(raw.image_idea, 300) : post.image_idea,
-    status: 'held', hold_reason: 'Written from your photo. Edit if you like, then approve the week.'
-  } as any);
+    const img = await fetchBytes(mediaUrl(post.image_path));
+    const rules = await houseRules();
+    const system = `${SAGE}\n\n${FACTS}\n\n${LI_REFERENCE}\n\nTHE HOUSE RULES (section 7 is yours; every post is checked against them):\n${rules}`;
+    const brief = [
+      "The image above is a real, candid photo from Sage's own life that she has chosen for this post.",
+      'FIRST look at the photo and work out what it actually shows (where she is, what she is doing, the light, the mood). Then write ONE LinkedIn post built around THAT moment: the first line names the real moment in the photo and pivots to a belief or lesson in Sage\'s voice. Never write about a different setting than the one in the photo (no airport unless the photo is an airport). Do not list what is in the image. Then the lesson for a business owner, in Sage\'s voice. End with a question or a quiet comment-to-DM invitation (for example a free Zoom-coffee delegation audit by DM). No links.',
+      'Keep it universal: the lesson must apply to ANY business owner, not one industry.',
+      'Return JSON only, with exactly these three keys: {"image_idea":"one sentence describing what this photo actually shows","hook":"the first line","text":"the full post, 900 to 1500 characters, line breaks as \\n"}'
+    ].join('\n\n');
+    let caption = ''; let hook = ''; let idea = ''; let feedback = '';
+    let best: { caption: string; hook: string; idea: string; problems: string[] } | null = null;
+    for (let tryNo = 0; tryNo < 3; tryNo++) {
+      const raw = await askClaudeVision(system, brief + feedback, img, 4000);
+      const r = raw?.post && typeof raw.post === 'object' ? raw.post : raw;
+      caption = clean(r?.text ?? r?.post ?? r?.caption ?? r?.body ?? r?.content ?? r?.linkedin_post ?? (typeof raw === 'string' ? raw : ''), 3000);
+      hook = clean(r?.hook, 300) || clean(caption.split('\n')[0], 300);
+      idea = r?.image_idea ? clean(r.image_idea, 300) : '';
+      if (caption.length < 300) continue;
+      const problems = await reviewPost('li_personal', { topic: idea, hook, format: 'text', caption } as Drafted, rules);
+      if (!best || problems.length < best.problems.length) best = { caption, hook, idea, problems };
+      if (!problems.length) break;
+      feedback = `\n\nYOUR PREVIOUS DRAFT WAS SENT BACK BY THE EDITOR. Fix every one of these and keep the post anchored to what the photo actually shows:\n- ${problems.join('\n- ')}`;
+    }
+    if (best) { caption = best.caption; hook = best.hook; idea = best.idea; }
+    if (caption.length < 300) throw new Error('No full post came back from the AI.');
+    await updatePost(post.id, {
+      hook: hook || null, caption,
+      image_idea: idea || post.image_idea,
+      status: 'held', hold_reason: 'Written from your photo. Edit if you like, then approve the week.'
+    } as any);
   } catch (e: any) {
-    /* Never leave the post stuck on "Writing\u2026". Hand it back so she can retry. */
-    await updatePost(post.id, { status: 'needs_image', hold_reason: 'Could not write from that photo. Try another picture, or the Write from this photo button.' } as any).catch(() => {});
+    /* Never leave the post stuck on "Writing…", and say what went wrong. */
+    const why = String(e?.message ?? e).slice(0, 200);
+    await updatePost(post.id, {
+      status: post.caption ? 'held' : 'needs_image',
+      hold_reason: `Could not write from that photo: ${why}`
+    } as any).catch(() => {});
+    await alertAdmins(`photo-${post.id}`, 'A post could not be written from your photo', why);
   }
 }
 
@@ -612,9 +717,16 @@ async function remindUploadPhotos(monday: string, n: number) {
   } catch { /* best-effort */ }
 }
 
+/* The launch set (slot ...-launchNN) was designed and approved as finished
+   pictures, so those posts go out as the stored files rather than being
+   drawn again from their text. */
+export function launchFile(slot: string, i: number) {
+  const m = /-launch(\d{2})$/.exec(slot);
+  return m ? `/social30/p${m[1]}-${i + 1}.jpg` : null;
+}
 async function imagesFor(post: ContentPost): Promise<string[]> {
   const n = imageCount(post);
-  return Array.from({ length: n }, (_, i) => imageUrl(post.id, i, 'jpg'));
+  return Array.from({ length: n }, (_, i) => { const f = launchFile(post.slot, i); return f ? `${APP()}${f}` : imageUrl(post.id, i, 'jpg'); });
 }
 
 async function fetchBytes(url: string) {

@@ -190,7 +190,7 @@ export default async function Pipeline() {
                 {[...match.parts].sort((a, b) => a.score - b.score).map(p => (
                   <div className="axis-row" key={p.axis.key}>
                     <div className="row between" style={{ marginBottom: 9 }}>
-                      <b style={{ fontFamily: 'Marcellus,serif', color: 'var(--fern)', letterSpacing: '.16em', textTransform: 'uppercase', fontSize: 11.5 }}>{p.axis.name}</b>
+                      <b style={{ fontFamily: 'Lora,serif', color: 'var(--fern)', letterSpacing: '.16em', textTransform: 'uppercase', fontSize: 11.5 }}>{p.axis.name}</b>
                       <span className="xs muted">{p.score}/100</span>
                     </div>
                     <div className="axis-track">
