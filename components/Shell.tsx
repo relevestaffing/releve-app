@@ -7,6 +7,7 @@ import MobileNav from './MobileNav';
 import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
 import HomeStage, { type Lead, MATERIALS } from './native/HomeStage';
+import ScreenRail from './native/ScreenRail';
 import Motion from './Motion';
 import PageLift from './PageLift';
 import PullRefresh from './PullRefresh';
@@ -348,8 +349,9 @@ export default async function Shell({
     ...nav.flatMap(g => g.items).filter(n => n.href !== home && !tabHrefs.has(n.href)).slice(0, 6)].slice(0, 8);
   /* Every first-level screen gets its photo: the rooms first (same material
      as their Home tile), then the rest of the menu in order. */
-  const firstLevel = [...roomList.map(r => r.href), ...nav.flatMap(g => g.items).map(n => n.href)]
-    .filter((h, i, all) => h !== home && all.indexOf(h) === i);
+  const levelItems = [...roomList, ...nav.flatMap(g => g.items)]
+    .filter((r, i, all) => r.href !== home && all.findIndex(x => x.href === r.href) === i);
+  const firstLevel = levelItems.map(r => r.href);
   const roomAt = firstLevel.indexOf(active);
   const profileHref = clientTour ? undefined : PROFILE[profile.role];
   /* Sage, 19 October: the console greets her by name, not the shared inbox. */
@@ -424,7 +426,7 @@ export default async function Shell({
         <main className="main">
           <SunWall page />
           <HeaderScroll />
-          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}${heroMat ? ' nv-hero' : ''}`}
+          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}${heroMat ? ' nv-hero nv-has-rail' : ''}`}
             style={heroMat ? { ['--hero' as any]: `url(/atmos/tiles/${heroMat}.webp)` } : undefined}>
             <span className="band-light" aria-hidden="true" />
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
@@ -440,6 +442,13 @@ export default async function Shell({
             {action && <div className="topbar-action">{action}</div>}
           </div>
           <div className="page-body">
+            {heroMat && (() => {
+              const n = levelItems.length;
+              const next = [1, 2, 3].map(k => levelItems[(roomAt + k) % n]).filter((r, i, all) => r && r.href !== active && all.findIndex(x => x.href === r.href) === i)
+                .map(r => ({ href: r.href, label: r.label, mat: MATERIALS[firstLevel.indexOf(r.href) % MATERIALS.length] }));
+              return <ScreenRail here={{ href: active, label: levelItems[roomAt].label, mat: heroMat }}
+                eyebrow={lead?.eyebrow ?? crumb} title={lead?.title ?? title} meta={lead?.meta} next={next} />;
+            })()}
             {/* The grace banner, on every client page, so an open invoice is
                 seen well before the fourteen-day gate. */}
             {profile.role === 'client' && <BillingBanner clientId={profile.id} />}

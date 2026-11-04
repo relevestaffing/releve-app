@@ -307,7 +307,7 @@ html:not(.rv-native) .nv-stage{display:none}
 .nv-status p span{display:block}
 .nv-sect{border-top:1px solid var(--nv-rule);padding-top:16px;margin:0 0 16px}
 .nv-sect span{font:500 11px/1 'Lora',Georgia,serif;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-cream)}
-.nv-rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 22px 4px;margin:0 -22px;scrollbar-width:none}
+.nv-rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:22px;padding:0 22px 4px;margin:0 -22px;scrollbar-width:none}
 .nv-rail::-webkit-scrollbar{display:none}
 .nv-room{flex:none;scroll-snap-align:start;width:clamp(128px,36vw,156px);height:auto;aspect-ratio:4/5;box-sizing:border-box;padding:14px;border-radius:var(--nv-r);
   display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;position:relative;overflow:hidden;
@@ -436,3 +436,40 @@ html.rv-native body .page-body .tabs a[aria-current="page"],html.rv-native body 
 html.rv-native body .page-body .tabs a[aria-current="page"]::before,html.rv-native body .page-body .tabs a.on::before{content:"";position:absolute;inset:-18px -24px;z-index:-1;pointer-events:none;background:radial-gradient(closest-side,rgba(200,207,212,.22),transparent)}
 html.rv-native body .page-body .tabs{position:relative;isolation:isolate;padding:8px 0!important}
 @media (prefers-reduced-motion:reduce){html.rv-native body .topbar.nv-hero,html.rv-native body .topbar.nv-hero::after{animation:none!important}}
+
+/* ── Feature cards and tile rails (3 Nov 2026, late) ── */
+.nv-feat{display:none}
+html.rv-native body .topbar.nv-has-rail{display:none!important}
+html.rv-native .nv-feat{order:-4;display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:22px;scrollbar-width:none;
+  margin:calc(var(--nv-top) + 8px) -22px 30px;padding:0 22px 6px}
+html.rv-native .nv-feat::-webkit-scrollbar{display:none}
+html.rv-native .nv-card{flex:none;width:82%;height:clamp(232px,66vw,292px);scroll-snap-align:start;box-sizing:border-box;position:relative;overflow:hidden;isolation:isolate;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:20px;border-radius:var(--nv-r);text-decoration:none!important;color:var(--nv-cream)!important;
+  background:var(--hero) 50% 50%/118% auto no-repeat,#1B261F;box-shadow:0 30px 60px -30px rgba(0,0,0,.85);
+  animation:nvBreathe 30s ease-in-out infinite alternate;animation-delay:var(--kb,0s)}
+html.rv-native .nv-card::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(8,13,10,.04),rgba(8,13,10,.1) 38%,rgba(8,13,10,.8))}
+html.rv-native .nv-card::after{content:"";position:absolute;inset:-40% -60%;z-index:-1;pointer-events:none;mix-blend-mode:soft-light;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,250,235,.7) 46%,rgba(255,250,235,.95) 50%,rgba(255,250,235,.7) 54%,transparent 70%);animation:nvSun 40s ease-in-out infinite alternate;animation-delay:var(--kb,0s)}
+html.rv-native .nv-card:not(.here){opacity:.86}
+html.rv-native .nv-card-eye{font:400 10px/1.3 'Lora',Georgia,serif;letter-spacing:.24em;text-transform:uppercase;color:rgba(239,235,224,.85);text-shadow:0 1px 10px rgba(0,0,0,.45)}
+html.rv-native .nv-card-title{margin:0;font:400 31px/1.06 'Lora',Georgia,serif;letter-spacing:-.01em;color:var(--nv-cream);text-shadow:0 2px 18px rgba(0,0,0,.45);text-wrap:balance}
+html.rv-native .nv-card:not(.here) .nv-card-title{font-size:26px}
+html.rv-native .nv-card-meta{font:300 13.5px/1.35 'Poppins',sans-serif;color:rgba(239,235,224,.82)}
+/* tile rails: the tabs inside a screen as small material tiles */
+html.rv-native body .page-body .tabs{display:flex!important;gap:10px!important;overflow-x:auto;scroll-padding-inline:22px;scrollbar-width:none;flex-wrap:nowrap!important;
+  margin:0 -22px 26px!important;padding:0 22px 4px!important;isolation:auto}
+html.rv-native body .page-body .tabs::-webkit-scrollbar{display:none}
+html.rv-native body .page-body .tabs :is(a,button){flex:none;position:relative;overflow:hidden;box-sizing:border-box;width:clamp(108px,30vw,128px);aspect-ratio:5/4;
+  display:flex!important;align-items:flex-end;padding:11px 12px!important;border-radius:calc(var(--nv-r) - 2px)!important;border:0!important;
+  font:400 15px/1.15 'Lora',Georgia,serif!important;color:var(--nv-cream)!important;text-transform:none!important;letter-spacing:0!important;
+  background:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/shadow.webp) center/cover!important;opacity:.6;
+  box-shadow:0 18px 34px -22px rgba(0,0,0,.85)!important;transition:opacity .25s ease}
+html.rv-native body .page-body .tabs :is(a,button):nth-child(6n+2){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/dune.webp)!important}
+html.rv-native body .page-body .tabs :is(a,button):nth-child(6n+3){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/incense.webp)!important}
+html.rv-native body .page-body .tabs :is(a,button):nth-child(6n+4){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/driftwood.webp)!important}
+html.rv-native body .page-body .tabs :is(a,button):nth-child(6n+5){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/wood.webp)!important}
+html.rv-native body .page-body .tabs :is(a,button):nth-child(6n){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/grain.webp)!important}
+html.rv-native body .page-body .tabs :is(a,button):is([aria-current="page"],.on,[aria-selected="true"]){opacity:1;box-shadow:0 0 0 1px rgba(239,235,224,.55) inset,0 22px 40px -22px rgba(0,0,0,.9)!important}
+html.rv-native body .page-body .tabs :is(a,button)::before{display:none!important}
+html.rv-native body .page-body .tabs .tab-n{position:absolute;top:9px;right:10px;font:400 11px/1 'Lora',Georgia,serif!important;color:var(--nv-cream)!important}
+@media (prefers-reduced-motion:reduce){html.rv-native .nv-card,html.rv-native .nv-card::after{animation:none!important}}
