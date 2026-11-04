@@ -279,11 +279,11 @@ html:not(.rv-native) .nv-stage{display:none}
 .nv-greet i{font-style:normal;color:var(--nv-dim)}
 .nv-greet span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--nv-body)}
 .nv-greet svg{width:20px;height:20px;flex:none}
-.nv-rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 22px 4px;margin:0 -22px;scrollbar-width:none}
+.nv-rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 22px 4px;margin:0 -22px;scrollbar-width:none}
 .nv-rail::-webkit-scrollbar{display:none}
-.nv-room{flex:none;scroll-snap-align:start;width:236px;height:300px;box-sizing:border-box;padding:20px;border-radius:var(--nv-r);
+.nv-room{flex:none;scroll-snap-align:start;width:clamp(128px,36vw,156px);height:auto;aspect-ratio:4/5;box-sizing:border-box;padding:14px;border-radius:var(--nv-r);
   display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;position:relative;overflow:hidden;
-  background-size:cover;background-position:center;color:var(--nv-cream);box-shadow:0 30px 60px -30px rgba(0,0,0,.8)}
+  background-size:cover;background-position:center;color:var(--nv-cream);box-shadow:0 22px 40px -24px rgba(0,0,0,.8)}
 .nv-room{background-size:118% auto;animation:nvBreathe 26s ease-in-out infinite alternate;animation-delay:var(--kb,0s)}
 @keyframes nvBreathe{from{background-position:50% 40%;background-size:118% auto}to{background-position:50% 60%;background-size:130% auto}}
 .nv-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;animation:nvBreathe2 26s ease-in-out infinite alternate}
@@ -301,11 +301,10 @@ html.rv-native body .qa-grid .qa-tile::after{content:"";position:absolute;inset:
   animation:nvSun 44s ease-in-out infinite alternate}
 html.rv-native body .qa-grid .qa-tile > *{position:relative;z-index:1}
 .nv-room > .nv-film{z-index:0}
-.nv-room svg{width:24px;height:24px;stroke-width:1.1;color:var(--nv-cream);filter:drop-shadow(0 1px 8px rgba(0,0,0,.5))}
+.nv-room svg{width:19px;height:19px;stroke-width:1.2;color:var(--nv-cream);filter:drop-shadow(0 1px 8px rgba(0,0,0,.5))}
 .nv-room svg .f{display:none}
-.nv-room span{font-family:'Marcellus',serif;font-size:24px;line-height:1.05;letter-spacing:.01em;color:var(--nv-cream);text-shadow:0 2px 16px rgba(0,0,0,.45)}
-.nv-room i{position:absolute;top:0;right:0;font-style:normal;font-family:'Marcellus',serif;font-size:12px;color:#121B16;background:var(--nv-cream);min-width:22px;height:22px;padding:0 7px;border-radius:11px;display:grid;place-items:center}
-.nv-room:nth-child(1){width:288px}
+.nv-room span{font-family:'Marcellus',serif;font-size:16.5px;line-height:1.1;letter-spacing:.01em;color:var(--nv-cream);text-shadow:0 2px 16px rgba(0,0,0,.45)}
+.nv-room i{position:absolute;top:12px;right:12px;font-style:normal;font-family:'Marcellus',serif;font-size:11px;color:#121B16;background:var(--nv-cream);min-width:19px;height:19px;padding:0 6px;border-radius:10px;display:grid;place-items:center}
 html.rv-native.nv-land.js .nv-room{animation:nvRise 1s var(--nv-ease-x) both}
 html.rv-native.nv-land.js .nv-room:nth-child(2){animation-delay:.08s}
 html.rv-native.nv-land.js .nv-room:nth-child(3){animation-delay:.16s}
@@ -316,10 +315,10 @@ html.rv-native body .page-body > .push-setup{order:40;border-top:1px solid var(-
 html.rv-native body .page-body > .push-bar{order:41;background:none!important;border:0!important;border-top:1px solid var(--nv-rule)!important;box-shadow:none!important;padding:18px 0!important;color:var(--nv-dim)!important;font-size:13px;font-weight:300}
 html.rv-native body .page-body > .push-bar :is(.push-bar-on,.push-bar-dismiss){font-family:'Marcellus',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-cream)!important}
 /* the console's launchers: a second row of material tiles */
-html.rv-native body .page-body > .qa-grid{display:flex!important;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 22px 4px;margin:0 -22px 30px;
+html.rv-native body .page-body > .qa-grid{display:flex!important;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 22px 4px;margin:0 -22px 30px;
   background:none!important;box-shadow:none!important;border:0!important;border-radius:0;scrollbar-width:none;overflow-y:visible}
 html.rv-native body .page-body > .qa-grid::-webkit-scrollbar{display:none}
-html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:164px;height:132px;box-sizing:border-box;padding:16px!important;margin:0!important;border:0!important;border-top:0!important;
+html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:clamp(112px,30vw,128px);height:auto;aspect-ratio:1/1;box-sizing:border-box;padding:12px!important;margin:0!important;border:0!important;border-top:0!important;
   border-radius:var(--nv-r)!important;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:0;position:relative;overflow:hidden;
   background:url(/atmos/tiles/shadow.webp) center/cover!important;box-shadow:0 24px 48px -26px rgba(0,0,0,.8)!important}
 html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/dune.webp)!important}
@@ -330,8 +329,8 @@ html.rv-native body .qa-grid .qa-tile:nth-child(6){background-image:url(/atmos/t
 html.rv-native body .qa-grid .qa-tile{background-size:125% auto!important;animation:nvBreathe 30s ease-in-out infinite alternate}
 html.rv-native body .qa-grid .qa-tile::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,10,.1),rgba(8,13,10,.7))}
 html.rv-native body .qa-grid .qa-tile > *{position:relative}
-html.rv-native body .qa-grid .qa-tile svg{width:22px;height:22px;color:var(--nv-cream)}
-html.rv-native body .qa-grid .qa-tile .qa-t{font-family:'Marcellus',serif!important;font-size:15px!important;letter-spacing:.01em!important;text-transform:none!important;line-height:1.2;color:var(--nv-cream)!important}
+html.rv-native body .qa-grid .qa-tile svg{width:18px;height:18px;color:var(--nv-cream)}
+html.rv-native body .qa-grid .qa-tile .qa-t{font-family:'Marcellus',serif!important;font-size:13.5px!important;letter-spacing:.01em!important;text-transform:none!important;line-height:1.2;color:var(--nv-cream)!important}
 
 /* ── movement between screens (View Transitions) ── */
 ::view-transition-group(root){animation-duration:.5s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
