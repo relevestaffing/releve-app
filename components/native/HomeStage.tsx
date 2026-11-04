@@ -11,7 +11,9 @@ import { Glyph, glyphFor } from './icons';
    stone, limewash, the window light), each with its name set on the image.
    The page's own content follows, straight on the wall. */
 type Room = { href: string; label: string; icon?: string };
-const MATERIALS = ['window', 'stone', 'plaster', 'shadow', 'limewash', 'sun', 'deep'];
+/* hyper-real nature textures (Nona, 3 November 2026): water, wood, stone, plaster, linen, moss, sand, a fog lake.
+   Water is a short looping film; the rest breathe with a slow Ken Burns drift. */
+const MATERIALS = ['water', 'wood', 'stone', 'plaster', 'linen', 'moss', 'sand', 'lake'];
 const BY_WORD: [RegExp, string][] = [
   [/task/i, 'tasks'], [/bill|invoice|pay/i, 'card'], [/profile|signature/i, 'person'], [/role|placement|team|watch/i, 'briefcase'],
   [/recruit|directory|people|talent|roster/i, 'people'], [/match|candidate/i, 'person'], [/content|how|resource|skill|brief|log/i, 'book'],
@@ -39,7 +41,10 @@ export default function HomeStage({ rooms, unreadHref, unread, greeting, name, a
       <div className="nv-rail" role="list">
         {rooms.map((r, i) => (
           <Link key={r.href} href={r.href} className="nv-room" role="listitem" data-title={r.label}
-            style={{ backgroundImage: `url(/atmos/tiles/${MATERIALS[i % MATERIALS.length]}.webp)` }}>
+            style={{ backgroundImage: `url(/atmos/tiles/${MATERIALS[i % MATERIALS.length]}.webp)`, ['--kb' as any]: `${(i % 4) * -3}s` }}>
+            {MATERIALS[i % MATERIALS.length] === 'water' && (
+              <video className="nv-film" src="/atmos/tiles/water.mp4" poster="/atmos/tiles/water.webp" autoPlay muted loop playsInline aria-hidden="true" />
+            )}
             <Glyph k={glyph(r)} />
             <span>{r.label}</span>
             {r.href === unreadHref && unread > 0 && <i>{unread}</i>}
