@@ -312,9 +312,9 @@ html.rv-native body .page-body > .qa-grid::-webkit-scrollbar{display:none}
 html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:164px;height:132px;box-sizing:border-box;padding:16px!important;margin:0!important;border:0!important;border-top:0!important;
   border-radius:var(--nv-r)!important;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:0;position:relative;overflow:hidden;
   background:url(/atmos/tiles/plaster.webp) center/cover!important;box-shadow:0 24px 48px -26px rgba(0,0,0,.8)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/wood.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/lake.webp)!important}
 html.rv-native body .qa-grid .qa-tile:nth-child(3){background-image:url(/atmos/tiles/stone.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(4){background-image:url(/atmos/tiles/sand.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(4){background-image:url(/atmos/tiles/water.webp)!important}
 html.rv-native body .qa-grid .qa-tile:nth-child(5){background-image:url(/atmos/tiles/moss.webp)!important}
 html.rv-native body .qa-grid .qa-tile:nth-child(6){background-image:url(/atmos/tiles/linen.webp)!important}
 html.rv-native body .qa-grid .qa-tile{background-size:125% auto!important;animation:nvBreathe 30s ease-in-out infinite alternate}
