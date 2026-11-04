@@ -8,10 +8,12 @@ import './experience.css';
    where you were, or a person. Never a stack trace, never a status code as
    the headline. */
 export default function BrandedError({
-  eyebrow, title, line, retry, home = '/app', digest
+  eyebrow, title, line, retry, home = '/app', digest, detail
 }: {
   eyebrow?: string; title: string; line: string;
   retry?: () => void; home?: string; digest?: string;
+  /* what actually went wrong, in one line, so a screenshot of this screen is enough to fix it */
+  detail?: string;
 }) {
   /* The page's own title is the subject; the digest rides along only there,
      where it helps whoever reads the email, never on the page itself. */
@@ -40,6 +42,11 @@ export default function BrandedError({
           <p className="xs muted" style={{ marginTop: 18 }}>
             {CONTACT_EMAIL} reaches a person. Replies within one business day, usually sooner.
           </p>
+          {(digest || detail) && (
+            <p className="xs muted" style={{ marginTop: 10, opacity: .7, overflowWrap: 'anywhere' }}>
+              {digest && <>Reference {digest}{detail ? ' · ' : ''}</>}{detail && detail.slice(0, 200)}
+            </p>
+          )}
         </div>
       </div>
     </main>

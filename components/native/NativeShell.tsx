@@ -176,7 +176,7 @@ export default function NativeShell() {
     const id = idle(() => ctx.tabs.forEach(t => {
       if (t.href === path || prefetched.current.has(t.href)) return;
       prefetched.current.add(t.href);
-      try { router.prefetch(t.href, { kind: 'full' } as any); } catch { /* best effort */ }
+      try { router.prefetch(t.href); } catch { /* best effort */ }
     }));
     return () => { try { (window as any).cancelIdleCallback?.(id); } catch {} };
   }, [active, ctx, path, router]);
@@ -200,7 +200,7 @@ export default function NativeShell() {
   }, [active, path]);
 
   /* one movement between two screens */
-  const move = useCallback((kind: Kind, label: string, go: () => void) => {
+  const move = useCallback((kind: Kind, label: string, href: string, go: () => void) => {
     if (busy.current) return;
     busy.current = true;
     const doc: any = document;
@@ -217,19 +217,22 @@ export default function NativeShell() {
     };
     const release = () => { busy.current = false; delete document.documentElement.dataset.vt; };
     window.setTimeout(() => { busy.current = false; }, 1200);
-    if (calm || !doc.startViewTransition) {
-      go();
+    const safeGo = () => { try { go(); } catch { release(); window.location.assign(href); } };
+    if (calm || typeof doc.startViewTransition !== 'function') {
+      safeGo();
       commit(kind === 'tab' ? 120 : 160).then(r => { if (r === 'late' && pending.current) placeholder(); release(); });
       return;
     }
-    document.documentElement.dataset.vt = kind;
-    const vt = doc.startViewTransition(async () => {
-      go();
-      const r = await commit(kind === 'tab' ? 140 : 200);
-      if (r === 'late' && pending.current) placeholder();
-      await raf2();
-    });
-    vt.finished.then(release, release);
+    try {
+      document.documentElement.dataset.vt = kind;
+      const vt = doc.startViewTransition(async () => {
+        safeGo();
+        const r = await commit(kind === 'tab' ? 140 : 200);
+        if (r === 'late' && pending.current) placeholder();
+        await raf2();
+      });
+      vt.finished.then(release, release);
+    } catch { safeGo(); release(); }
   }, []);
 
   const goTo = useCallback((href: string, label: string) => {
@@ -238,7 +241,7 @@ export default function NativeShell() {
     const kind: Kind = ti >= 0 || href === ctx.home ? 'tab' : 'push';
     if (kind === 'tab') { setTab(ti); haptic(8); depth(0); } else depth(depth() + 1);
     flushSync(() => setMore(false));
-    move(kind, label, () => router.push(href));
+    move(kind, label, href, () => router.push(href));
   }, [ctx, move, router]);
 
   const back = useCallback(() => {
@@ -246,7 +249,7 @@ export default function NativeShell() {
     const d = depth();
     const hist = d > 0 && window.history.length > 1;
     depth(d - 1);
-    move('pop', '', () => hist ? router.back() : router.push(ctx.home));
+    move('pop', '', ctx.home, () => hist ? router.back() : router.push(ctx.home));
   }, [ctx, move, router]);
 
   /* every in-app link on a phone moves like an app */
@@ -368,7 +371,7 @@ export default function NativeShell() {
 
       {ghost && (
         <div className={`nv-ghost${ghost.out ? ' out' : ''}`} aria-hidden="true">
-          {ghost.title && <h2>{ghost.title}</h2>}
+          <h2>{ghost.title || '\u00a0'}</h2>
           <div className="nv-sk" /><div className="nv-sk" /><div className="nv-sk" />
         </div>
       )}

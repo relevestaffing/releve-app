@@ -1,18 +1,19 @@
 /* ═══════════════ RELÈVE ON A PHONE, AS AN APP (3 November 2026) ═══════════════
-   Nona: "it feels like a website ... I want it to feel like a $1 million app",
-   then, of the first shell: "it looks like a game ... it needs to reflect a
-   $4,500 a month product". So the second pass is the website's own world
-   carried into the phone: deep green plaster, silver light on the edges,
-   editorial type, real depth, slow movement. No glass pills, no glowing
-   highlights, no round buttons. The materials are the design.
+   Nona, with the website open beside the app: the website's screens are what
+   feel high end (limewash paper, dark serif type, air, the plaster wall only
+   where it belongs); the phone's dark panels felt cheap, and the gold had to
+   go. So the phone now has the website's own two grounds and nothing else:
 
-   The room: the live plaster wall, drifting slower than the page (parallax).
-   The furniture: deep fern panels, plain (never texture inside texture), each
-   with a fine silver light along its top edge and a long soft shadow, rising
-   out of depth as the screen lands and receding under the top bar as you
-   scroll past them. The chrome: a slab of the dark plaster for the tab bar
-   with a silver hairline where the light catches it, hairline glyphs and
-   spaced Marcellus capitals; a top bar that is only a dark veil and a title.
+     the wall      the live plaster, at the top of every screen, under the
+                   greeting or title (the website's page headers)
+     the paper     pale limewash with warm paper-white cards and fern type for
+                   everything below (the website's light sections)
+     the slab      the dark plaster bar at the bottom (the website's pinned
+                   Book a Call bar), with a silver light along its edge
+
+   Silver is the only metal. No gold, no khaki, no olive-gold anywhere.
+   Movement stays: screens slide, cards rise out of the wall as a screen lands
+   and recede under the bar as you scroll, the wall drifts behind the paper.
    Everything here is scoped to html.rv-native, phones only. */
 
 html.rv-native{
@@ -21,152 +22,188 @@ html.rv-native{
   --nv-tabs-h:72px;
   --nv-ease:cubic-bezier(.32,.72,0,1);
   --nv-ease-x:cubic-bezier(.22,.61,.36,1);
-  --nv-ink:#EFEBE0;          /* warm cream, the website's text on dark */
-  --nv-body:#C9CBBF;
-  --nv-dim:#9AA397;
+  /* the website's light ground */
+  --nv-lime:#EEEAE1;
+  --nv-paper:#FDFCF8;
+  --nv-fern:#35443A;
+  --nv-ink:#22302A;
+  --nv-body:#3C463F;
+  --nv-olive:#6E6A4A;
+  --nv-olive-2:#7E7A5C;
+  --nv-rule:rgba(53,68,58,.14);
+  --nv-rule-2:rgba(53,68,58,.3);
+  /* on the wall and the slab */
+  --nv-cream:#EFEBE0;
   --nv-silver:#C8CFD4;
   --nv-silver-2:rgba(200,207,212,.42);
-  --nv-line:rgba(200,207,212,.14);
-  --nv-panel:#121C16;
-  --nv-panel-2:#172219;
-  --nv-field:#0D1510;
-  --nv-r:18px;
+  --nv-r:16px;
   -webkit-tap-highlight-color:transparent;
 }
 
 /* ── the old phone chrome steps aside ── */
 html.rv-native body :is(.menu-trigger,.quickbar,.rv-back,.home-jump,.ask-fab,.rv-glint,.rv-going-line){display:none!important}
 html.rv-native body .shell::before,html.rv-native body .shell::after{content:none!important;display:none!important}
+html.rv-native body{background:var(--nv-lime)}
 
-/* ── the top bar: a veil and a title, nothing else ── */
+/* ── the top bar: nothing over the wall; the website's limewash bar once the paper slides under it ── */
 .nv-bar{position:fixed;z-index:70;top:0;left:0;right:0;height:var(--nv-top);
   padding:env(safe-area-inset-top,0px) 10px 0;box-sizing:border-box;
   display:grid;grid-template-columns:72px minmax(0,1fr) 72px;align-items:center;
-  view-transition-name:rv-bar;pointer-events:none}
+  view-transition-name:rv-bar;pointer-events:none;color:var(--nv-cream);transition:color .3s ease}
 .nv-bar::before{content:"";position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(9,14,11,.92),rgba(9,14,11,.84));
-  -webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);
-  opacity:0;transition:opacity .32s ease}
-.nv-bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--nv-silver-2) 30%,var(--nv-silver-2) 70%,transparent);opacity:0;transition:opacity .32s ease}
+  background:rgba(238,234,225,.9);
+  -webkit-backdrop-filter:blur(26px) saturate(1.2);backdrop-filter:blur(26px) saturate(1.2);
+  opacity:0;transition:opacity .3s ease}
+.nv-bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--nv-rule);opacity:0;transition:opacity .3s ease}
+.nv-bar[data-glass="1"]{color:var(--nv-fern)}
 .nv-bar[data-glass="1"]::before,.nv-bar[data-glass="1"]::after{opacity:1}
 .nv-bar > *{position:relative;pointer-events:auto}
 .nv-left{justify-self:start}
 .nv-right{justify-self:end}
 .nv-title{justify-self:center;max-width:100%;text-align:center;
-  font-family:'Marcellus',serif;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--nv-ink);
+  font-family:'Marcellus',serif;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:inherit;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .24s ease;pointer-events:none}
 .nv-title.on{opacity:1}
 .nv-title img{display:block;height:19px;width:auto}
-
-.nv-btn{height:40px;min-width:40px;padding:0 4px;border:0;background:none;display:grid;place-items:center;color:var(--nv-ink);
+.nv-bar[data-glass="1"] .nv-title img{content:url(/logo-fern.png)}
+.nv-btn{height:40px;min-width:40px;padding:0 4px;border:0;background:none;display:grid;place-items:center;color:inherit;
   transition:opacity .2s ease,transform .25s var(--nv-ease)}
 .nv-btn:active{opacity:.55;transform:scale(.94)}
 .nv-btn svg{width:22px;height:22px;stroke-width:1.25}
-.nv-ask{font-family:'Marcellus',serif;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--nv-silver);
-  padding:0 2px;position:relative}
-.nv-ask::after{content:"";position:absolute;left:2px;right:2px;bottom:9px;height:1px;background:var(--nv-silver-2)}
+.nv-ask{font-family:'Marcellus',serif;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;padding:0 2px;position:relative}
+.nv-ask::after{content:"";position:absolute;left:2px;right:2px;bottom:9px;height:1px;background:currentColor;opacity:.45}
 
-/* ── the tab bar: a slab of the dark plaster ── */
+/* ── the bottom bar: the website's dark plaster slab ── */
 .nv-tabs{position:fixed;z-index:70;left:0;right:0;bottom:0;height:calc(var(--nv-tabs-h) + env(safe-area-inset-bottom,0px));
   display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));padding:0 6px env(safe-area-inset-bottom,0px);box-sizing:border-box;
   view-transition-name:rv-tabs;overflow:hidden;
   background:url(/atmos/plaster-deep-green.webp) center/800px 400px,#121B16;
-  box-shadow:0 -24px 48px -20px rgba(0,0,0,.75)}
-/* the light along the top edge */
+  box-shadow:0 -24px 48px -20px rgba(0,0,0,.45)}
 .nv-tabs::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
   background:linear-gradient(90deg,rgba(200,207,212,.08),rgba(214,221,226,.55) 50%,rgba(200,207,212,.08))}
-/* a slow silver light crosses the edge now and then, like the website's shine */
 .nv-sheen{position:absolute;left:0;right:0;top:0;height:1px;pointer-events:none;
   background:linear-gradient(90deg,transparent 35%,rgba(240,243,245,.95) 50%,transparent 65%);background-size:300% 100%;
   animation:nvEdge 9s ease-in-out infinite}
 @keyframes nvEdge{0%,70%{background-position:120% 0}100%{background-position:-20% 0}}
 .nv-lens{display:none}
 .nv-tab{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
-  min-width:0;padding:0;margin:0;border:0;background:none;color:var(--nv-dim);text-decoration:none;cursor:pointer;
+  min-width:0;padding:0;margin:0;border:0;background:none;color:#9AA397;text-decoration:none;cursor:pointer;
   font-family:'Marcellus',serif;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;
   -webkit-user-select:none;user-select:none;transition:color .35s ease,transform .25s var(--nv-ease)}
 .nv-tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding-left:.2em}
 .nv-tab svg{width:22px;height:22px;overflow:visible;stroke-width:1.15}
 .nv-tab svg .f{display:none}
-.nv-tab[aria-current="page"]{color:var(--nv-ink)}
-/* the page you are on: a short silver rule above, the way the sidebar marks it */
+.nv-tab[aria-current="page"]{color:var(--nv-cream)}
 .nv-tab::before{content:"";position:absolute;top:0;left:50%;width:22px;height:1px;margin-left:-11px;background:var(--nv-silver);
   transform:scaleX(0);transition:transform .5s var(--nv-ease)}
 .nv-tab[aria-current="page"]::before{transform:none}
 .nv-tab:active{transform:scale(.92)}
 .nv-tab .unread-dot{position:absolute;top:13px;left:calc(50% + 9px);width:5px;height:5px;border-radius:50%;background:var(--nv-silver)}
 
-/* ── the page under the bars ── */
+/* ── the wall at the top, the greeting on it ── */
 html.rv-native body main.main > .sun-page{opacity:1!important;transition:opacity 1.4s ease}
-html.rv-native body .topbar{padding:calc(var(--nv-top) + 22px) 24px 26px!important;text-align:left!important;min-height:0!important}
+html.rv-native body .topbar{padding:calc(var(--nv-top) + 26px) 24px 30px!important;text-align:left!important;min-height:0!important}
+html.rv-native body .topbar.home{padding-top:calc(var(--nv-top) + 44px)!important;padding-bottom:30px!important}
 html.rv-native body .topbar .band-light{display:none!important}
-html.rv-native body .topbar h1{font-size:38px!important;line-height:1.04!important;letter-spacing:-.005em!important;margin:0!important;
+html.rv-native body .topbar h1{font-size:38px!important;line-height:1.04!important;letter-spacing:-.005em!important;margin:0!important;color:var(--nv-cream)!important;
   text-shadow:0 2px 24px rgba(0,0,0,.35)}
-html.rv-native body .topbar.home h1{font-size:46px!important}
+html.rv-native body .topbar.home h1{font-size:46px!important;line-height:1.02!important}
 html.rv-native body .topbar h1 .name{color:var(--nv-silver)!important}
 html.rv-native body .topbar h1 .w > span{animation:none!important;transform:none!important;opacity:1!important;filter:none!important}
-html.rv-native body .topbar .crumb{font-family:'Marcellus',serif;font-size:10px!important;letter-spacing:.26em!important;color:var(--nv-silver)!important;margin-bottom:14px!important;opacity:.9}
+html.rv-native body .topbar .crumb{font-family:'Marcellus',serif;font-size:10px!important;letter-spacing:.26em!important;color:var(--nv-silver)!important;margin-bottom:14px!important}
 html.rv-native body .topbar .crumb::before{width:26px!important;background:var(--nv-silver-2)!important}
+
+/* ── the paper: a sheet of limewash drawn up over the wall ── */
 html.rv-native body .page-body{
-  padding:0 16px calc(var(--nv-tabs-h) + env(safe-area-inset-bottom,0px) + 40px)!important;gap:18px!important;perspective:1100px}
-html.rv-native body .ptr{top:calc(var(--nv-top) + 8px)!important}
+  position:relative;z-index:1;margin:0!important;
+  padding:28px 18px calc(var(--nv-tabs-h) + env(safe-area-inset-bottom,0px) + 44px)!important;gap:16px!important;
+  min-height:calc(100vh - var(--nv-top) - 150px);box-sizing:border-box;
+  background:url(/atmos/limewash.webp) center/700px 700px,var(--nv-lime);
+  border-radius:26px 26px 0 0;box-shadow:0 -22px 60px -20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.7);
+  perspective:1100px;color:var(--nv-body);
+  --fern:var(--nv-fern);--ink:var(--nv-ink);--body:var(--nv-body);--sage:var(--nv-olive);--muted:var(--nv-olive);--pale:#A9A68F;
+  --cream:#F3EFE6;--paper:var(--nv-paper);--white:var(--nv-paper);--mist:#E9E7D8;--line:var(--nv-rule);--line-strong:var(--nv-rule-2);
+  --good:#4E7A5C;--warn:var(--nv-olive-2);--crit:#8C4A3F}
+html.rv-native body .ptr{top:calc(var(--nv-top) + 8px)!important;background:var(--nv-paper);color:var(--nv-fern);box-shadow:0 10px 26px -10px rgba(34,48,42,.35)}
 
-/* ── the panels: deep fern, a silver light on the edge, a long shadow ── */
+/* ── the cards: the website's warm paper white, a fine rule, a soft shadow ── */
 html.rv-native body .page-body :is(.card,.setup,.qa-tile,a.money-stat,.money-stat,.choose-card,.today-card,.founder-band,.stat,.pick,.req-choice,.next-step,.match-card,.role-card,.push-setup,.overview-table,.empty-card):not(.dark):not(.card .card):not(.setup .card),
-html.rv-native body :is(.modal,.tb-panel){
-  background:linear-gradient(180deg,var(--nv-panel-2),var(--nv-panel) 60%)!important;background-image:linear-gradient(180deg,var(--nv-panel-2),var(--nv-panel) 60%)!important;
-  border:0!important;border-radius:var(--nv-r)!important;color:var(--nv-body);
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.22),inset 0 0 0 1px rgba(200,207,212,.07),0 30px 50px -28px rgba(0,0,0,.85),0 8px 18px -12px rgba(0,0,0,.6)!important;
-  --fern:#E6E8DF;--ink:var(--nv-ink);--body:var(--nv-body);--sage:var(--nv-dim);--muted:var(--nv-dim);--pale:#6F8173;
-  --cream:#1C271F;--paper:var(--nv-panel);--white:var(--nv-panel);--mist:#223029;
-  --line:var(--nv-line);--line-strong:rgba(200,207,212,.3);--good:#9DBFA3;--warn:#D4BC84;--crit:#D9978A}
-html.rv-native body .page-body .card.dark{background:#0C130F!important;border:0!important;border-radius:var(--nv-r)!important;
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.16),0 30px 50px -28px rgba(0,0,0,.9)!important}
-html.rv-native body .page-body .card .card:not(.dark):not(.stat){background:#0F1813!important;border:0!important;border-radius:14px!important;
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.1)!important}
+html.rv-native body :is(.modal,.tb-panel),
+html.rv-native body :is(.picker-chosen,.cd-day,.cd-nudge,.composer,.confirm-row,.drawer,.firstrun,.founder-tile,.method-step,.money-strip,.owner-select,.picker-list,.rolefit,.setup-next,.status-menu,.tally-row,.tb-row,.tb-compose,.end-why,.chip-note,.rationale,.fortnight-bar,.dir-head,.slot,.date-cell,.cd-row,.lead-table):not(.dark){
+  background:var(--nv-paper)!important;background-image:none!important;
+  border:1px solid var(--nv-rule)!important;border-radius:var(--nv-r)!important;color:var(--nv-body);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 18px 40px -26px rgba(34,48,42,.45),0 2px 6px -4px rgba(34,48,42,.2)!important;
+  --fern:var(--nv-fern);--ink:var(--nv-ink);--body:var(--nv-body);--sage:var(--nv-olive);--muted:var(--nv-olive);--pale:#A9A68F;
+  --cream:#F3EFE6;--paper:var(--nv-paper);--white:var(--nv-paper);--mist:#E9E7D8;--line:var(--nv-rule);--line-strong:var(--nv-rule-2);
+  --good:#4E7A5C;--warn:var(--nv-olive-2);--crit:#8C4A3F}
+html.rv-native body .page-body .card .card:not(.dark):not(.stat){background:#F6F4EC!important;background-image:none!important;border:1px solid var(--nv-rule)!important;border-radius:12px!important;box-shadow:none!important}
+html.rv-native body .page-body .card .empty-card{background:transparent!important;border:0!important;box-shadow:none!important}
+/* the one dark block on a light page: the website's flat deep fern (never texture inside texture) */
+html.rv-native body .page-body .card.dark{background:#1E2822!important;background-image:none!important;border:0!important;border-radius:var(--nv-r)!important;
+  color:var(--nv-cream);box-shadow:0 24px 50px -28px rgba(34,48,42,.7)!important;
+  --ink:var(--nv-cream);--fern:var(--nv-cream);--body:#C9CBBF;--muted:#A9A587;--sage:#A9A587;--pale:#8E9A90;--line:rgba(243,239,230,.16);--line-strong:rgba(243,239,230,.35)}
 html.rv-native body .page-body :is(.card,.setup,.qa-grid,.money-strip,.overview-table,.ws){overflow:hidden}
-/* the website's silver light passes across a panel's top edge once as it lands */
-html.rv-native body .page-body > :is(.card,.setup,.today-card,.founder-band):not(.dark){position:relative}
-html.rv-native body .page-body > :is(.card,.setup,.today-card,.founder-band):not(.dark)::before{
-  content:"";position:absolute;left:0;right:0;top:0;height:1px;pointer-events:none;z-index:2;
-  background:linear-gradient(90deg,transparent 35%,rgba(240,243,245,.9) 50%,transparent 65%);background-size:300% 100%;background-position:120% 0}
-html.rv-native.nv-land body .page-body > :is(.card,.setup,.today-card,.founder-band):not(.dark)::before{animation:nvEdge2 1.4s var(--nv-ease-x) .35s both}
-@keyframes nvEdge2{from{background-position:120% 0}to{background-position:-20% 0}}
 
-/* type inside the panels: editorial, quiet */
-html.rv-native body .page-body :is(.card,.setup) :is(h2,h3,.card-head h2,.card-head h3){font-family:'Lora',serif!important;font-weight:400!important;color:var(--nv-ink)!important;letter-spacing:0!important}
-html.rv-native body .page-body :is(.eyebrow,.k,.qa-t,th,.section-h,label){font-family:'Marcellus',serif!important;letter-spacing:.2em!important;text-transform:uppercase!important;color:var(--nv-silver)!important;font-weight:400!important}
-html.rv-native body .page-body :is(.n,.amount,.money-stat b,.stat b,.big){font-family:'Marcellus',serif!important;color:var(--nv-ink)!important;letter-spacing:-.01em}
-html.rv-native body .page-body :is(p,.small,li,td){color:var(--nv-body)}
-html.rv-native body .page-body :is(.muted,.xs.muted,.small.muted){color:var(--nv-dim)!important}
+/* ── type: the website's ── */
+html.rv-native body .page-body :is(.card,.setup,.today-card) :is(h2,h3,.card-head h2,.card-head h3){font-family:'Lora',serif!important;font-weight:400!important;color:var(--nv-ink)!important;letter-spacing:0!important}
+html.rv-native body .page-body :is(.eyebrow,.k,.qa-t,th,.section-h,label,.setup-count,.group-count){font-family:'Marcellus',serif!important;letter-spacing:.2em!important;text-transform:uppercase!important;color:var(--nv-olive)!important;font-weight:400!important}
+html.rv-native body .page-body :is(.n,.amount,.money-stat b,.stat b,.big,.att-n){font-family:'Marcellus',serif!important;color:var(--nv-ink)!important;letter-spacing:-.01em;font-weight:400!important}
+html.rv-native body .page-body :is(p,.small,li,td,.att-line,.att-body){color:var(--nv-body);font-weight:300}
+html.rv-native body .page-body :is(.att-body b,p b,.small b,li b){font-weight:500;color:var(--nv-ink)}
+html.rv-native body .page-body :is(.muted,.xs.muted,.small.muted){color:var(--nv-olive)!important}
+html.rv-native body .page-body a:not(.btn):not(.qa-tile):not(.money-stat):not(.nv-room){color:var(--nv-fern)}
 html.rv-native body .page-body .pill{background:none!important;background-image:none!important;padding:0!important;box-shadow:none!important;
-  border:0!important;color:var(--nv-silver)!important;letter-spacing:.2em;font-size:9.5px;font-family:'Marcellus',serif}
-html.rv-native body .page-body .pill.good{color:#9DBFA3!important}
-html.rv-native body .page-body .pill.warn{color:#D4BC84!important}
-html.rv-native body .page-body .pill.crit,html.rv-native body .page-body .pill.bad{color:#D9978A!important}
-/* dividers are hairlines of silver light, not grey rules */
-html.rv-native body .page-body :is(.card,.setup) :is(hr,.rule,.divider,.row + .row,tr td){border-color:var(--nv-line)!important}
-html.rv-native body .qa-grid .qa-tile{border-radius:0!important;box-shadow:none!important;background:transparent!important;background-image:none!important;border-color:var(--nv-line)!important}
-html.rv-native body .qa-grid{background:linear-gradient(180deg,var(--nv-panel-2),var(--nv-panel))!important;border-radius:var(--nv-r);
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.22),0 30px 50px -28px rgba(0,0,0,.85)!important;border:0!important}
+  border:0!important;color:var(--nv-olive)!important;letter-spacing:.2em;font-size:9.5px;font-family:'Marcellus',serif;text-transform:uppercase}
+html.rv-native body .page-body .pill.good{color:#4E7A5C!important}
+html.rv-native body .page-body .pill.warn{color:var(--nv-olive-2)!important}
+html.rv-native body .page-body .pill.crit,html.rv-native body .page-body .pill.bad{color:#8C4A3F!important}
+html.rv-native body .page-body .dot{background:currentColor}
+html.rv-native body .page-body :is(.card,.setup) :is(hr,.rule,.divider){border-color:var(--nv-rule)!important;background:var(--nv-rule)!important}
+html.rv-native body table.data{background:transparent!important}
+html.rv-native body table.data :is(th,td){border-color:var(--nv-rule)!important;color:var(--nv-body)}
+html.rv-native body table.data th{color:var(--nv-olive)!important;background:transparent!important}
+html.rv-native body table.data tr:hover td{background:rgba(53,68,58,.04)!important}
 
-/* buttons: the website's, cream solid with the silver shine, hairline ghost */
+/* buttons: the website's. On paper a fern button with the silver shine; a hairline fern ghost */
 html.rv-native body .btn{border-radius:12px!important;font-family:'Marcellus',serif!important;letter-spacing:.14em!important;text-transform:uppercase!important;font-size:11px!important;position:relative;overflow:hidden}
-html.rv-native body .btn.solid{background:#EDE9DE!important;color:#121C16!important;border:0!important;box-shadow:0 14px 28px -14px rgba(0,0,0,.7)!important}
+html.rv-native body .btn.solid{background:var(--nv-fern)!important;color:#F3EFE6!important;border:0!important;box-shadow:0 14px 32px -16px rgba(34,48,42,.55)!important}
 html.rv-native body .btn.solid::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.85) 50%,transparent 62%);background-size:260% 100%;background-position:102% 0}
+  background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.55) 50%,transparent 62%);background-size:260% 100%;background-position:102% 0}
 html.rv-native body .btn.solid:active::after{animation:nvBtnShine .9s var(--nv-ease-x) forwards}
 @keyframes nvBtnShine{to{background-position:-40% 0}}
-html.rv-native body .btn.ghost,html.rv-native body .btn:not(.solid){background:transparent!important;color:var(--nv-ink)!important;border:1px solid rgba(200,207,212,.3)!important}
+html.rv-native body .btn.ghost,html.rv-native body .btn:not(.solid){background:transparent!important;color:var(--nv-fern)!important;border:1px solid var(--nv-rule-2)!important}
+html.rv-native body .page-body .card.dark .btn:not(.solid){color:var(--nv-cream)!important;border-color:rgba(243,239,230,.4)!important}
+html.rv-native body .page-body .card.dark .btn.solid{background:#EDE9DE!important;color:var(--nv-fern)!important}
 html.rv-native body .btn.sm{border-radius:10px!important}
 html.rv-native body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){
-  border-radius:12px!important;background:var(--nv-field)!important;color:var(--nv-ink)!important;border:1px solid rgba(200,207,212,.18)!important}
-html.rv-native body :is(input,textarea)::placeholder{color:#75836F!important}
-html.rv-native body :is(input,select,textarea):focus{border-color:var(--nv-silver)!important;box-shadow:0 0 0 1px var(--nv-silver-2)!important}
+  border-radius:12px!important;background:#fff!important;color:var(--nv-ink)!important;border:1px solid var(--nv-rule-2)!important}
+html.rv-native body :is(input,textarea)::placeholder{color:#9A9880!important}
+html.rv-native body :is(input,select,textarea):focus{border-color:var(--nv-fern)!important;box-shadow:0 0 0 3px rgba(53,68,58,.08)!important}
 html.rv-native body :is(.tabs a,.seg a){border-radius:10px!important}
+html.rv-native body .avail-cell{background:#fff!important;border-color:var(--nv-rule)!important}
+html.rv-native body .avail-cell.on{background:var(--nv-fern)!important;border-color:var(--nv-fern)!important}
 
-/* ── depth: the panels rise out of the wall as a screen lands ── */
+/* the CRM workspace: back to its own light paper */
+html.rv-native body :is(.ws,.ws-panel,.ws-pop,.ws-bulk){
+  --ws-paper:#FDFCF8;--ws-canvas:#F5F3EC;--ws-line:#E6E2D8;--ws-line-2:#EEEBE4;--ws-hover:#F6F4EE;--ws-sel:#ECE9DE;
+  --ws-ink:#1F2B25;--ws-sub:#5E5B45;--ws-faint:#7E7A5C;--ws-fern:#35443A;--ws-leaf:#4E7A5C;--ws-red:#A4483A;--ws-amber:#7E7A5C;--ws-green:#3F7553;color:#1F2B25}
+html.rv-native body .ws{box-shadow:0 18px 40px -26px rgba(34,48,42,.45)!important;border:1px solid var(--nv-rule);border-radius:var(--nv-r)}
+html.rv-native body :is(.ws-tile,.ws-add,.ws-tbtn .badge){color:#F3EFE6!important}
+html.rv-native body :is(.ws-search input,.ws-view,.ws-cb,.ws-name input.inl,.ws-quick input,.ws-quick select,.ws-card,.ws-mark,.ws-details,.ws-pop input,.ws-pop select){background:#fff!important;color:#1F2B25!important;border-color:#E6E2D8!important}
+html.rv-native body .ws-view.on{background:#35443A!important;color:#F3EFE6!important;border-color:#35443A!important}
+html.rv-native body :is(.ws-pop,.ws-panel){background:#FDFCF8!important;color:#1F2B25!important;border:1px solid #E6E2D8!important;box-shadow:0 18px 40px -16px rgba(34,48,42,.3)!important}
+html.rv-native body .ws-stage{color:#1F2B25!important}
+html.rv-native body .ws-mark.done{background:#4E7A5C!important;color:#fff!important}
+html.rv-native body .ws-rowmenu{background:transparent!important;color:#5E5B45!important;border-color:transparent!important}
+html.rv-native body .ws-fresh.a{background:#9AA397}
+
+/* first-run and sign-in */
+html.rv-native body :is(.welcome-card,.auth-card){background:var(--nv-paper)!important;background-image:none!important;border:1px solid var(--nv-rule)!important;border-radius:var(--nv-r)!important;
+  box-shadow:0 18px 40px -26px rgba(34,48,42,.45)!important;color:var(--nv-body);
+  --fern:var(--nv-fern);--ink:var(--nv-ink);--body:var(--nv-body);--sage:var(--nv-olive);--muted:var(--nv-olive);--pale:#A9A68F;--cream:#F3EFE6;--paper:var(--nv-paper);--white:var(--nv-paper);--mist:#E9E7D8;--line:var(--nv-rule);--line-strong:var(--nv-rule-2)}
+html.rv-native body :is(.welcome-card,.auth-card) :is(h1,h2,h3,.lede){color:var(--nv-ink)!important}
+
+/* ── depth: the cards rise out of the wall as a screen lands, recede under the bar as you scroll ── */
 html.rv-native.js body .page-body > *,html.rv-native.js body .page-body > .stack > *,
 html.rv-native.js body .page-body > :is(.grid-2,.grid-3,.grid-4,.overview-grid,.match-grid,.match-layout) > *{
   opacity:1!important;transform:none!important;filter:none!important;transition:none!important;animation:none!important}
@@ -179,80 +216,112 @@ html.rv-native.nv-land.js body .page-body > *:nth-child(n+5),html.rv-native.nv-l
 @keyframes nvRise{from{opacity:0;transform:perspective(1100px) translateZ(-120px) translateY(28px)}to{opacity:1;transform:none}}
 html.rv-native body .page-body > *{transform-origin:50% 0;will-change:transform;transition:transform .12s linear,opacity .12s linear}
 
-/* ── touch: things press into the wall ── */
-html.rv-native body :is(.btn,.qa-tile,a.card,a.money-stat,.choose-card,.pick,.req-choice,.nv-row){transition:transform .22s var(--nv-ease),opacity .2s ease,box-shadow .3s ease}
+/* ── touch ── */
+html.rv-native body :is(.btn,.qa-tile,a.card,a.money-stat,.choose-card,.pick,.req-choice,.nv-row,.nv-room){transition:transform .22s var(--nv-ease),opacity .2s ease,box-shadow .3s ease}
 html.rv-native body :is(.btn,.pick,.req-choice):active{transform:scale(.97)}
-html.rv-native body :is(.qa-tile,a.card,a.money-stat,.choose-card):active{transform:perspective(900px) translateZ(-14px)}
+html.rv-native body :is(.qa-tile,a.card,a.money-stat,.choose-card,.nv-room):active{transform:perspective(900px) translateZ(-14px)}
 
 /* ── the placeholder screen while a screen is on its way ── */
-.nv-ghost{position:fixed;inset:0;z-index:60;overflow:hidden;box-sizing:border-box;
-  padding:calc(var(--nv-top) + 22px) 16px 0;
-  background:var(--wall-snap,linear-gradient(180deg,#17231C,#0E1712));transition:opacity .26s ease}
-.nv-ghost::before{content:"";position:absolute;inset:0;background:rgba(6,10,8,.38)}
+.nv-ghost{position:fixed;inset:0;z-index:60;overflow:hidden;box-sizing:border-box;background:var(--wall-snap,linear-gradient(180deg,#17231C,#0E1712))}
+.nv-ghost::before{content:"";position:absolute;inset:0;background:rgba(6,10,8,.3)}
 .nv-ghost > *{position:relative}
-.nv-ghost.out{opacity:0}
-.nv-ghost h2{font-family:'Marcellus',serif;font-weight:400;font-size:38px;line-height:1.04;color:var(--nv-ink);margin:0 8px 26px;
+.nv-ghost.out{opacity:0;transition:opacity .26s ease}
+.nv-ghost h2{font-family:'Marcellus',serif;font-weight:400;font-size:38px;line-height:1.04;color:var(--nv-cream);margin:calc(var(--nv-top) + 26px) 24px 30px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nv-sk{height:150px;margin-bottom:18px;border-radius:var(--nv-r);background:linear-gradient(180deg,var(--nv-panel-2),var(--nv-panel));
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.18);position:relative;overflow:hidden}
+.nv-ghost h2 ~ .nv-sk:first-of-type,.nv-ghost > .nv-sk:first-child{margin-top:0}
+.nv-ghost .nv-sk{margin:0 18px 16px;height:140px;border-radius:var(--nv-r);background:var(--nv-paper);opacity:.92;position:relative;overflow:hidden}
+.nv-ghost > .nv-sk:first-of-type{margin-top:0}
+.nv-ghost::after{content:"";position:absolute;left:0;right:0;top:calc(var(--nv-top) + 26px + 46px + 30px);bottom:0;background:var(--nv-lime);border-radius:26px 26px 0 0;z-index:0}
+.nv-ghost > .nv-sk{z-index:1;top:28px}
 .nv-sk + .nv-sk{height:96px}
 .nv-sk + .nv-sk + .nv-sk{height:210px}
 .nv-sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
-  background:linear-gradient(100deg,transparent 30%,rgba(214,221,226,.05) 50%,transparent 70%);animation:nvSheen 1.8s ease-in-out infinite}
+  background:linear-gradient(100deg,transparent 30%,rgba(53,68,58,.05) 50%,transparent 70%);animation:nvSheen 1.8s ease-in-out infinite}
 @keyframes nvSheen{to{transform:translateX(100%)}}
 
-/* ── sheets: a slab of the plaster rising from the bottom ── */
-.nv-scrim{position:fixed;inset:0;z-index:90;background:rgba(4,7,5,.6);opacity:0;transition:opacity .36s ease}
+/* ── sheets: limewash paper rising from the bottom ── */
+.nv-scrim{position:fixed;inset:0;z-index:90;background:rgba(18,27,22,.5);opacity:0;transition:opacity .36s ease}
 .nv-scrim[data-shown="1"]{opacity:1}
 .nv-sheet{position:fixed;z-index:91;left:0;right:0;bottom:0;box-sizing:border-box;
   max-height:calc(100% - env(safe-area-inset-top,0px) - 28px);display:flex;flex-direction:column;
-  background:url(/atmos/plaster-deep-green.webp) center top/800px 400px,#121B16;color:var(--nv-body);
-  border-radius:24px 24px 0 0;
-  box-shadow:0 -30px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(214,221,226,.45);
+  background:url(/atmos/limewash.webp) center/700px 700px,var(--nv-lime);color:var(--nv-body);
+  border-radius:24px 24px 0 0;box-shadow:0 -30px 70px rgba(10,16,13,.45),inset 0 1px 0 rgba(255,255,255,.8);
   padding-bottom:env(safe-area-inset-bottom,0px);
   transform:translateY(104%);transition:transform .56s var(--nv-ease)}
 .nv-sheet[data-shown="1"]{transform:translateY(var(--drag,0px))}
 .nv-sheet.dragging{transition:none}
 .nv-grab{flex:none;height:30px;display:grid;place-items:center;touch-action:none}
-.nv-grab::before{content:"";width:34px;height:1px;background:var(--nv-silver-2)}
+.nv-grab::before{content:"";width:34px;height:1px;background:var(--nv-rule-2)}
 .nv-sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px 18px 24px}
-/* an existing form, opened on a phone, rests on the plaster as a plain panel (never texture inside texture) */
 .nv-sheet .modal{position:static!important;transform:none!important;width:auto!important;max-width:none!important;max-height:none!important;
   margin:0 0 8px!important;padding:22px 20px!important;animation:none!important;opacity:1!important;overflow:visible!important;
-  background:var(--nv-panel)!important;border-radius:16px!important;border:0!important;box-shadow:inset 0 1px 0 rgba(214,221,226,.18)!important}
+  background:var(--nv-paper)!important;border-radius:var(--nv-r)!important;border:1px solid var(--nv-rule)!important;box-shadow:0 18px 40px -26px rgba(34,48,42,.4)!important;
+  --fern:var(--nv-fern);--ink:var(--nv-ink);--body:var(--nv-body);--muted:var(--nv-olive);--sage:var(--nv-olive);--paper:var(--nv-paper);--cream:#F3EFE6;--line:var(--nv-rule)}
 
 /* the More sheet */
 .nv-more .nv-sheet-body{padding-top:2px}
 .nv-me{margin:6px 0 22px}
-.nv-me-row{display:flex;align-items:center;gap:16px;padding:16px 4px;text-decoration:none;color:var(--nv-ink);
-  border-bottom:1px solid var(--nv-line)}
+.nv-me-row{display:flex;align-items:center;gap:16px;padding:16px 4px;text-decoration:none;color:var(--nv-ink);border-bottom:1px solid var(--nv-rule)}
 .nv-avatar{flex:none;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
-  font-family:'Marcellus',serif;font-size:19px;color:var(--nv-ink);border:1px solid rgba(200,207,212,.35);background:rgba(200,207,212,.06)}
+  font-family:'Marcellus',serif;font-size:19px;color:#F3EFE6;background:var(--nv-fern)}
 .nv-me-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .nv-me-text b{font-family:'Lora',serif;font-weight:400;font-size:18px;color:var(--nv-ink)}
-.nv-me-text small{font-family:'Marcellus',serif;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-silver)}
-.nv-me-row svg,.nv-row svg{width:16px;height:16px;color:var(--nv-silver-2);flex:none;stroke-width:1.2}
+.nv-me-text small{font-family:'Marcellus',serif;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-olive)}
+.nv-me-row svg,.nv-row svg{width:16px;height:16px;color:var(--nv-rule-2);flex:none;stroke-width:1.2}
 .nv-group{margin:0 0 22px}
-.nv-group-h{font-family:'Marcellus',serif;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--nv-silver);margin:0 4px 6px}
-.nv-list{border-top:1px solid var(--nv-line)}
+.nv-group-h{font-family:'Marcellus',serif;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--nv-olive);margin:0 4px 6px}
+.nv-list{border-top:1px solid var(--nv-rule)}
 .nv-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:0 4px;
   box-sizing:border-box;text-decoration:none;color:var(--nv-ink);font:400 16px/1.2 'Lora',serif;
-  background:none;border:0;border-bottom:1px solid var(--nv-line);text-align:left;cursor:pointer;position:relative}
+  background:none;border:0;border-bottom:1px solid var(--nv-rule);text-align:left;cursor:pointer;position:relative}
 .nv-row:active{opacity:.6}
-.nv-signout{color:var(--nv-dim);font-family:'Marcellus',serif;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase}
+.nv-signout{color:var(--nv-olive);font-family:'Marcellus',serif;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase}
 
-/* Ask Relève opens as a sheet on the plaster */
+/* Ask Relève opens as a sheet (its own deep green, like the website's dark bands) */
 html.rv-native body .ask-panel{top:auto!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;
   height:calc(100% - env(safe-area-inset-top,0px) - 28px)!important;max-height:none!important;
-  border-radius:24px 24px 0 0!important;box-shadow:0 -30px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(214,221,226,.4)!important;
+  border-radius:24px 24px 0 0!important;box-shadow:0 -30px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(214,221,226,.35)!important;
   animation:nvRiseUp .56s var(--nv-ease) both!important;z-index:95!important}
 @keyframes nvRiseUp{from{transform:translateY(100%)}to{transform:none}}
+
+/* ═══════════════ HOME: the opening ═══════════════ */
+html:not(.rv-native) .nv-stage{display:none}
+.nv-stage{order:-4;display:flex;flex-direction:column;gap:22px;margin:-4px -18px 2px;padding:0 24px}
+.nv-tag{display:block;height:30px;width:auto;opacity:.9;margin:0 0 0 2px}
+.nv-rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 24px 22px;margin:0 -24px;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+.nv-rail::-webkit-scrollbar{display:none}
+.nv-room{flex:none;scroll-snap-align:start;width:138px;height:124px;box-sizing:border-box;padding:18px 16px 16px;border-radius:var(--nv-r);
+  display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;position:relative;
+  background:var(--nv-paper);border:1px solid var(--nv-rule);color:var(--nv-fern);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 18px 40px -26px rgba(34,48,42,.45),0 2px 6px -4px rgba(34,48,42,.2)}
+.nv-room svg{width:24px;height:24px;stroke-width:1.1;color:var(--nv-fern)}
+.nv-room svg .f{display:none}
+.nv-room span{font-family:'Marcellus',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;line-height:1.4;color:var(--nv-ink)}
+.nv-room i{position:absolute;top:14px;right:14px;font-style:normal;font-family:'Marcellus',serif;font-size:11px;color:#F3EFE6;background:var(--nv-fern);
+  min-width:20px;height:20px;padding:0 6px;border-radius:10px;display:grid;place-items:center}
+html.rv-native.nv-land.js .nv-room{animation:nvRise .9s var(--nv-ease-x) both}
+html.rv-native.nv-land.js .nv-room:nth-child(2){animation-delay:.06s}
+html.rv-native.nv-land.js .nv-room:nth-child(3){animation-delay:.12s}
+html.rv-native.nv-land.js .nv-room:nth-child(n+4){animation-delay:.18s}
+html.rv-native body .page-body > .push-setup{order:40}
+html.rv-native body .page-body > .push-bar{order:41;background:none!important;border:0!important;box-shadow:none!important;padding:8px 6px!important;color:var(--nv-olive)!important;font-size:13px}
+html.rv-native body .page-body > .push-bar :is(.push-bar-on,.push-bar-dismiss){font-family:'Marcellus',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-fern)!important}
+/* the console's launchers become the same rail */
+html.rv-native body .page-body > .qa-grid{display:flex!important;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 24px 22px;margin:0 -18px;
+  background:none!important;box-shadow:none!important;border:0!important;border-radius:0;scrollbar-width:none;overflow-y:visible;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+html.rv-native body .page-body > .qa-grid::-webkit-scrollbar{display:none}
+html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:150px;height:118px;box-sizing:border-box;padding:18px 16px!important;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:0}
+html.rv-native body .qa-grid .qa-tile svg{width:22px;height:22px;color:var(--nv-fern)}
+html.rv-native body .qa-grid .qa-tile .qa-t{font-size:10px!important;line-height:1.4;color:var(--nv-ink)!important}
 
 /* ── movement between screens (View Transitions) ── */
 ::view-transition-group(root){animation-duration:.5s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
 html[data-vt="push"]::view-transition-old(root){animation:nvBackOut .5s cubic-bezier(.32,.72,0,1) both}
-html[data-vt="push"]::view-transition-new(root){animation:nvInRight .5s cubic-bezier(.32,.72,0,1) both;box-shadow:-30px 0 60px rgba(0,0,0,.55)}
-html[data-vt="pop"]::view-transition-old(root){z-index:2;animation:nvOutRight .44s cubic-bezier(.32,.72,0,1) both;box-shadow:-30px 0 60px rgba(0,0,0,.55)}
+html[data-vt="push"]::view-transition-new(root){animation:nvInRight .5s cubic-bezier(.32,.72,0,1) both;box-shadow:-30px 0 60px rgba(0,0,0,.4)}
+html[data-vt="pop"]::view-transition-old(root){z-index:2;animation:nvOutRight .44s cubic-bezier(.32,.72,0,1) both;box-shadow:-30px 0 60px rgba(0,0,0,.4)}
 html[data-vt="pop"]::view-transition-new(root){z-index:1;animation:nvBackIn .44s cubic-bezier(.32,.72,0,1) both}
 html[data-vt="tab"]::view-transition-old(root){animation:nvFadeOut .18s ease both}
 html[data-vt="tab"]::view-transition-new(root){animation:nvFadeIn .3s ease .02s both}
@@ -263,59 +332,30 @@ html[data-vt="tab"]::view-transition-new(root){animation:nvFadeIn .3s ease .02s 
 ::view-transition-old(rv-bar){animation:nvFadeOut .18s ease both}
 ::view-transition-new(rv-bar){animation:nvFadeIn .26s ease both}
 @keyframes nvInRight{from{transform:translateX(100%)}to{transform:none}}
-@keyframes nvBackOut{to{transform:translateX(-22%) scale(.96);filter:brightness(.5)}}
+@keyframes nvBackOut{to{transform:translateX(-22%) scale(.96);filter:brightness(.6)}}
 @keyframes nvOutRight{from{transform:translateX(var(--pop-from,0px))}to{transform:translateX(100%)}}
-@keyframes nvBackIn{from{transform:translateX(-22%) scale(.96);filter:brightness(.5)}to{transform:none;filter:none}}
+@keyframes nvBackIn{from{transform:translateX(-22%) scale(.96);filter:brightness(.6)}to{transform:none;filter:none}}
 @keyframes nvFadeOut{to{opacity:0}}
 @keyframes nvFadeIn{from{opacity:0}}
 
 @media (prefers-reduced-motion:reduce){
   .nv-sheet,.nv-scrim,.nv-title,.nv-bar::before,.nv-ghost,.nv-tab::before{transition:none!important}
   .nv-sk::after,.nv-sheen{animation:none}
-  html.rv-native.nv-land.js body .page-body > *,html.rv-native.nv-land.js body .page-body > .stack > *{animation:none!important}
-  html.rv-native body .page-body > :is(.card,.setup,.today-card,.founder-band)::before{animation:none!important}
+  html.rv-native.nv-land.js body .page-body > *,html.rv-native.nv-land.js body .page-body > .stack > *,html.rv-native.nv-land.js .nv-room{animation:none!important}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
-
-/* ═══════════════ HOME: the opening (full remodel, 3 November 2026) ═══════════════ */
-html.rv-native body .topbar.home{padding-top:calc(var(--nv-top) + 44px)!important;padding-bottom:6px!important}
-html.rv-native body .topbar.home h1{font-size:48px!important;line-height:1.02!important}
-/* the stage: outside the native shell it does not exist */
-html:not(.rv-native) .nv-stage{display:none}
-.nv-stage{order:-4;display:flex;flex-direction:column;gap:26px;margin:0 -16px 6px;padding:0 24px}
-.nv-tag{display:block;height:30px;width:auto;opacity:.92;margin:0 0 2px 2px;filter:drop-shadow(0 2px 12px rgba(0,0,0,.35))}
-.nv-rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 24px 22px;margin:0 -24px;scrollbar-width:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
-.nv-rail::-webkit-scrollbar{display:none}
-.nv-room{flex:none;scroll-snap-align:start;width:138px;height:128px;box-sizing:border-box;padding:18px 16px 16px;border-radius:var(--nv-r);
-  display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;position:relative;
-  background:linear-gradient(180deg,var(--nv-panel-2),var(--nv-panel) 60%);color:var(--nv-ink);
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.24),inset 0 0 0 1px rgba(200,207,212,.07),0 24px 40px -24px rgba(0,0,0,.85),0 6px 14px -10px rgba(0,0,0,.6);
-  transition:transform .3s var(--nv-ease),box-shadow .3s ease}
-.nv-room:active{transform:perspective(900px) translateZ(-16px)}
-.nv-room svg{width:24px;height:24px;stroke-width:1.1;color:var(--nv-silver)}
-.nv-room svg .f{display:none}
-.nv-room span{font-family:'Marcellus',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;line-height:1.4}
-.nv-room i{position:absolute;top:16px;right:16px;font-style:normal;font-family:'Marcellus',serif;font-size:11px;color:var(--nv-ink);
-  min-width:20px;height:20px;padding:0 6px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--nv-silver-2)}
-html.rv-native.nv-land.js .nv-room{animation:nvRise .9s var(--nv-ease-x) both}
-html.rv-native.nv-land.js .nv-room:nth-child(2){animation-delay:.06s}
-html.rv-native.nv-land.js .nv-room:nth-child(3){animation-delay:.12s}
-html.rv-native.nv-land.js .nv-room:nth-child(n+4){animation-delay:.18s}
-/* the install note waits its turn at the end of Home */
-html.rv-native body .page-body > .push-setup{order:40}
-/* the console's launchers become the same rail */
-html.rv-native body .page-body > .qa-grid{display:flex!important;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 24px 22px;margin:0 -16px;
-  background:none!important;box-shadow:none!important;border-radius:0;scrollbar-width:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
-html.rv-native body .page-body > .qa-grid::-webkit-scrollbar{display:none}
-html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:150px;height:118px;box-sizing:border-box;padding:18px 16px!important;
-  border-radius:var(--nv-r)!important;border:0!important;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:0;
-  background:linear-gradient(180deg,var(--nv-panel-2),var(--nv-panel) 60%)!important;
-  box-shadow:inset 0 1px 0 rgba(214,221,226,.24),0 24px 40px -24px rgba(0,0,0,.85)!important}
-html.rv-native body .qa-grid .qa-tile svg{width:22px;height:22px;color:var(--nv-silver)}
-html.rv-native body .qa-grid .qa-tile .qa-t{font-size:10px!important;line-height:1.4}
-/* the notifications nudge: a quiet line at the end of Home, not a box at the top */
-html.rv-native body .page-body > .push-bar{order:41;background:none!important;border:0!important;box-shadow:none!important;padding:8px 6px!important;
-  color:var(--nv-dim)!important;font-size:13px}
-html.rv-native body .page-body > .push-bar :is(.push-bar-on,.push-bar-dismiss){font-family:'Marcellus',serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--nv-silver)!important}
+/* a page's own action under its title sits on the paper as a hairline fern button */
+html.rv-native body :is(.mobile-action,.topbar-action) .btn{background:transparent!important;background-image:none!important;color:var(--nv-fern)!important;border:1px solid var(--nv-rule-2)!important;box-shadow:none!important;text-shadow:none!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+html.rv-native body :is(.mobile-action,.topbar-action) .btn.solid{background:var(--nv-fern)!important;color:#F3EFE6!important;border-color:var(--nv-fern)!important}
+html.rv-native body :is(.mobile-action,.topbar-action) .btn.solid *{color:#F3EFE6!important}
+/* tab strips, section titles and toggles on the paper read in fern, like the website's */
+html.rv-native body .page-body :is(.tabs,.dir-head .tabs){background:var(--nv-paper)!important;border:1px solid var(--nv-rule)!important;border-radius:var(--nv-r)!important;box-shadow:none!important;padding:4px!important}
+html.rv-native body .page-body .tabs a{color:var(--nv-olive)!important;font-family:'Marcellus',serif!important;letter-spacing:.18em!important;text-transform:uppercase!important;font-size:10px!important;
+  background:none!important;border:0!important;border-bottom:1px solid transparent!important;border-radius:0!important;text-shadow:none!important}
+html.rv-native body .page-body .tabs a[aria-current="page"],html.rv-native body .page-body .tabs a.on{color:var(--nv-ink)!important;border-bottom-color:var(--nv-fern)!important}
+html.rv-native body .page-body .tabs .tab-n{color:var(--nv-olive)!important;background:none!important}
+html.rv-native body .page-body :is(.section-h,h2.section-h,h3.section-h){color:var(--nv-olive)!important;text-shadow:none!important}
+html.rv-native body .page-body :is(.seg,.toggle,.segmented){background:var(--nv-paper)!important;border:1px solid var(--nv-rule)!important;border-radius:12px!important;box-shadow:none!important}
+html.rv-native body .page-body :is(.seg a,.seg button,.toggle a,.toggle button){color:var(--nv-olive)!important;background:none!important;border:0!important;font-family:'Marcellus',serif!important;letter-spacing:.16em!important;text-transform:uppercase!important;font-size:10px!important}
+html.rv-native body .page-body :is(.seg a.on,.seg a[aria-current],.seg button.on,.toggle .on){background:var(--nv-fern)!important;color:#F3EFE6!important;border-radius:9px!important}
+html.rv-native body .page-body :is(.btn.ghost.on,.btn.on){background:var(--nv-fern)!important;color:#F3EFE6!important}

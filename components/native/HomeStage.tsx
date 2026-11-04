@@ -21,7 +21,7 @@ const glyph = (r: Room) => {
 export default function HomeStage({ rooms, unreadHref, unread }: { rooms: Room[]; unreadHref: string; unread: number }) {
   return (
     <div className="nv-stage">
-      <img className="nv-tag" src="/consider-it-handled-cream.png" alt="Consider it handled." />
+      <img className="nv-tag" src="/consider-it-handled.png" alt="Consider it handled." />
       <div className="nv-rail" role="list">
         {rooms.map(r => (
           <Link key={r.href} href={r.href} className="nv-room" role="listitem" data-title={r.label}>
