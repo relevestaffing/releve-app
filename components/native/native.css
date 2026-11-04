@@ -452,7 +452,7 @@ html.rv-native .nv-card::after{content:"";position:absolute;inset:-40% -60%;z-in
   background:linear-gradient(105deg,transparent 30%,rgba(255,250,235,.7) 46%,rgba(255,250,235,.95) 50%,rgba(255,250,235,.7) 54%,transparent 70%);animation:nvSun 40s ease-in-out infinite alternate;animation-delay:var(--kb,0s)}
 html.rv-native .nv-card:not(.here){opacity:.86}
 html.rv-native .nv-card-eye{font:400 10px/1.3 'Lora',Georgia,serif;letter-spacing:.24em;text-transform:uppercase;color:rgba(239,235,224,.85);text-shadow:0 1px 10px rgba(0,0,0,.45)}
-html.rv-native .nv-card-title{margin:0;font:400 31px/1.06 'Lora',Georgia,serif;letter-spacing:-.01em;color:var(--nv-cream);text-shadow:0 2px 18px rgba(0,0,0,.45);text-wrap:balance}
+html.rv-native .nv-card-title{margin:0;font:400 34px/1.06 'Lora',Georgia,serif;letter-spacing:-.01em;color:var(--nv-cream);text-shadow:0 2px 18px rgba(0,0,0,.45);text-wrap:balance}
 html.rv-native .nv-card:not(.here) .nv-card-title{font-size:26px}
 html.rv-native .nv-card-meta{font:300 13.5px/1.35 'Poppins',sans-serif;color:rgba(239,235,224,.82)}
 /* tile rails: the tabs inside a screen as small material tiles */
@@ -462,13 +462,13 @@ html.rv-native body .shell[data-layout="gallery"] .page-body .tabs::-webkit-scro
 html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button){flex:none;position:relative;overflow:hidden;box-sizing:border-box;width:clamp(108px,30vw,128px);aspect-ratio:5/4;
   display:flex!important;align-items:flex-end;padding:11px 12px!important;border-radius:calc(var(--nv-r) - 2px)!important;border:0!important;
   font:400 15px/1.15 'Lora',Georgia,serif!important;color:var(--nv-cream)!important;text-transform:none!important;letter-spacing:0!important;
-  background:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/shadow.webp) center/cover!important;opacity:.6;
+  background:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/wall.webp) center/cover!important;opacity:.6;
   box-shadow:0 18px 34px -22px rgba(0,0,0,.85)!important;transition:opacity .25s ease}
-html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n+2){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/dune.webp)!important}
+html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n+2){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/arch.webp)!important}
 html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n+3){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/incense.webp)!important}
-html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n+4){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/driftwood.webp)!important}
+html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n+4){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/evening.webp)!important}
 html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n+5){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/wood.webp)!important}
-html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/grain.webp)!important}
+html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):nth-child(6n){background-image:linear-gradient(180deg,rgba(8,13,10,.05),rgba(8,13,10,.72)),url(/atmos/tiles/niche.webp)!important}
 html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button):is([aria-current="page"],.on,[aria-selected="true"]){opacity:1;box-shadow:0 0 0 1px rgba(239,235,224,.55) inset,0 22px 40px -22px rgba(0,0,0,.9)!important}
 html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button)::before{display:none!important}
 html.rv-native body .shell[data-layout="gallery"] .page-body .tabs .tab-n{position:absolute;top:9px;right:10px;font:400 11px/1 'Lora',Georgia,serif!important;color:var(--nv-cream)!important}
@@ -493,24 +493,24 @@ html.rv-native body .topbar.nv-L-conversation{position:relative;isolation:isolat
   min-height:112px!important;padding:16px 18px!important;display:flex!important;flex-direction:column;justify-content:flex-end;border-radius:var(--nv-r);
   background:var(--hero) 50% 35%/130% auto no-repeat,#1B261F!important}
 html.rv-native body .topbar.nv-L-conversation::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(10,16,12,.78),rgba(10,16,12,.2))}
-html.rv-native body .topbar.nv-L-conversation h1{font-size:28px!important}
+html.rv-native body .topbar.nv-L-conversation h1{font-size:34px!important}
 html.rv-native body .topbar.nv-L-conversation .crumb{margin-bottom:6px!important}
 html.rv-native body .topbar.nv-L-conversation .crumb::before{display:none!important}
 html.rv-native body .topbar.nv-L-conversation .topbar-action{display:none!important}
 /* index: the sections as big capital words, no pictures */
 html.rv-native body .topbar.nv-L-index{padding-bottom:4px!important}
-html.rv-native body .topbar.nv-L-index h1{font-size:22px!important;letter-spacing:.2em!important;text-transform:uppercase}
+html.rv-native body .topbar.nv-L-index h1{font-size:40px!important}
 html.rv-native body .topbar.nv-L-index h1 .w > span{letter-spacing:inherit}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs{flex-direction:column!important;align-items:flex-start!important;gap:2px!important;
   margin:10px 0 34px!important;padding:0 0 28px!important;border-bottom:1px solid var(--nv-rule)!important;overflow:visible!important}
-html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button){font:400 32px/1.18 'Lora',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.015em!important;
+html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button){font:400 27px/1.22 'Lora',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.015em!important;
   color:#66716A!important;padding:0!important;border:0!important;background:none!important}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button):is([aria-current="page"],.on){color:var(--nv-cream)!important}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button)::before{display:none!important}
 /* ledger: figures first and large, fine rules, no pictures */
 html.rv-native body .topbar.nv-L-ledger{border-bottom:1px solid var(--nv-rule)!important;padding-bottom:22px!important;margin-bottom:26px!important}
-html.rv-native body .topbar.nv-L-ledger h1{font-size:30px!important}
-html.rv-native body .shell[data-layout="ledger"] .page-body :is(.n,.amount,.big){font-size:48px!important;line-height:1!important;letter-spacing:-.015em!important}
+html.rv-native body .topbar.nv-L-ledger h1{font-size:40px!important}
+html.rv-native body .shell[data-layout="ledger"] .page-body :is(.n,.amount,.big){font-size:32px!important;line-height:1!important;letter-spacing:-.015em!important}
 html.rv-native body .shell[data-layout="ledger"] .page-body :is(.k,.money-stat .k){margin-top:8px}
 /* agenda: the week, then time set as big type */
 html.rv-native body .topbar.nv-L-agenda h1{font-size:52px!important;line-height:1!important}
@@ -519,3 +519,9 @@ html.rv-native .nv-agenda-week span{flex:1;font:400 13px/1 'Lora',Georgia,serif;
 html.rv-native .nv-agenda-week span.on{color:var(--nv-cream)}
 html.rv-native .nv-agenda-week span.on::after{content:"";position:absolute;left:0;bottom:0;width:16px;height:1px;background:var(--nv-cream)}
 @media (prefers-reduced-motion:reduce){html.rv-native body .topbar.nv-L-fullbleed,html.rv-native body .topbar.nv-L-fullbleed::after{animation:none!important}}
+
+/* Nona, 4 Nov: nothing on a screen is set larger than its title. Titles: 34 to 52px;
+   everything inside a screen tops out at 30px. */
+html.rv-native body .page-body :is(h1,h2):not(.nv-card-title):not(.nv-lead-title){font-size:min(30px,8vw)!important}
+html.rv-native body .page-body :is(.n,.amount,.big,.mono-num,.att-n,.founder-n,[class$="-n"]){font-size:min(30px,8vw)!important}
+html.rv-native body .shell[data-layout="ledger"] .page-body :is(.n,.amount,.big,.mono-num){font-size:32px!important}
