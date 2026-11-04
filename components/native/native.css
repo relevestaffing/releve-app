@@ -290,6 +290,16 @@ html:not(.rv-native) .nv-stage{display:none}
 @keyframes nvBreathe2{from{transform:scale(1.04)}to{transform:scale(1.16) translateY(-2%)}}
 .nv-room::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(8,13,10,.12),rgba(8,13,10,.08) 45%,rgba(8,13,10,.74))}
 .nv-room > *{position:relative;z-index:2}
+/* movement: a band of daylight travels slowly across each tile, like sun moving over plaster (Nona, 3 Nov) */
+.nv-room::after{content:"";position:absolute;inset:-40% -60%;z-index:1;pointer-events:none;mix-blend-mode:soft-light;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,250,235,.7) 46%,rgba(255,250,235,.95) 50%,rgba(255,250,235,.7) 54%,transparent 70%);
+  animation:nvSun 38s ease-in-out infinite alternate;animation-delay:var(--kb,0s)}
+@keyframes nvSun{from{transform:translateX(-28%) rotate(0.001deg)}to{transform:translateX(28%) rotate(0.001deg)}}
+html.rv-native body .qa-grid .qa-tile{position:relative;overflow:hidden}
+html.rv-native body .qa-grid .qa-tile::after{content:"";position:absolute;inset:-40% -60%;z-index:0;pointer-events:none;mix-blend-mode:soft-light;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,250,235,.65) 48%,rgba(255,250,235,.9) 50%,rgba(255,250,235,.65) 52%,transparent 70%);
+  animation:nvSun 44s ease-in-out infinite alternate}
+html.rv-native body .qa-grid .qa-tile > *{position:relative;z-index:1}
 .nv-room > .nv-film{z-index:0}
 .nv-room svg{width:24px;height:24px;stroke-width:1.1;color:var(--nv-cream);filter:drop-shadow(0 1px 8px rgba(0,0,0,.5))}
 .nv-room svg .f{display:none}
@@ -312,11 +322,11 @@ html.rv-native body .page-body > .qa-grid::-webkit-scrollbar{display:none}
 html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:164px;height:132px;box-sizing:border-box;padding:16px!important;margin:0!important;border:0!important;border-top:0!important;
   border-radius:var(--nv-r)!important;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:0;position:relative;overflow:hidden;
   background:url(/atmos/tiles/shadow.webp) center/cover!important;box-shadow:0 24px 48px -26px rgba(0,0,0,.8)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/wood.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(3){background-image:url(/atmos/tiles/leaves.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(4){background-image:url(/atmos/tiles/dune.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(5){background-image:url(/atmos/tiles/incense.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(6){background-image:url(/atmos/tiles/driftwood.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/dune.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(3){background-image:url(/atmos/tiles/incense.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(4){background-image:url(/atmos/tiles/driftwood.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(5){background-image:url(/atmos/tiles/wood.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(6){background-image:url(/atmos/tiles/grain.webp)!important}
 html.rv-native body .qa-grid .qa-tile{background-size:125% auto!important;animation:nvBreathe 30s ease-in-out infinite alternate}
 html.rv-native body .qa-grid .qa-tile::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,10,.1),rgba(8,13,10,.7))}
 html.rv-native body .qa-grid .qa-tile > *{position:relative}
@@ -367,7 +377,7 @@ html.rv-native body .page-body :is(.empty-mark,.tick,.avatar,.mgr-face){border-c
 html.rv-native body .page-body .tick.on,html.rv-native body .page-body .tick.done{background:var(--nv-cream)!important;color:#121B16!important;border-color:var(--nv-cream)!important}
 html.rv-native body .page-body .setup-marks i{background:var(--nv-rule-2)!important}
 html.rv-native body .page-body .setup-marks i.done{background:var(--nv-cream)!important}
-@media (prefers-reduced-motion:reduce){.nv-room,.nv-film,html.rv-native body .qa-grid .qa-tile{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.nv-room,.nv-room::after,.nv-film,html.rv-native body .qa-grid .qa-tile,html.rv-native body .qa-grid .qa-tile::after{animation:none!important}}
 html.rv-native body .page-body .ask-chip{background:transparent!important;border:1px solid var(--nv-rule-2)!important;border-radius:999px!important;color:var(--nv-cream)!important;font:300 13.5px/1.2 'Poppins',sans-serif!important;padding:10px 16px!important;box-shadow:none!important}
 html.rv-native body .page-body .ask-send{background:var(--nv-cream)!important;color:#121B16!important;border:0!important;border-radius:999px!important}
 html.rv-native body .page-body :is(.ask-compose,.ask-compose-row){background:transparent!important;border:0!important;border-top:1px solid var(--nv-rule)!important;box-shadow:none!important}
