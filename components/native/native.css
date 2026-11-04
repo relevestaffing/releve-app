@@ -550,3 +550,21 @@ html.rv-native body main.main :is(.btn.solid,.btn.solid *,.nv-avatar,.avail-cell
 html.rv-native{--nv-dim:#B3BAAE}
 .nv-words a{color:#98A195!important}
 .nv-words a.on{color:var(--nv-cream)!important}
+
+/* ── Home breathes (4 November 2026) ──
+   Nona: "The front page feels messy, please add more blank space to clean it
+   up." Each group gets room of its own, the lead is a calm sentence that is
+   never cut off, the glow behind the lit word and the orbit rings step back,
+   and the word row fades at the edge instead of being sliced. */
+.nv-week{margin:0 0 34px}
+.nv-greet{margin:0 0 64px}
+.nv-lead{margin:0 0 68px;gap:22px;align-items:end}
+.nv-lead-eye{margin:0 0 12px}
+.nv-lead-title{-webkit-line-clamp:3;font-size:30px;line-height:1.14}
+.nv-lead-meta{margin:14px 0 0;max-width:30ch}
+.nv-words{margin:0 -22px 76px;gap:30px;-webkit-mask-image:linear-gradient(90deg,#000 78%,transparent);mask-image:linear-gradient(90deg,#000 78%,transparent)}
+.nv-words a.on::before{display:none}
+.nv-line{margin:0 0 80px;padding:0}
+.nv-orbit{display:none}  /* removed at Nona's word, 4 Nov: "remove this circle thing" */
+.nv-status{margin:0 0 72px}
+.nv-status-head{margin:0 0 16px}

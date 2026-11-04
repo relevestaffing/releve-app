@@ -54,6 +54,9 @@ const dayOfYear = () => {
   return Math.floor((n.getTime() - Date.UTC(n.getUTCFullYear(), 0, 0)) / 86_400_000);
 };
 
+/* the lead reads as a sentence even when the line it borrows starts lower case */
+const cap = (t?: string) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+
 export default function HomeStage({ rooms, unreadHref, unread, greeting, name, askHref, today, lead }: {
   rooms: Room[]; unreadHref: string; unread: number; greeting: string; name: string; askHref: string; today: number; lead: Lead;
 }) {
@@ -72,8 +75,8 @@ export default function HomeStage({ rooms, unreadHref, unread, greeting, name, a
       <section className="nv-lead">
         <div className="nv-lead-text">
           {lead.eyebrow && <p className="nv-lead-eye">{lead.eyebrow}</p>}
-          <Link href={lead.href} className="nv-lead-title">{lead.title}</Link>
-          {lead.meta && <p className="nv-lead-meta">{lead.meta}</p>}
+          <Link href={lead.href} className="nv-lead-title">{cap(lead.title)}</Link>
+          {lead.meta && <p className="nv-lead-meta">{cap(lead.meta)}</p>}
         </div>
         <Link href={lead.href} className="nv-orb" aria-label={lead.cta ?? lead.title}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h13M12.5 6.5 18 12l-5.5 5.5" /></svg>
@@ -89,18 +92,6 @@ export default function HomeStage({ rooms, unreadHref, unread, greeting, name, a
       </nav>
 
       <figure className="nv-line">
-        <svg className="nv-orbit" viewBox="0 0 400 400" aria-hidden="true">
-          <g fill="none" stroke="currentColor" strokeWidth=".6">
-            <ellipse cx="200" cy="200" rx="190" ry="150" />
-            <ellipse cx="200" cy="200" rx="140" ry="108" />
-            <ellipse cx="200" cy="200" rx="88" ry="66" />
-          </g>
-          <g fill="currentColor">
-            <circle cx="390" cy="200" r="1.8" /><circle cx="60" cy="96" r="1.4" /><circle cx="250" cy="349" r="1.4" />
-            <circle cx="340" cy="200" r="1.6" /><circle cx="120" cy="290" r="1.2" /><circle cx="288" cy="200" r="1.3" />
-            <circle cx="200" cy="200" r="2.6" className="core" />
-          </g>
-        </svg>
         <blockquote>&ldquo;{line}&rdquo;</blockquote>
         <figcaption>{source}</figcaption>
       </figure>
