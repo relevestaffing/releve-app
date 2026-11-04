@@ -42,7 +42,7 @@ html.rv-native body :is(.menu-trigger,.quickbar,.rv-back,.home-jump,.ask-fab,.rv
 html.rv-native body .shell::before,html.rv-native body .shell::after{content:none!important;display:none!important}
 html.rv-native body{background:var(--nv-ground)}
 /* the wall is the room: a touch darker so cream type sits on it everywhere */
-html.rv-native body main.main > .sun-page{opacity:1!important;transition:opacity 1.4s ease;filter:brightness(.78) saturate(.9)}
+html.rv-native body main.main > .sun-page{opacity:1!important;transition:opacity 1.4s ease;filter:brightness(.94) saturate(.96)}
 
 /* ── the top bar: nothing, then a dark veil with the title once the page moves ── */
 .nv-bar{position:fixed;z-index:70;top:0;left:0;right:0;height:var(--nv-top);
@@ -525,3 +525,28 @@ html.rv-native .nv-agenda-week span.on::after{content:"";position:absolute;left:
 html.rv-native body .page-body :is(h1,h2):not(.nv-card-title):not(.nv-lead-title){font-size:min(30px,8vw)!important}
 html.rv-native body .page-body :is(.n,.amount,.big,.mono-num,.att-n,.founder-n,[class$="-n"]){font-size:min(30px,8vw)!important}
 html.rv-native body .shell[data-layout="ledger"] .page-body :is(.n,.amount,.big,.mono-num){font-size:32px!important}
+
+/* ── The time of day (4 November 2026) ──
+   Nona: "I want the backgrounds to change dependent on the time of day for the
+   mobile app like it does for the website." The wall behind every screen is
+   lifted so its light reads: the window patch high and short in the morning,
+   crisp at midday, long and low toward evening, moonlight and the lamp at
+   night. Every photograph takes the same hour: SunWall writes --tod (lib/sun.ts
+   photoLight) and the pictures are multiplied by it, so they are clear at
+   midday, soft gold early and late, lavender at dusk, cool and dim at night,
+   and the travelling band of sunlight fades out after dark (--sweep). */
+html.rv-native :is(.nv-room,.nv-card),
+html.rv-native body .qa-grid .qa-tile,
+html.rv-native body .topbar:is(.nv-hero,.nv-L-fullbleed,.nv-L-conversation){
+  background-color:rgb(var(--tod,255,255,255))!important;background-blend-mode:multiply!important;transition:background-color 3s ease}
+html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button){
+  background-color:rgb(var(--tod,255,255,255))!important;background-blend-mode:normal,multiply!important}
+html.rv-native :is(.nv-room,.nv-card)::after,
+html.rv-native body .qa-grid .qa-tile::after,
+html.rv-native body .topbar:is(.nv-hero,.nv-L-fullbleed)::after{opacity:var(--sweep,1);transition:opacity 3s ease}
+/* type on the brighter wall keeps a soft halo, as on the website */
+html.rv-native body main.main{text-shadow:0 0 3px rgba(6,10,8,.42),0 1px 18px rgba(6,10,8,.7)}
+html.rv-native body main.main :is(.btn.solid,.btn.solid *,.nv-avatar,.avail-cell.on,.ws-tile,.ws-add,.ws-view.on,.ws-mark.done,.nv-room i,.badge,input,textarea,select){text-shadow:none!important}
+html.rv-native{--nv-dim:#B3BAAE}
+.nv-words a{color:#98A195!important}
+.nv-words a.on{color:var(--nv-cream)!important}

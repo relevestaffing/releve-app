@@ -60,3 +60,19 @@ export function sunShadow(h: number) {
   const g = mixv([210, 225, 240], mixv([255, 250, 236], [255, 214, 160], warm), day).map(Math.round);
   return { x, y, b, a, c, g, ga: mix(.25, .55 + .35 * warm, day), lx: -side * day };
 }
+
+/* The photographs take the same light (4 November 2026, Nona: "I want the
+   backgrounds to change dependent on the time of day for the mobile app like
+   it does for the website"). Every material tile, card and hero band is
+   multiplied by this colour: clear daylight at midday, a soft gold low in the
+   morning and evening, lavender at dusk, cool moonlight at night. sweep is how
+   strongly the travelling band of sunlight shows on them. */
+export function photoLight(h: number) {
+  const s = (h - 6.5) / 13;
+  const e = s > 0 && s < 1 ? Math.sin(Math.PI * s) : 0;
+  const day = S(5.6, 7.2, h) * S(20.6, 19.2, h);
+  const warm = Math.pow(1 - e, 1.6) * day;
+  const lit = mixv([255, 255, 255], [250, 233, 216], warm);
+  const c = mixv([92, 104, 136], lit, day).map(Math.round) as V3;
+  return { c, day, sweep: mix(.1, .55 + .45 * e, day) };
+}

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import './palette.css';
-import { S, mix, lightAt, hourNow, sunShadow } from '@/lib/sun';
+import { S, mix, lightAt, hourNow, sunShadow, photoLight } from '@/lib/sun';
 
 /* Phones keep the wall at its evening dark whatever the hour (Nona, 3 Nov 2026: the
    daylit plaster read too light on a phone). Desktop still follows the clock. */
@@ -90,7 +90,7 @@ void main(){
            : veil<1.5 ? mix(.30,.62,1.-v.y)                         // header, phone: the greeting sits low
            : veil<2.5 ? mix(.62,.28,smoothstep(0.,.9,v.x))          // sign-in and welcome: the card sits centre
            : veil<3.5 ? mix(.55,.12,smoothstep(0.,.8,v.x))          // the whole page, desktop: greeting left, cards over the wall
-           : .38;                                                    // the whole page, phone
+           : .27;                                                    // the whole page, phone (lifted 4 Nov so the hour shows)
   c*=1.-vl*.82;
   c+=(h1(dot(gl_FragCoord.xy,vec2(12.9898,78.233))+t)-.5)*.018; // film grain
   gl_FragColor=vec4(c,1.);
@@ -113,10 +113,10 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
     const t0 = performance.now();
     let lastKey = '';
     const apply = () => {
-      const k = sunShadow(wallHour((performance.now() - t0) / 1000));
+      const hr = wallHour((performance.now() - t0) / 1000), k = sunShadow(hr), ph = photoLight(hr);
       /* Writing to <html> restyles the whole page, so only when the shadow
          has actually moved enough to see (scroll performance, 2 Nov 2026). */
-      const key = [Math.round(k.x), Math.round(k.y), Math.round(k.b / 2), k.a.toFixed(2), k.c.join(','), k.lx.toFixed(1)].join('|');
+      const key = [Math.round(k.x), Math.round(k.y), Math.round(k.b / 2), k.a.toFixed(2), k.c.join(','), k.lx.toFixed(1), ph.c.join(','), ph.sweep.toFixed(2)].join('|');
       if (key === lastKey) return;
       lastKey = key;
       const st = root.style;
@@ -124,6 +124,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
       st.setProperty('--shb', k.b.toFixed(1) + 'px'); st.setProperty('--sha', k.a.toFixed(3));
       st.setProperty('--shc', k.c.join(',')); st.setProperty('--glow', k.g.join(','));
       st.setProperty('--gla', k.ga.toFixed(3)); st.setProperty('--lx', k.lx.toFixed(3));
+      st.setProperty('--tod', ph.c.join(',')); st.setProperty('--sweep', ph.sweep.toFixed(3)); st.setProperty('--day', ph.day.toFixed(3));
     };
     apply();
     let fast = false;
