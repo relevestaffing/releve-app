@@ -3,13 +3,10 @@ import { useEffect, useRef } from 'react';
 import './palette.css';
 import { S, mix, lightAt, hourNow, sunShadow, photoLight } from '@/lib/sun';
 
-/* Phones keep the wall at its evening dark whatever the hour (Nona, 3 Nov 2026: the
-   daylit plaster read too light on a phone). Desktop still follows the clock. */
-const PHONE_HOUR = 22;
-const wallHour = (t: number) => {
-  try { if (window.matchMedia('(max-width:900px)').matches && !new URLSearchParams(window.location.search).get('sun')) return PHONE_HOUR; } catch {}
-  return hourNow(t);
-};
+/* Phones follow the viewer's clock like the website (Nona, 4 Nov 2026: "I want the
+   backgrounds to change dependent on the time of day for the mobile app like it
+   does for the website"). This replaces the 3 Nov pin of phones at 22:00. */
+const wallHour = (t: number) => hourNow(t);
 
 /* The window wall, lit by the sun of the viewer's own clock (Nona, 2 November
    2026: "I want it to have movement and the sun to move depending on the time
