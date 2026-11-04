@@ -89,6 +89,19 @@ export default async function Console({ searchParams }: { searchParams: Promise<
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console"
+      lead={{
+        eyebrow: urgent.length ? `Today · ${urgent.length} urgent` : attention.length ? `Today · ${attention.length} to pick up` : 'Today',
+        title: attention[0] ? attention[0].what : 'All clear',
+        meta: attention[0] ? attention[0].why : 'Nothing is waiting on you.',
+        href: attention[0] ? attention[0].href : '/console/people',
+        cta: attention[0]?.cta,
+        statsLabel: 'Your business', statsHref: '/console/people',
+        stats: [
+          { n: vitals.clients, k: vitals.clients === 1 ? 'Executive' : 'Executives' },
+          { n: vitals.searchesOpen, k: vitals.searchesOpen === 1 ? 'Open search' : 'Open searches' },
+          { n: vitals.placementsLive, k: 'In seat' }
+        ]
+      }}
       title={first ? `${greeting}, ${first}` : greeting}
       crumb={new Date().toLocaleDateString('en-US',
         { weekday: 'long', day: 'numeric', month: 'long', timeZone: ZONE })}>

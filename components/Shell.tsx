@@ -6,7 +6,7 @@ import DemoSwitch from './DemoSwitch';
 import MobileNav from './MobileNav';
 import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
-import HomeStage from './native/HomeStage';
+import HomeStage, { type Lead } from './native/HomeStage';
 import Motion from './Motion';
 import PageLift from './PageLift';
 import PullRefresh from './PullRefresh';
@@ -244,6 +244,13 @@ function horizonLine(role: string): string {
   return `Friday report due each week`;
 }
 
+function defaultLead(role: string, unread: number, messagesHref: string): Lead {
+  const eyebrow = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles' });
+  if (unread > 0) return { eyebrow, title: `${unread} new message${unread === 1 ? '' : 's'}`, meta: 'Waiting for you in Messages', href: messagesHref, cta: 'Open messages' };
+  const href = role === 'admin' ? '/console/money' : role === 'client' ? '/app/billing' : '/app/report';
+  return { eyebrow, title: horizonLine(role), href };
+}
+
 async function unreadCount(profile: Profile): Promise<number> {
   if (!configured()) return 0;
   try {
@@ -265,10 +272,14 @@ function Title({ text }: { text: string }) {
 }
 
 export default async function Shell({
-  profile, active, title, crumb, action, children
+  profile, active, title, crumb, action, children, lead
 }: {
   profile: Profile; active: string; title: string; crumb?: string;
   action?: React.ReactNode; children: React.ReactNode;
+  /* The one thing Home sets large on a phone. Home pages that know better
+     pass their own; otherwise unread messages, then the next date that
+     matters for this role. */
+  lead?: Lead;
 }) {
   /* Every signed-in page renders through here, so this is the one place the
      terms gate has to exist. Deep links included: there is no route into the
@@ -424,6 +435,7 @@ export default async function Shell({
               <PushSetup compact />
             )}
             {isHome && nativeOn && <HomeStage unreadHref={messagesHref} unread={unread}
+              lead={lead ?? defaultLead(profile.role, unread, messagesHref)}
               greeting={title.split(',')[0]} name={firstName(shownName)} askHref={profile.role === 'admin' ? '/console/ask' : '/app/ask'}
               today={new Date(Date.now() - 8 * 3600 * 1000).getUTCDay()}
               rooms={[...quickItems(profile.role, clientTour, placedOnly).filter(t => t.href !== home), ...jump].slice(0, 8)} />}

@@ -320,8 +320,18 @@ export default async function AppHome() {
       </div>
     );
 
+    const lead = waitingOnMe && current
+      ? { eyebrow: 'Your candidate', title: current.person.name,
+          meta: [current.person.role, current.person.yrs ? `${current.person.yrs} years` : null].filter(Boolean).join(' · ') || undefined,
+          href: '/app/pipeline', cta: 'Review your candidate' }
+      : placements[0]
+        ? { eyebrow: 'Your placement', title: placements[0].talent_name ?? 'Your professional', meta: 'Tasks, hours and messages', href: '/app/tasks', cta: 'Open tasks',
+            statsLabel: 'Your team', statsHref: '/app/role',
+            stats: [{ n: placements.length, k: 'In seat' }] }
+        : { eyebrow: 'Your search', title: 'Being worked now', meta: 'A qualified candidate within fourteen days', href: '/app/messages?tab=sm', cta: 'Message your manager' };
+
     return (
-      <Shell profile={profile} active="/app"
+      <Shell profile={profile} active="/app" lead={lead}
         title={homeTitle}
         crumb={profile.org_name ?? 'Executive'}>
 
