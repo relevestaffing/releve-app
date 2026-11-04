@@ -230,7 +230,7 @@ html.rv-native body :is(.qa-tile,a.card,a.money-stat,.choose-card,.nv-room):acti
 .nv-scrim{position:fixed;inset:0;z-index:90;background:rgba(4,7,5,.6);opacity:0;transition:opacity .36s ease}
 .nv-scrim[data-shown="1"]{opacity:1}
 .nv-sheet{position:fixed;z-index:91;left:0;right:0;bottom:0;box-sizing:border-box;max-height:calc(100% - env(safe-area-inset-top,0px) - 28px);display:flex;flex-direction:column;
-  background:linear-gradient(180deg,rgba(10,16,12,.78),rgba(10,16,12,.92) 40%),url(/atmos/tiles/lake.webp) center top/cover,#121B16;color:var(--nv-body);
+  background:linear-gradient(180deg,rgba(10,16,12,.78),rgba(10,16,12,.92) 40%),url(/atmos/tiles/shadow.webp) center top/cover,#121B16;color:var(--nv-body);
   border-radius:26px 26px 0 0;box-shadow:0 -30px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(214,221,226,.4);
   padding-bottom:env(safe-area-inset-bottom,0px);transform:translateY(104%);transition:transform .56s var(--nv-ease)}
 .nv-sheet[data-shown="1"]{transform:translateY(var(--drag,0px))}
@@ -311,12 +311,12 @@ html.rv-native body .page-body > .qa-grid{display:flex!important;gap:12px;overfl
 html.rv-native body .page-body > .qa-grid::-webkit-scrollbar{display:none}
 html.rv-native body .qa-grid .qa-tile{flex:none;scroll-snap-align:start;width:164px;height:132px;box-sizing:border-box;padding:16px!important;margin:0!important;border:0!important;border-top:0!important;
   border-radius:var(--nv-r)!important;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:0;position:relative;overflow:hidden;
-  background:url(/atmos/tiles/plaster.webp) center/cover!important;box-shadow:0 24px 48px -26px rgba(0,0,0,.8)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/lake.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(3){background-image:url(/atmos/tiles/stone.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(4){background-image:url(/atmos/tiles/water.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(5){background-image:url(/atmos/tiles/moss.webp)!important}
-html.rv-native body .qa-grid .qa-tile:nth-child(6){background-image:url(/atmos/tiles/linen.webp)!important}
+  background:url(/atmos/tiles/shadow.webp) center/cover!important;box-shadow:0 24px 48px -26px rgba(0,0,0,.8)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(2){background-image:url(/atmos/tiles/wood.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(3){background-image:url(/atmos/tiles/leaves.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(4){background-image:url(/atmos/tiles/dune.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(5){background-image:url(/atmos/tiles/incense.webp)!important}
+html.rv-native body .qa-grid .qa-tile:nth-child(6){background-image:url(/atmos/tiles/driftwood.webp)!important}
 html.rv-native body .qa-grid .qa-tile{background-size:125% auto!important;animation:nvBreathe 30s ease-in-out infinite alternate}
 html.rv-native body .qa-grid .qa-tile::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,10,.1),rgba(8,13,10,.7))}
 html.rv-native body .qa-grid .qa-tile > *{position:relative}

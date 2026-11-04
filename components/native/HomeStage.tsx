@@ -11,9 +11,9 @@ import { Glyph, glyphFor } from './icons';
    stone, limewash, the window light), each with its name set on the image.
    The page's own content follows, straight on the wall. */
 type Room = { href: string; label: string; icon?: string };
-/* hyper-real nature textures (Nona, 3 November 2026): water, stone, plaster, linen, moss, a fog lake (she dropped wood and sand).
+/* hyper-real nature textures (Nona, 3 November 2026, from her Pinterest references): warm plaster with olive shadow, sculpted wood, deep leaves, dune, incense on plaster, driftwood against stucco.
    Water is a short looping film; the rest breathe with a slow Ken Burns drift. */
-const MATERIALS = ['water', 'stone', 'plaster', 'linen', 'moss', 'lake'];
+const MATERIALS = ['shadow', 'wood', 'leaves', 'dune', 'incense', 'driftwood'];
 const BY_WORD: [RegExp, string][] = [
   [/task/i, 'tasks'], [/bill|invoice|pay/i, 'card'], [/profile|signature/i, 'person'], [/role|placement|team|watch/i, 'briefcase'],
   [/recruit|directory|people|talent|roster/i, 'people'], [/match|candidate/i, 'person'], [/content|how|resource|skill|brief|log/i, 'book'],
