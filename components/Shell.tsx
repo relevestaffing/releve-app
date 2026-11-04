@@ -232,6 +232,18 @@ function askStarters(role: string, founder: boolean): string[] {
     : ['What is waiting on the team today?', 'Which interviews are coming up?', 'What does the Book say about releases?'];
 }
 
+/* The quiet line under the phone's bottom bar, the way Open shows the sunset:
+   the next date that matters to this account. */
+function horizonLine(role: string): string {
+  const now = new Date(Date.now() - 8 * 3600 * 1000);
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() + 1);
+  const when = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+  if (role === 'admin') return `Invoices go out ${when}`;
+  if (role === 'client') return `Next invoice ${when}`;
+  return `Friday report due each week`;
+}
+
 async function unreadCount(profile: Profile): Promise<number> {
   if (!configured()) return 0;
   try {
@@ -333,7 +345,7 @@ export default async function Shell({
     on: nativeOn, role: profile.role, home, title, isHome, active,
     tabs: quickItems(profile.role, clientTour, placedOnly),
     groups: nav, who: WHO[profile.role], name: shownName, org: profile.org_name ?? null,
-    profileHref, unread, messagesHref
+    profileHref, unread, messagesHref, line: horizonLine(profile.role)
   }).replace(/</g, '\\u003c');
   return (
     <>
@@ -412,6 +424,8 @@ export default async function Shell({
               <PushSetup compact />
             )}
             {isHome && nativeOn && <HomeStage unreadHref={messagesHref} unread={unread}
+              greeting={title.split(',')[0]} name={firstName(shownName)} askHref={profile.role === 'admin' ? '/console/ask' : '/app/ask'}
+              today={new Date(Date.now() - 8 * 3600 * 1000).getUTCDay()}
               rooms={[...quickItems(profile.role, clientTour, placedOnly).filter(t => t.href !== home), ...jump].slice(0, 8)} />}
             {children}
             {isHome && <HomeJump items={jump} unreadHref={messagesHref} unread={unread} />}

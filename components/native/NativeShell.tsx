@@ -39,7 +39,7 @@ type Group = { group?: string; items: Item[] };
 export type NativeCtx = {
   on: boolean; role: string; home: string; title: string; isHome: boolean; active?: string;
   tabs: Item[]; groups: Group[]; who: string; name: string; org?: string | null;
-  profileHref?: string; unread: number; messagesHref: string;
+  profileHref?: string; unread: number; messagesHref: string; line?: string;
 };
 type Kind = 'push' | 'pop' | 'tab';
 
@@ -367,6 +367,7 @@ export default function NativeShell() {
           aria-expanded={more} onClick={() => { haptic(8); setMore(true); }}>
           <Glyph k="more" /><span>More</span>
         </button>
+        {ctx.line && <div className="nv-horizon" aria-hidden="true">{ctx.line}</div>}
       </nav>
 
       {ghost && (

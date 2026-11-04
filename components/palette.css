@@ -9,58 +9,58 @@
 /* under the wall, and past its edges */
 html,body,.shell{background:var(--wall)!important}
 /* the sidebar: a plain band of the wall's deepest olive */
-html body aside.side{background:var(--wall-deep)!important;background-image:none!important;border-right-color:rgba(214,221,226,.07)!important}
-html body aside.side::before,html body aside.side::after{display:none!important}
+html:not(.rv-native) body aside.side{background:var(--wall-deep)!important;background-image:none!important;border-right-color:rgba(214,221,226,.07)!important}
+html:not(.rv-native) body aside.side::before,html:not(.rv-native) body aside.side::after{display:none!important}
 /* light surfaces: plain warm paper white, no grain */
-html body .card:not(.dark),html body .auth-card,html body .welcome-card,html body .today-card,html body .founder-band{background:var(--paper-white)!important;background-image:none!important}
-html body .card .card:not(.dark):not(.stat){background:transparent!important}
-html body .qa-tile,html body .money-stat,html body a.money-stat,html body .stat:not(.dark){background-color:var(--paper-white)!important;background-image:none!important}
+html:not(.rv-native) body .card:not(.dark),html:not(.rv-native) body .auth-card,html:not(.rv-native) body .welcome-card,html:not(.rv-native) body .today-card,html:not(.rv-native) body .founder-band{background:var(--paper-white)!important;background-image:none!important}
+html:not(.rv-native) body .card .card:not(.dark):not(.stat){background:transparent!important}
+html:not(.rv-native) body .qa-tile,html:not(.rv-native) body .money-stat,html:not(.rv-native) body a.money-stat,html:not(.rv-native) body .stat:not(.dark){background-color:var(--paper-white)!important;background-image:none!important}
 /* dark surfaces: plain olive, a step up from the sidebar */
-html body .card.dark,html body .ask-panel,html body .tier.feature{background:var(--wall-raised)!important;background-image:none!important}
+html:not(.rv-native) body .card.dark,html:not(.rv-native) body .ask-panel,html:not(.rv-native) body .tier.feature{background:var(--wall-raised)!important;background-image:none!important}
 /* the CRM keeps its bright paper; its board canvas is plain limewash */
 .ws.ws-x{--ws-canvas:var(--lime)}
-html body .ws.ws-x .ws-board{background:var(--lime)!important}
+html:not(.rv-native) body .ws.ws-x .ws-board{background:var(--lime)!important}
 /* AUDIT 3 NOV: square corners on phones too, the same as the desktop and the website.
    The floating quick bar and the Ask button keep their shape. */
 @media (max-width:900px){
-  html body .btn,html body .card,html body .card.stat,html body .money-stat,html body table.data,
-  html body .ff input,html body .ff select,html body .ff textarea{border-radius:0!important}
+  html:not(.rv-native) body .btn,html:not(.rv-native) body .card,html:not(.rv-native) body .card.stat,html:not(.rv-native) body .money-stat,html:not(.rv-native) body table.data,
+  html:not(.rv-native) body .ff input,html:not(.rv-native) body .ff select,html:not(.rv-native) body .ff textarea{border-radius:0!important}
 }
 /* PHONE TIDY (3 Nov 2026): a quiet bar with the logo behind the menu button so it never
    floats over a card; tabs and saved views stay on one line and scroll; a person's three
    actions sit on one row; a row's company name gives way to its menu. */
 @media (max-width:900px){
-  html body .shell::after{content:'';position:fixed;z-index:49;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
+  html:not(.rv-native) body .shell::after{content:'';position:fixed;z-index:49;top:0;left:0;right:0;height:calc(64px + env(safe-area-inset-top));
     background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,transparent;
     -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid transparent;pointer-events:none;
     transition:background .4s ease,border-color .4s ease}
-  html body .shell.scrolled::after{
+  html:not(.rv-native) body .shell.scrolled::after{
     background:url(/logo-fern.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,rgba(250,248,242,.95);
     border-bottom-color:rgba(53,68,58,.14)}
-  html body .menu-trigger{z-index:50}
-  html body .ws-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
+  html:not(.rv-native) body .menu-trigger{z-index:50}
+  html:not(.rv-native) body .ws-views{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
     -webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}
-  html body .ws-views::-webkit-scrollbar{display:none}
-  html body .ws-view{flex:none}
-  html body .ws-record .ws-tabs{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
-  html body .ws-tabs > *{flex:none}
-  html body .acct-actions{flex-wrap:nowrap;width:100%}
-  html body .acct-actions .btn{flex:1 1 auto;justify-content:center;padding-left:10px;padding-right:10px;letter-spacing:.12em;white-space:nowrap}
-  html body .acct-actions .acct-more{flex:0 0 44px}
-  html body .ws-name small{display:none}
-  html body .mobile-action:has(.acct-actions){padding-left:0}
+  html:not(.rv-native) body .ws-views::-webkit-scrollbar{display:none}
+  html:not(.rv-native) body .ws-view{flex:none}
+  html:not(.rv-native) body .ws-record .ws-tabs{-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}
+  html:not(.rv-native) body .ws-tabs > *{flex:none}
+  html:not(.rv-native) body .acct-actions{flex-wrap:nowrap;width:100%}
+  html:not(.rv-native) body .acct-actions .btn{flex:1 1 auto;justify-content:center;padding-left:10px;padding-right:10px;letter-spacing:.12em;white-space:nowrap}
+  html:not(.rv-native) body .acct-actions .acct-more{flex:0 0 44px}
+  html:not(.rv-native) body .ws-name small{display:none}
+  html:not(.rv-native) body .mobile-action:has(.acct-actions){padding-left:0}
   html body:has(.chat-card .composer) .ask-fab{display:none}
 }
 /* TODAY LIST ON PHONES (3 Nov 2026): the count sits beside its sentence, not on a line of
    its own; the button sits under the sentence at its natural width, not a full-width slab. */
 @media (max-width:900px){
-  html body .attention li{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;row-gap:14px;
+  html:not(.rv-native) body .attention li{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;row-gap:14px;
     align-items:start;padding:20px 0;flex-wrap:nowrap}
-  html body .attention li:first-child{padding-top:6px}
-  html body .attention li .att-n{grid-column:1;min-width:0;width:30px;height:auto;font-size:24px;line-height:1.1;margin-top:-2px}
-  html body .attention li .att-body{grid-column:2;min-width:0}
-  html body .attention li .att-line,html body .attention li .att-body b{font-size:15px;line-height:1.55}
-  html body .attention li > .btn{grid-column:2;width:auto;justify-self:start;margin:0;align-self:start}
+  html:not(.rv-native) body .attention li:first-child{padding-top:6px}
+  html:not(.rv-native) body .attention li .att-n{grid-column:1;min-width:0;width:30px;height:auto;font-size:24px;line-height:1.1;margin-top:-2px}
+  html:not(.rv-native) body .attention li .att-body{grid-column:2;min-width:0}
+  html:not(.rv-native) body .attention li .att-line,html:not(.rv-native) body .attention li .att-body b{font-size:15px;line-height:1.55}
+  html:not(.rv-native) body .attention li > .btn{grid-column:2;width:auto;justify-self:start;margin:0;align-self:start}
 }
 /* TRANSPARENT-TO-CREAM HEADER (2 Nov 2026, Nona): the top bar starts invisible
    over the dark SunWall, then fades to cream as the user scrolls past the
@@ -68,16 +68,16 @@ html body .ws.ws-x .ws-board{background:var(--lime)!important}
    stays cream always. The .scrolled class is toggled by HeaderScroll.tsx. */
 @media (max-width:900px){
   /* menu trigger: no circle, starts white, fades to fern on scroll */
-  html body .menu-trigger{
+  html:not(.rv-native) body .menu-trigger{
     background:transparent;color:#fff;box-shadow:none;
     transition:color .4s ease}
-  html body .shell.scrolled .menu-trigger{color:var(--fern)}
+  html:not(.rv-native) body .shell.scrolled .menu-trigger{color:var(--fern)}
 
   /* quickbar stays cream */
-  html body .quickbar{
+  html:not(.rv-native) body .quickbar{
     background:rgba(250,248,242,.96);
     box-shadow:0 18px 40px -16px rgba(34,48,42,.38),inset 0 0 0 1px rgba(53,68,58,.14)}
-  html body .quickbar a{color:#6E8073}
-  html body .quickbar a.on,html body .quickbar .on{color:#35443A;background:rgba(53,68,58,.06)}
-  html body .quickbar a.on::before{background:#35443A}
+  html:not(.rv-native) body .quickbar a{color:#6E8073}
+  html:not(.rv-native) body .quickbar a.on,html:not(.rv-native) body .quickbar .on{color:#35443A;background:rgba(53,68,58,.06)}
+  html:not(.rv-native) body .quickbar a.on::before{background:#35443A}
 }
