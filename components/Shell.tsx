@@ -245,6 +245,24 @@ function horizonLine(role: string): string {
   return `Friday report due each week`;
 }
 
+/* Phone layouts (Nona, 4 November 2026: "what I like about Open is that
+   each page is different and doesn't look identical"). Every screen takes
+   the layout that suits what it is for; they share only the wall, Lora and
+   silver. Deeper screens not listed stay type only on the wall. */
+type PhoneLayout = 'gallery' | 'fullbleed' | 'index' | 'ledger' | 'agenda' | 'conversation';
+const LAYOUTS: [PhoneLayout, string[]][] = [
+  ['conversation', ['/app/messages', '/console/messages', '/app/ask', '/console/ask']],
+  ['ledger', ['/app/billing', '/console/money', '/app/pay', '/app/report', '/app/value', '/app/agreement']],
+  ['agenda', ['/app/interviews', '/console/interviews', '/app/availability', '/console/calendar', '/app/log', '/app/checkin', '/app/tasks']],
+  ['index', ['/console/team', '/console/reports', '/console/business', '/console/content', '/console/signals', '/console/email-list', '/console/campaigns', '/console/booking']],
+  ['fullbleed', ['/app/pipeline', '/app/care', '/app/profile', '/app/talent', '/app/signature', '/app/role', '/app/brief', '/app/vetting', '/console/care', '/console/checkins']],
+  ['gallery', ['/console/directory', '/console/people', '/console/applications', '/console/postings', '/console/bench', '/console/prospects', '/console/matching', '/console/placements', '/console/offers', '/console/recruiting', '/app/resources', '/app/how', '/app/delegate', '/app/skills', '/app/watch']]
+];
+function layoutFor(active: string): PhoneLayout | null {
+  for (const [name, list] of LAYOUTS) if (list.some(h => active === h || active.startsWith(h + '/'))) return name;
+  return null;
+}
+
 function defaultLead(role: string, unread: number, messagesHref: string): Lead {
   const eyebrow = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Los_Angeles' });
   if (unread > 0) return { eyebrow, title: `${unread} new message${unread === 1 ? '' : 's'}`, meta: 'Waiting for you in Messages', href: messagesHref, cta: 'Open messages' };
@@ -364,7 +382,11 @@ export default async function Shell({
   let nativePref: string | undefined;
   try { nativePref = (await cookies()).get('rv_native')?.value; } catch { nativePref = undefined; }
   const nativeOn = process.env.NATIVE_ALL === '1' ? nativePref !== '0' : (nativePref === '1' || (founder && nativePref !== '0'));
-  const heroMat = nativeOn && !isHome && roomAt >= 0 ? MATERIALS[roomAt % MATERIALS.length] : null;
+  const layout = nativeOn && !isHome ? layoutFor(active) : null;
+  const matAt = roomAt >= 0 ? roomAt : [...active].reduce((n, c) => n + c.charCodeAt(0), 0);
+  const heroMat = layout ? MATERIALS[matAt % MATERIALS.length] : null;
+  const WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const todayIdx = new Date(Date.now() - 8 * 3600 * 1000).getUTCDay();
   const nativeCtx = JSON.stringify({
     on: nativeOn, role: profile.role, home, title, isHome, active,
     tabs: quickItems(profile.role, clientTour, placedOnly),
@@ -386,7 +408,7 @@ export default async function Shell({
         name={shownName}
         org={profile.org_name}
         profileHref={profileHref} unread={unread} messagesHref={messagesHref} />
-      <div className="shell" data-title={isHome ? undefined : title}>
+      <div className="shell" data-title={isHome ? undefined : title} data-layout={isHome && nativeOn ? 'today' : layout ?? undefined}>
         <aside className="side">
           <Link href={home} className="side-logo"><img src="/logo-white.png" alt="Relève" /></Link>
           {profileHref ? (
@@ -426,7 +448,7 @@ export default async function Shell({
         <main className="main">
           <SunWall page />
           <HeaderScroll />
-          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}${heroMat ? ' nv-hero nv-has-rail' : ''}`}
+          <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}${layout ? ` nv-L nv-L-${layout}` : ''}`}
             style={heroMat ? { ['--hero' as any]: `url(/atmos/tiles/${heroMat}.webp)` } : undefined}>
             <span className="band-light" aria-hidden="true" />
             <div className="tb-text"><div className="crumb">{crumb}</div><h1><Title text={title} /></h1></div>
@@ -442,13 +464,19 @@ export default async function Shell({
             {action && <div className="topbar-action">{action}</div>}
           </div>
           <div className="page-body">
-            {heroMat && (() => {
+            {layout === 'gallery' && (() => {
               const n = levelItems.length;
-              const next = [1, 2, 3].map(k => levelItems[(roomAt + k) % n]).filter((r, i, all) => r && r.href !== active && all.findIndex(x => x.href === r.href) === i)
-                .map(r => ({ href: r.href, label: r.label, mat: MATERIALS[firstLevel.indexOf(r.href) % MATERIALS.length] }));
-              return <ScreenRail here={{ href: active, label: levelItems[roomAt].label, mat: heroMat }}
+              const from = roomAt >= 0 ? roomAt : 0;
+              const next = [1, 2, 3].map(k => levelItems[(from + k) % n]).filter((r, i, all) => r && r.href !== active && all.findIndex(x => x.href === r.href) === i)
+                .map(r => ({ href: r.href, label: r.label, mat: MATERIALS[Math.max(0, firstLevel.indexOf(r.href)) % MATERIALS.length] }));
+              return <ScreenRail here={{ href: active, label: roomAt >= 0 ? levelItems[roomAt].label : title, mat: heroMat as string }}
                 eyebrow={lead?.eyebrow ?? crumb} title={lead?.title ?? title} meta={lead?.meta} next={next} />;
             })()}
+            {layout === 'agenda' && (
+              <div className="nv-agenda-week" aria-hidden="true">
+                {WEEK.map((d, i) => <span key={i} className={i === todayIdx ? 'on' : ''}>{d}</span>)}
+              </div>
+            )}
             {/* The grace banner, on every client page, so an open invoice is
                 seen well before the fourteen-day gate. */}
             {profile.role === 'client' && <BillingBanner clientId={profile.id} />}
