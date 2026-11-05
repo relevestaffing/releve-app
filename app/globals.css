@@ -3434,3 +3434,23 @@ html.js .rv-d4{transition-delay:.23s} html.js .rv-d5{transition-delay:.29s} html
   .ask-fab-label{display:inline}
 }
 @media (prefers-reduced-motion:reduce){.ask-fab::after{animation:none;transform:none;opacity:.7}}
+
+/* ── The console's one search (4 November 2026), phone and desktop ── */
+.console-search{--nv-cream:#EFEBE0;--nv-rule:rgba(214,221,226,.16);--nv-rule-2:rgba(214,221,226,.34)}
+.console-search{margin:0 0 30px;position:relative}
+.cs-box{display:flex;align-items:center;gap:10px;height:50px;padding:0 16px;border:1px solid var(--nv-rule-2);border-radius:999px;
+  background:rgba(10,16,12,.42);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:var(--nv-cream)}
+.cs-box svg{width:19px;height:19px;flex:none;opacity:.85}
+.cs-box input{flex:1;min-width:0;height:100%;border:0!important;background:transparent!important;color:var(--nv-cream)!important;
+  font:300 16px/1 'Poppins',sans-serif;padding:0!important;outline:none;-webkit-appearance:none;appearance:none;box-shadow:none!important}
+.cs-box input::placeholder{color:rgba(239,235,224,.66)}
+.cs-box input::-webkit-search-cancel-button{display:none}
+.cs-clear{border:0;background:none;color:rgba(239,235,224,.8);font:400 10px/1 'Lora',Georgia,serif;letter-spacing:.18em;text-transform:uppercase;padding:6px 0}
+.cs-results{margin-top:10px;border-top:1px solid var(--nv-rule)}
+.cs-results ul{list-style:none;margin:0;padding:0}
+.cs-hit{display:flex;align-items:baseline;gap:14px;padding:14px 2px;border-bottom:1px solid var(--nv-rule);text-decoration:none!important;color:var(--nv-cream)!important}
+.cs-kind{flex:none;width:76px;font:400 9.5px/1.3 'Lora',Georgia,serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(239,235,224,.8)}
+.cs-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.cs-main b{font:400 17px/1.25 'Lora',Georgia,serif;color:var(--nv-cream)}
+.cs-main span{font:300 13px/1.4 'Poppins',sans-serif;color:rgba(239,235,224,.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-empty{margin:14px 2px 0;font:300 14px/1.5 'Poppins',sans-serif;color:rgba(239,235,224,.85)}

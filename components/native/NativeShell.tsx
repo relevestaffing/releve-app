@@ -34,7 +34,7 @@ import './native.css';
    pause. The bars never move. Text never drifts on its own. With reduced
    motion every change is instant. */
 
-type Item = { href: string; label: string; icon?: string };
+type Item = { href: string; label: string; icon?: string; hint?: string };
 type Group = { group?: string; items: Item[] };
 export type NativeCtx = {
   on: boolean; role: string; home: string; title: string; isHome: boolean; active?: string;
@@ -396,7 +396,7 @@ export default function NativeShell() {
             <div className="nv-list">
               {g.items.map(it => (
                 <Link key={it.href} href={it.href} className="nv-row" data-title={it.label}>
-                  <span>{it.label}</span><Glyph k="chevron" />
+                  <span className="nv-row-t">{it.label}{it.hint && <small>{it.hint}</small>}</span><Glyph k="chevron" />
                 </Link>
               ))}
             </div>

@@ -17,7 +17,7 @@ export default async function ConsoleWatch() {
   const queue = await watchReviewQueue();
 
   return (
-    <Shell profile={profile} active="/console/directory" title="Taking The Watch"
+    <Shell profile={profile} active="/console/directory" title="Taking The Watch™"
       crumb="To review"
       action={<Link className="btn sm ghost" href="/console/directory">← Directory</Link>}>
       {queue.length === 0 ? (

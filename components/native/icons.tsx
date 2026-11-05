@@ -24,7 +24,7 @@ const G: Record<string, React.ReactNode> = {
 const BY_HREF: Record<string, string> = {
   '/app': 'home', '/console': 'home',
   '/app/pipeline': 'person', '/app/interviews': 'calendar', '/app/messages': 'message',
-  '/app/care': 'briefcase', '/app/tasks': 'tasks', '/app/how': 'book', '/app/value': 'chart',
+  '/app/care': 'briefcase', '/app/tasks': 'tasks', '/app/talent': 'person', '/app/how': 'book', '/app/value': 'chart',
   '/console/directory': 'people', '/console/placements': 'briefcase', '/console/money': 'card',
   '/console/messages': 'message'
 };

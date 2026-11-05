@@ -609,3 +609,53 @@ html.rv-native body .topbar .crumb{color:rgba(239,235,224,.9)!important}
 html.rv-native body main.main::after{background:linear-gradient(180deg,rgba(6,10,8,.42) 0,rgba(6,10,8,.18) 9%,rgba(6,10,8,.3) 18%,rgba(6,10,8,.5) 40%,rgba(6,10,8,.56) 70%,rgba(6,10,8,.6) 100%)!important}
 .nv-ask{color:var(--nv-cream)}
 html.rv-native body .page-body .ask-who span{color:rgba(239,235,224,.82)!important}
+
+/* ── Easy to find your way (4 November 2026) ──
+   Nona: "it still needs to be functional and user-friendly and easy to
+   understand." Every tab wears its word, not only the lit one, so nobody has
+   to guess an icon. */
+.nv-tab{color:rgba(239,235,224,.62);font-size:9.5px;letter-spacing:.12em;gap:5px}
+.nv-tab span{display:block!important;padding-left:.12em;max-width:100%;overflow:hidden;text-overflow:clip}
+.nv-tab svg{width:22px;height:22px}
+.nv-tab[aria-current="page"]{color:var(--nv-cream)}
+.nv-tab .unread-dot{top:10px}
+/* Working screens lead with the work: the photograph becomes a band, not most of the
+   screen, so the first content and the first button sit on the opening screen. Home keeps
+   its full room. */
+html.rv-native body .topbar.nv-L-fullbleed{min-height:min(34vh,290px)!important;padding-bottom:22px!important;margin-bottom:22px!important}
+html.rv-native body .topbar.nv-L-fullbleed h1{font-size:40px!important}
+html.rv-native .nv-feat{margin-bottom:22px}
+html.rv-native .nv-card{height:clamp(150px,42vw,184px);padding:16px 18px}
+html.rv-native .nv-card-title{font-size:30px}
+html.rv-native .nv-card:not(.here) .nv-card-title{font-size:22px}
+/* The console opens on the day's work (4 November 2026). The Home stage lets its parts
+   take their place among the page's own sections, so on the console the order reads:
+   greeting, the lead, search, Today, follow-ups, then the rooms, the line and the numbers.
+   Executive and talent Home keep the order they had. */
+html.rv-native .nv-stage{display:contents}
+html.rv-native .nv-stage > .nv-week{order:-30;margin-top:calc(var(--nv-top) + 6px)}
+html.rv-native .nv-stage > .nv-greet{order:-29}
+html.rv-native .nv-stage > .nv-lead{order:-28}
+html.rv-native .nv-stage > .nv-words{order:-27}
+html.rv-native .nv-stage > .nv-line{order:-26}
+html.rv-native .nv-stage > .nv-status{order:-25}
+html.rv-native .nv-stage > .nv-sect{order:-24}
+html.rv-native .nv-stage > .nv-rail{order:-23}
+html.rv-native .page-body:has(.console-search) .nv-stage > .nv-lead{margin-bottom:28px}
+html.rv-native .page-body:has(.console-search) > .console-search{order:-27}
+html.rv-native .page-body:has(.console-search) > .today-card{order:-26}
+html.rv-native .page-body:has(.console-search) > .followup-card{order:-25}
+html.rv-native .page-body:has(.console-search) .nv-stage > .nv-words{order:-20}
+html.rv-native .page-body:has(.console-search) .nv-stage > .nv-line{order:-19}
+html.rv-native .page-body:has(.console-search) .nv-stage > .nv-status{order:-18}
+html.rv-native .page-body:has(.console-search) .nv-stage > .nv-sect{order:-17}
+html.rv-native .page-body:has(.console-search) .nv-stage > .nv-rail{order:-16;margin-bottom:40px}
+/* rows of nothing but zeros say nothing; they wait until there is something to count */
+html.rv-native body .page-body .all-zero{display:none!important}
+html.rv-native body .page-body .stack > div:has(> .all-zero){display:none!important}
+
+/* the search box: styles in app/globals.css (shared with desktop) */
+/* each place in the More menu says what it is for, under its name */
+.nv-row{padding:12px 0!important}
+.nv-row-t{display:flex;flex-direction:column;gap:5px;min-width:0}
+.nv-row-t small{font:300 13px/1.35 'Poppins',sans-serif;letter-spacing:0;text-transform:none;color:rgba(239,235,224,.78)}

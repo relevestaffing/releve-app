@@ -16,19 +16,23 @@ const PRIMARY: Record<string, { href: string; label: string; icon: string }[]> =
     { href: '/app/interviews', label: 'Interviews', icon: 'calendar' },
     { href: '/app/messages',   label: 'Messages',   icon: 'message' }
   ],
+  /* Talent on the roster, not yet placed: getting ready and interviewing. */
   talent: [
     { href: '/app',            label: 'Home',       icon: 'home' },
     { href: '/app/interviews', label: 'Interviews', icon: 'calendar' },
-    { href: '/app/care',       label: 'Placement',  icon: 'briefcase' },
-    { href: '/app/messages',   label: 'Messages',   icon: 'message' }
+    { href: '/app/messages',   label: 'Messages',   icon: 'message' },
+    { href: '/app/talent',     label: 'Profile',    icon: 'person' }
   ],
   /* Messages has its own badge in the topbar on every screen, so the four
      thumb-sized tabs go to the four she opens on a phone. */
+  /* 4 November 2026 (Nona: the console "feels a little bit confusing... I
+     have to search for stuff"): Messages is a tab, not hidden under More;
+     Billing, run once a month, moves into More. */
   admin: [
-    { href: '/console',            label: 'Overview',   icon: 'home' },
+    { href: '/console',            label: 'Today',      icon: 'home' },
     { href: '/console/directory',  label: 'Directory',  icon: 'people' },
-    { href: '/console/placements', label: 'Placed',     icon: 'briefcase' },
-    { href: '/console/money',      label: 'Billing',    icon: 'chart' }
+    { href: '/console/messages',   label: 'Messages',   icon: 'message' },
+    { href: '/console/placements', label: 'Placements', icon: 'briefcase' }
   ]
 };
 
@@ -37,9 +41,9 @@ const PRIMARY: Record<string, { href: string; label: string; icon: string }[]> =
    "Candidate" tab pointing at a search that is over. */
 const CLIENT_PLACED = [
   { href: '/app',          label: 'Home',       icon: 'home' },
-  { href: '/app/care',     label: 'Placement',  icon: 'briefcase' },
-  { href: '/app/tasks',    label: 'Tasks',      icon: 'people' },
-  { href: '/app/messages', label: 'Messages',   icon: 'message' }
+  { href: '/app/tasks',    label: 'Tasks',      icon: 'tasks' },
+  { href: '/app/messages', label: 'Messages',   icon: 'message' },
+  { href: '/app/care',     label: 'Placement',  icon: 'briefcase' }
 ];
 
 /* An executive before the deposit sees the three vision screens and nothing
@@ -54,21 +58,29 @@ const CLIENT_TOUR = [
   { href: '/app/messages', label: 'Messages',  icon: 'message' }
 ];
 
+/* Placed talent live in their tasks, so the bar follows the working day
+   (4 November 2026): Home, Tasks, Messages, Placement. */
+const TALENT_PLACED = [
+  { href: '/app',          label: 'Home',      icon: 'home' },
+  { href: '/app/tasks',    label: 'Tasks',     icon: 'tasks' },
+  { href: '/app/messages', label: 'Messages',  icon: 'message' },
+  { href: '/app/care',     label: 'Placement', icon: 'briefcase' }
+];
 /* The four tabs a role has right now. Shared with Home, which lists the rest. */
-export function quickItems(role: string, tour: boolean, placedOnly: boolean) {
-  return role === 'client'
-    ? (tour ? CLIENT_TOUR : placedOnly ? CLIENT_PLACED : PRIMARY.client)
-    : (PRIMARY[role] ?? PRIMARY.talent);
+export function quickItems(role: string, tour: boolean, placedOnly: boolean, talentPlaced = false) {
+  if (role === 'client') return tour ? CLIENT_TOUR : placedOnly ? CLIENT_PLACED : PRIMARY.client;
+  if (role === 'talent') return talentPlaced ? TALENT_PLACED : PRIMARY.talent;
+  return PRIMARY[role] ?? PRIMARY.talent;
 }
 
-export default function QuickBar({ role, active, placedOnly = false, tour = false, unread = 0 }: {
-  role: string; active: string; unread?: number;
+export default function QuickBar({ role, active, placedOnly = false, tour = false, unread = 0, talentPlaced = false }: {
+  role: string; active: string; unread?: number; talentPlaced?: boolean;
   /* true for an executive with a placement and no open search */
   placedOnly?: boolean;
   /* true for an executive who has not taken the deposit step yet */
   tour?: boolean;
 }) {
-  const items = quickItems(role, tour, placedOnly);
+  const items = quickItems(role, tour, placedOnly, talentPlaced);
   return (
     <nav className="quickbar" aria-label="Quick actions">
       {items.map(p => (

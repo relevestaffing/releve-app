@@ -41,7 +41,7 @@ import { cookies } from 'next/headers';
 
    Labels here must match each page's own <Shell title>, or the sidebar and
    the page disagree about what you are looking at. */
-type NavItem = { href: string; label: string };
+type NavItem = { href: string; label: string; hint?: string };
 type NavGroup = { group?: string; items: NavItem[] };
 
 const NAV: Record<string, NavGroup[]> = {
@@ -51,7 +51,7 @@ const NAV: Record<string, NavGroup[]> = {
   client: [
     { items: [{ href: '/app', label: 'Dashboard' }] },
     { group: 'Your brief', items: [
-      { href: '/app/signature', label: 'Executive Signature' },
+      { href: '/app/signature', label: 'Executive Signature™' },
       { href: '/app/role', label: 'The role' },
       { href: '/app/profile', label: 'Your profile' }
     ]},
@@ -71,10 +71,10 @@ const NAV: Record<string, NavGroup[]> = {
   talent: [
     { items: [{ href: '/app', label: 'Dashboard' }] },
     { group: 'About you', items: [
-      { href: '/app/signature', label: 'Talent Signature' },
+      { href: '/app/signature', label: 'Talent Signature™' },
       { href: '/app/skills', label: 'Your skills' },
       { href: '/app/talent', label: 'Your profile' },
-      { href: '/app/watch', label: 'Taking The Watch' },
+      { href: '/app/watch', label: 'Taking The Watch™' },
       { href: '/app/vetting', label: 'Verification' }
     ]},
     { group: 'Opportunities', items: [
@@ -120,6 +120,39 @@ const NAV: Record<string, NavGroup[]> = {
   ]
 };
 
+/* What each place is for, in plain words (4 November 2026). Nona: keep the
+   names, add a line, so a busy founder or a talent reading in their second
+   language knows where they are going before they tap. Shown under each
+   name in the More menu and on a screen's own card. Keyed by role, then href. */
+const HINTS: Record<string, Record<string, string>> = {
+  client: {
+    '/app/signature': 'Your working-style assessment', '/app/role': 'What your assistant will own',
+    '/app/profile': 'Your details and how you work', '/app/pipeline': 'The person we chose for you',
+    '/app/interviews': 'Book and join your interviews', '/app/availability': 'When you are free to meet',
+    '/app/care': 'Your assistant, their plan and requests', '/app/tasks': 'Hand over work and review what is done',
+    '/app/report': 'What got done this month', '/app/billing': 'Invoices, payments and your plan',
+    '/app/messages': 'Write to your Client Success Manager', '/app/how': 'The process, step by step',
+    '/app/delegate': 'Ideas for what to hand over', '/app/value': 'What it gives you back',
+    '/app/agreement': 'Read and sign your agreement', '/app/resources': 'Free guides and templates'
+  },
+  talent: {
+    '/app/signature': 'Your working-style assessment', '/app/skills': 'The work you are strongest at',
+    '/app/talent': 'What executives see about you', '/app/watch': 'Your skills test: a real day of work',
+    '/app/vetting': 'Identity, right to work and agreement', '/app/interviews': 'Book and join your interviews',
+    '/app/availability': 'When you are free to meet', '/app/care': 'Who you work for and your plan',
+    '/app/tasks': 'Your work, from your executive and you', '/app/log': 'A two-minute note at the end of each day',
+    '/app/brief': 'Your executive’s tools and preferences', '/app/checkin': 'Every Friday, to your Talent Success Manager',
+    '/app/pay': 'Your rate, payout method and payments', '/app/messages': 'Write to Relève and your executive'
+  },
+  admin: {
+    '/console/directory': 'Leads, executives and talent', '/console/recruiting': 'Applications, introductions and job posts',
+    '/console/matching': 'Pair talent with open searches, and offers', '/console/placements': 'Everyone in seat, Friday reports, requests',
+    '/console/money': 'Invoices, payroll and the monthly run', '/console/messages': 'Every conversation with clients and talent',
+    '/console/content': 'Social posts, the Letter and the email list', '/console/business': 'Reports, calendar, booking page and team'
+  }
+};
+const withHints = (role: string, groups: NavGroup[]) => groups.map(g => ({ ...g,
+  items: g.items.map(i => ({ ...i, hint: HINTS[role]?.[i.href.replace(/\/care\/[^/]+$/, '/care')] })) }));
 const WHO: Record<string, string> = { client: 'Executive account', talent: 'Talent account', admin: 'Relève console' };
 
 /* Where the logo and the account name each go. The logo is always "home" —
@@ -164,7 +197,7 @@ async function clientNav(profile: Profile): Promise<NavGroup[]> {
   const nav: NavGroup[] = [{ items: [{ href: '/app', label: 'Dashboard' }] }];
 
   const brief: NavItem[] = [
-    { href: '/app/signature', label: 'Executive Signature' }
+    { href: '/app/signature', label: 'Executive Signature™' }
   ];
   /* The role brief describes a search. With none open it is a document about
      something finished, so it goes with the hiring screens rather than
@@ -352,18 +385,20 @@ export default async function Shell({
   const clientStage = profile.role === 'client' ? await executiveStage(profile.id) : null;
   const placedOnly = !!clientStage && clientStage.placed && !clientStage.hiring;
   const clientTour = profile.role === 'client' ? await execInTour(profile.id) : false;
+  /* Placed talent get a working-day tab bar (Tasks first), see QuickBar. */
+  const talentPlaced = profile.role === 'talent' ? (await listPlacementsFor(profile.id).catch(() => [])).length > 0 : false;
   const home = HOME[profile.role] ?? '/app';
   /* Home on a phone lists every room the four tabs do not reach, so the drawer
      is never the only way to a second screen. */
   const isHome = active === '/app' || active === '/console';
-  const tabHrefs = new Set(quickItems(profile.role, clientTour, placedOnly).map(t => t.href));
+  const tabHrefs = new Set(quickItems(profile.role, clientTour, placedOnly, talentPlaced).map(t => t.href));
   const jump = isHome
     ? nav.flatMap(g => g.items).filter(n => n.href !== home && !tabHrefs.has(n.href)).slice(0, 6)
     : [];
   /* The rooms Home shows as tiles. A room's own screen opens on the same
      material as its tile (phone only), so a tap carries the picture in;
      screens deeper than a room stay type only, so pages alternate. */
-  const roomList = [...quickItems(profile.role, clientTour, placedOnly).filter(t => t.href !== home),
+  const roomList = [...quickItems(profile.role, clientTour, placedOnly, talentPlaced).filter(t => t.href !== home),
     ...nav.flatMap(g => g.items).filter(n => n.href !== home && !tabHrefs.has(n.href)).slice(0, 6)].slice(0, 8);
   /* Every first-level screen gets its photo: the rooms first (same material
      as their Home tile), then the rest of the menu in order. */
@@ -389,8 +424,8 @@ export default async function Shell({
   const todayIdx = new Date(Date.now() - 8 * 3600 * 1000).getUTCDay();
   const nativeCtx = JSON.stringify({
     on: nativeOn, role: profile.role, home, title, isHome, active,
-    tabs: quickItems(profile.role, clientTour, placedOnly),
-    groups: nav, who: WHO[profile.role], name: shownName, org: profile.org_name ?? null,
+    tabs: quickItems(profile.role, clientTour, placedOnly, talentPlaced),
+    groups: withHints(profile.role, nav), who: WHO[profile.role], name: shownName, org: profile.org_name ?? null,
     profileHref, unread, messagesHref, line: horizonLine(profile.role)
   }).replace(/</g, '\\u003c');
   return (
@@ -470,7 +505,7 @@ export default async function Shell({
               const next = [1, 2, 3].map(k => levelItems[(from + k) % n]).filter((r, i, all) => r && r.href !== active && all.findIndex(x => x.href === r.href) === i)
                 .map(r => ({ href: r.href, label: r.label, mat: MATERIALS[Math.max(0, firstLevel.indexOf(r.href)) % MATERIALS.length] }));
               return <ScreenRail here={{ href: active, label: roomAt >= 0 ? levelItems[roomAt].label : title, mat: heroMat as string }}
-                eyebrow={lead?.eyebrow ?? crumb} title={lead?.title ?? title} meta={lead?.meta} next={next} />;
+                eyebrow={lead?.eyebrow ?? crumb} title={lead?.title ?? title} meta={lead?.meta ?? HINTS[profile.role]?.[active]} next={next} />;
             })()}
             {layout === 'agenda' && (
               <div className="nv-agenda-week" aria-hidden="true">
@@ -496,7 +531,7 @@ export default async function Shell({
                 is what the desktop rules that lift the opening card over the
                 hero band key on; with the (display:none) quick bar sitting in
                 that slot, those rules were landing on nothing. */}
-            <QuickBar role={profile.role} active={active} placedOnly={placedOnly}
+            <QuickBar role={profile.role} active={active} placedOnly={placedOnly} talentPlaced={talentPlaced}
               tour={clientTour} unread={unread} />
             {action && <div className="mobile-action">{action}</div>}
           </div>

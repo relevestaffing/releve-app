@@ -23,7 +23,7 @@ export default async function WatchPage() {
   const items = status.map(s => ({ ...s, name: DISCIPLINE[s.discipline]?.name ?? s.discipline }));
 
   return (
-    <Shell profile={profile} active="/app/watch" title="Taking The Watch">
+    <Shell profile={profile} active="/app/watch" title="Taking The Watch™">
       {!skillsComplete(skills) ? (
         <div className="card">
           <div className="card-head"><h3>Break down your skills first</h3></div>

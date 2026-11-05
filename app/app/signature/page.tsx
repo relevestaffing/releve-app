@@ -35,7 +35,7 @@ export default async function SignaturePage({ searchParams }: {
   const side = profile.role === 'client' ? 'client' : 'talent';
   const sig = await getMySignature(profile, side);
   const { retake } = await searchParams;
-  const title = side === 'client' ? 'Executive Signature' : 'Talent Signature';
+  const title = side === 'client' ? 'Executive Signature™' : 'Talent Signature™';
 
   if (sig && !retake) {
     const type = archetype(sig.scores, side);

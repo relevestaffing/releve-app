@@ -22,7 +22,7 @@ export default async function WatchAttemptPage({ params }: { params: Promise<{ a
   const readOnly = attempt.status !== 'in_progress';
 
   return (
-    <Shell profile={profile} active="/app/watch" title="Taking The Watch" crumb={name}>
+    <Shell profile={profile} active="/app/watch" title="Taking The Watch™" crumb={name}>
       {readOnly && (
         <div className="card tight" style={{ marginBottom: 4 }}>
           <p className="small muted">

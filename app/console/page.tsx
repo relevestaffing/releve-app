@@ -9,6 +9,8 @@ import { dueFollowUps } from '@/lib/prospects';
 import { stageLabel } from '@/lib/prospects-public';
 import { money, todayInPacific } from '@/lib/money-public';
 import Shell from '@/components/Shell';
+import ConsoleSearch from '@/components/ConsoleSearch';
+import type { Attention } from '@/lib/console';
 import { firstName, DASH } from '@/lib/words';
 
 export const metadata = { title: 'Overview' };
@@ -70,6 +72,18 @@ export default async function Console({ searchParams }: { searchParams: Promise<
   const today = todayInPacific();
   const dueOverdue = due.some(p => !!p.next_follow_up && p.next_follow_up < today);
 
+  /* One honest list (4 November 2026). Leads owed a follow-up used to sit in
+     their own card further down while the top of Home said "All clear,
+     nothing is waiting on you". They are part of the day's work, so they are
+     a row of it, ranked with everything else. */
+  const leadRow: Attention[] = due.length ? [{
+    key: 'lead_followups', level: dueOverdue ? 'high' : 'medium', rank: dueOverdue ? 3 : 8, count: due.length,
+    what: `${due.length} lead${due.length === 1 ? '' : 's'} to follow up`,
+    why: dueOverdue ? 'a touch is overdue; a short note today keeps the conversation warm' : 'due a touch today',
+    href: '/console/prospects', cta: 'Open leads'
+  } as Attention] : [];
+  const todo = [...attention, ...leadRow].sort((a, b) => a.rank - b.rank);
+
   /* The founder's trajectory band, above the day's work. Owner-only: a
      Success Manager gets the operational console, not the state of the whole
      business. Three extra queries, all read-only, run only for an owner. */
@@ -85,16 +99,16 @@ export default async function Console({ searchParams }: { searchParams: Promise<
   const ZONE = 'America/Los_Angeles';
   const hour = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: ZONE }).format(new Date())) % 24;
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const urgent = attention.filter(a => a.level === 'high');
+  const urgent = todo.filter(a => a.level === 'high');
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console"
       lead={{
-        eyebrow: urgent.length ? `Today · ${urgent.length} urgent` : attention.length ? `Today · ${attention.length} to pick up` : 'Today',
-        title: attention[0] ? attention[0].what : 'All clear',
-        meta: attention[0] ? attention[0].why : 'Nothing is waiting on you.',
-        href: attention[0] ? attention[0].href : '/console/people',
-        cta: attention[0]?.cta,
+        eyebrow: urgent.length ? `Today · ${urgent.length} urgent` : todo.length ? `Today · ${todo.length} to pick up` : 'Today',
+        title: todo[0] ? todo[0].what : 'All clear',
+        meta: todo[0] ? todo[0].why : 'Nothing is waiting on you.',
+        href: todo[0] ? todo[0].href : '/console/people',
+        cta: todo[0]?.cta,
         statsLabel: 'Your business', statsHref: '/console/people',
         stats: [
           { n: vitals.clients, k: vitals.clients === 1 ? 'Executive' : 'Executives' },
@@ -112,6 +126,8 @@ export default async function Console({ searchParams }: { searchParams: Promise<
          launchers, in the order she asked for them: her calendar, matching
          and placements, client onboarding, talent onboarding, payroll, then
          invoices and money. */}
+      <ConsoleSearch />
+
       {trend && <FounderBand trend={trend} />}
 
       <div className="qa-grid">
@@ -147,7 +163,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
          Operational, so every admin sees it, not only the owner. Placed
          right after the launchers, above Today, because a lead left to cool
          is the cheapest thing on this page to lose and the easiest to fix. */}
-      <div className="card">
+      <div className="card followup-card">
         <div className="card-head">
           <h3>Follow up today</h3>
           <span className={`pill ${dueOverdue ? 'crit' : 'good'}`}>
@@ -208,16 +224,16 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               queue. Summing meant a dozen routine items greeted her as
               "22 items need you" on a perfectly good morning, which teaches
               anyone to stop reading the number. */}
-          <span className={`pill ${urgent.length ? 'crit' : attention.length ? 'warn' : 'good'}`}>
+          <span className={`pill ${urgent.length ? 'crit' : todo.length ? 'warn' : 'good'}`}>
             {urgent.length
-              ? (attention.length > urgent.length ? `${urgent.length} urgent · ${attention.length} in all` : `${urgent.length} need${urgent.length === 1 ? 's' : ''} you today`)
-              : attention.length
-                ? `${attention.length} to pick up`
+              ? (todo.length > urgent.length ? `${urgent.length} urgent · ${todo.length} in all` : `${urgent.length} need${urgent.length === 1 ? 's' : ''} you today`)
+              : todo.length
+                ? `${todo.length} to pick up`
                 : <><span className="dot" />All clear</>}
           </span>
         </div>
 
-        {!attention.length ? (
+        {!todo.length ? (
           <div className="empty"><span className="tick" />
             {vitals.clients + vitals.talent === 0 ? (
               <p className="small">
@@ -232,7 +248,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
           </div>
         ) : (
           <ul className="attention">
-            {attention.map(a => (
+            {todo.map(a => (
               <li key={a.key} className={a.level}>
                 <span className="att-n">{a.count}</span>
                 <div className="att-body">
@@ -276,7 +292,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
 
           <div>
             <h3 className="section-h">The pipeline</h3>
-            <div className="money-strip pipe">
+            <div className={`money-strip pipe${vitals.clients + vitals.searchesOpen + vitals.benchReady + vitals.candidatesOut + vitals.interviewsUpcoming === 0 ? ' all-zero' : ''}`}>
               <Link className="money-stat" href="/console/people"><div className="n">{vitals.clients}</div><div className="k">Executives</div></Link>
               <Link className="money-stat" href="/console/people"><div className="n">{vitals.searchesOpen}</div><div className="k">Open searches</div></Link>
               {/* coverage at a glance: if fewer vetted people are ready than there are
@@ -290,7 +306,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
 
           <div>
             <h3 className="section-h">The roster</h3>
-            <div className="money-strip">
+            <div className={`money-strip${vitals.talent + vitals.verified + vitals.available + vitals.placementsLive === 0 ? ' all-zero' : ''}`}>
               <Link className="money-stat" href="/console/bench"><div className="n">{vitals.talent}</div><div className="k">Talent</div></Link>
               <Link className="money-stat" href="/console/vetting"><div className="n">{vitals.verified}</div><div className="k">Fully verified</div></Link>
               <Link className="money-stat" href="/console/bench">
