@@ -471,7 +471,7 @@ main.main > *{position:relative;z-index:1}
 .topbar .band-light::after{background-size:1300px 1300px;opacity:.14}
 /* the sun on the wall swells and fades as cloud passes */
 .topbar::after{display:block!important;opacity:1!important;mix-blend-mode:soft-light!important;
-  background:radial-gradient(640px 420px at 84% 12%,rgba(255,244,214,.55),transparent 65%)!important;animation:sunpass 17s ease-in-out infinite alternate}
+  background:radial-gradient(640px 420px at var(--sunpx,84%) var(--sunpy,12%),rgba(var(--sunc,255,244,214),.55),transparent 65%)!important;animation:sunpass 17s ease-in-out infinite alternate}
 @keyframes sunpass{0%{opacity:.55}45%{opacity:1}100%{opacity:.7}}
 /* the branch: a real shadow, softened a touch by distance, moving in the breeze */
 .topbar::before{background:var(--branch-band) right -40px top -60px/980px 551px no-repeat!important;opacity:.62;mix-blend-mode:multiply;filter:blur(1.2px)}
@@ -805,3 +805,9 @@ html.rv-going .rv-going-line{display:block;position:fixed;top:0;left:var(--sideb
 /* PHONE TABLES (2 November 2026): a wide table inside a card scrolls sideways
    on a phone instead of being cut off at the card's edge (Team page). */
 @media (max-width:700px){.card > table.data{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;box-shadow:none}}
+
+/* ── The sun by the hour (5 November 2026) ──
+   Nona: "with the sun, I want it to change on an hour-to-hour basis." The glow
+   on every header (.topbar::after above) stands where the sun is: left in the
+   morning, high at midday, right and low toward evening, blush at sunrise and
+   rose amber at sunset (lib/sun.ts sunPlace, written by SunWall). */

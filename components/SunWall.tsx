@@ -1,12 +1,19 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import './palette.css';
-import { S, mix, lightAt, hourNow, sunShadow, photoLight } from '@/lib/sun';
+import { S, mix, lightAt, hourNow, sunShadow, photoLight, sunTimes, solarHour, twilightAt, sunPlace } from '@/lib/sun';
 
 /* Phones follow the viewer's clock like the website (Nona, 4 Nov 2026: "I want the
    backgrounds to change dependent on the time of day for the mobile app like it
    does for the website"). This replaces the 3 Nov pin of phones at 22:00. */
-const wallHour = (t: number) => hourNow(t);
+/* 5 Nov 2026: mapped onto today's real sunrise and sunset (lib/sun.ts solarHour),
+   worked out at most once a minute. */
+let times = { at: -1e9, v: { rise: 6.5, set: 19.5 } };
+const wallHour = (t: number) => {
+  const now = Date.now();
+  if (now - times.at > 60000) times = { at: now, v: sunTimes() };
+  return solarHour(hourNow(t), times.v);
+};
 
 /* The window wall, lit by the sun of the viewer's own clock (Nona, 2 November
    2026: "I want it to have movement and the sun to move depending on the time
@@ -41,6 +48,7 @@ uniform vec4 xf;           // sx, sy, shear, unused
 uniform vec2 dxy;          // translation of the patch (uv)
 uniform vec3 sunCol, ambCol, lampCol;
 uniform float sunI, moonI, soft, sway, cloud;
+uniform vec3 dawn;         // x: how near the sun is to rising or setting (0..1)
 const vec2 P=vec2(.997,.0); // pivot: top right corner of the window patch
 vec2 warp(vec2 uv){vec2 q=uv-P-dxy; q.x/=xf.x; q.y=(q.y-xf.z*q.x)/xf.y; return P+q;}
 float h1(float n){return fract(sin(n)*43758.5453);}
@@ -69,7 +77,16 @@ void main(){
   float bounce=L.b*inb;
   // ambient: darker toward the left and floor, a little lift near the light
   float amb=mix(.55,1.,smoothstep(-.1,.9,uv.x))*mix(1.,.75,smoothstep(.4,1.1,uv.y));
-  vec3 E=ambCol*amb + sunCol*(sunI*cloud)*(direct + direct*direct*.15 + bounce*.015) + vec3(.5,.6,.8)*moonI*direct;
+  // golden hour (5 Nov 2026, Nona: "Wall still needs to look green... what would
+  // the green wall look like if the sunrise was shining thru"): the plaster
+  // stays the same green; only the light changes. Low sun is golden and
+  // strong, so where it lands the green reads as a warm glowing olive gold;
+  // the shadows keep the cool green of the skylight, with only a little warm
+  // bounce from the lit patch
+  float gh=dawn.r;
+  float lightNow=sunI*cloud*(1.+.6*gh);
+  vec3 scol=mix(sunCol,vec3(1.,.60,.24),gh*.7);  // golden as the sun nears the horizon
+  vec3 E=ambCol*amb + scol*lightNow*(direct + direct*direct*.15 + bounce*(.015+.02*gh) + .008*gh*amb) + vec3(.5,.6,.8)*moonI*direct;
   // lamp washing up from the lower right at night
   float lamp=exp(-pow(length((uv-vec2(.86,1.12))*vec2(1.,1.6))/.42,2.));
   E+=lampCol*lamp;
@@ -77,11 +94,36 @@ void main(){
   float lit=clamp(direct,0.,1.);
   vec2 cell=floor(uv*vec2(2048.,1024.));
   float sp=h1(dot(cell,vec2(12.9898,78.233)))-.5;
-  float relief=g*(1.+1.8*lit)+sp*.12*lit;
+  // golden light is soft on the plaster: less glitter in the grain
+  float relief=g*(1.+1.8*lit*(1.-.35*dawn.r))+sp*.12*lit*(1.-.7*dawn.r);
   vec3 alb=vec3(.055,.10,.05)*exp(relief);
   vec3 c=alb*E;
+  // Sunrise and sunset, as a camera sees them (Nona, 5 Nov 2026: "I want it
+  // hyper realistic"). No drawn-on effect: the low sun's own light through the
+  // window, a little more of what is physically there when the sun is low.
+  //  - the beam in the air: the window's light seen in dust between the window
+  //    and the wall, found by marching from each point toward the window
+  //    through the same traced light (screen-space shafts, so they line up
+  //    exactly with the panes and the sprig on the wall)
+  //  - halation: the warm bloom a lens gives around a bright patch
+  //  - a warm bounce off the lit plaster into the whole room
+  vec2 toP=(P+dxy)-uv;
+  float jit=h1(dot(gl_FragCoord.xy,vec2(7.13,3.71))+fract(t*.37));
+  float vol=0.;
+  for(int i=0;i<8;i++){
+    float f=(float(i)+jit)/8.;
+    vec2 ws=warp(uv+toP*f*.62);
+    float ib=step(0.,ws.x)*step(ws.x,1.)*step(0.,ws.y)*step(ws.y,1.);
+    vol+=texture2D(sun,ws).r*ib*(1.-f*.65);
+  }
+  vol/=8.;
+  float dust=.86+.14*sin(uv.x*53.+t*.11)*sin(uv.y*41.-t*.08+1.3);
+  c+=scol*lightNow*(vol*dust*(.0025+.010*gh) + bounce*(.0015+.009*gh) + .0016*gh);
   c=1.-exp(-c);                // soft film shoulder
   c=pow(c,vec3(1./2.2));
+  // golden light is saturated: give the colour back that the film shoulder takes
+  float lum=dot(c,vec3(.299,.587,.114));
+  c=max(vec3(0.),mix(vec3(lum),c,1.+.25*gh));
   // veil so the greeting reads (screen space)
   float vl = veil<.5 ? mix(.6,0.,smoothstep(0.,.86,v.x))          // header, desktop: the greeting sits left
            : veil<1.5 ? mix(.30,.62,1.-v.y)                         // header, phone: the greeting sits low
@@ -110,10 +152,10 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
     const t0 = performance.now();
     let lastKey = '';
     const apply = () => {
-      const hr = wallHour((performance.now() - t0) / 1000), k = sunShadow(hr), ph = photoLight(hr);
+      const hr = wallHour((performance.now() - t0) / 1000), k = sunShadow(hr), ph = photoLight(hr), sp = sunPlace(hr);
       /* Writing to <html> restyles the whole page, so only when the shadow
          has actually moved enough to see (scroll performance, 2 Nov 2026). */
-      const key = [Math.round(k.x), Math.round(k.y), Math.round(k.b / 2), k.a.toFixed(2), k.c.join(','), k.lx.toFixed(1), ph.c.join(','), ph.sweep.toFixed(2)].join('|');
+      const key = [Math.round(k.x), Math.round(k.y), Math.round(k.b / 2), k.a.toFixed(2), k.c.join(','), k.lx.toFixed(1), ph.c.join(','), ph.sweep.toFixed(2), Math.round(sp.x), Math.round(sp.px), Math.round(sp.py), Math.round(sp.a), sp.c.join(',')].join('|');
       if (key === lastKey) return;
       lastKey = key;
       const st = root.style;
@@ -122,6 +164,9 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
       st.setProperty('--shc', k.c.join(',')); st.setProperty('--glow', k.g.join(','));
       st.setProperty('--gla', k.ga.toFixed(3)); st.setProperty('--lx', k.lx.toFixed(3));
       st.setProperty('--tod', ph.c.join(',')); st.setProperty('--sweep', ph.sweep.toFixed(3)); st.setProperty('--day', ph.day.toFixed(3));
+      /* where the sun stands on the photographs and headers (5 Nov 2026) */
+      st.setProperty('--sunx', sp.x.toFixed(1)); st.setProperty('--sunpx', sp.px.toFixed(1) + '%');
+      st.setProperty('--sunpy', sp.py.toFixed(1) + '%'); st.setProperty('--suna', sp.a.toFixed(1)); st.setProperty('--sunc', sp.c.join(','));
     };
     apply();
     let fast = false;
@@ -157,7 +202,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
       const U: Record<string, WebGLUniformLocation | null> = {};
-      ['plaster', 'sun', 'res', 'focus', 'zoom', 't', 'veil', 'drift', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud']
+      ['plaster', 'sun', 'res', 'focus', 'zoom', 't', 'veil', 'drift', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud', 'dawn']
         .forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
       imgs.forEach((img, unit) => {
         const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
@@ -200,7 +245,9 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         const w = Math.round(cw * dpr), h = Math.round(ch * dpr);
         if (!w || !h) return;
         if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
-        const t = (now - t0) / 1000, L = lightAt(wallHour(t)), mob = phone.matches;
+        const t = (now - t0) / 1000, hr = wallHour(t), L = lightAt(hr), mob = phone.matches;
+        const tw = twilightAt(hr);
+        gl.uniform3f(U.dawn, tw.g, 0, 0);
         gl.uniform2f(U.res, w, h);
         gl.uniform2f(U.focus, room ? .85 : mob ? .82 : 1, page ? .35 : .45);
         gl.uniform1f(U.zoom, 1.05);

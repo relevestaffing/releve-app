@@ -659,3 +659,28 @@ html.rv-native body .page-body .stack > div:has(> .all-zero){display:none!import
 .nv-row{padding:12px 0!important}
 .nv-row-t{display:flex;flex-direction:column;gap:5px;min-width:0}
 .nv-row-t small{font:300 13px/1.35 'Poppins',sans-serif;letter-spacing:0;text-transform:none;color:rgba(239,235,224,.78)}
+
+/* ── The sun by the hour, sunrise and sunset (5 November 2026) ──
+   Nona: "At sunrise and sunset, I want the background to show that it's
+   sunrise and sunset in a subtle way... with the sun, I want it to change on
+   an hour-to-hour basis." The band of daylight on every photograph used to
+   sweep across and back every forty seconds whatever the time. It now stands
+   where the sun is (SunWall writes --sunx, --suna, --sunc from lib/sun.ts
+   sunPlace): on the left of the picture in the morning, upright and cream at
+   midday, slanting in from the right and warmer through the afternoon, soft gold at
+   sunrise and a deeper gold at sunset, and it only breathes a little in place.
+   The headers' glow follows the same sun. At sunrise and sunset faint golden streams of
+   sunlight fall across the wall (SunWall) and the photographs warm a touch. */
+html.rv-native :is(.nv-room,.nv-card)::after,
+html.rv-native body .qa-grid .qa-tile::after{
+  background:linear-gradient(calc(var(--suna,105) * 1deg),transparent 30%,rgba(var(--sunc,255,250,235),.7) 46%,rgba(var(--sunc,255,250,235),.95) 50%,rgba(var(--sunc,255,250,235),.7) 54%,transparent 70%)!important;
+  transform:translateX(calc(var(--sunx,0) * 1%))!important;
+  animation:nvSunBreath 40s ease-in-out infinite alternate!important;animation-delay:var(--kb,0s)!important;
+  transition:opacity 3s ease,transform 6s ease}
+@keyframes nvSunBreath{from{translate:-3% 0}to{translate:3% 0}}
+/* the desktop underline on .qa-tile::after (evergreen.css) set width 0 and a
+   2px height, so on phones the tiles' light never showed */
+html.rv-native body .qa-grid .qa-tile::after{width:auto!important;height:auto!important}
+html.rv-native body .topbar:is(.nv-hero,.nv-L-fullbleed)::after{inset:0!important;opacity:var(--sweep,1)!important;
+  background:radial-gradient(150% 95% at var(--sunpx,84%) var(--sunpy,12%),rgba(var(--sunc,255,244,214),.6),transparent 62%)!important}
+@media (prefers-reduced-motion:reduce){html.rv-native :is(.nv-room,.nv-card)::after,html.rv-native body .qa-grid .qa-tile::after{animation:none!important}}

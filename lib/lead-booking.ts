@@ -168,7 +168,7 @@ export function phoneFrom(description: string | null | undefined): string | null
   return v || null;
 }
 
-function linkFrom(description: string | null | undefined, kind: 'cancellations' | 'reschedulings') {
+export function linkFrom(description: string | null | undefined, kind: 'cancellations' | 'reschedulings') {
   const m = new RegExp(`https://calendly\\.com/${kind}/[A-Za-z0-9-]+`).exec(String(description || ''));
   return m?.[0] ?? null;
 }
