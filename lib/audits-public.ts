@@ -21,8 +21,8 @@ export type PlanPath = 'starter_then_essential' | 'essential' | 'specialist' | '
 
 export const PLAN_PATHS: { key: PlanPath; label: string; hint: string }[] = [
   { key: 'starter_then_essential', label: 'Starter now, Essential later', hint: 'Start at $950/mo, step up to $2,500 once results show. The Refynity shape.' },
-  { key: 'essential',  label: 'Essential',  hint: 'Full-time dedicated VA, $2,500/mo, 6-month term.' },
-  { key: 'specialist', label: 'Specialist', hint: 'Dedicated specialist expert, $4,500/mo, 6-month term.' },
+  { key: 'essential',  label: 'Essential',  hint: 'Full-time dedicated offshore VA, $2,500/mo, 6-month term.' },
+  { key: 'specialist', label: 'Specialist', hint: 'Dedicated specialist hired locally (US or Europe), $4,500/mo, 6-month term.' },
   { key: 'starter',    label: 'Starter only', hint: 'Part-time, 15 hrs/week, $950/mo, 3-month term.' }
 ];
 

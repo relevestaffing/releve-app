@@ -20,13 +20,13 @@ const RELEVE_TERMS = `
 Relève is a premium virtual executive staffing agency. It places a vetted, fully managed virtual professional and manages them for the life of the relationship. The positioning is trust and relief ("Consider it handled."), never cost or offshore savings.
 
 Plans (US dollars, billed first Monday of the month, due on receipt):
-- Starter: $950 a month, or $2,500 if paid in full for a three-month term. 3-month minimum. The VA's hours are capped at 15 a week. Part-time, dedicated.
-- Essential: $2,500 a month. 6-month minimum. A dedicated full-time VA, unlimited hours and unlimited tasks.
-- Specialist: $4,500 a month. 6-month minimum. A dedicated full-time specialized expert.
+- Starter: $950 a month, or $2,500 if paid in full for a three-month term. 3-month minimum. An offshore VA, vetted on six fronts, with general training before they start. Hours capped at 15 a week.
+- Essential: $2,500 a month. 6-month minimum. A dedicated full-time offshore VA, unlimited hours and unlimited tasks, with full management, a business audit every month and consistent training.
+- Specialist: $4,500 a month. 6-month minimum. A dedicated full-time specialized professional hired locally (US or Europe), still fully virtual. Relève sources, vets, trains and manages them.
+- Every plan: free business audit at the start, a Client Success Manager and a Talent Success Manager, a monthly call with the owner and a biweekly call with the talent, an end of week report, the Relève app, a 90-Day Success Plan, and pay and agreements run through Relève. Talent are independent contractors; Relève is not the employer.
 - eLIVate Club members get $500 off each of the FIRST THREE months on Essential and Specialist (so Essential is $2,000 for months 1 to 3, then $2,500; Specialist is $4,000 then $4,500). Starter has no eLIVate discount.
 - A $500 deposit starts a search and is credited to the first invoice.
 - Guarantee: a qualified candidate within 14 days of the search opening, plus up to two replacements if a hire does not work out.
-- Talent at about 30% of the cost of a comparable local hire (i.e. ~70% cheaper). Only ever phrase it this way, never the reverse.
 - Every placement comes with a Client Success Manager and a Talent Success Manager and a 90-Day Success Plan; oversight continues for the whole relationship, not just 90 days.
 `.trim();
 

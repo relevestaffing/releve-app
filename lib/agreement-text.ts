@@ -13,8 +13,14 @@
    csa-2026-10-30.2 plans and prices (Essential, Specialist, Starter, eLIVate
      discount), deposit refund exception, 6/3-month terms with 3-month renewals,
      30 days' notice before a term ends, two replacements, Starter buyout figure,
-     talent on US business hours with an NDA. */
-export const AGREEMENT_VERSION = 'csa-2026-11-01.1';
+     talent on US business hours with an NDA.
+   csa-2026-11-05.1 pivot to fully managed virtual staff: Starter and Essential
+     offshore, Specialist a local hire (US or Europe); every plan gets a free
+     business audit, both success managers, monthly and biweekly calls, end of
+     week report, the app and the 90-day plan; Starter capped at 15 hours with
+     general training; Essential and Specialist add monthly audits and ongoing
+     training. Relève is still not the employer; talent stay contractors. */
+export const AGREEMENT_VERSION = 'csa-2026-11-05.1';
 export const AGREEMENT_TITLE = 'Client Services Agreement';
 export type AgItem = { p?: string; sub?: string; bullet?: string };
 export const AGREEMENT_INTRO: string[] = [
@@ -101,7 +107,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "3.2 Plans and Fees"
    },
    {
-    "p": "Relève offers three plans. Essential is $2,500 per month for unlimited hours from a dedicated, non-specialized professional, on a six-month commitment. Specialist is $4,500 per month for unlimited hours from a dedicated, specialized expert, on a six-month commitment. Starter is $950 per month, or $2,500 paid in full for each three-month term, on a three-month commitment, with the professional’s hours capped at fifteen (15) per week. “Unlimited hours” means a dedicated, full-time professional. eLIVate Club members receive $500 off the monthly fee for the first three (3) months on the Essential or Specialist plan. Every plan includes sourcing, vetting and matching, a Client Success Manager and a Talent Success Manager, the Relève platform, and payment of the professional through Relève. Essential adds pre-placement training from Relève on the role’s specifics, with continuous management. Specialist adds a vetted specialist professional, biweekly training, a review of Client’s business by Relève’s business specialist to design the role around it, and monthly Client Success Manager calls. Client’s plan and rate are confirmed in the applicable Placement Schedule before the Placement starts and do not change during the initial term."
+    "p": "Relève offers three plans. Essential is $2,500 per month for unlimited hours from a dedicated, non-specialized offshore professional, on a six-month commitment. Specialist is $4,500 per month for unlimited hours from a dedicated, specialized professional hired in the United States or Europe, on a six-month commitment. Starter is $950 per month, or $2,500 paid in full for each three-month term, on a three-month commitment, with an offshore professional whose hours are capped at fifteen (15) per week. “Unlimited hours” means a dedicated, full-time professional. eLIVate Club members receive $500 off the monthly fee for the first three (3) months on the Essential or Specialist plan. Every plan includes sourcing, vetting and matching, a free business audit at the start of the engagement, a Client Success Manager and a Talent Success Manager, a monthly call with Client and a biweekly call with the professional, an end of week report, the Relève platform, a written 90-Day Success Plan, and payment of the professional through Relève. Starter includes general training before the professional starts. Essential and Specialist add full management of the role, a business audit every month, and consistent training from Relève on the role’s specifics. Starter and Essential professionals work offshore. A Specialist is hired in the United States or Europe, sourced, vetted, trained and managed by Relève, and works fully virtually. Client’s plan and rate are confirmed in the applicable Placement Schedule before the Placement starts and do not change during the initial term."
    },
    {
     "sub": "3.3 Invoicing"

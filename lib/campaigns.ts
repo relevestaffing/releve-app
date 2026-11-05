@@ -1,6 +1,7 @@
 import { hasServiceKey, adminClient, teamEmailsAdmin } from '@/lib/supabase/admin';
 import { send, emailReady } from '@/lib/email';
 import { unsubscribeUrl, listUnsubscribeHeaders } from '@/lib/subscribers';
+import { DEFAULT_RULES, hardChecks, modelReview } from '@/lib/content-rules';
 
 /* Relève's email campaign (29 October 2026).
    ------------------------------------------
@@ -175,7 +176,7 @@ function pickAngle(day: 'Tuesday' | 'Thursday', n: number) {
 
 const VOICE = `You write Relève's twice-weekly email to business owners and founders. Every email must do two things: give the reader something genuinely useful or moving, and make booking a free 30-minute discovery call feel like the natural next step.
 
-About Relève: a premium virtual executive staffing agency. It places a vetted, fully managed virtual professional (executive assistants and other remote staff, from the Philippines and Latin America) with founders, and supports them for the life of the relationship through a Client Success Manager and a Talent Success Manager. Every candidate is vetted on six fronts: the business is studied first and the role built around it; tested for the role with a graded, paid work sample; matched to how the owner works through the Relève Signature working-style and personality assessment; background checked and verified; "we interview many, you meet one"; and a person signs off before anyone is presented. They are prepared for the role before day one. First candidate within 14 days. Up to two replacements. Talent at 30% of the cost of a local hire. Relève's founder, Sage Jackson, spent seven years as an executive assistant to CEOs and high-net-worth entrepreneurs and six years recruiting before founding Relève.
+About Relève: a premium virtual executive staffing agency. It places a vetted, fully managed virtual professional (executive assistants and other remote staff: offshore on Starter and Essential, and hired locally in the US or Europe on Specialist) with founders, and supports them for the life of the relationship through a Client Success Manager and a Talent Success Manager. Every candidate is vetted on six fronts: the business is studied first and the role built around it; tested for the role with a graded, paid work sample; matched to how the owner works through the Relève Signature working-style and personality assessment; background checked and verified; "we interview many, you meet one"; and a person signs off before anyone is presented. They are prepared for the role before day one. First candidate within 14 days. Up to two replacements. Relève's founder, Sage Jackson, spent seven years as an executive assistant to CEOs and high-net-worth entrepreneurs and six years recruiting before founding Relève.
 
 Positioning: trust and relief, the feeling of "Consider it handled." The reader's real fears are "can I trust someone with this?" and "will they add work instead of removing it?" Never lead with cost, cheapness, offshore savings, or "fix your inbox". Cost may appear only as a supporting line.
 
@@ -196,20 +197,26 @@ const FORMAT = `Reply with ONLY a JSON object and nothing else: no notes, no dra
 
 const CTA_URL = 'https://relevestaffing.com/discovery';
 
-export type Draft = { subject: string; preheader: string; paragraphs: string[]; cta_label: string; cta_url: string; topic: string };
+export type Draft = { subject: string; preheader: string; paragraphs: string[]; cta_label: string; cta_url: string; topic: string; notes?: string[] };
+
+/* The house rules the team keeps in the Content tab (content_settings 'rules:house'). */
+async function houseRules(): Promise<string> {
+  try { const { data } = await sb().from('content_settings').select('value').eq('key', 'rules:house').maybeSingle(); const t = (data?.value as any)?.text?.trim(); if (t) return t; } catch { /* the standard below */ }
+  return DEFAULT_RULES;
+}
 
 function clean(s: unknown, max: number) {
   return String(s ?? '').replace(/[–—]/g, ', ').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
-async function askClaude(key: string, brief: string, search: boolean) {
+async function askClaude(key: string, brief: string, search: boolean, rules = '', timeoutMs = 0) {
   /* The cron and console requests have about 26 seconds in all. */
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), search ? 21000 : 22000);
+  const timer = setTimeout(() => ctl.abort(), timeoutMs || (search ? 21000 : 22000));
   const body: any = {
     model: process.env.ANTHROPIC_CAMPAIGN_MODEL || process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5',
     max_tokens: 2500,
-    system: `${VOICE}\n\n${FORMAT}`,
+    system: `${VOICE}\n\n${rules ? `THE HOUSE RULES (sections 2, 3, 4, 10, 11 and 12 apply to this email; every email is checked against them before it is saved):\n${rules}\n\n` : ''}${FORMAT}`,
     messages: [{ role: 'user', content: brief }]
   };
   if (search) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }];
@@ -230,8 +237,9 @@ async function askClaude(key: string, brief: string, search: boolean) {
 /* search: allow a web search for trend emails. The hourly cron allows it
    while the send is more than 30 hours away, so a slow search simply retries
    next hour, and the last day falls back to an evergreen version. */
-export async function writeDraft(day: 'Tuesday' | 'Thursday', recentSubjects: string[], topicIndex: number, search = false): Promise<Draft> {
+export async function writeDraft(day: 'Tuesday' | 'Thursday', recentSubjects: string[], topicIndex: number, search = false, deadline = Date.now() + 25000): Promise<Draft> {
   const key = process.env.ANTHROPIC_API_KEY;
+  const rules = await houseRules();
   if (!key) throw new Error('Add ANTHROPIC_API_KEY in Netlify so Claude can write the emails.');
   const { lane, angle } = pickAngle(day, topicIndex);
   const laneBrief: Record<Lane, string> = {
@@ -248,18 +256,42 @@ export async function writeDraft(day: 'Tuesday' | 'Thursday', recentSubjects: st
   ].filter(Boolean).join('\n\n');
 
   const useSearch = lane === 'trends' && search;
-  const text = await askClaude(key, brief(useSearch), useSearch);
-  const start = text.lastIndexOf('{"subject"');
-  const m = (start >= 0 ? text.slice(start) : text).match(/\{[\s\S]*\}/);
-  if (!m) throw new Error('The AI sent back something that was not an email.');
-  let j: any; try { j = JSON.parse(m[0]); } catch { throw new Error('The AI sent back an email that could not be read.'); }
-  const paragraphs = (Array.isArray(j.paragraphs) ? j.paragraphs : []).map((p: unknown) => clean(p, 1200)).filter(Boolean).slice(0, 13);
-  if (!j.subject || paragraphs.length < 3) throw new Error('The AI draft was incomplete.');
-  return {
-    subject: clean(j.subject, 90), preheader: clean(j.preheader, 140), paragraphs,
-    cta_label: clean(j.cta_label, 40) || 'Book your Zoom coffee',
-    cta_url: CTA_URL, topic: `${lane}: ${angle}`
+  const parse = (text: string) => {
+    const start = text.lastIndexOf('{"subject"');
+    const m = (start >= 0 ? text.slice(start) : text).match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('The AI sent back something that was not an email.');
+    let j: any; try { j = JSON.parse(m[0]); } catch { throw new Error('The AI sent back an email that could not be read.'); }
+    const paragraphs = (Array.isArray(j.paragraphs) ? j.paragraphs : []).map((p: unknown) => clean(p, 1200)).filter(Boolean).slice(0, 13);
+    if (!j.subject || paragraphs.length < 3) throw new Error('The AI draft was incomplete.');
+    return { subject: clean(j.subject, 90), preheader: clean(j.preheader, 140), paragraphs, cta_label: clean(j.cta_label, 40) || 'Book your Zoom coffee' };
   };
+  /* The editor's pass (3 November 2026): the hard checks always run; the
+     model read and one rewrite run when the request still has the time. A
+     draft that still breaks the rules comes back with notes, and the caller
+     holds it for the team instead of scheduling it. */
+  const check = async (d: ReturnType<typeof parse>) => {
+    const body = `Subject: ${d.subject}\nPreheader: ${d.preheader}\n\n${d.paragraphs.join('\n\n')}`;
+    const problems = [...hardChecks({ hook: d.subject, text: body, channel: 'email' }).problems];
+    const left = deadline - Date.now();
+    if (left > 9000) problems.push(...await modelReview({ rules, label: 'The Relève Letter, an email from Sage to one owner', text: body, timeoutMs: Math.min(8000, left - 1500) }));
+    return problems;
+  };
+  const left = () => deadline - Date.now();
+  /* The first draft gets the full 22 seconds it had before the editor pass
+     existed. Squeezing it to leave room for the review made it abort every
+     hour (4 Nov 2026) and nothing was ever saved. The review is the part that
+     gives way: it only runs when time is left over. */
+  let d = parse(await askClaude(key, brief(useSearch), useSearch, rules, Math.min(22000, Math.max(8000, left() - 2000))));
+  let problems = await check(d);
+  if (problems.length && left() > 12000) {
+    const feedback = `\n\nYOUR PREVIOUS DRAFT WAS SENT BACK BY THE EDITOR. Fix every one of these, keep the same angle, and read every line aloud before answering:\n- ${problems.join('\n- ')}\n\nPrevious draft, for reference:\n${JSON.stringify(d)}`;
+    try {
+      const d2 = parse(await askClaude(key, brief(false) + feedback, false, rules, Math.min(20000, left() - 4000)));
+      const p2 = left() > 9000 ? await check(d2) : hardChecks({ hook: d2.subject, text: d2.paragraphs.join('\n\n'), channel: 'email' }).problems;
+      if (p2.length <= problems.length) { d = d2; problems = p2; }
+    } catch { /* keep the first draft and its notes */ }
+  }
+  return { ...d, cta_url: CTA_URL, topic: `${lane}: ${angle}`, notes: problems.length ? problems : undefined };
 }
 
 /* ---------- the email itself ---------- */
@@ -413,14 +445,16 @@ export async function draftUpcoming(now = new Date(), force = false) {
     if (exists) continue;
     const d = await writeDraft(s.day, (recent ?? []).map((r: any) => r.subject), topicIndex++, !force && hoursAway > 30);
     const { data: row, error } = await sb().from('campaigns').insert({
-      slot: s.slot, send_at: s.sendAt.toISOString(), status: 'scheduled', topic: d.topic,
+      slot: s.slot, send_at: s.sendAt.toISOString(), status: d.notes?.length ? 'held' : 'scheduled',
+      hold_reason: d.notes?.length ? `The editor found: ${d.notes.join(' | ')}`.slice(0, 500) : null, topic: d.topic,
       subject: d.subject, preheader: d.preheader, paragraphs: d.paragraphs,
       cta_label: d.cta_label, cta_url: d.cta_url, written_by: 'claude'
     }).select('*').single();
     if (error) { if (/duplicate/i.test(error.message)) continue; throw new Error(error.message); }
     made.push(s.slot);
     await previewToTeam(row as Campaign,
-      mailingAddress() ? undefined : 'Sending is waiting on a mailing address (CAMPAIGN_MAILING_ADDRESS in Netlify). Until it is added, this email will be held instead of sent.');
+      d.notes?.length ? `Held for you: the editor could not get this one fully inside the house rules. ${d.notes.join(' ')} Edit it, or press Redraft, then Resume.`
+      : mailingAddress() ? undefined : 'Sending is waiting on a mailing address (CAMPAIGN_MAILING_ADDRESS in Netlify). Until it is added, this email will be held instead of sent.');
     break;   // one draft per run keeps each request inside its time limit
   }
   return made;

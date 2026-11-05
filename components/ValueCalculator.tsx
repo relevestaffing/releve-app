@@ -39,7 +39,7 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
     <>
       <div className="card">
         <div className="card-head">
-          <h3>Same standard. A fraction of the cost.</h3>
+          <h3>What your hours are worth.</h3>
           <span className="pill good"><span className="dot" />Save {over}{fmt(ongoingSave)} a year</span>
         </div>
 

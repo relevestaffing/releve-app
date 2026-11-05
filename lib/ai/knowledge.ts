@@ -50,9 +50,10 @@ iPhone: open app.relevestaffing.com in Safari, tap Share, then "Add to Home Scre
 export const CLIENT = `
 # Plans and pricing (for executives)
 Three plans, each a flat monthly retainer with no hourly tracking:
-- Starter: $950 a month, or $2,500 paid in full for each three-month term. Up to 15 hours a week. Three-month commitment.
-- Essential: $2,500 a month. A dedicated, full-time professional, unlimited hours. Six-month commitment.
-- Specialist: $4,500 a month. A dedicated, full-time specialized expert, unlimited hours. Six-month commitment.
+- Starter: $950 a month, or $2,500 if paid in full for a three-month term. 3-month minimum. An offshore VA, vetted on six fronts, with general training before they start. Hours capped at 15 a week.
+- Essential: $2,500 a month. 6-month minimum. A dedicated full-time offshore VA, unlimited hours and unlimited tasks, with full management, a business audit every month and consistent training.
+- Specialist: $4,500 a month. 6-month minimum. A dedicated full-time specialized professional hired locally (US or Europe), still fully virtual. Relève sources, vets, trains and manages them.
+- Every plan: free business audit at the start, a Client Success Manager and a Talent Success Manager, a monthly call with the owner and a biweekly call with the talent, an end of week report, the Relève app, a 90-Day Success Plan, and pay and agreements run through Relève. Talent are independent contractors; Relève is not the employer.
 eLIVate Club members: $500 off each month for the first three months on Essential and Specialist.
 The plan is confirmed in writing before the placement starts and is fixed for the initial term. After the minimum term it renews in three-month terms, or the client moves to a different plan at the end of any term. Either side can choose not to renew with 30 days' written notice before a term ends; the placement runs and bills to the last day of that term.
 Unlimited hours means a full-time professional dedicated to the business, US business hours, with no cap on the tasks handed over and no metering.
