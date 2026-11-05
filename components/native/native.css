@@ -100,7 +100,7 @@ html.rv-native body .topbar .crumb::before{width:22px!important;background:var(-
 html.rv-native body .page-body{
   position:relative;z-index:1;margin:0!important;padding:8px 22px calc(var(--nv-tabs-h) + env(safe-area-inset-bottom,0px) + 40px)!important;
   gap:0!important;perspective:1100px;color:var(--nv-body);
-  --fern:var(--nv-cream);--ink:var(--nv-cream);--body:var(--nv-body);--sage:var(--nv-dim);--muted:var(--nv-dim);--pale:#6F8173;
+  --fern:var(--nv-cream);--ink:var(--nv-cream);--body:var(--nv-body);--sage:var(--nv-dim);--muted:var(--nv-dim);--pale:var(--nv-dim);
   --cream:rgba(255,255,255,.05);--paper:transparent;--white:transparent;--mist:rgba(255,255,255,.06);--line:var(--nv-rule);--line-strong:var(--nv-rule-2);
   --good:#9DBFA3;--warn:var(--nv-silver);--crit:#D9978A}
 html.rv-native body .ptr{top:calc(var(--nv-top) + 8px)!important;background:#0B110D;color:var(--nv-cream);box-shadow:inset 0 0 0 1px var(--nv-rule-2)}
@@ -109,7 +109,7 @@ html.rv-native body .ptr{top:calc(var(--nv-top) + 8px)!important;background:#0B1
 html.rv-native body .page-body :is(.card,.setup,.qa-tile,a.money-stat,.money-stat,.choose-card,.today-card,.founder-band,.stat,.pick,.req-choice,.next-step,.match-card,.role-card,.push-setup,.overview-table,.empty-card,.money-strip,.picker-chosen,.cd-day,.cd-nudge,.composer,.confirm-row,.drawer,.firstrun,.founder-tile,.method-step,.owner-select,.picker-list,.rolefit,.setup-next,.tally-row,.tb-row,.tb-compose,.end-why,.chip-note,.rationale,.fortnight-bar,.dir-head,.slot,.date-cell,.cd-row,.lead-table,.welcome-card,.auth-card):not(.card .card){
   background:transparent!important;background-image:none!important;border:0!important;border-top:1px solid var(--nv-rule)!important;border-radius:0!important;
   box-shadow:none!important;padding:26px 0 30px!important;margin:0!important;color:var(--nv-body);
-  --fern:var(--nv-cream);--ink:var(--nv-cream);--body:var(--nv-body);--sage:var(--nv-dim);--muted:var(--nv-dim);--pale:#6F8173;
+  --fern:var(--nv-cream);--ink:var(--nv-cream);--body:var(--nv-body);--sage:var(--nv-dim);--muted:var(--nv-dim);--pale:var(--nv-dim);
   --cream:rgba(255,255,255,.05);--paper:transparent;--white:transparent;--mist:rgba(255,255,255,.06);--line:var(--nv-rule);--line-strong:var(--nv-rule-2);
   --good:#9DBFA3;--warn:var(--nv-silver);--crit:#D9978A}
 html.rv-native body .page-body > *:first-child:is(.card,.setup,.today-card,.money-strip){border-top:0!important;padding-top:6px!important}
@@ -504,7 +504,7 @@ html.rv-native body .topbar.nv-L-index h1 .w > span{letter-spacing:inherit}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs{flex-direction:column!important;align-items:flex-start!important;gap:2px!important;
   margin:10px 0 34px!important;padding:0 0 28px!important;border-bottom:1px solid var(--nv-rule)!important;overflow:visible!important}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button){font:400 27px/1.22 'Lora',Georgia,serif!important;text-transform:uppercase!important;letter-spacing:.015em!important;
-  color:#66716A!important;padding:0!important;border:0!important;background:none!important}
+  color:#AEB5AA!important;padding:0!important;border:0!important;background:none!important}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button):is([aria-current="page"],.on){color:var(--nv-cream)!important}
 html.rv-native body .shell[data-layout="index"] .page-body .tabs :is(a,button)::before{display:none!important}
 /* ledger: figures first and large, fine rules, no pictures */
@@ -547,8 +547,8 @@ html.rv-native body .topbar:is(.nv-hero,.nv-L-fullbleed)::after{opacity:var(--sw
 /* type on the brighter wall keeps a soft halo, as on the website */
 html.rv-native body main.main{text-shadow:0 0 3px rgba(6,10,8,.42),0 1px 18px rgba(6,10,8,.7)}
 html.rv-native body main.main :is(.btn.solid,.btn.solid *,.nv-avatar,.avail-cell.on,.ws-tile,.ws-add,.ws-view.on,.ws-mark.done,.nv-room i,.badge,input,textarea,select){text-shadow:none!important}
-html.rv-native{--nv-dim:#B3BAAE}
-.nv-words a{color:#98A195!important}
+html.rv-native{--nv-dim:#CDD2C8;--nv-body:#DEDCD1}
+.nv-words a{color:#C2C8BC!important}
 .nv-words a.on{color:var(--nv-cream)!important}
 
 /* ── Home breathes (4 November 2026) ──
@@ -568,3 +568,44 @@ html.rv-native{--nv-dim:#B3BAAE}
 .nv-orbit{display:none}  /* removed at Nona's word, 4 Nov: "remove this circle thing" */
 .nv-status{margin:0 0 72px}
 .nv-status-head{margin:0 0 16px}
+
+/* ── Legibility (4 November 2026, evening) ──
+   Nona: "Some sections are hard for me to read in the app, do a full walk thru
+   to make sure it's legible." Measured on every phone screen for all three
+   roles at 1 pm and 5:30 pm: where the sun lands, the lifted wall reached a
+   brightness at which even cream type fell under 4.5:1, and the softer greys
+   and a few leftover fern greens nearly vanished. So: a quiet shade over the
+   wall below the header (the light still moves, the ground under the words
+   is darker), greys lifted toward cream, and nothing on the wall left in the
+   old dark greens or faded below readable. */
+html.rv-native body main.main::after{display:block!important;content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:1;mix-blend-mode:normal;
+  background:linear-gradient(180deg,rgba(6,10,8,.16) 0,rgba(6,10,8,.3) 18%,rgba(6,10,8,.5) 40%,rgba(6,10,8,.56) 70%,rgba(6,10,8,.6) 100%)!important}
+html.rv-native body main.main > :not(.sun-page){z-index:1}
+html.rv-native body .shell[data-layout="gallery"] .page-body .tabs :is(a,button){opacity:.82}
+html.rv-native body .page-body .setup-rest li.done{opacity:.72!important}
+html.rv-native .nv-card-eye{color:var(--nv-cream)}
+html.rv-native body .page-body :is(.nv-card,.nv-room,.qa-tile){text-shadow:0 1px 3px rgba(0,0,0,.55),0 1px 16px rgba(0,0,0,.6)}
+/* inline text colours written for the light app's dark panels (color: var(--cream)) point at a
+   background token the phone look turns into 5% white: bring them back to cream */
+html.rv-native body .page-body :is([style*="color:var(--cream)"],[style*="color: var(--cream)"],[style*="color:var(--paper)"],[style*="color: var(--paper)"],[style*="color:var(--white)"],[style*="color: var(--white)"]){color:var(--nv-cream)!important}
+/* the top bar sits on the brightest part of the wall before the page moves */
+.nv-bar{text-shadow:0 0 3px rgba(6,10,8,.5),0 1px 14px rgba(6,10,8,.75)}
+/* titles set on a photograph keep a darker floor under the words at midday */
+html.rv-native body .topbar.nv-L-fullbleed::before{background:linear-gradient(180deg,rgba(10,16,12,.35),rgba(10,16,12,.08) 26%,rgba(10,16,12,.42) 56%,rgba(10,16,12,.8) 78%,rgba(12,19,15,.97))!important}
+html.rv-native .nv-card::before{background:linear-gradient(180deg,rgba(8,13,10,.1),rgba(8,13,10,.28) 36%,rgba(8,13,10,.86))!important}
+html.rv-native body .topbar:is(.nv-L-fullbleed,.nv-hero,.nv-L-conversation) h1,html.rv-native .nv-card-title{text-shadow:0 1px 3px rgba(0,0,0,.5),0 2px 22px rgba(0,0,0,.65)!important}
+/* disabled buttons stay readable as quiet outlines instead of a muddy pill */
+html.rv-native body .page-body .btn:disabled{opacity:1!important;background:transparent!important;color:rgba(239,235,224,.62)!important;border:1px solid rgba(214,221,226,.3)!important}
+/* the install card's heading */
+html.rv-native body .page-body .push-setup :is(div,b,strong,h2,h3,h4):not(.btn){color:var(--nv-cream)!important}
+/* an older rule (evergreen.css) hides every .topbar::before and dims it with a multiply blend,
+   so the shade under titles on a photograph never painted: restore it on the phone */
+html.rv-native body .topbar:is(.nv-L-fullbleed,.nv-L-conversation,.nv-hero)::before{display:block!important;content:""!important;position:absolute!important;inset:0!important;
+  z-index:-1!important;opacity:1!important;mix-blend-mode:normal!important;filter:none!important;pointer-events:none}
+/* the smallest labels (9 to 12px) read in near-cream, not grey: at that size grey is the first thing the sun washes out */
+html.rv-native body .page-body :is(.xs,.k,.eyebrow,.pill:not(.good):not(.warn):not(.crit):not(.bad),th,label,.label-like,.avail-day,.avail-hd,.explain-word,kbd,.cnt,.setup-mins,.deleg-tag,.axis-caption,.ws-stage,.ws-tbtn,.ws-view,span.m,span.muted,td.xs,div.xs,p.xs,span.xs,.small,.muted):not(.btn):not(.btn *){color:rgba(239,235,224,.9)!important}
+html.rv-native body .topbar .crumb{color:rgba(239,235,224,.9)!important}
+/* the top of the screen keeps a soft shade even before the page moves, so ASK and the back arrow read on the evening light */
+html.rv-native body main.main::after{background:linear-gradient(180deg,rgba(6,10,8,.42) 0,rgba(6,10,8,.18) 9%,rgba(6,10,8,.3) 18%,rgba(6,10,8,.5) 40%,rgba(6,10,8,.56) 70%,rgba(6,10,8,.6) 100%)!important}
+.nv-ask{color:var(--nv-cream)}
+html.rv-native body .page-body .ask-who span{color:rgba(239,235,224,.82)!important}
