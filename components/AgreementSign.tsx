@@ -8,8 +8,8 @@ import { sameSigner } from '@/lib/words';
 /* The signing step under the agreement: confirm you have read it, type your
    full name, sign. The name has to be the one on the account. A copy is
    emailed the moment it is signed. */
-export default function AgreementSign({ name, email, version, kind = 'client' }: {
-  name: string | null; email: string; version: string; kind?: 'client' | 'talent';
+export default function AgreementSign({ name, email, version, kind = 'client', token }: {
+  name: string | null; email: string; version: string; kind?: 'client' | 'talent'; token?: string;
 }) {
   const talent = kind === 'talent';
   const title = talent ? 'Independent Contractor and Confidentiality Agreement' : 'Client Services Agreement';
@@ -31,13 +31,14 @@ export default function AgreementSign({ name, email, version, kind = 'client' }:
     if (!ready) return;
     setBusy(true);
     try {
-      const r = await fetch(talent ? '/api/agreement/talent-sign' : '/api/agreement/sign', {
+      const r = await fetch(token ? '/api/agreement/sign-link' : talent ? '/api/agreement/talent-sign' : '/api/agreement/sign', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ version, agreed: true, signed_name: tidy(signed), business: tidy(business), country: tidy(country) })
+        body: JSON.stringify({ token, version, agreed: true, signed_name: tidy(signed), business: tidy(business), country: tidy(country) })
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { toast.bad(d.error ?? 'That did not sign. Please try again.'); setBusy(false); return; }
       setDone({ to: d.to ?? email, emailed: d.emailed !== false });
+      if (token) { setTimeout(() => { window.location.href = `/pay/${encodeURIComponent(token)}`; }, 1600); return; }
       router.refresh();
     } catch {
       toast.bad('No connection. Nothing was signed.');
@@ -50,12 +51,14 @@ export default function AgreementSign({ name, email, version, kind = 'client' }:
       <div className="card-head"><h3>Signed. Thank you.</h3><span className="pill good"><span className="dot" />Filed</span></div>
       <p className="small" style={{ maxWidth: 560, marginBottom: 12 }}>
         {done.emailed
-          ? <>Your signed copy is on its way to <b>{done.to}</b> for your records, and it is kept in your account.</>
+          ? <>Your signed copy is on its way to <b>{done.to}</b> for your records.{token ? ' Taking you to your deposit now.' : ' It is kept in your account.'}</>
           : <>Your agreement is signed and kept in your account. We could not email the copy just now; you can download it below.</>}
       </p>
       <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
-        <a className="btn solid" href="/app">Continue to your account</a>
-        {!talent && <a className="btn ghost" href="/api/agreement/copy">Download your copy</a>}
+        {token
+          ? <a className="btn solid" href={`/pay/${encodeURIComponent(token)}`}>Continue to your deposit</a>
+          : <a className="btn solid" href="/app">Continue to your account</a>}
+        {!talent && !token && <a className="btn ghost" href="/api/agreement/copy">Download your copy</a>}
       </div>
     </div>
   );
@@ -87,7 +90,7 @@ export default function AgreementSign({ name, email, version, kind = 'client' }:
       )}
       <button className="btn solid" disabled={!ready} onClick={sign}>{busy ? 'Signing…' : 'Sign agreement'}</button>
       <p className="xs muted" style={{ marginTop: 10, maxWidth: 520 }}>
-        A copy is emailed to {email} straight away, and kept in your account.
+        A copy is emailed to {email} straight away.
       </p>
     </div>
   );

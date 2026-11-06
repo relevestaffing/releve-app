@@ -22,10 +22,10 @@ export const experienceEmails = {
     return {
       kind: `interviewReminder${o.soon}`,
       subject,
-      text: `${o.name},\n\nA reminder: your interview with ${o.withWhom} is at ${o.when}.\n\n${o.url ? `Join here: ${o.url}` : `Details: ${SITE}/app/interviews`}\n\nIf the time no longer works, reply to this email and we will arrange another.\n\nRelève`,
-      html: shell(esc(subject),
+      text: `${o.name},\n\nYour interview with ${o.withWhom} is at ${o.when}.\n\n${o.url ? `Join here: ${o.url}` : `Details: ${SITE}/app/interviews`}\n\nIf the time no longer works, reply to this email and we will arrange another.\n\nRelève`,
+      html: shell(o.soon === '1h' ? 'Your interview is within the hour' : 'Your interview is tomorrow',
         p(`${esc(o.name)},`) +
-        p(`A reminder: your interview with <b>${esc(o.withWhom)}</b> is at <b>${esc(o.when)}</b>.`) +
+        p(`Your interview with <b>${esc(o.withWhom)}</b> is at <b>${esc(o.when)}</b>.`) +
         p('If the time no longer works, reply to this email and we will arrange another.'),
         { label: o.url ? 'Join the interview' : 'See the details', href })
     };
@@ -45,13 +45,13 @@ export const experienceEmails = {
     return {
       kind: 'monthlyReport',
       subject,
-      text: `${o.name},\n\nHere is ${o.month} with ${o.talent}: ${stats}.\n\n${o.highlights.length ? `Highlights:\n${o.highlights.map(h => `- ${h}`).join('\n')}\n\n` : ''}${o.focus.length ? `Next month's focus:\n${o.focus.map(h => `- ${h}`).join('\n')}\n\n` : ''}The full report: ${href}\n\nAnything you would change, reply here. Your Client Success Manager reads every reply.\n\nRelève`,
-      html: shell(esc(subject),
+      text: `${o.name},\n\nHere is ${o.month} with ${o.talent}: ${stats}.\n\n${o.highlights.length ? `Highlights:\n${o.highlights.map(h => `- ${h}`).join('\n')}\n\n` : ''}${o.focus.length ? `Next month's focus:\n${o.focus.map(h => `- ${h}`).join('\n')}\n\n` : ''}The full report: ${href}\n\nIf there is anything you would change, reply here. Your Client Success Manager reads every reply.\n\nRelève`,
+      html: shell(`Your month: ${esc(o.month)}`,
         p(`${esc(o.name)},`) +
         p(`Here is ${esc(o.month)} with <b>${esc(o.talent)}</b>: ${esc(stats)}.`) +
         (o.highlights.length ? p('<b>Highlights</b>') + list(o.highlights) : '') +
         (o.focus.length ? p('<b>Next month’s focus</b>') + list(o.focus) : '') +
-        p('Anything you would change, reply here. Your Client Success Manager reads every reply.'),
+        p('If there is anything you would change, reply here. Your Client Success Manager reads every reply.'),
         { label: 'Read the full report', href })
     };
   },
@@ -60,7 +60,7 @@ export const experienceEmails = {
   clientRequestTeam: (o: { client: string; talent: string; what: string; note?: string | null; preferred?: string | null; action: string }): Message => ({
     kind: 'clientRequestTeam',
     subject: `${o.client}: ${o.what}`,
-    text: `${o.client} has asked for: ${o.what} (placement with ${o.talent}).\n\n${o.note ? `In their words: "${o.note}"\n\n` : ''}${o.preferred ? `Preferred: ${o.preferred}\n\n` : ''}Next step: ${o.action}.\n\n${SITE}/console/care\n\nRelève`,
+    text: `${o.client} has asked for: ${o.what} (placement with ${o.talent}).\n\n${o.note ? `In their words: "${o.note}"\n\n` : ''}${o.preferred ? `Preferred: ${o.preferred}\n\n` : ''}Next step: ${o.action}. We promise a reply within one business day.\n\n${SITE}/console/care\n\nRelève`,
     html: shell(esc(`${o.client}: ${o.what}`),
       p(`<b>${esc(o.client)}</b> has asked for: <b>${esc(o.what)}</b>, on the placement with ${esc(o.talent)}.`) +
       (o.note ? quote(o.note) : '') +
@@ -73,10 +73,10 @@ export const experienceEmails = {
   clientRequestReceived: (o: { name: string; what: string; promise: string }): Message => ({
     kind: 'clientRequestReceived',
     subject: `Received: ${o.what}`,
-    text: `${o.name},\n\nWe have your request: ${o.what}.\n\n${o.promise}\n\n${SITE}/app/care\n\nRelève`,
-    html: shell(esc(`Received: ${o.what}`),
-      p(`${esc(o.name)},`) + p(`We have your request: <b>${esc(o.what)}</b>.`) + p(esc(o.promise)),
-      { label: 'See your placement', href: `${SITE}/app/care` })
+    text: `${o.name},\n\nThank you. Your request is with us: ${o.what}.\n\n${o.promise}\n\n${SITE}/app/care\n\nRelève`,
+    html: shell('We have your request',
+      p(`${esc(o.name)},`) + p(`Thank you. Your request is with us: <b>${esc(o.what)}</b>.`) + p(esc(o.promise)),
+      { label: 'View your placement', href: `${SITE}/app/care` })
   }),
 
   /* A comment or question on a task, to the other side of the placement. */
@@ -85,9 +85,9 @@ export const experienceEmails = {
     return {
       kind: o.question ? 'taskQuestion' : 'taskComment',
       subject,
-      text: `${o.name},\n\n${subject}.\n\n"${o.body}"\n\n${SITE}/app/tasks\n\nRelève`,
-      html: shell(esc(subject),
-        p(`${esc(o.name)},`) + quote(o.body) +
+      text: `${o.name},\n\n${subject}.\n\n"${o.body}"\n\n${o.question ? 'A short answer on the task keeps the work moving.\n\n' : ''}${SITE}/app/tasks\n\nRelève`,
+      html: shell(o.question ? 'A question on your task' : 'A comment on your task',
+        p(`${esc(o.name)},`) + p(`${esc(subject)}.`) + quote(o.body) +
         (o.question ? p('A short answer on the task keeps the work moving.') : ''),
         { label: o.question ? 'Answer on the task' : 'Open the task', href: `${SITE}/app/tasks` })
     };

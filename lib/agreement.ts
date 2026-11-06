@@ -1,4 +1,5 @@
 import { supabaseServer, configured } from '@/lib/supabase/server';
+import { promotePendingAgreement } from '@/lib/agreement-link';
 
 export type ClientAgreement = {
   state: 'not_started' | 'submitted' | 'verified' | 'rejected';
@@ -12,6 +13,7 @@ export type ClientAgreement = {
    decide whether the "Sign your agreement" card still needs to show. */
 export async function getClientAgreement(clientId: string): Promise<ClientAgreement | null> {
   if (!configured()) return null;
+  await promotePendingAgreement(clientId);
   const sb = await supabaseServer();
   const { data } = await sb.from('client_agreements')
     .select('state, envelope_id, file_path, reject_reason')

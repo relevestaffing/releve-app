@@ -31,22 +31,22 @@ function line(b: Booking) {
 
 export function confirmedEmail(b: Booking, host: string, rescheduled = false): Message {
   const l = line(b), manage = manageUrl(b.id);
-  const head = rescheduled ? 'Your call has moved.' : 'Your call is confirmed.';
+  const head = rescheduled ? 'Your call has moved' : 'Your call is confirmed';
   const lead = rescheduled
-    ? `Your discovery call with Relève is now <b>${esc(l.text)}</b>.`
-    : `Your discovery call with Relève is confirmed for <b>${esc(l.text)}</b>.`;
+    ? `Your discovery call with Relève is now set for <b>${esc(l.text)}</b>.`
+    : `Your discovery call with Relève is set for <b>${esc(l.text)}</b>.`;
   return {
     kind: rescheduled ? 'bookingRescheduled' : 'bookingConfirmed',
     from: SENDER,
     subject: rescheduled ? `Rescheduled: your discovery call, ${l.day}` : `Confirmed: your discovery call, ${l.day}`,
     html: shell(head,
       p(`${esc(first(b.name))},`) +
-      p(`${lead} The invitation is attached, so it goes straight onto your calendar.`) +
-      p(`${minutes(b)} with ${esc(host)}. We arrive prepared with what you told us, and you leave knowing what comes off your plate first, who takes it over, and how your 14-day search works.`) +
+      p(`${lead} The invitation is attached for your calendar.`) +
+      p(`${minutes(b)} with ${esc(host)}. We will come prepared with what you told us, and you will leave knowing what comes off your plate first and how your 14-day search works.`) +
       tagline(),
       b.joinUrl ? { label: 'Join on Zoom', href: b.joinUrl } : undefined,
       { label: 'Reschedule or cancel', href: manage }),
-    text: `${first(b.name)},\n\n${rescheduled ? `Your discovery call with Relève is now ${l.text}.` : `Your discovery call with Relève is confirmed for ${l.text}.`} The invitation is attached, so it goes straight onto your calendar.\n\n${minutes(b)} with ${host}. We arrive prepared with what you told us, and you leave knowing what comes off your plate first, who takes it over, and how your 14-day search works.${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
+    text: `${first(b.name)},\n\n${rescheduled ? `Your discovery call with Relève is now set for ${l.text}.` : `Your discovery call with Relève is set for ${l.text}.`} The invitation is attached for your calendar.\n\n${minutes(b)} with ${host}. We will come prepared with what you told us, and you will leave knowing what comes off your plate first and how your 14-day search works.${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
     icalEvent: { method: 'REQUEST', filename: 'releve-discovery-call.ics', content: bookingIcs(b, { method: 'REQUEST', host, sequence: rescheduled ? 1 : 0 }) }
   };
 }
@@ -57,13 +57,13 @@ export function cancelledEmail(b: Booking, host: string): Message {
     kind: 'bookingCancelled',
     from: SENDER,
     subject: `Cancelled: your discovery call, ${l.day}`,
-    html: shell('Your call is cancelled.',
+    html: shell('Your call is cancelled',
       p(`${esc(first(b.name))},`) +
-      p(`Your discovery call for ${esc(l.text)} is cancelled, and it has been taken off your calendar.`) +
-      p('Whenever the timing is right, choose a new time below.') +
+      p(`Your discovery call for ${esc(l.text)} has been taken off your calendar.`) +
+      p('When the timing suits you, you can choose a new time below.') +
       tagline(),
       { label: 'Choose a new time', href: 'https://relevestaffing.com/book/' }),
-    text: `${first(b.name)},\n\nYour discovery call for ${l.text} is cancelled, and it has been taken off your calendar.\n\nWhenever the timing is right, choose a new time: https://relevestaffing.com/book/\n\nConsider it handled.\nRelève`,
+    text: `${first(b.name)},\n\nYour discovery call for ${l.text} is cancelled and has been taken off your calendar.\n\nWhen the timing suits you, you can choose a new time here: https://relevestaffing.com/book/\n\nConsider it handled.\nRelève`,
     icalEvent: { method: 'CANCEL', filename: 'releve-discovery-call.ics', content: bookingIcs(b, { method: 'CANCEL', host, sequence: 2 }) }
   };
 }
@@ -85,7 +85,7 @@ export async function tellTeam(kind: 'booked' | 'rescheduled' | 'cancelled', b: 
     const msg: Message = {
       kind: `bookingTeam_${kind}`,
       subject,
-      html: shell(`${esc(b.name)} ${verb}.`,
+      html: shell(`${esc(b.name)} ${verb}`,
         facts.map(f => p(esc(f))).join('') +
         (b.notes && kind !== 'cancelled' ? `<p style="margin:0 0 15px;padding:14px 18px;background:#F1F6F1;border-left:2px solid #B0C4B2;white-space:pre-wrap;">${esc(b.notes)}</p>` : '')),
       text: `${b.name} ${verb}.\n\n${facts.join('\n')}${b.notes && kind !== 'cancelled' ? `\n\nWhat they told us:\n${b.notes}` : ''}`,

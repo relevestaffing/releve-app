@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
   }
 
   const { data: { user } } = await sb.auth.getUser();
+  let firstClientSignIn = false;
   if (user) {
     const { data: existing } = await sb.from('profiles').select('id').eq('id', user.id).maybeSingle();
     if (!existing) {
@@ -103,6 +104,7 @@ export async function GET(request: NextRequest) {
       if (user.email) {
         const { data: fresh } = await sb.from('profiles').select('full_name, role').eq('id', user.id).maybeSingle();
         await send(user.email, { ...templates.profileWelcome((fresh as any)?.full_name ?? null, (fresh as any)?.role ?? null), attachments: await appGuideAttachment() });
+        if ((fresh as any)?.role === 'client') firstClientSignIn = true;
       }
     }
   }
@@ -121,5 +123,8 @@ export async function GET(request: NextRequest) {
     res.cookies.set('rel_next', '', { path: '/', maxAge: 0 });
     return res;
   }
+  /* First sign-in of a new executive: step four, putting Relève on their
+     devices, before the dashboard. */
+  if (firstClientSignIn) return go('/install');
   return go('/app');
 }

@@ -7,6 +7,7 @@ import { money, todayInPacific, addDaysISO, INVOICE_STATUS } from './money-publi
 import type { Invoice } from './money-public';
 import { send } from './email';
 import { billingTemplates } from './email-billing';
+import { promotePendingAgreement, pendingSigned } from './agreement-link';
 
 /* Where the money actually moves.
    ------------------------------
@@ -162,6 +163,7 @@ async function checkoutForClaimedDeposit(
    The agreement comes before the deposit and before any candidate is shown. */
 export async function agreementSigned(clientId: string): Promise<boolean> {
   if (!configured()) return clientId === 'demo-client';
+  await promotePendingAgreement(clientId);
   const { data } = await adminClient().from('client_agreements')
     .select('state').eq('client_id', clientId).maybeSingle();
   return (data as any)?.state === 'verified';
@@ -230,6 +232,7 @@ export async function startDepositPaymentForSearch(searchId: string): Promise<st
   const { data: pending } = await db.from('pending_people')
     .select('email, full_name').eq('id', pendingId).maybeSingle();
   if (!pending) throw new Error('Could not find that record.');
+  if (!(await pendingSigned(pendingId))) throw new Error(AGREEMENT_FIRST);
 
   const session = await stripeCall<{ url: string }>('/checkout/sessions', {
     mode: 'payment',

@@ -12,7 +12,7 @@ export default async function DepositDone({ searchParams }: { searchParams: Prom
       <div>
         <img className="auth-logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="auth-card">
-          <div className="eyebrow" style={{ marginBottom: 10 }}>Search deposit</div>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>{cancelled ? 'Search deposit' : 'Step 3 of 4'}</div>
           {cancelled ? (
             <>
               <h2 style={{ fontSize: 24, marginBottom: 12 }}>Nothing was charged</h2>
@@ -20,19 +20,18 @@ export default async function DepositDone({ searchParams }: { searchParams: Prom
             </>
           ) : (
             <>
-              <h2 style={{ fontSize: 24, marginBottom: 12 }}>Thank you. Your search is open.</h2>
+              <h2 style={{ fontSize: 24, marginBottom: 12 }}>Your search is open.</h2>
               <p className="note" style={{ marginBottom: 10 }}>
-                Your deposit is with Stripe. A card settles in moments; a bank transfer takes a few business
-                days. Either way, your Client Success Manager begins sourcing now.
+                Your deposit is received. A card settles in moments, a bank transfer in a few business days.
+                Sourcing begins now.
               </p>
               <p className="xs muted">
-                Next, set up your Relève account with the same email address. Your deposit and payment method are
-                already attached to it.
+                Next, open your Relève account with this same email address. Your deposit is already attached to it.
               </p>
             </>
           )}
           <a className="btn solid sm" style={{ marginTop: 20, display: 'inline-block' }} href="/">
-            {cancelled ? 'Open your account' : 'Set up your account'}
+            {cancelled ? 'Open your account' : 'Open your account'}
           </a>
         </div>
       </div>

@@ -120,7 +120,7 @@ export async function POST(req: Request) {
 
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app`;   // the dashboard carries the deposit button
     const sent = await send(email, {
-      ...templates.depositReady({ name: firstName(greetName, ''), payUrl, cents }),
+      ...templates.depositReady({ name: firstName(greetName, ''), payUrl, cents, agreementUrl: canLink ? `${SITE}/sign/${payUrl.split('/pay/')[1]}` : undefined }),
       attachments: [...(await appGuideAttachment()), await clientAgreementAttachment()]
     });
 

@@ -19,6 +19,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
   } catch (e: any) {
     const m = String(e?.message ?? '');
     if (m === 'That deposit is already settled.') return back('settled');
+    if (m.includes('Client Services Agreement first')) return NextResponse.redirect(`${SITE}/sign/${encodeURIComponent(token)}`, 303);
     if (m.includes('Stripe is not configured')) return back('stripe');
     console.error('[pay] deposit checkout did not open', m);
     return back('failed');

@@ -33,21 +33,21 @@ export const billingTemplates = {
     const doc = o.docUrl ?? BILLING;
     if (o.zero) return msg('invoiceIssued',
       `Relève invoice ${o.number}, ${o.period}`,
-      `${o.name},\n\nInvoice ${o.number} for ${o.period} comes to nothing this time${o.creditNote ? `: ${o.creditNote}` : ''}. Nothing is due.\n\nThe full invoice is in your account: ${doc}${SIGN}`,
+      `${o.name},\n\nInvoice ${o.number} for ${o.period} carries no balance this time${o.creditNote ? `: ${o.creditNote}` : ''}.\n\nNothing is due. A copy is in your account for your records: ${doc}${SIGN}`,
       shell(`Invoice ${esc(o.number)}`,
         p(`${esc(o.name)},`) +
-        p(`Invoice <b>${esc(o.number)}</b> for ${esc(o.period)} comes to nothing this time${o.creditNote ? `: ${esc(o.creditNote)}` : ''}.`) +
-        p('Nothing is due. It is in your account for your records.'),
+        p(`Invoice <b>${esc(o.number)}</b> for ${esc(o.period)} carries no balance this time${o.creditNote ? `: ${esc(o.creditNote)}` : ''}.`) +
+        p('Nothing is due. A copy is in your account for your records.'),
         { label: 'View the invoice', href: doc }));
 
     return msg('invoiceIssued',
       `Relève invoice ${o.number}, ${o.period}`,
-      `${o.name},\n\nInvoice ${o.number} for ${o.period}.\n\nAmount: ${o.amount}${o.creditNote ? ` (${o.creditNote})` : ''}\nDue: ${o.due}, on receipt\n\n${o.payUrl ? `Pay it directly, no sign-in needed: ${o.payUrl}\n\n` : ''}The full invoice, ready to print or save, is in your account: ${doc}\n\nIf anything on it looks wrong, reply to this email rather than paying it. We would rather fix it now.${SIGN}`,
+      `${o.name},\n\nYour invoice ${o.number} for ${o.period} is ready.\n\nAmount: ${o.amount}${o.creditNote ? ` (${o.creditNote})` : ''}\nDue: ${o.due}, on receipt\n\n${o.payUrl ? `You can pay online, no sign-in needed: ${o.payUrl}\n\n` : ''}The full invoice, ready to print or save, is in your account: ${doc}\n\nIf anything on it looks wrong, reply to this email before paying and we will correct it.${SIGN}`,
       shell(`Invoice ${esc(o.number)}`,
         p(`${esc(o.name)},`) +
-        p(`<b>${esc(o.amount)}</b> for ${esc(o.period)}, due ${esc(o.due)}, on receipt.`) +
+        p(`Your invoice for ${esc(o.period)} is ready: <b>${esc(o.amount)}</b>, due ${esc(o.due)}, on receipt.`) +
         (o.creditNote ? p(esc(o.creditNote) + '.') : '') +
-        p('If anything on it looks wrong, reply to this email rather than paying it. We would rather fix it now.'),
+        p('If anything on it looks wrong, reply to this email before paying and we will correct it.'),
         o.payUrl ? { label: `Pay ${esc(o.amount)}`, href: o.payUrl } : { label: 'View the invoice', href: doc },
         o.payUrl ? { label: 'View the full invoice', href: doc } : undefined));
   },
@@ -56,18 +56,18 @@ export const billingTemplates = {
      done. Day 13 says plainly what day 14 means, once, without leaning on it. */
   invoiceReminder(o: { name: string; number: string; amount: string; day: number; payUrl?: string }) {
     const href = o.payUrl ?? BILLING;
-    const head = o.day >= 13 ? `Invoice ${o.number} pauses the placement tomorrow` : o.day >= 7 ? `Invoice ${o.number}, seven days open` : `Invoice ${o.number} is open`;
+    const head = o.day >= 13 ? `Invoice ${o.number}: keeping your placement running` : o.day >= 7 ? `Invoice ${o.number} is still open` : `Invoice ${o.number} is open`;
     const lead = o.day >= 13
-      ? `Invoice ${o.number} for ${o.amount} is still open. Under the terms, a placement pauses once an invoice has been open fourteen days, and we would much rather it carried on without a break.`
+      ? `Invoice ${o.number} for ${o.amount} is still open. Under the terms, a placement pauses once an invoice has been open for fourteen days, and tomorrow is the fourteenth. Paying today keeps the work running without a break.`
       : o.day >= 7
-        ? `Invoice ${o.number} for ${o.amount} is still open. If it is already on its way, thank you, and please ignore this.`
-        : `Invoice ${o.number} for ${o.amount} was due yesterday. If it is already on its way, thank you, and please ignore this.`;
+        ? `Invoice ${o.number} for ${o.amount} is still open. If payment is already on its way, thank you, and please disregard this note.`
+        : `Invoice ${o.number} for ${o.amount} was due yesterday. If payment is already on its way, thank you, and please disregard this note.`;
     return msg('invoiceReminder',
       head,
-      `${o.name},\n\n${lead}\n\nIt takes a minute by bank or card: ${href}\n\nIf something about it is not right, reply here and we will sort it out.${SIGN}`,
+      `${o.name},\n\n${lead}\n\nYou can pay by bank or card here: ${href}\n\nIf anything on it looks wrong, reply here and we will correct it.${SIGN}`,
       shell(head,
         p(`${esc(o.name)},`) + p(esc(lead)) +
-        p('If something about it is not right, reply here and we will sort it out.'),
+        p('You can pay by bank or card below. If anything on it looks wrong, reply here and we will correct it.'),
         { label: `Pay ${esc(o.amount)}`, href }));
   },
 
@@ -76,29 +76,29 @@ export const billingTemplates = {
     const href = o.payUrl ?? BILLING;
     return msg('placementPausedClient',
       `Your placement is paused until invoice ${o.number} is settled`,
-      `${o.name},\n\nInvoice ${o.number} for ${o.amount} has been open for fourteen days, so as the terms set out, ${o.talent}'s work with you is paused for now.\n\nEverything resumes the same day it is settled: ${href}\n\nIf there is something we should know, reply here. We are glad to help.${SIGN}`,
-      shell('Your placement is paused for now',
+      `${o.name},\n\nInvoice ${o.number} for ${o.amount} has now been open for fourteen days, so, as the terms set out, ${o.talent}'s work with you is paused.\n\nEverything resumes the same day the invoice is settled: ${href}\n\nIf there is anything we should know, reply here and we will help.${SIGN}`,
+      shell('Your placement is paused',
         p(`${esc(o.name)},`) +
-        p(`Invoice <b>${esc(o.number)}</b> for <b>${esc(o.amount)}</b> has been open for fourteen days, so as the terms set out, ${esc(o.talent)}'s work with you is paused for now.`) +
-        p('Everything resumes the same day it is settled. If there is something we should know, reply here. We are glad to help.'),
+        p(`Invoice <b>${esc(o.number)}</b> for <b>${esc(o.amount)}</b> has now been open for fourteen days, so, as the terms set out, ${esc(o.talent)}'s work with you is paused.`) +
+        p('Everything resumes the same day the invoice is settled. If there is anything we should know, reply here and we will help.'),
         { label: `Settle ${esc(o.amount)}`, href }));
   },
 
   placementPausedTalent(o: { name: string; executive: string }) {
     return msg('placementPausedTalent',
       `A short pause with ${o.executive}`,
-      `${o.name},\n\nWe have paused your placement with ${o.executive} for a few days while we settle an administrative matter on their account. Nothing about your work has changed, and you will be paid for every day you have worked.\n\nPlease hold new work for ${o.executive} until we write again, which we will the moment it resumes. Questions any time: reply to this email.${SIGN}`,
+      `${o.name},\n\nWe have paused your placement with ${o.executive} for a few days while we settle an administrative matter on their account. Nothing about your work has changed, and you will be paid for every day you have worked.\n\nPlease hold new work for ${o.executive} until we write again. We will write the moment it resumes. If you have any questions, reply to this email.${SIGN}`,
       shell(`A short pause with ${esc(o.executive)}`,
         p(`${esc(o.name)},`) +
         p(`We have paused your placement with <b>${esc(o.executive)}</b> for a few days while we settle an administrative matter on their account. Nothing about your work has changed, and you will be paid for every day you have worked.`) +
-        p(`Please hold new work for ${esc(o.executive)} until we write again, which we will the moment it resumes. Questions any time: reply to this email.`),
+        p(`Please hold new work for ${esc(o.executive)} until we write again. We will write the moment it resumes. If you have any questions, reply to this email.`),
         { label: 'Open your account', href: `${SITE}/app` }));
   },
 
   placementResumed(o: { name: string; withWhom: string; side: 'client' | 'talent' }) {
     const line = o.side === 'client'
-      ? `Thank you. Your placement with ${o.withWhom} is running again, as of today.`
-      : `Your placement with ${o.withWhom} is running again, as of today. Pick up where you left off.`;
+      ? `Thank you. Your placement with ${o.withWhom} is running again as of today.`
+      : `Your placement with ${o.withWhom} is running again as of today. You can pick up where you left off.`;
     return msg('placementResumed',
       `Your placement with ${o.withWhom} has resumed`,
       `${o.name},\n\n${line}${SIGN}`,
@@ -128,10 +128,10 @@ export const billingTemplates = {
         { label: 'Open Placements', href: `${SITE}/console/placements` }));
     return msg('noticeGiven',
       'We have your notice',
-      `${o.name},\n\nWe have your notice. Your placement runs to ${o.endsOn}, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.\n\n${NOTICE_TERMS}\n\n${SITE}/app/care${SIGN}`,
+      `${o.name},\n\nThank you for letting us know. Your placement runs to ${o.endsOn}, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch to arrange the handover.\n\n${NOTICE_TERMS}\n\n${SITE}/app/care${SIGN}`,
       shell('We have your notice',
         p(`${esc(o.name)},`) +
-        p(`Your placement runs to <b>${esc(o.endsOn)}</b>, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch about a smooth handover.`) +
+        p(`Thank you for letting us know. Your placement runs to <b>${esc(o.endsOn)}</b>, and billing continues through that date, as the terms set out. Your Client Success Manager will be in touch to arrange the handover.`) +
         quiet(esc(NOTICE_TERMS)),
         { label: 'Open your placement', href: `${SITE}/app/care` }));
   },
@@ -148,10 +148,10 @@ export const billingTemplates = {
         { label: 'Open Placements', href: `${SITE}/console/placements` }));
     return msg('renewalNotice',
       `Your initial term ends on ${o.endsOn}`,
-      `${o.name},\n\nYour initial term ends on ${o.endsOn}. Under your Client Services Agreement it renews automatically for ${o.renewMonths} ${mo} at the same rate. To change or end the arrangement, 30 days' written notice is needed, which means by ${o.noticeBy}. You can give notice from your account, or reply and we will arrange it.\n\n${SITE}/app/care${SIGN}`,
+      `${o.name},\n\nYour initial term ends on ${o.endsOn}. Under your Client Services Agreement it renews automatically for ${o.renewMonths} ${mo} at the same rate. If you are happy as things are, there is nothing to do.\n\nTo change or end the arrangement, 30 days' written notice is needed, which means by ${o.noticeBy}. You can give notice from your account, or reply and we will arrange it.\n\n${SITE}/app/care${SIGN}`,
       shell('Your initial term ends soon',
         p(`${esc(o.name)},`) +
-        p(`Your initial term ends on <b>${esc(o.endsOn)}</b>. Under your Client Services Agreement it renews automatically for ${o.renewMonths} ${mo} at the same rate.`) +
+        p(`Your initial term ends on <b>${esc(o.endsOn)}</b>. Under your Client Services Agreement it renews automatically for ${o.renewMonths} ${mo} at the same rate. If you are happy as things are, there is nothing to do.`) +
         p(`To change or end the arrangement, 30 days' written notice is needed, which means by <b>${esc(o.noticeBy)}</b>. You can give notice from your account, or reply and we will arrange it.`),
         { label: 'Open your placement', href: `${SITE}/app/care` }));
   },
@@ -161,12 +161,12 @@ export const billingTemplates = {
     const href = o.payUrl ?? `${SITE}/app`;
     return msg('depositFailed',
       `Your ${o.amount} deposit needs another try`,
-      `${o.name},\n\nYour ${o.amount} search deposit did not go through this time. Most often a bank declines a first debit that clears on the next attempt, or a card works where a bank did not.\n\nTry again here: ${href}\n\nIf you would rather pay another way, reply and we will arrange it.${SIGN}`,
+      `${o.name},\n\nYour ${o.amount} search deposit did not go through this time. Banks often decline a first debit and then clear the next attempt, and a card can work where a bank did not.\n\nComplete your deposit here: ${href}\n\nIf you would rather pay another way, reply and we will arrange it.${SIGN}`,
       shell('Your deposit needs another try',
         p(`${esc(o.name)},`) +
-        p(`Your <b>${esc(o.amount)}</b> search deposit did not go through this time. Most often a bank declines a first debit that clears on the next attempt, or a card works where a bank did not.`) +
+        p(`Your <b>${esc(o.amount)}</b> search deposit did not go through this time. Banks often decline a first debit and then clear the next attempt, and a card can work where a bank did not.`) +
         p('If you would rather pay another way, reply and we will arrange it.'),
-        { label: 'Try again', href }));
+        { label: 'Complete your deposit', href }));
   },
 
   depositFailedTeam(o: { who: string; amount: string; reason?: string | null }) {

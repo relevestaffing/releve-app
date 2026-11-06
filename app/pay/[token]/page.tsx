@@ -1,4 +1,6 @@
+import { redirect } from 'next/navigation';
 import { verifyDepositLink } from '@/lib/deposit-link';
+import { searchSigned } from '@/lib/agreement-link';
 import { depositLinkSummary } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { money } from '@/lib/money-public';
@@ -26,6 +28,8 @@ export default async function PayDeposit({ params, searchParams }: {
   const { e } = await searchParams;
   const verified = verifyDepositLink(token);
   const summary = verified ? await depositLinkSummary(verified.searchId) : null;
+  /* Step one comes first: the agreement, then the deposit. */
+  if (verified && summary?.ok && !(await searchSigned(verified.searchId))) redirect(`/sign/${encodeURIComponent(token)}`);
 
   let heading = 'Your search deposit';
   let message: string | null = null;
@@ -48,7 +52,7 @@ export default async function PayDeposit({ params, searchParams }: {
       <div>
         <img className="auth-logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="auth-card">
-          <div className="eyebrow" style={{ marginBottom: 10 }}>Search deposit</div>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Step 2 of 4</div>
           <h2 style={{ fontSize: 24, marginBottom: 12 }}>{heading}</h2>
           {canPay && summary && (
             <>
