@@ -27,21 +27,21 @@ export async function signerForSearch(searchId: string): Promise<LinkSigner | nu
   };
 }
 
+/* The agreements bucket accepts PDFs only, so the signed PDF is the whole
+   record: its presence means signed, its upload time is the signing time,
+   and the name and date are printed inside it. */
 const pdfPath = (pendingId: string) => `pending/${pendingId}/client-agreement.pdf`;
-const notePath = (pendingId: string) => `pending/${pendingId}/signed.json`;
 
 export async function savePendingSignature(pendingId: string, pdf: Buffer | Uint8Array, note: { name: string; at: string; version: string }) {
-  const st = adminClient().storage.from('agreements');
-  const a = await st.upload(pdfPath(pendingId), pdf, { contentType: 'application/pdf', upsert: true });
+  void note;
+  const a = await adminClient().storage.from('agreements').upload(pdfPath(pendingId), pdf, { contentType: 'application/pdf', upsert: true });
   if (a.error) throw new Error(a.error.message);
-  const b = await st.upload(notePath(pendingId), Buffer.from(JSON.stringify(note)), { contentType: 'application/json', upsert: true });
-  if (b.error) throw new Error(b.error.message);
 }
 
 export async function pendingSigned(pendingId: string): Promise<boolean> {
   if (!hasServiceKey()) return false;
   const { data } = await adminClient().storage.from('agreements').list(`pending/${pendingId}`, { limit: 10 });
-  return Boolean((data ?? []).some(f => f.name === 'signed.json'));
+  return Boolean((data ?? []).some(f => f.name === 'client-agreement.pdf'));
 }
 
 /* Has whoever this search belongs to signed? */
@@ -68,9 +68,11 @@ export async function promotePendingAgreement(clientId: string): Promise<void> {
     const pid = (pend as any)?.id as string | undefined;
     if (!pid || !(await pendingSigned(pid))) return;
     const st = ad.storage.from('agreements');
-    const [pdf, note] = await Promise.all([st.download(pdfPath(pid)), st.download(notePath(pid))]);
+    const pdf = await st.download(pdfPath(pid));
     if (pdf.error || !pdf.data) return;
-    const meta = note.data ? JSON.parse(await note.data.text()) : {};
+    const { data: files } = await st.list(`pending/${pid}`, { limit: 10 });
+    const f = (files ?? []).find(x => x.name === 'client-agreement.pdf') as any;
+    const meta = { at: f?.created_at ?? f?.updated_at ?? null };
     const dest = `${clientId}/client-agreement.pdf`;
     const up = await st.upload(dest, Buffer.from(await pdf.data.arrayBuffer()), { contentType: 'application/pdf', upsert: true });
     if (up.error) return;
