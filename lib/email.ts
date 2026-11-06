@@ -309,7 +309,7 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Sign your Client Services Agreement', note: 'Two minutes, signed right on screen.', href: `${SITE}/agreement`, cta: 'Sign agreement' },
+      { n: 1, label: 'Sign your Client Services Agreement', note: 'A copy is attached to read first. Signing takes two minutes, right on screen.', href: `${SITE}/agreement`, cta: 'Sign agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, note: 'Credited in full toward your first month once you are placed.', href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', note: 'Your private home for the search, from first candidate to day one.', href: SITE, cta: 'Set up account' },
       { n: 4, label: 'Add Relève to your phone or computer', note: 'A one-page guide with pictures is attached. It takes a minute.', href: `${SITE}/guides/Add-Releve-to-your-device.pdf`, cta: 'Open the guide' }
@@ -683,11 +683,11 @@ const rawTemplates = {
     /* An applicant with no recorded name gets a plain welcome, never
        "Welcome to Relève, there". */
     subject: o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
-    text: `${o.name || 'Hello'},\n\nThank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.\n\nBefore you get started, you are welcome to sign your NDA and contractor agreement in your account whenever suits you: ${SITE}/agreement\n\nEverything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\nRelève`,
+    text: `${o.name || 'Hello'},\n\nThank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.\n\nYour NDA and contractor agreement is attached to read. You sign it in your account whenever suits you: ${SITE}/agreement\n\nEverything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\nRelève`,
     html: shell(o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
       p(`${o.name || 'Hello'},`) +
       p('Thank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.') +
-      p(`Before you get started, you are welcome to sign your <a href="${SITE}/agreement" style="color:#35443A;">NDA and contractor agreement</a> in your account whenever suits you.`) +
+      p(`Your NDA and contractor agreement is attached to read. You <a href="${SITE}/agreement" style="color:#35443A;">sign it in your account</a> whenever suits you.`) +
       p('Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature (twenty to twenty-five minutes, saved as you go), followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.') +
       p('Set it up and it will walk you through the rest, one step at a time.'),
       { label: 'Create your account', href: SITE })

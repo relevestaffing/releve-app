@@ -1,3 +1,4 @@
+import { buildAgreementForReview, TALENT_DOC } from '@/lib/agreement-pdf';
 import { NextResponse } from 'next/server';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { send, templates } from '@/lib/email';
@@ -58,7 +59,14 @@ export async function POST(req: Request) {
     /* The record stands whether or not the mail server answers — a failed
        send should never look like a failed save. */
     const tpl = templates.applicationInvited({ name: firstName(name, ''), role: role ?? 'the role' });
-    const sent = await send(email, tpl);
+    const sent = await send(email, {
+      ...tpl,
+      attachments: [{
+        filename: 'Releve-Contractor-Agreement.pdf',
+        content: await buildAgreementForReview(TALENT_DOC),
+        contentType: 'application/pdf'
+      }]
+    });
 
     return NextResponse.json({ ok: true, emailed: sent });
   } catch (e: any) {

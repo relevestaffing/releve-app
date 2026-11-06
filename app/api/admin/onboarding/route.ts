@@ -1,3 +1,4 @@
+import { buildAgreementForReview, CLIENT_DOC } from '@/lib/agreement-pdf';
 import { NextResponse } from 'next/server';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { send, templates, appGuideAttachment } from '@/lib/email';
@@ -120,7 +121,7 @@ export async function POST(req: Request) {
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app`;   // the dashboard carries the deposit button
     const sent = await send(email, {
       ...templates.depositReady({ name: firstName(greetName, ''), payUrl, cents }),
-      attachments: await appGuideAttachment()
+      attachments: [...(await appGuideAttachment()), await clientAgreementAttachment()]
     });
 
     return NextResponse.json({
@@ -133,4 +134,14 @@ export async function POST(req: Request) {
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }
+}
+
+/* The Client Services Agreement, unsigned, so it travels with the onboarding
+   email. They sign it in their account through the first step's link. */
+async function clientAgreementAttachment() {
+  return {
+    filename: 'Releve-Client-Services-Agreement.pdf',
+    content: await buildAgreementForReview(CLIENT_DOC),
+    contentType: 'application/pdf'
+  };
 }

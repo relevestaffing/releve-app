@@ -39,7 +39,7 @@ const INK = rgb(0.13, 0.17, 0.15), MUTED = rgb(0.4, 0.45, 0.42), FERN = rgb(0.21
 
 export type SignatureRecord = {
   name: string; email: string; signedAt: Date; ip: string | null; userAgent: string | null;
-  business?: string | null; country?: string | null;
+  business?: string | null; country?: string | null; unsigned?: boolean;
 };
 
 export function agreementFingerprint(doc: AgreementDoc = CLIENT_DOC): string {
@@ -118,50 +118,56 @@ export async function buildSignedAgreement(rec: SignatureRecord, doc: AgreementD
     }
   }
 
-  // Signature block
-  need(190); y -= 8;
-  para('SIGNATURES', { f: bold, size: 11.5, gap: 8 });
-  const dateStr = rec.signedAt.toLocaleDateString('en-US', { timeZone: 'America/Denver', year: 'numeric', month: 'long', day: 'numeric' });
-  const col2 = M + 250;
-  const startY = y;
-  page.drawText('Relève', { x: M, y, size: 11, font: bold, color: INK });
-  page.drawText(doc.party, { x: col2, y, size: 11, font: bold, color: INK });
-  y -= 20;
-  page.drawText('Relève Staffing LLC', { x: M, y, size: 15, font: ital, color: FERN });
-  page.drawText(safe(rec.name, ital), { x: col2, y, size: 15, font: ital, color: FERN });
-  y -= 6;
-  page.drawLine({ start: { x: M, y }, end: { x: M + 210, y }, thickness: 0.5, color: MUTED });
-  page.drawLine({ start: { x: col2, y }, end: { x: W - M, y }, thickness: 0.5, color: MUTED });
-  y -= 13;
-  const small = (t: string, x: number) => page.drawText(safe(t, reg), { x, y, size: 9, font: reg, color: MUTED });
-  small(`Accepted by Sage Jackson, Founder, on the ${doc.party}’s`, M); small('Signature (typed full name)', col2); y -= 12;
-  small('acceptance, under the company’s standing authorization', M); small(`Full name: ${rec.name}`, col2); y -= 12;
-  small(`Date: ${dateStr}`, M); small(doc.party === 'Talent' ? `Country of residence: ${rec.country ?? 'not stated'}` : rec.business ? `Business: ${rec.business}` : 'Business name: n/a', col2); y -= 12;
-  small('', M); small(`Date: ${dateStr}`, col2); y -= 24;
-  void startY;
+  if (rec.unsigned) {
+    need(80); y -= 8;
+    para('SIGNATURES', { f: bold, size: 11.5, gap: 8 });
+    para(`This copy is for your review. You sign it in your Relève account, where the signed copy is filed and emailed to you.`, { f: ital, size: 10, color: MUTED });
+  } else {
+    // Signature block
+    need(190); y -= 8;
+    para('SIGNATURES', { f: bold, size: 11.5, gap: 8 });
+    const dateStr = rec.signedAt.toLocaleDateString('en-US', { timeZone: 'America/Denver', year: 'numeric', month: 'long', day: 'numeric' });
+    const col2 = M + 250;
+    const startY = y;
+    page.drawText('Relève', { x: M, y, size: 11, font: bold, color: INK });
+    page.drawText(doc.party, { x: col2, y, size: 11, font: bold, color: INK });
+    y -= 20;
+    page.drawText('Relève Staffing LLC', { x: M, y, size: 15, font: ital, color: FERN });
+    page.drawText(safe(rec.name, ital), { x: col2, y, size: 15, font: ital, color: FERN });
+    y -= 6;
+    page.drawLine({ start: { x: M, y }, end: { x: M + 210, y }, thickness: 0.5, color: MUTED });
+    page.drawLine({ start: { x: col2, y }, end: { x: W - M, y }, thickness: 0.5, color: MUTED });
+    y -= 13;
+    const small = (t: string, x: number) => page.drawText(safe(t, reg), { x, y, size: 9, font: reg, color: MUTED });
+    small(`Accepted by Sage Jackson, Founder, on the ${doc.party}’s`, M); small('Signature (typed full name)', col2); y -= 12;
+    small('acceptance, under the company’s standing authorization', M); small(`Full name: ${rec.name}`, col2); y -= 12;
+    small(`Date: ${dateStr}`, M); small(doc.party === 'Talent' ? `Country of residence: ${rec.country ?? 'not stated'}` : rec.business ? `Business: ${rec.business}` : 'Business name: n/a', col2); y -= 12;
+    small('', M); small(`Date: ${dateStr}`, col2); y -= 24;
+    void startY;
 
-  // Signature record
-  newPage();
-  page.drawText('SIGNATURE RECORD', { x: M, y, size: 11.5, font: bold, color: INK }); y -= 22;
-  const rows: [string, string][] = [
-    ['Document', `${doc.title}, version ${doc.version}`],
-    ['Signer', rec.name],
-    ['Email', rec.email],
-    ['Signed (UTC)', rec.signedAt.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')],
-    ['Method', 'Typed full name, entered on the Relève platform after the signer confirmed they had read and agreed to the full text'],
-    ['Network address', rec.ip ?? 'not recorded'],
-    ['Browser', (rec.userAgent ?? 'not recorded').slice(0, 160)],
-    ['Text fingerprint (SHA-256)', agreementFingerprint(doc)]
-  ];
-  for (const [k, v] of rows) {
-    need(40);
-    page.drawText(safe(k.toUpperCase(), reg), { x: M, y, size: 8, font: reg, color: MUTED }); y -= 12;
-    const lines = wrap(v, reg, 10, W - 2 * M);
-    for (const l of lines) { need(LINE); page.drawText(l, { x: M, y, size: 10, font: reg, color: INK }); y -= LINE - 1; }
-    y -= 9;
+    // Signature record
+    newPage();
+    page.drawText('SIGNATURE RECORD', { x: M, y, size: 11.5, font: bold, color: INK }); y -= 22;
+    const rows: [string, string][] = [
+      ['Document', `${doc.title}, version ${doc.version}`],
+      ['Signer', rec.name],
+      ['Email', rec.email],
+      ['Signed (UTC)', rec.signedAt.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')],
+      ['Method', 'Typed full name, entered on the Relève platform after the signer confirmed they had read and agreed to the full text'],
+      ['Network address', rec.ip ?? 'not recorded'],
+      ['Browser', (rec.userAgent ?? 'not recorded').slice(0, 160)],
+      ['Text fingerprint (SHA-256)', agreementFingerprint(doc)]
+    ];
+    for (const [k, v] of rows) {
+      need(40);
+      page.drawText(safe(k.toUpperCase(), reg), { x: M, y, size: 8, font: reg, color: MUTED }); y -= 12;
+      const lines = wrap(v, reg, 10, W - 2 * M);
+      for (const l of lines) { need(LINE); page.drawText(l, { x: M, y, size: 10, font: reg, color: INK }); y -= LINE - 1; }
+      y -= 9;
+    }
+    y -= 6;
+    para(`This record, with the agreement above, is the executed copy. Under ${doc.esignClause} of the agreement, the ${doc.party}’s electronic acceptance is a valid signature with the same effect as a handwritten one.`, { f: ital, size: 9.5, color: MUTED });
   }
-  y -= 6;
-  para(`This record, with the agreement above, is the executed copy. Under ${doc.esignClause} of the agreement, the ${doc.party}’s electronic acceptance is a valid signature with the same effect as a handwritten one.`, { f: ital, size: 9.5, color: MUTED });
 
   // page numbers
   const pages = pdf.getPages();
@@ -169,4 +175,12 @@ export async function buildSignedAgreement(rec: SignatureRecord, doc: AgreementD
     { x: M, y: 36, size: 8, font: reg, color: MUTED }));
 
   return Buffer.from(await pdf.save());
+}
+
+/* The same agreement, unsigned, to attach to an onboarding email so the
+   person can read it before they sign in their account. */
+export async function buildAgreementForReview(doc: AgreementDoc = CLIENT_DOC): Promise<Buffer> {
+  return buildSignedAgreement({
+    name: 'For review', email: '', signedAt: new Date(), ip: null, userAgent: null, unsigned: true
+  }, doc);
 }
