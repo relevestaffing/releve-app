@@ -199,6 +199,17 @@ export function shell(
   secondary?: { label: string; href: string } | { label: string; href: string }[]
 ) {
   const links = secondary ? (Array.isArray(secondary) ? secondary : [secondary]) : [];
+  /* The inbox preview line. Without one, Gmail previews the header image's
+     alt text ("Relève Executive Staffing. Consider it handled.") on every
+     email. Taken from the first real sentence of the letter, skipping a
+     greeting line such as "Jordan,". The trailing spacers stop clients from
+     pulling more text into the preview. */
+  const plain = (h: string) => h.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+  const paras = (inner.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) ?? []).map(plain).filter(Boolean);
+  const firstReal = paras.find(t => !/^[^.!?]{1,40},$/.test(t)) ?? plain(inner);
+  const pre = esc(firstReal.length > 140 ? firstReal.slice(0, 137).replace(/\s+\S*$/, '') + '…' : firstReal);
+  const preheader = `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${pre}${'&zwnj;&nbsp;'.repeat(60)}</div>`;
   /* The house frame, matched to the website's front page (6 Nov 2026): the
      plaster wall with the window light, framed inside a cream card, the white
      wordmark and the script tagline on it, then a serif letter beneath. The
@@ -210,6 +221,7 @@ export function shell(
 <meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light">
 <style>@media (max-width:480px){.px{padding-left:26px!important;padding-right:26px!important}.cta{padding:16px 24px!important;letter-spacing:2.2px!important;font-size:11px!important}.h1{font-size:25px!important}}</style>
 </head><body style="margin:0;padding:0;background:#E7E2D5;">
+${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E7E2D5;padding:40px 12px;"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#F5F2EA;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(34,48,42,.10);">
   <tr><td style="padding:14px 14px 0;">
@@ -348,7 +360,7 @@ const rawTemplates = {
     const begin = steps[0].href;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><style>@media (max-width:480px){.px{padding-left:26px!important;padding-right:26px!important}.cta{padding:16px 24px!important;letter-spacing:2.2px!important;font-size:11px!important}.h1{font-size:25px!important}}</style></head>
 <body style="margin:0;padding:0;background:#E7E2D5;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Your search begins with four short steps.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Your search begins with four short steps.${'&zwnj;&nbsp;'.repeat(60)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E7E2D5;padding:40px 12px;"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#F5F2EA;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(34,48,42,.10);">
   <tr><td style="padding:14px 14px 0;">
