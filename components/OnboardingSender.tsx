@@ -27,7 +27,7 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
     try {
       r = await fetch('/api/admin/onboarding', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, email: f.get('email'), docs_url: f.get('docs_url') })
+        body: JSON.stringify({ name, email: f.get('email') })
       });
       d = await r.json().catch(() => ({}));
     } catch {
@@ -74,8 +74,6 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
           <div className="ff"><label htmlFor={`${fid}-1`}>Full name</label><input id={`${fid}-1`} name="name" required placeholder="Elena Marsh" defaultValue={prefill?.name ?? ''} /></div>
           <div className="ff"><label htmlFor={`${fid}-2`}>Email</label><input id={`${fid}-2`} name="email" type="email" required placeholder="elena@marshco.com" defaultValue={prefill?.email ?? ''} /></div>
         </div>
-        <div className="ff"><label htmlFor={`${fid}-3`}>Client agreement signing link (optional)</label>
-          <input id={`${fid}-3`} name="docs_url" type="url" placeholder="Paste the DocuSign signing link if you have it, or leave blank and send it separately" /></div>
         <button className="btn solid" disabled={busy}>{busy ? 'Sending…' : 'Send onboarding email'}</button>
         {err && <div className="err">{err}</div>}
       </form>

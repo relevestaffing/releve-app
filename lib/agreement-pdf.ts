@@ -3,6 +3,27 @@ import { createHash } from 'crypto';
 import {
   AGREEMENT_VERSION, AGREEMENT_TITLE, AGREEMENT_INTRO, AGREEMENT_SECTIONS
 } from '@/lib/agreement-text';
+import {
+  TALENT_AGREEMENT_VERSION, TALENT_AGREEMENT_TITLE, TALENT_AGREEMENT_INTRO, TALENT_AGREEMENT_SECTIONS
+} from '@/lib/talent-agreement-text';
+
+/* Which agreement a copy is built from. The client agreement is the default;
+   the talent agreement passes its own text, party label and clause number. */
+export type AgreementDoc = {
+  title: string; version: string; subtitle: string; party: 'Client' | 'Talent';
+  intro: string[]; sections: { h: string; items: { p?: string; sub?: string; bullet?: string }[] }[];
+  esignClause: string;
+};
+export const CLIENT_DOC: AgreementDoc = {
+  title: AGREEMENT_TITLE, version: AGREEMENT_VERSION, party: 'Client',
+  subtitle: 'Client / Executive Master Agreement, governing the retainer relationship',
+  intro: AGREEMENT_INTRO, sections: AGREEMENT_SECTIONS, esignClause: '13.11'
+};
+export const TALENT_DOC: AgreementDoc = {
+  title: TALENT_AGREEMENT_TITLE, version: TALENT_AGREEMENT_VERSION, party: 'Talent',
+  subtitle: 'Talent Master Agreement: governs every Placement',
+  intro: TALENT_AGREEMENT_INTRO, sections: TALENT_AGREEMENT_SECTIONS, esignClause: '13.6'
+};
 
 /* The signed copy of the Client Services Agreement, as a PDF.
    ------------------------------------------------------------
@@ -18,22 +39,22 @@ const INK = rgb(0.13, 0.17, 0.15), MUTED = rgb(0.4, 0.45, 0.42), FERN = rgb(0.21
 
 export type SignatureRecord = {
   name: string; email: string; signedAt: Date; ip: string | null; userAgent: string | null;
-  business?: string | null;
+  business?: string | null; country?: string | null;
 };
 
-export function agreementFingerprint(): string {
+export function agreementFingerprint(doc: AgreementDoc = CLIENT_DOC): string {
   const text = [
-    ...AGREEMENT_INTRO,
-    ...AGREEMENT_SECTIONS.flatMap(s => [s.h, ...s.items.map(i => i.p ?? i.sub ?? i.bullet ?? '')])
+    ...doc.intro,
+    ...doc.sections.flatMap(s => [s.h, ...s.items.map(i => i.p ?? i.sub ?? i.bullet ?? '')])
   ].join('\n');
   return createHash('sha256').update(text).digest('hex');
 }
 
-export async function buildSignedAgreement(rec: SignatureRecord): Promise<Buffer> {
+export async function buildSignedAgreement(rec: SignatureRecord, doc: AgreementDoc = CLIENT_DOC): Promise<Buffer> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle(`${AGREEMENT_TITLE}, ${rec.name}`);
+  pdf.setTitle(`${doc.title}, ${rec.name}`);
   pdf.setAuthor('Relève Staffing LLC');
-  pdf.setSubject(`Client Services Agreement, version ${AGREEMENT_VERSION}`);
+  pdf.setSubject(`${doc.title}, version ${doc.version}`);
   const reg = await pdf.embedFont(StandardFonts.TimesRoman);
   const bold = await pdf.embedFont(StandardFonts.TimesRomanBold);
   const ital = await pdf.embedFont(StandardFonts.TimesRomanItalic);
@@ -81,13 +102,13 @@ export async function buildSignedAgreement(rec: SignatureRecord): Promise<Buffer
 
   // Title
   page.drawText('RELÈVE', { x: M, y, size: 11, font: bold, color: FERN }); y -= 26;
-  page.drawText(AGREEMENT_TITLE, { x: M, y, size: 22, font: bold, color: INK }); y -= 18;
-  para('Client / Executive Master Agreement, governing the retainer relationship', { f: ital, size: 10.5, color: MUTED, gap: 14 });
+  page.drawText(doc.title, { x: M, y, size: doc.title.length > 30 ? 17 : 22, font: bold, color: INK }); y -= 18;
+  para(doc.subtitle, { f: ital, size: 10.5, color: MUTED, gap: 14 });
 
-  for (const p of AGREEMENT_INTRO) {
+  for (const p of doc.intro) {
     if (p === 'Recitals') para(p, { f: bold, size: 11, gap: 4 }); else para(p);
   }
-  for (const s of AGREEMENT_SECTIONS) {
+  for (const s of doc.sections) {
     need(60); y -= 6;
     para(s.h, { f: bold, size: 11.5, gap: 6 });
     for (const it of s.items) {
@@ -104,7 +125,7 @@ export async function buildSignedAgreement(rec: SignatureRecord): Promise<Buffer
   const col2 = M + 250;
   const startY = y;
   page.drawText('Relève', { x: M, y, size: 11, font: bold, color: INK });
-  page.drawText('Client', { x: col2, y, size: 11, font: bold, color: INK });
+  page.drawText(doc.party, { x: col2, y, size: 11, font: bold, color: INK });
   y -= 20;
   page.drawText('Relève Staffing LLC', { x: M, y, size: 15, font: ital, color: FERN });
   page.drawText(safe(rec.name, ital), { x: col2, y, size: 15, font: ital, color: FERN });
@@ -113,9 +134,9 @@ export async function buildSignedAgreement(rec: SignatureRecord): Promise<Buffer
   page.drawLine({ start: { x: col2, y }, end: { x: W - M, y }, thickness: 0.5, color: MUTED });
   y -= 13;
   const small = (t: string, x: number) => page.drawText(safe(t, reg), { x, y, size: 9, font: reg, color: MUTED });
-  small('Signed electronically on the Client’s acceptance,', M); small('Signature (typed full name)', col2); y -= 12;
-  small('under the company’s standing authorization', M); small(`Full name: ${rec.name}`, col2); y -= 12;
-  small(`Date: ${dateStr}`, M); small(rec.business ? `Business: ${rec.business}` : 'Business name: n/a', col2); y -= 12;
+  small(`Accepted by Sage Jackson, Founder, on the ${doc.party}’s`, M); small('Signature (typed full name)', col2); y -= 12;
+  small('acceptance, under the company’s standing authorization', M); small(`Full name: ${rec.name}`, col2); y -= 12;
+  small(`Date: ${dateStr}`, M); small(doc.party === 'Talent' ? `Country of residence: ${rec.country ?? 'not stated'}` : rec.business ? `Business: ${rec.business}` : 'Business name: n/a', col2); y -= 12;
   small('', M); small(`Date: ${dateStr}`, col2); y -= 24;
   void startY;
 
@@ -123,14 +144,14 @@ export async function buildSignedAgreement(rec: SignatureRecord): Promise<Buffer
   newPage();
   page.drawText('SIGNATURE RECORD', { x: M, y, size: 11.5, font: bold, color: INK }); y -= 22;
   const rows: [string, string][] = [
-    ['Document', `${AGREEMENT_TITLE}, version ${AGREEMENT_VERSION}`],
+    ['Document', `${doc.title}, version ${doc.version}`],
     ['Signer', rec.name],
     ['Email', rec.email],
     ['Signed (UTC)', rec.signedAt.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC')],
-    ['Method', 'Typed full name, entered on the Relève platform after the client confirmed they had read and agreed to the full text'],
+    ['Method', 'Typed full name, entered on the Relève platform after the signer confirmed they had read and agreed to the full text'],
     ['Network address', rec.ip ?? 'not recorded'],
     ['Browser', (rec.userAgent ?? 'not recorded').slice(0, 160)],
-    ['Text fingerprint (SHA-256)', agreementFingerprint()]
+    ['Text fingerprint (SHA-256)', agreementFingerprint(doc)]
   ];
   for (const [k, v] of rows) {
     need(40);
@@ -140,11 +161,11 @@ export async function buildSignedAgreement(rec: SignatureRecord): Promise<Buffer
     y -= 9;
   }
   y -= 6;
-  para('This record, with the agreement above, is the executed copy. Under 11.6 of the agreement, the Client’s electronic acceptance is a valid signature with the same effect as a handwritten one.', { f: ital, size: 9.5, color: MUTED });
+  para(`This record, with the agreement above, is the executed copy. Under ${doc.esignClause} of the agreement, the ${doc.party}’s electronic acceptance is a valid signature with the same effect as a handwritten one.`, { f: ital, size: 9.5, color: MUTED });
 
   // page numbers
   const pages = pdf.getPages();
-  pages.forEach((pg, i) => pg.drawText(`Relève Staffing LLC  ·  ${AGREEMENT_TITLE}  ·  Page ${i + 1} of ${pages.length}`,
+  pages.forEach((pg, i) => pg.drawText(`Relève Staffing LLC  ·  ${doc.title}  ·  Page ${i + 1} of ${pages.length}`,
     { x: M, y: 36, size: 8, font: reg, color: MUTED }));
 
   return Buffer.from(await pdf.save());

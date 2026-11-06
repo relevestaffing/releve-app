@@ -3,6 +3,7 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { setMatch, removeMatch, listMatches } from '@/lib/store';
 import { personEmail } from '@/lib/work';
 import { getBench } from '@/lib/data';
+import { agreementSigned } from '@/lib/billing';
 import { send, templates } from '@/lib/email';
 
 async function guard() {
@@ -63,6 +64,8 @@ async function act(me: { id: string }, { clientId, talentId, action, overall, no
        discipline must have cleared it before they go in front of anyone.
        It used to be enforced by hiding them from the roster altogether, which
        read as a bug; now it is a refusal with the reason on screen. */
+    if (!(await agreementSigned(clientId)))
+      throw new Error('This executive has not signed the Client Services Agreement yet. Candidates are released only after it is signed.');
     const bench = await getBench();
     const who0 = bench.find(b => b.id === talentId);
     if (who0 && who0.has_disciplines && who0.watch_cleared === false)

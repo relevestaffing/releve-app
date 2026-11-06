@@ -5,7 +5,6 @@ import Shell from '@/components/Shell';
 import NextStep from '@/components/NextStep';
 import { setupFor } from '@/lib/setup';
 import VettingUpload from '@/components/VettingUpload';
-import { docusignReady } from '@/lib/docusign';
 
 export const metadata = { title: 'Verification' };
 
@@ -18,7 +17,7 @@ export default async function VettingPage() {
   const rows = await listVetting(profile.id);
   return (
     <Shell profile={profile} active="/app/vetting" title="Verification">
-      <VettingUpload rows={rows} docusignOn={docusignReady()} />
+      <VettingUpload rows={rows} />
       <NextStep steps={await setupFor(profile)} current="vetting" />
     </Shell>
   );

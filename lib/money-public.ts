@@ -5,7 +5,7 @@
 /* The effective date printed on the published documents. Bump this whenever
    the wording at relevestaffing.com/terms changes, so acceptances stay tied
    to the exact text the person actually saw. */
-export const TERMS_VERSION = '2026-10-19';
+export const TERMS_VERSION = '2026-11-06';
 
 export const DEPOSIT_CENTS = 50_000;          // $500, per the Terms, Section 5
 export const RATE_MIN_CENTS = 83_300;         // $833, the Part-Time plan's monthly installment

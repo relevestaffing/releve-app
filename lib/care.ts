@@ -338,11 +338,30 @@ export async function replacementsOwed() {
     .select('replaces_id').in('replaces_id', ids);
   const settled = new Set((replaced ?? []).map((r: any) => r.replaces_id));
 
-  return (data ?? []).filter((r: any) => !settled.has(r.id)).map((r: any) => ({
-    id: r.id, client_id: r.client_id as string, ended_on: r.ended_on, ended_reason: r.ended_reason,
-    client_name: r.client?.org_name ?? r.client?.full_name ?? 'Client',
-    talent_name: r.talent?.full_name ?? 'Talent'
-  }));
+  /* The guarantee is for life, up to two replacements per placement (Client
+     Services Agreement 4.2). Walk each owed placement back up its chain to
+     count the replacements already delivered; two means the cap is reached. */
+  const clientIds = [...new Set((data ?? []).map((r: any) => r.client_id))];
+  const { data: chain } = await sb.from('placements')
+    .select('id, replaces_id').in('client_id', clientIds);
+  const parent = new Map<string, string | null>((chain ?? []).map((c: any) => [c.id, c.replaces_id ?? null]));
+  const used = (id: string) => {
+    let n = 0, cur = parent.get(id) ?? null;
+    while (cur && n < 10) { n++; cur = parent.get(cur) ?? null; }
+    return n;
+  };
+  const today = Date.now();
+  return (data ?? []).filter((r: any) => !settled.has(r.id)).map((r: any) => {
+    const u = used(r.id);
+    return {
+      id: r.id, client_id: r.client_id as string, ended_on: r.ended_on, ended_reason: r.ended_reason,
+      client_name: r.client?.org_name ?? r.client?.full_name ?? 'Client',
+      talent_name: r.talent?.full_name ?? 'Talent',
+      replacements_used: u,
+      cap_reached: u >= 2,
+      vacancy_days: Math.max(0, Math.floor((today - new Date(r.ended_on).getTime()) / 86_400_000))
+    };
+  });
 }
 
 /* ---------- the audit trail ---------- */

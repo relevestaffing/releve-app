@@ -22,7 +22,7 @@ export const metadata = { title: 'Executive' };
 export const dynamic = 'force-dynamic';
 
 const AGREEMENT_WORDS: Record<string, string> = {
-  not_started: 'Not started', submitted: 'Signed, with Relève to countersign',
+  not_started: 'To sign in their account', submitted: 'Signed, with Relève',
   verified: 'Signed and filed', rejected: 'Needs another look'
 };
 

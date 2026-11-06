@@ -13,7 +13,6 @@ import RoleBriefEditor from '@/components/RoleBriefEditor';
 import DeletePerson from '@/components/DeletePerson';
 import WaiveDeposit from '@/components/WaiveDeposit';
 import ClientAgreementAdmin from '@/components/ClientAgreementAdmin';
-import { docusignClientReady, manualSendUrl } from '@/lib/docusign';
 import { getClientAgreements } from '@/lib/agreement';
 import { teamRoles } from '@/lib/care';
 import { todayInPacific } from '@/lib/money-public';
@@ -60,7 +59,6 @@ export default async function People({ searchParams }: { searchParams: Promise<{
     teamRoles().catch(() => []),
     accountManagers(clients.filter(c => c.signed_in).map(c => c.key))
   ]);
-  const docusignOn = docusignClientReady();
   const today = todayInPacific();
 
   /* Where each executive is, said once: invited, onboarding, hiring,
@@ -72,7 +70,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
     placed: { label: 'Placed', color: '#35443A' }, paused: { label: 'On hold', color: '#A08478' }
   };
   const AGREE: Record<string, [string, string]> = {
-    not_started: ['Not sent', ''], submitted: ['To countersign', 'warn'], verified: ['Signed', 'good'], rejected: ['Needs a look', 'bad']
+    not_started: ['To sign', ''], submitted: ['With Relève', 'warn'], verified: ['Signed', 'good'], rejected: ['Needs a look', 'bad']
   };
 
   const rows: PersonRow[] = clients.map((c, i) => {
@@ -121,8 +119,8 @@ export default async function People({ searchParams }: { searchParams: Promise<{
         { key: 'role', label: 'Role brief', body: <RoleBriefEditor clientKey={c.key} pending={!c.signed_in} initial={brief ?? {}} name={c.full_name} /> },
         { key: 'account', label: 'Agreement and account', body: (
           <div style={{ display: 'grid', gap: 16 }}>
-            <ClientAgreementAdmin key="agr" clientId={c.key} docusignOn={docusignOn} state={agreement as any}
-              rejectReason={agreements[c.key]?.reject_reason ?? null} manualSendUrl={manualSendUrl('client')} />
+            <ClientAgreementAdmin key="agr" clientId={c.key} state={agreement as any}
+              rejectReason={agreements[c.key]?.reject_reason ?? null} />
             {brief && !brief.closed_at && brief.id && (
               <WaiveDeposit key="dep" searchId={brief.id} cents={brief.deposit_cents ?? 50000} status={(brief.deposit_status ?? 'due') as 'due' | 'paid' | 'waived'} />
             )}

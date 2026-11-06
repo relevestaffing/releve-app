@@ -63,7 +63,8 @@ export async function POST(req: Request) {
         const { data: recent } = await adminClient().from('campaigns').select('subject').order('send_at', { ascending: false }).limit(10);
         const day = new Date(c.send_at).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' }) === 'Thursday' ? 'Thursday' : 'Tuesday';
         const d = await writeDraft(day, (recent ?? []).map((r: any) => r.subject), Math.floor(Math.random() * 100));
-        await updateCampaign(c.id, { subject: d.subject, preheader: d.preheader, paragraphs: d.paragraphs, cta_label: d.cta_label, cta_url: d.cta_url, topic: d.topic, written_by: 'claude' } as any);
+        await updateCampaign(c.id, { subject: d.subject, preheader: d.preheader, paragraphs: d.paragraphs, cta_label: d.cta_label, cta_url: d.cta_url, topic: d.topic, written_by: 'claude',
+          ...(d.notes?.length ? { status: 'held', hold_reason: `The editor found: ${d.notes.join(' | ')}`.slice(0, 500) } : {}) } as any);
         break;
       }
       case 'test': {

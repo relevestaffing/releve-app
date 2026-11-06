@@ -2,43 +2,21 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from './Toast';
-import CountersignButton from './CountersignButton';
 import { todayInPacific } from '@/lib/money-public';
 
 type State = 'not_started' | 'submitted' | 'verified' | 'rejected';
 
-/* The Client Services Agreement's per-executive-row action on
-   /console/people — the same three states IssueAgreement shows for
-   talent, compressed onto one row: send it, wait for your turn to
-   countersign, or done. While DocuSign is not switched on (the
-   Integration Key is a developer-account key, not yet Go-Live'd — see
-   lib/docusign.ts), this falls back to the same manual path the talent
-   side has always had: Sage sends the agreement herself, however she
-   likes, and files the signed PDF here once it comes back. Nothing about
-   switching DocuSign on later changes this component — docusignOn alone
-   decides which path shows. */
-export default function ClientAgreementAdmin({ clientId, state, docusignOn, rejectReason, manualSendUrl }: {
-  clientId: string; state: State; docusignOn?: boolean; rejectReason?: string | null; manualSendUrl?: string;
+/* The Client Services Agreement's per-executive-row status on /console/people.
+   The executive reads and signs it in their own account (/app/agreement), and
+   it files itself the moment they do. This row shows where it stands, and keeps
+   one fallback: file a paper copy that came back signed some other way. */
+export default function ClientAgreementAdmin({ clientId, state, rejectReason }: {
+  clientId: string; state: State; rejectReason?: string | null;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [signed, setSigned] = useState(todayInPacific());
   const input = useRef<HTMLInputElement>(null);
-
-  async function send() {
-    setBusy(true);
-    try {
-      const res = await fetch('/api/agreement/docusign', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ client_id: clientId })
-      });
-      const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'DocuSign would not send that.');
-      toast.saved('Sent. They can sign from their own dashboard');
-      router.refresh();
-    } catch (e: any) { toast.bad(e.message); }
-    finally { setBusy(false); }
-  }
 
   async function upload(file: File) {
     setBusy(true);
@@ -59,51 +37,27 @@ export default function ClientAgreementAdmin({ clientId, state, docusignOn, reje
   if (state === 'verified') {
     return <span className="pill good"><span className="dot" />Agreement signed</span>;
   }
-  if (docusignOn && state === 'submitted') {
-    return (
-      <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-        <span className="pill warn"><span className="dot" />Agreement: waiting on a signature</span>
-        <CountersignButton kind="client" id={clientId} label="Countersign" />
-      </div>
-    );
-  }
-  if (docusignOn) {
-    return (
-      <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-        {state === 'rejected' && rejectReason && (
-          <span className="xs muted" title={rejectReason}>Needs another try: </span>
-        )}
-        <button className="btn sm ghost" disabled={busy} onClick={send}>
-          {busy ? 'Sending…' : 'Send Client Services Agreement'}
-        </button>
-      </div>
-    );
-  }
 
-  /* Manual path: no DocuSign API, so no send button and no countersign
-     step here — Sage countersigns on paper or in DocuSign's web app
-     herself, outside the app, same as she sends the whole thing. This row
-     is only ever "file what came back signed." */
   return (
     <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <span className="pill warn"><span className="dot" />Waiting for them to sign in their account</span>
       {state === 'rejected' && rejectReason && (
         <span className="xs muted" title={rejectReason}>Needs another try: </span>
       )}
-      {manualSendUrl && (
-        <a className="btn sm ghost" href={manualSendUrl} target="_blank" rel="noopener noreferrer">
-          Open DocuSign to send it →
-        </a>
-      )}
-      <label className="xs muted" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        Signed on
-        <input type="date" value={signed} onChange={e => setSigned(e.target.value)}
-          style={{ padding: '2px 6px' }} />
-      </label>
-      <input aria-label="Signed Client Services Agreement" ref={input} type="file" accept="application/pdf" hidden
-        onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
-      <button className="btn sm ghost" disabled={busy || !signed} onClick={() => input.current?.click()}>
-        {busy ? 'Filing…' : manualSendUrl ? 'Then upload the signed copy' : 'Upload signed Client Services Agreement'}
-      </button>
+      <details>
+        <summary className="xs muted" style={{ cursor: 'pointer' }}>File a paper copy instead</summary>
+        <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+          <label className="xs muted" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            Signed on
+            <input type="date" value={signed} onChange={e => setSigned(e.target.value)} style={{ padding: '2px 6px' }} />
+          </label>
+          <input aria-label="Signed Client Services Agreement" ref={input} type="file" accept="application/pdf" hidden
+            onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ''; }} />
+          <button className="btn sm ghost" disabled={busy || !signed} onClick={() => input.current?.click()}>
+            {busy ? 'Filing…' : 'Upload signed Client Services Agreement'}
+          </button>
+        </div>
+      </details>
     </div>
   );
 }

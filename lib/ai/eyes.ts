@@ -28,7 +28,7 @@ function clean(v: any): any {
 const TABLES = [
   'ai_actions', 'ai_messages', 'apply_attempts', 'audit_log', 'availability', 'backup_log', 'billing_accounts', 'campaign_sends', 'campaigns',
   'checkins', 'client_agreement_history', 'client_agreements', 'client_pulse', 'client_requests', 'content_posts', 'content_settings',
-  'documents', 'docusign_events', 'email_log', 'interview_feedback', 'interview_reminders', 'interviews', 'invoices', 'job_applications',
+  'documents', 'email_log', 'interview_feedback', 'interview_reminders', 'interviews', 'invoices', 'job_applications',
   'job_posts', 'lead_audits', 'matches', 'message_reads', 'messages', 'offers', 'onboarding_steps', 'pending_people', 'placement_notes',
   'placement_terms', 'placements', 'profiles', 'prospect_touches', 'prospects', 'report_sends', 'role_breakdown', 'searches',
   'signature_attempts', 'signatures', 'skills_profile', 'stripe_events', 'subscribers', 'taking_the_watch_attempts', 'taking_the_watch_scores',

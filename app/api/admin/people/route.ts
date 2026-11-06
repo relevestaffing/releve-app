@@ -24,15 +24,12 @@ export async function POST(req: Request) {
   try {
     const made = await createPerson(body);
 
-    /* Tell them they exist. Until now nobody was ever told. docs_url is
-       whatever signing link (DocuSign, most likely) the admin already has in
-       hand for this person — it is not stored, only used for this one send,
-       so there is no schema to migrate for it. */
+    /* Tell them they exist. Until now nobody was ever told. The email links
+       to the agreement, which they read and sign in their account. */
     const first = firstName(body.full_name, '');
-    const docsUrl = String(body.docs_url ?? '').trim() || undefined;
     const tpl = body.role === 'client'
-      ? templates.clientInvite(first, { docsUrl })
-      : templates.talentInvite(first, { docsUrl });
+      ? templates.clientInvite(first)
+      : templates.talentInvite(first);
     const sent = await send(body.email, tpl);
 
     return NextResponse.json({ ok: true, ...made, emailed: sent });

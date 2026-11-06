@@ -110,6 +110,42 @@ async function record(kind: string, to: string, subject: string, ok: boolean, de
    delivery log still insisting nothing had ever sent: a green badge and a red
    banner disagreeing on the same screen, which is worse than either alone. The
    deliberate test is a send like any other and belongs in the record. */
+/* Light only, for every message, in one place (Nona, 2 November 2026).
+   Gmail's dark mode (web, iOS and Android) re-colours any light background it
+   finds, which turns a white Relève email charcoal and leaves the fern text and
+   logo nearly unreadable. A solid colour is what it rewrites; a background-image
+   is left alone, and a bgcolor attribute stops the client from guessing. So
+   every message passes through here on its way out: each surface that carries a
+   hex background also gets a same-colour gradient and a bgcolor, and the
+   document declares itself light only. The Letter already does this by hand;
+   running it twice changes nothing. */
+export function lightOnly(html: string): string {
+  let h = String(html ?? '');
+  h = h.replace(/(<meta\s+name="color-scheme"\s+content=")light(")/i, '$1light only$2')
+       .replace(/(<meta\s+name="supported-color-schemes"\s+content=")light(")/i, '$1light only$2');
+  if (!/name="color-scheme"/i.test(h)) {
+    h = /<head[^>]*>/i.test(h)
+      ? h.replace(/<head[^>]*>/i, m => `${m}<meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only">`)
+      : h;
+  }
+  if (!/color-scheme:\s*light only/i.test(h) && /<\/head>/i.test(h)) {
+    h = h.replace(/<\/head>/i, '<style>:root{color-scheme:light only;supported-color-schemes:light only}</style></head>');
+  }
+  h = h.replace(/<(body|table|td|div|p|a)\b([^>]*)>/gi, (m, tag: string, attrs: string) => {
+    const sm = /style="([^"]*)"/i.exec(attrs);
+    if (!sm) return m;
+    let st = sm[1];
+    const bm = /background(?:-color)?:\s*(#[0-9a-f]{6})\b/i.exec(st);
+    if (!bm) return m;
+    const c = bm[1];
+    if (!/background-image/i.test(st)) st = st.replace(/;?\s*$/, ';') + `background-image:linear-gradient(${c},${c});`;
+    let a = attrs.replace(sm[0], `style="${st}"`);
+    if (/^(body|table|td)$/i.test(tag) && !/\bbgcolor=/i.test(a)) a += ` bgcolor="${c}"`;
+    return `<${tag}${a}>`;
+  });
+  return h;
+}
+
 export async function sendOrThrow(to: string, msg: Message) {
   if (!emailReady()) {
     await record(msg.kind, to, msg.subject, false,
@@ -118,7 +154,7 @@ export async function sendOrThrow(to: string, msg: Message) {
   }
   try {
     const info = await transport().sendMail({
-      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent
+      from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: lightOnly(msg.html), attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent
     });
     await record(msg.kind, to, msg.subject, true);
     await pushMirror(to, msg);
@@ -140,7 +176,7 @@ export async function send(to: string, msg: Message) {
     return false;
   }
   try {
-    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: msg.html, attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent });
+    await transport().sendMail({ from: msg.from ?? FROM, to, subject: msg.subject, text: msg.text, html: lightOnly(msg.html), attachments: msg.attachments, headers: msg.headers, icalEvent: msg.icalEvent });
     await record(msg.kind, to, msg.subject, true);
     await pushMirror(to, msg);
     return true;
@@ -227,9 +263,9 @@ export const esc = (s: unknown) => String(s ?? '')
 /* ---------- the messages ---------- */
 
 const rawTemplates = {
-  talentInvite: (name: string, o?: { docsUrl?: string }) => {
+  talentInvite: (name: string) => {
     const links = [{ label: 'Set up how you get paid', href: `${SITE}/app/pay` },
-      ...(o?.docsUrl ? [{ label: 'Sign your paperwork', href: o.docsUrl }] : [])];
+      { label: 'Sign your agreement', href: `${SITE}/agreement` }];
     return {
       subject: 'Your Relève account is ready',
       text: `${name ? name + ',' : 'Hello,'}\n\nYou have been invited to join the Relève roster, the assessed and verified group we put in front of executives.\n\nSign in at ${SITE} using this email address. There is no password; we send you a link.\n\nThere are a few things to do before you can be matched: a twenty to twenty-five minute assessment, your availability, and verifying who you are. Your dashboard walks you through them.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
@@ -242,8 +278,8 @@ const rawTemplates = {
     };
   },
 
-  clientInvite: (name: string, o?: { docsUrl?: string }) => {
-    const links = o?.docsUrl ? [{ label: 'Sign your paperwork', href: o.docsUrl }] : [];
+  clientInvite: (name: string) => {
+    const links = [{ label: 'Sign your agreement', href: `${SITE}/agreement` }];
     return {
       subject: 'Your Relève account is open',
       text: `${name ? name + ',' : 'Hello,'}\n\nYour Relève account is open at ${SITE}/app. Sign in with this address. There is no password; we send a link.\n\nYour account walks you through the rest in order: the search deposit, then the Executive Signature, about fifteen minutes, and your availability. Everything after that is ours.\n\n${links.map(l => `${l.label}: ${l.href}`).join('\n')}\n\nRelève`,
@@ -263,7 +299,7 @@ const rawTemplates = {
      they can. So three equal steps rather than one CTA with two footnotes:
      same size, same weight, each with its own link, in the order they are
      named but not gated on one another. */
-  depositReady: (o: { name: string; payUrl: string; cents: number; docsUrl?: string }) => {
+  depositReady: (o: { name: string; payUrl: string; cents: number }) => {
     const amount = (o.cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     /* Step 1 falls back to the Terms of Service page (the same link TermsGate
        itself opens, and where the placement terms actually live — Sections 5
@@ -273,7 +309,7 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Sign your Client Services Agreement', note: 'Two minutes, signed right on screen.', href: o.docsUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
+      { n: 1, label: 'Sign your Client Services Agreement', note: 'Two minutes, signed right on screen.', href: `${SITE}/agreement`, cta: 'Sign agreement' },
       { n: 2, label: `Pay your ${amount} deposit`, note: 'Credited in full toward your first month once you are placed.', href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your Relève account', note: 'Your private home for the search, from first candidate to day one.', href: SITE, cta: 'Set up account' },
       { n: 4, label: 'Add Relève to your phone or computer', note: 'A one-page guide with pictures is attached. It takes a minute.', href: `${SITE}/guides/Add-Releve-to-your-device.pdf`, cta: 'Open the guide' }
@@ -446,22 +482,27 @@ const rawTemplates = {
       { label: 'Upload another', href: `${SITE}/app/vetting` })
   }),
 
-  /* Sent the moment Relève sends the contractor agreement + NDA through
-     DocuSign — an embedded envelope is never emailed by DocuSign itself,
-     so without this the talent would have no idea it was waiting. */
-  agreementReady: (name: string) => ({
-    subject: 'Your agreement is ready to sign',
-    text: `${name},\n\nYour Relève contractor agreement and NDA are ready. Sign it in your account. It takes about two minutes.\n\n${SITE}/app/vetting\n\nRelève`,
-    html: shell('Ready to sign',
+  /* Sent to the talent the moment they sign their contractor agreement in the
+     app. The PDF rides on the message itself (see send()). */
+  talentAgreementSigned: (name: string) => ({
+    subject: 'Your signed Relève contractor agreement',
+    text: `${name},\n\nThank you. Your Independent Contractor and Confidentiality Agreement is signed, and your copy is attached for your records. It is also kept on your Verification page.\n\n${SITE}/app/vetting\n\nRelève`,
+    html: shell('Your agreement is signed',
       p(`${esc(name)},`) +
-      p('Your contractor agreement and NDA are ready. Sign it in your account. It takes about two minutes.'),
-      { label: 'Sign your agreement', href: `${SITE}/app/vetting` })
+      p('Thank you. Your Independent Contractor and Confidentiality Agreement is signed, and your copy is attached for your records. It is also kept on your Verification page.'),
+      { label: 'Open your account', href: `${SITE}/app/vetting` })
   }),
 
-  /* The Client Services Agreement's equivalent of agreementReady above —
-     sent the moment Relève (or the client themselves) starts the DocuSign
-     envelope, since an embedded envelope is never emailed by DocuSign
-     itself. */
+  /* The team's note that a talent signed, with the same copy attached. */
+  talentAgreementSignedTeam: (o: { name: string; email: string; country: string }) => ({
+    subject: `${o.name} signed the contractor agreement`,
+    text: `${o.name} (${o.email}), resident in ${o.country}, signed the Independent Contractor and Confidentiality Agreement in the app. The signed copy is attached and filed on their Verification record.\n\n${SITE}/console/vetting\n\nRelève`,
+    html: shell('An agreement was signed',
+      p(`<b>${esc(o.name)}</b> (${esc(o.email)}), resident in ${esc(o.country)}, signed the Independent Contractor and Confidentiality Agreement in the app.`) +
+      p('The signed copy is attached and filed on their Verification record.'),
+      { label: 'Open Verification', href: `${SITE}/console/vetting` })
+  }),
+
   /* The signed copy, for the client's own records, sent the moment they sign
      in the app. The PDF rides on the message itself (see send()). */
   clientAgreementSigned: (name: string, depositDue = true) => ({
@@ -491,18 +532,6 @@ const rawTemplates = {
       p(`${esc(name)},`) +
       p('Your Client Services Agreement is ready. Sign it in your account. It takes about two minutes.'),
       { label: 'Sign your agreement', href: `${SITE}/agreement` })
-  }),
-
-  /* Sent once BOTH signatures are on file — the client's and Sage's
-     countersignature — mirroring vettingVerified's role on the talent
-     side. */
-  clientAgreementVerified: (name: string) => ({
-    subject: 'Your Client Services Agreement is fully signed',
-    text: `${name},\n\nYour Client Services Agreement is fully signed and on file with both signatures.\n\n${SITE}/app\n\nRelève`,
-    html: shell('Fully signed',
-      p(`${esc(name)},`) +
-      p('Your Client Services Agreement is fully signed and on file with both signatures, yours and Relève’s.'),
-      { label: 'Open your account', href: `${SITE}/app` })
   }),
 
   /* Three different letters under one name, told apart by `kind`:
@@ -650,15 +679,15 @@ const rawTemplates = {
      specifically (the one part the twenty-to-twenty-five-minute figure is
      actually true of) and leaves the rest to the account itself, which
      tracks each step honestly as it comes. */
-  applicationInvited: (o: { name: string; role: string; docsUrl?: string }) => ({
+  applicationInvited: (o: { name: string; role: string }) => ({
     /* An applicant with no recorded name gets a plain welcome, never
        "Welcome to Relève, there". */
     subject: o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
-    text: `${o.name || 'Hello'},\n\nThank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.\n\n${o.docsUrl ? `Before you get started, you are welcome to sign your NDA and contractor agreement whenever suits you: ${o.docsUrl}\n\n` : ''}Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\nRelève`,
+    text: `${o.name || 'Hello'},\n\nThank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.\n\nBefore you get started, you are welcome to sign your NDA and contractor agreement in your account whenever suits you: ${SITE}/agreement\n\nEverything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature, twenty to twenty-five minutes and saved as you go, followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.\n\nSet it up and it will walk you through the rest, one step at a time.\n\nCreate your account with this same email address and everything will be waiting for you: ${SITE}\n\nRelève`,
     html: shell(o.name ? `Welcome to Relève, ${o.name}` : 'Welcome to Relève',
       p(`${o.name || 'Hello'},`) +
       p('Thank you for taking the time to interview with us. We enjoyed learning how you work, and we would like to move forward.') +
-      (o.docsUrl ? p(`Before you get started, you are welcome to sign your <a href="${o.docsUrl}" style="color:#35443A;">NDA and contractor agreement</a> whenever suits you.`) : '') +
+      p(`Before you get started, you are welcome to sign your <a href="${SITE}/agreement" style="color:#35443A;">NDA and contractor agreement</a> in your account whenever suits you.`) +
       p('Everything else happens inside your Relève account. Relève is a matching platform: it starts with the Talent Signature (twenty to twenty-five minutes, saved as you go), followed by a short skills breakdown and identity verification. All of it is what lets us place you with an executive you are genuinely suited to for the long term.') +
       p('Set it up and it will walk you through the rest, one step at a time.'),
       { label: 'Create your account', href: SITE })
@@ -668,10 +697,10 @@ const rawTemplates = {
      the app both promise this mail; for a long time nothing sent it. */
   candidateReady: (o: { name: string; candidate: string }) => ({
     subject: 'Your candidate is ready to meet',
-    text: `${o.name},\n\nWe have someone for you. ${o.candidate} has been vetted on six fronts, background checked, matched against your Signature and the role you described, and briefed on how you work.\n\nRead the match in your account and tell us yes or no. That is all we need.\n\n${SITE}/app/pipeline\n\nRelève`,
+    text: `${o.name},\n\nWe have someone for you. ${o.candidate} has been vetted on six fronts, identity verified, matched against your Signature and the role you described, and briefed on how you work.\n\nRead the match in your account and tell us yes or no. That is all we need.\n\n${SITE}/app/pipeline\n\nRelève`,
     html: shell('Your candidate is ready to meet',
       p(`${esc(o.name)},`) +
-      p(`We have someone for you. <b>${o.candidate}</b> has been vetted on six fronts, background checked, matched against your Signature and the role you described, and briefed on how you work.`) +
+      p(`We have someone for you. <b>${o.candidate}</b> has been vetted on six fronts, identity verified, matched against your Signature and the role you described, and briefed on how you work.`) +
       p('Read the match and tell us yes or no. That is all we need.'),
       { label: 'See your candidate', href: `${SITE}/app/pipeline` })
   }),

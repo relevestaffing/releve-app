@@ -1,6 +1,6 @@
 'use client';
 import { openSignedLink } from '@/lib/open-tab';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VETTING_ITEMS, VETTING_WORDING, type Vetting } from '@/lib/work-public';
 import { toast } from './Toast';
@@ -10,42 +10,11 @@ const TONE: Record<string, string> = {
   verified: 'good', rejected: 'crit', expired: 'warn', submitted: '', not_started: ''
 };
 
-export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; docusignOn?: boolean }) {
+export default function VettingUpload({ rows }: { rows: Vetting[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
   const byKind = Object.fromEntries(rows.map(r => [r.kind, r]));
-
-  /* DocuSign lands them back here (returnUrl in the sign route) once the
-     embedded ceremony ends — signed, declined, or just closed. The webhook
-     files the result; this only clears the "?signed=1" the redirect left
-     behind and gives them something to see in the meantime. Reads the URL
-     directly rather than useSearchParams, which would force this whole
-     page out of static rendering. */
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
-    if (q.get('signed') === '1') {
-      const ev = q.get('event') ?? 'signing_complete';
-      if (ev === 'signing_complete') toast.saved('Signed. We will verify it shortly');
-      else if (ev === 'decline') toast.bad('The agreement was declined, so it is still waiting. Message your Talent Success Manager if something in it needs discussing.');
-      else toast.bad('The agreement is still waiting for your signature. Press Sign now when you are ready.');
-      router.replace('/app/vetting');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function sign(kind: string) {
-    setBusy(kind);
-    try {
-      const res = await fetch('/api/vetting/docusign/sign', { method: 'POST' });
-      const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'Could not open that for signing.');
-      window.location.href = out.url;
-    } catch (e: any) {
-      toast.bad(e.message);
-      setBusy(null);
-    }
-  }
 
   async function upload(kind: string, file: File, expires: string) {
     setBusy(kind);
@@ -117,13 +86,9 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
               </span>
             </div>
 
-            {/* Relève issues this one. Once there is a filed copy — DocuSign's
-                webhook, or a manual upload — it is read-only; before that,
-                DocuSign switched on means they can sign it themselves right
-                here, and switched off means Relève is still filing it — which
-                used to render nothing at all here, leaving a new talent with a
-                label, a "Not started" pill and no explanation of what happens
-                next or when. */}
+            {/* Relève issues this one. The talent reads and signs it in the
+                account (/app/agreement); once signed, the filed copy is theirs
+                to read. */}
             {item.issuedByTeam ? (
               row?.file_path ? (
                 <div className="vet-actions">
@@ -132,18 +97,9 @@ export default function VettingUpload({ rows, docusignOn }: { rows: Vetting[]; d
                   </button>
                 </div>
               ) : state !== 'verified' && (
-                docusignOn ? (
-                  <div className="vet-actions">
-                    <button className="btn sm solid" disabled={busy === item.kind} onClick={() => sign(item.kind)}>
-                      {busy === item.kind ? 'Opening…' : state === 'submitted' ? 'Continue signing' : 'Sign now'}
-                    </button>
-                    {state === 'submitted' && <span className="xs muted">Started earlier. Pick up where you left off.</span>}
-                  </div>
-                ) : (
-                  <div className="vet-actions">
-                    <span className="xs muted">We are preparing this for signature and will email you the moment it is ready.</span>
-                  </div>
-                )
+                <div className="vet-actions">
+                  <a className="btn sm solid" href="/app/agreement">Read and sign</a>
+                </div>
               )
             ) : state !== 'verified' && (
               <div className="vet-actions">

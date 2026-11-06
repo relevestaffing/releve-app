@@ -18,8 +18,7 @@ export const dynamic = 'force-dynamic';
    email, the account and the agreement all say the same thing. The server
    builds the signed PDF from the exact text version they were shown, files it
    where the console already looks for a client's agreement, marks it signed
-   and filed, and emails them a copy. The team gets the same copy. Nothing
-   here needs DocuSign. */
+   and filed, and emails them a copy. The team gets the same copy. */
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'sign in first' }, { status: 401 });

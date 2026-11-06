@@ -49,15 +49,17 @@ export function bookingInvite(o: { name: string; email: string }): Message {
   return {
     kind: INVITE_KIND,
     from: SENDER,
-    subject: 'Let\'s find a time to talk',
-    html: shell('Let\'s find a time to talk.',
+    subject: 'Choose a time to speak with Relève',
+    html: shell('Choose a time to speak.',
       p(`${esc(first)},`) +
-      p('Thank you for reaching out to Relève. We would like to hear about your business and what you want off your plate.') +
-      p('Choose a time that suits you for a thirty-minute call. We will arrive prepared with everything you told us.') +
-      `<p style="margin:0 0 15px;font-size:13.5px;color:#4E6B57;">Already booked a time? Your confirmation is in your inbox and there is nothing more to do.</p>` +
+      p('Thank you for reaching out to Relève. Choose a time below for a thirty-minute conversation about your business and what you want off your plate.') +
+      p('On the call, we will:') +
+      `<ul style="margin:0 0 15px;padding-left:20px;"><li style="margin:0 0 8px;">Learn how you work and what you are ready to hand off.</li><li style="margin:0 0 8px;">Answer any questions you have about Relève.</li><li style="margin:0 0 8px;">Talk through what support could look like for you.</li></ul>` +
+      p('There is nothing to prepare and no obligation. We are simply here to help.') +
+      `<p style="margin:0 0 15px;font-size:13.5px;color:#4E6B57;">Already booked? Your confirmation is in your inbox, and there is nothing more to do.</p>` +
       tagline(),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\nThank you for reaching out to Relève. We would like to hear about your business and what you want off your plate.\n\nChoose a time that suits you for a thirty-minute call. We will arrive prepared with everything you told us.\n\nChoose your time: ${link}\n\nAlready booked a time? Your confirmation is in your inbox and there is nothing more to do.\n\nConsider it handled.\nRelève`
+    text: `${first},\n\nThank you for reaching out to Relève. Choose a time below for a thirty-minute conversation about your business and what you want off your plate.\n\nOn the call, we will:\n- Learn how you work and what you are ready to hand off.\n- Answer any questions you have about Relève.\n- Talk through what support could look like for you.\n\nThere is nothing to prepare and no obligation. We are simply here to help.\n\nChoose your time: ${link}\n\nAlready booked? Your confirmation is in your inbox, and there is nothing more to do.\n\nConsider it handled.\nRelève`
   };
 }
 

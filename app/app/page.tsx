@@ -29,9 +29,7 @@ import GuaranteeBadge from '@/components/GuaranteeBadge';
 import { depositGateFor } from '@/lib/billing';
 import { stripeReady } from '@/lib/stripe';
 import { firstName, WORDS, fmtDate } from '@/lib/words';
-import { docusignClientReady, docusignReady } from '@/lib/docusign';
 import { getClientAgreement } from '@/lib/agreement';
-import ClientAgreementCard from '@/components/ClientAgreementCard';
 import ClientAgreementStatus from '@/components/ClientAgreementStatus';
 import ManagerLine from '@/components/ManagerLine';
 import { primaryManager, viewerTimezone, todayIn } from '@/lib/experience';
@@ -121,8 +119,8 @@ export default async function AppHome() {
       ? depositGateFor(profile.id) : Promise.resolve(null),
     side === 'client' && stage.hiring && !stage.placed
       ? getSearch(profile.id) : Promise.resolve(null),
-    /* Independent of stage — the agreement can be signed whenever DocuSign
-       is switched on for it, not gated on hiring/placed the way the
+    /* Independent of stage — the agreement can be signed in the app at any
+       time, not gated on hiring/placed the way the
        deposit and the 14-day guarantee brief are. */
     side === 'client' ? getClientAgreement(profile.id) : Promise.resolve(null)
   ]);
@@ -157,7 +155,7 @@ export default async function AppHome() {
         vettingTotal: 2,
         vettingSent: vetting.filter(v => v.state === 'submitted').length,
         hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
-        agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && (v.state === 'verified' || v.state === 'submitted')),
+        agreementPending: !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
         hasPayout: payoutReady(payoutRow),
         hasIntroVideo: !!self.intro_video_url
       });
@@ -337,18 +335,9 @@ export default async function AppHome() {
 
         {offer && <OfferCard offer={offer} side="client" />}
         {!setup.complete && <Checklist steps={steps} heading="Still to do" />}
-        {/* With DocuSign on, the executive signs in place. With it off (Relève
-            is on the Free plan by choice) the contract for a $2,500+/month (or $2,500 total on Part-Time)
-            engagement appeared nowhere in the product at all — sent by hand,
-            chased by hand, and invisible to the person who had to sign it.
-            The read-only status card closes that gap: no button, because
-            there is genuinely nothing to click, but the state is on the page
-            for both sides. (12 October onboarding audit.) */}
-        {docusignClientReady()
-          ? (clientAgreement && clientAgreement.state !== 'verified' && (
-              <ClientAgreementCard state={clientAgreement.state} rejectReason={clientAgreement.reject_reason} />
-            ))
-          : <ClientAgreementStatus state={(clientAgreement?.state ?? 'not_started') as any} />}
+        {/* The executive reads and signs the agreement in the app. The card
+            shows where it stands and links to it until it is signed. */}
+        <ClientAgreementStatus state={(clientAgreement?.state ?? 'not_started') as any} />
 
         {/* Side by side once there is a placement to work from — tasks as
            the main pane, attention and the team as a rail beside it, the

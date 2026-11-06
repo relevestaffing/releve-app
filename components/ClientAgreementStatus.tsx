@@ -2,19 +2,9 @@ import { CONTACT_EMAIL } from '@/lib/experience-public';
 
 type State = 'not_started' | 'submitted' | 'verified' | 'rejected';
 
-/* Where the Client Services Agreement stands, for an executive, while
-   DocuSign is switched off.
-   ---------------------------------------------------------------------
-   ClientAgreementCard is the DocuSign version: it offers a Sign now button
-   that calls the DocuSign API. With the API off (Relève is on DocuSign's Free
-   plan by choice) that card is hidden, and the effect was that the contract
-   for a $2,500+/month engagement appeared nowhere in the product at all —
-   sent by hand, chased by hand, and invisible to the person who had to sign
-   it. This is the read-only stand-in: no button, because there is genuinely
-   nothing for them to click, but the state is on the page where both sides
-   can see it. (12 October onboarding audit.)
-
-   Deliberately not shown once verified — a signed agreement is not news. */
+/* Where the Client Services Agreement stands, for an executive. They read and
+   sign it in the app (/app/agreement); this card is on the dashboard until it
+   is done, with a button straight to it. */
 export default function ClientAgreementStatus({ state }: { state: State }) {
   const copy: Record<Exclude<State, 'verified'>, { head: string; body: string }> = {
     not_started: {
@@ -23,7 +13,7 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
     },
     submitted: {
       head: 'Agreement signed',
-      body: 'Received. Relève countersigns, and it is filed with us once it is complete.'
+      body: 'Received, and filed with us.'
     },
     rejected: {
       head: 'Your agreement needs another look',

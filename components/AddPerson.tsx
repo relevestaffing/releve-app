@@ -81,8 +81,6 @@ export default function AddPerson() {
         </div>
         <div className="ff"><label htmlFor={`${fid}-9`}>Stage</label>
           <select id={`${fid}-9`} name="stage"><option>Applied</option><option>Screening</option><option>Vetted</option></select></div>
-        <div className="ff"><label htmlFor={`${fid}-10`}>Documents link (optional)</label>
-          <input id={`${fid}-10`} name="docs_url" type="url" placeholder="Paste the DocuSign link once it's out, or leave blank and send it separately" /></div>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Add talent'}</button>
         {msg && <p className="small" style={{ marginTop: 14, color: 'var(--good)' }}>{msg}</p>}
         {err && <div className="err">{err}</div>}

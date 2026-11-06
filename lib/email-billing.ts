@@ -136,6 +136,26 @@ export const billingTemplates = {
         { label: 'Open your placement', href: `${SITE}/app/care` }));
   },
 
+  /* The courtesy note two weeks before an initial term ends. The agreement
+     renews automatically (3.7); this is a reminder, not a condition. */
+  renewalNotice(o: { name: string; who: string; endsOn: string; noticeBy: string; renewMonths: number; toTeam: boolean }) {
+    const mo = o.renewMonths === 1 ? 'month' : 'months';
+    if (o.toTeam) return msg('renewalNoticeTeam',
+      `Term ending soon: ${o.who}, ${o.endsOn}`,
+      `${o.who}'s initial term ends on ${o.endsOn}. It renews automatically for ${o.renewMonths} ${mo} unless they give 30 days' notice, which means by ${o.noticeBy}. A reminder has gone to them.\n\n${SITE}/console/placements${SIGN}`,
+      shell('Term ending soon',
+        p(`<b>${esc(o.who)}</b>'s initial term ends on <b>${esc(o.endsOn)}</b>. It renews automatically for ${o.renewMonths} ${mo} unless they give 30 days' notice, which means by ${o.noticeBy}. A reminder has gone to them.`),
+        { label: 'Open Placements', href: `${SITE}/console/placements` }));
+    return msg('renewalNotice',
+      `Your initial term ends on ${o.endsOn}`,
+      `${o.name},\n\nYour initial term ends on ${o.endsOn}. Under your Client Services Agreement it renews automatically for ${o.renewMonths} ${mo} at the same rate. To change or end the arrangement, 30 days' written notice is needed, which means by ${o.noticeBy}. You can give notice from your account, or reply and we will arrange it.\n\n${SITE}/app/care${SIGN}`,
+      shell('Your initial term ends soon',
+        p(`${esc(o.name)},`) +
+        p(`Your initial term ends on <b>${esc(o.endsOn)}</b>. Under your Client Services Agreement it renews automatically for ${o.renewMonths} ${mo} at the same rate.`) +
+        p(`To change or end the arrangement, 30 days' written notice is needed, which means by <b>${esc(o.noticeBy)}</b>. You can give notice from your account, or reply and we will arrange it.`),
+        { label: 'Open your placement', href: `${SITE}/app/care` }));
+  },
+
   /* A deposit that did not clear. To the payer, pointed at the retry. */
   depositFailed(o: { name: string; amount: string; payUrl?: string }) {
     const href = o.payUrl ?? `${SITE}/app`;

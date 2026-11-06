@@ -19,7 +19,7 @@ const METHOD: { t: string; d: string }[] = [
   { t: 'Your Executive Signature',
     d: 'About fifteen minutes measuring how you work. Every candidate is scored against it.' },
   { t: 'Vetted on six fronts',
-    d: 'Tested against your role, background checked, scored against your Signature, with the reasons written out.' },
+    d: 'Tested against your role, identity verified, scored against your Signature, with the reasons written out.' },
   { t: 'Prepared, then presented',
     d: 'Briefed on your tools and standards before you meet. Your calendar, your terms, your decision.' },
   { t: 'Handled from there',
@@ -71,7 +71,7 @@ export default function HowContent() {
           <li>Your business and role studied first.</li>
           <li>Skills tested against the work you will hand over.</li>
           <li>Scored against your Executive Signature.</li>
-          <li>Identity, right to work and background checked.</li>
+          <li>Identity verified, with a signed agreement on file.</li>
           <li>NDA and contractor agreement signed.</li>
           <li>Personally reviewed by our team before you see them.</li>
         </ul>

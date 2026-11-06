@@ -8,7 +8,6 @@ import { getPayout } from '@/lib/payout';
 import { payoutReady } from '@/lib/payout-public';
 import { myWatchStatus } from '@/lib/watch';
 import { executiveStage } from '@/lib/stage';
-import { docusignReady } from '@/lib/docusign';
 
 /* Where Taking The Watch stands across every discipline they claim, for
    the checklist. Nothing claimed means nothing to take. */
@@ -66,7 +65,7 @@ export async function setupFor(profile: Profile): Promise<Step[]> {
     vettingTotal: 2,
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
-    agreementPending: docusignReady() && !vetting.some(v => v.kind === 'agreement' && (v.state === 'verified' || v.state === 'submitted')),
+    agreementPending: !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
     hasPayout: payoutReady(payout)
   });
 }

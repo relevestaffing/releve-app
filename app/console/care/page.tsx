@@ -98,9 +98,9 @@ export default async function ConsoleCare({ searchParams }: { searchParams: Prom
             {owed.map((r: any) => (
               <div key={r.id} className="row between" style={{ padding: '11px 0', gap: 12, flexWrap: 'wrap' }}>
                 <div><b className="small">{r.client_name}</b>
-                  <div className="xs muted">{r.talent_name} · ended {day(r.ended_on)}</div></div>
-                <span className="pill warn">
-                  {r.ended_reason === 'talent_left' ? 'Talent left' : 'Not working out'}
+                  <div className="xs muted">{r.talent_name} · ended {day(r.ended_on)} · vacant {r.vacancy_days} day{r.vacancy_days === 1 ? '' : 's'} · fees paused · {r.cap_reached ? 'both included replacements used' : `replacement ${r.replacements_used + 1} of 2`}</div></div>
+                <span className={r.cap_reached ? 'pill crit' : 'pill warn'}>
+                  {r.cap_reached ? 'Guarantee cap reached' : r.ended_reason === 'talent_left' ? 'Talent left' : 'Not working out'}
                 </span>
               </div>
             ))}

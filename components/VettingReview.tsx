@@ -37,13 +37,13 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
     if (ok) router.refresh();
   }
 
-  /* An agreement sent through DocuSign lands in 'submitted' with nothing
+  /* An agreement awaiting a signature sits in 'submitted' with nothing
      for Relève to open or decide — there is no document to review, only a
      signature still pending from the candidate. It would be wrong to offer
      Verify/Reject on it the way an uploaded identity photo gets those, so
      it gets its own quiet status line instead of a place in the queue that
-     implies a decision is waiting on you. The webhook files it the moment
-     it comes back; nothing here needs to. */
+     implies a decision is waiting on you. It is filed the moment it is
+     signed in the app; nothing here needs to. */
   const pendingSignature = rows.filter(r => r.kind === 'agreement' && r.state === 'submitted');
   const waiting = rows.filter(r => r.state === 'submitted' && !(r.kind === 'agreement'));
   const rest = rows.filter(r => r.state !== 'submitted');

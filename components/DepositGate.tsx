@@ -55,7 +55,7 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
       </p>
       <p className="xs muted" style={{ marginBottom: 20, maxWidth: 560 }}>
         Credited in full against your first month once you are placed, and refunded in full
-        if we do not present a candidate for your role. Your Client Success Manager sends the payment details directly; this page updates the
+        if the search closes before we present a candidate for your role. Your Client Success Manager sends the payment details directly; this page updates the
         moment the deposit is recorded. If you have already paid, nothing more is needed.
       </p>
       <a className="btn solid" href="/app/messages">Ask for the payment details</a>
@@ -93,7 +93,7 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
       </p>
       <p className="xs muted" style={{ marginBottom: 20, maxWidth: 560 }}>
         Credited in full against your first month once you are placed, and
-        refunded in full if we do not present a candidate for your role. Stripe handles the payment itself, bank or card, and
+        refunded in full if the search closes before we present a candidate for your role. Stripe handles the payment itself, bank or card, and
         whatever you use here is also what your monthly retainer is collected
         from later, so there is no separate step to link one.
       </p>

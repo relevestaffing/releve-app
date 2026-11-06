@@ -17,10 +17,9 @@
        photos and intro videos redirect to short-lived signed storage links
      - data: and blob: for the in-browser photo crop, video preview, and the
        inline SVG backgrounds in Viz
-   Stripe Checkout, DocuSign signing and Zoom are all full-page navigations or
-   plain links, never scripts or frames, so they need no script-src entry.
-   DocuSign is allowed in frame-src only so an embedded signing view can be
-   adopted later without touching this file.
+   Stripe Checkout and Zoom are full-page navigations or plain links, never
+   scripts or frames, so they need no script-src entry. Agreements are read
+   and signed in the app itself, so nothing is framed.
 
    Next 15 injects small inline scripts for hydration and the root layout sets
    one inline script before first paint. Without a nonce pipeline those need
@@ -39,7 +38,7 @@ const csp = [
   `img-src 'self' data: blob: ${SUPABASE}`,
   `media-src 'self' data: blob: ${SUPABASE}`,
   `connect-src 'self' ${SUPABASE} ${SUPABASE_WS}`,
-  "frame-src 'self' https://*.docusign.net https://*.docusign.com",
+  "frame-src 'self'",
   "worker-src 'self'",
   "manifest-src 'self'",
   "object-src 'none'",
@@ -69,6 +68,7 @@ const nextConfig = {
   experimental: {
     staleTimes: { dynamic: 30, static: 180 },
     /* NEXT_BUILD_CPUS=1 for a build inside the desktop sandbox, which runs out of open files with one worker per core */
+    ...(process.env.NEXT_STATIC_CONC ? { staticGenerationMaxConcurrency: Number(process.env.NEXT_STATIC_CONC) } : {}),
     ...(process.env.NEXT_BUILD_CPUS ? { cpus: Number(process.env.NEXT_BUILD_CPUS), workerThreads: false } : {})
   },
   async headers() {

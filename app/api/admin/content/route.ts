@@ -4,6 +4,8 @@ import { adminClient } from '@/lib/supabase/admin';
 import {
   getPost, updatePost, listWeek, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA, writePostFromImage
 } from '@/lib/content';
+import { DEFAULT_RULES } from '@/lib/content-rules';
+import { DEFAULT_DESIGN } from '@/lib/design-standard';
 import { isManual, COPY_CHANNELS, COPY_PLAN, pacificParts, type ContentPost, type Slide } from '@/lib/content-model';
 import { pageAccess } from '@/lib/social-linkedin';
 import type { MetaConn } from '@/lib/social-meta';
@@ -105,6 +107,12 @@ export async function POST(req: Request) {
         }));
         await putSetting('groups', { list });
         return ok({ groups: await getGroups() });
+      }
+      case 'rules': {
+        const text = String(b.text ?? '').slice(0, 20000);
+        const design = b.which === 'design';
+        await putSetting(design ? 'rules:design' : 'rules:house', { text });
+        return ok({ text: text || (design ? DEFAULT_DESIGN : DEFAULT_RULES) });
       }
       case 'style': {
         const ch = String(b.channel ?? '');

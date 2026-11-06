@@ -34,15 +34,15 @@ export function talentSteps(o: {
      outstanding forever — through no fault of theirs, on the screen that tells
      them what is left to do. */
   const idDone = o.hasIdentity ?? (cleared >= needed);
-  /* With DocuSign on, the agreement is theirs to sign in the app, so the step
-     stays open until that signature is in. */
+  /* The agreement is theirs to sign in the app, so the step stays open
+     until that signature is in. */
   const signLeft = idDone && !!o.agreementPending;
   return [
-    { key: 'vetting', title: signLeft ? 'Sign your agreement' : 'Verify who you are', href: '/app/vetting', minutes: signLeft ? '3 min' : '5 min',
+    { key: 'vetting', title: signLeft ? 'Sign your agreement' : 'Verify who you are', href: signLeft ? '/app/agreement' : '/app/vetting', minutes: signLeft ? '3 min' : '5 min',
       blurb: signLeft
-        ? 'Your identity is verified. One signature left: your talent agreement is ready to sign on the Verification page.'
+        ? 'Your identity is verified. One signature left: your contractor agreement is ready to read and sign in your account.'
         : idDone
-          ? 'Verified. Your agreement is with Relève to countersign and file. There is nothing more for you to do.'
+          ? 'Verified, and your agreement is signed and filed. There is nothing more for you to do.'
           : sent > 0
             ? 'Sent, and with us. We check documents within one working day and will email you either way.'
             : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',

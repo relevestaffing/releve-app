@@ -6,15 +6,9 @@ export const dynamic = 'force-dynamic';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
-/* The Client Services Agreement's manual fallback — the client-side
-   mirror of IssueAgreement's "upload a signed copy" for talent. Lives
-   beside app/api/agreement/docusign/route.ts rather than inside it: that
-   route requires docusignClientReady(), this one is for exactly the
-   opposite case, while the DocuSign Integration Key is a developer-account
-   key that has not been through Go-Live and nothing sends through the API
-   yet. Sage sends the agreement herself (DocuSign's own free web app, or
-   any other way), gets it signed, and files the signed PDF here — same
-   division of labor the talent side has always had. */
+/* The Client Services Agreement's manual fallback: an executive normally
+   signs in the app (app/api/agreement/sign); this is for filing a paper copy
+   that came back signed some other way. Relève team only. */
 export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me || me.role !== 'admin') return NextResponse.json({ error: 'Relève team only' }, { status: 403 });

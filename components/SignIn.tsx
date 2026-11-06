@@ -10,6 +10,10 @@ import './signin.css';
    verbatim rather than being swallowed. */
 function friendly(raw: string): string {
   const low = raw.toLowerCase();
+  /* Accounts are opened by invitation only (PART 60). Supabase words the refusal
+     as a database or sign-up error, which says nothing useful to a person. */
+  if (low.includes('database error') || low.includes('signups not allowed') || low.includes('invitation only') || low.includes('signup is disabled'))
+    return 'Relève accounts are opened by invitation. Sign in with the email address your invitation was sent to, or write to hello@relevestaffing.com.';
   if (low.includes('expired') || low.includes('invalid'))
     return 'That link has already been used or has expired. Links are one-time and last an hour. Send yourself a new one below.';
   return raw;
@@ -43,7 +47,7 @@ export default function SignIn({ initialError }: { initialError?: string }) {
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
     });
     setBusy(false);
-    if (error) setErr(error.message); else setSent(true);
+    if (error) setErr(friendly(error.message)); else setSent(true);
   }
   /* The button used to sit unchanged while Google loaded, and a refusal said
      nothing at all. It now says it is working, and says so if it did not. */

@@ -4,11 +4,13 @@ import ConsoleTabs from '@/components/ConsoleTabs';
 import ContentDesk from '@/components/ContentDesk';
 import { currentProfile } from '@/lib/supabase/server';
 import {
-  listWeek, getGroups, getSetting, imageUrl, pdfUrl, mediaUrl, imageCount, tablesReady, weekStart
+  listWeek, getGroups, getSetting, imageUrl, pdfUrl, mediaUrl, imageCount, tablesReady, weekStart, houseRules, houseDesign
 } from '@/lib/content';
 import { metaAppReady, type MetaConn } from '@/lib/social-meta';
 import { linkedinAppReady, pageAccess, type LinkedInConn } from '@/lib/social-linkedin';
 import { dayLabel, whenLabel } from '@/lib/content-model';
+import { DEFAULT_RULES } from '@/lib/content-rules';
+import { DEFAULT_DESIGN } from '@/lib/design-standard';
 
 export const metadata = { title: 'Content' };
 export const dynamic = 'force-dynamic';
@@ -26,15 +28,16 @@ export default async function Content({ searchParams }: { searchParams: Promise<
   const shift = (w: string, d: number) => { const t = new Date(`${w}T12:00:00Z`); t.setUTCDate(t.getUTCDate() + d); return t.toISOString().slice(0, 10); };
 
   const ready = await tablesReady();
-  const [posts, groups, meta, li, draftNext, style, va] = ready
+  const [posts, groups, meta, li, draftNext, style, va, rules, design] = ready
     ? await Promise.all([
         listWeek(week), getGroups(),
         getSetting<MetaConn>('conn:meta'), getSetting<LinkedInConn>('conn:linkedin'),
         getSetting<{ status: string; at: string; error?: string }>(`draft:${week}`),
         getSetting<{ text: string }>('style:li_personal'),
-        getSetting<{ status: string; at: string; error?: string; files?: number }>(`va:${week}`)
+        getSetting<{ status: string; at: string; error?: string; files?: number }>(`va:${week}`),
+        houseRules(), houseDesign()
       ])
-    : [[], [], null, null, null, null, null];
+    : [[], [], null, null, null, null, null, DEFAULT_RULES, DEFAULT_DESIGN];
 
   const rows = posts.filter(p => !p.channel.endsWith('careers')).map(p => ({
     ...p,
@@ -60,6 +63,8 @@ export default async function Content({ searchParams }: { searchParams: Promise<
         setup={{ ready, metaApp: metaAppReady(), linkedinApp: linkedinAppReady(), pageAccess: pageAccess(), ai: Boolean(process.env.ANTHROPIC_API_KEY) }}
         draftNext={draftNext}
         sageStyle={style?.text ?? ''}
+        rules={rules}
+        design={design}
         va={va ? { ...va, when: new Date(va.at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' PT' } : null}
         liDays={li ? Math.floor((new Date(li.expires_at).getTime() - Date.now()) / 86400000) : null}
         today={dayLabel(new Date().toISOString())}

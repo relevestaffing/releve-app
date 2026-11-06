@@ -14,7 +14,7 @@
 
 export const SHARED = `
 # What Relève is
-Relève (French, "the relief shift": the crew that arrives so the one on duty can stand down; accent on the second E; pronounced like "relieve") is a premium virtual staffing agency. It places fully supported virtual executive staff with founders and business owners: executive assistants and much more, across twelve disciplines. Relève studies the business first, builds the role around it, tests capability against that role, matches on working style and personality, verifies identity and background, interviews many and presents one, and stays on watch after the placement starts. The promise: consider it handled.
+Relève (French, "the relief shift": the crew that arrives so the one on duty can stand down; accent on the second E; pronounced like "relieve") is a premium virtual staffing agency. It places fully supported virtual executive staff with founders and business owners: executive assistants and much more, across twelve disciplines. Relève studies the business first, builds the role around it, tests capability against that role, matches on working style and personality, verifies identity, interviews many and presents one, and stays on watch after the placement starts. The promise: consider it handled.
 Founder: Sage Jackson. Seven years as an executive assistant and house manager to CEOs and ultra-high-net-worth entrepreneurs, then six years recruiting for those seats. She runs every discovery call herself.
 Contact: hello@relevestaffing.com. Website: relevestaffing.com. The app: app.relevestaffing.com.
 Relève is not the employer of placed talent. Talent are independent professionals working with Relève; Relève handles their pay and paperwork so the client receives one invoice.
@@ -53,13 +53,13 @@ Three plans, each a flat monthly retainer with no hourly tracking:
 - Starter: $950 a month, or $2,500 if paid in full for a three-month term. 3-month minimum. An offshore VA, vetted on six fronts, with general training before they start. Hours capped at 15 a week.
 - Essential: $2,500 a month. 6-month minimum. A dedicated full-time offshore VA, unlimited hours and unlimited tasks, with full management, a business audit every month and consistent training.
 - Specialist: $4,500 a month. 6-month minimum. A dedicated full-time specialized professional hired locally (US or Europe), still fully virtual. Relève sources, vets, trains and manages them.
-- Every plan: free business audit at the start, a Client Success Manager and a Talent Success Manager, a monthly call with the owner and a biweekly call with the talent, an end of week report, the Relève app, a 90-Day Success Plan, and pay and agreements run through Relève. Talent are independent contractors; Relève is not the employer.
+- Every plan: free business audit at the start, a Client Success Manager and a Talent Success Manager, a monthly call with the owner and a call with the talent (weekly on Essential and Specialist, biweekly on Starter), an end of week report, the Relève app, a 90-Day Success Plan, and pay and agreements run through Relève. Talent are independent contractors; Relève is not the employer.
 eLIVate Club members: $500 off each month for the first three months on Essential and Specialist.
 The plan is confirmed in writing before the placement starts and is fixed for the initial term. After the minimum term it renews in three-month terms, or the client moves to a different plan at the end of any term. Either side can choose not to renew with 30 days' written notice before a term ends; the placement runs and bills to the last day of that term.
 Unlimited hours means a full-time professional dedicated to the business, US business hours, with no cap on the tasks handed over and no metering.
 
 # The deposit
-$500, taken once to open the search, credited in full against the first invoice. Refunded in full if Relève does not present a candidate for the role. Paid by card or bank from the dashboard; a bank payment shows as "clearing" for a few business days.
+$500, taken once to open the search, credited in full against the first invoice. Refunded in full if the search closes before Relève presents a candidate for the role. Once a candidate is presented, the deposit is not refundable. Paid by card or bank from the dashboard; a bank payment shows as "clearing" for a few business days.
 
 # The guarantee
 Fourteen days from the search opening to a qualified candidate; the dashboard shows the count. If the fit is not right, Relève brings the next candidate forward: every plan includes up to two replacements, and the search never restarts.
@@ -83,7 +83,7 @@ Before you can be put forward: verify who you are (proof of identity, checked on
 A real day of work in each discipline you claimed, done once, about three hours per discipline, scored by Relève within two working days. You are emailed the verdict and feedback. Nobody is put in front of an executive without it.
 
 # Verification
-Upload proof of identity on the Verification page (PDF, JPG, PNG or WEBP; not HEIC). Relève checks it within one working day and emails you either way. Your agreement is signed in the app; Relève countersigns afterwards.
+Upload proof of identity on the Verification page (PDF, JPG, PNG or WEBP; not HEIC). Relève checks it within one working day and emails you either way. You read and sign your contractor agreement in the app, and your signed copy is emailed to you and filed on the Verification page.
 
 # Being matched
 Relève matches you against an executive's Signature and role, and releases one candidate at a time. If you are released, the executive reads a written note about why you, watches your intro video, and approves or declines. You are never told the reason for a decline. Interviews are booked from shared availability in your own timezone, on Zoom. An offer shows the role, start, hours, scope and your pay; you accept or decline in your account.

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
-import { getPost, sign } from '@/lib/content';
+import { getPost, sign, launchFile } from '@/lib/content';
 import { renderSlidePng, pngToJpeg, slideCount } from '@/lib/content-render';
 
 export const dynamic = 'force-dynamic';
@@ -19,6 +19,8 @@ export async function GET(req: Request) {
   if (!id || !Number.isInteger(n) || n < 0 || !same(t, sign(id, n))) return new NextResponse('Not found', { status: 404 });
   const post = await getPost(id);
   if (!post || n >= slideCount(post)) return new NextResponse('Not found', { status: 404 });
+  const launch = launchFile(post.slot, n);
+  if (launch && u.searchParams.get('fmt') !== 'png') return NextResponse.redirect(new URL(launch, req.url), 302);
   const png = await renderSlidePng(post, n);
   const jpg = u.searchParams.get('fmt') !== 'png';
   const body = jpg ? pngToJpeg(png) : png;

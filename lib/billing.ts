@@ -158,12 +158,23 @@ async function checkoutForClaimedDeposit(
   return session.url;
 }
 
+/* Whether this executive has a signed Client Services Agreement on file.
+   The agreement comes before the deposit and before any candidate is shown. */
+export async function agreementSigned(clientId: string): Promise<boolean> {
+  if (!configured()) return clientId === 'demo-client';
+  const { data } = await adminClient().from('client_agreements')
+    .select('state').eq('client_id', clientId).maybeSingle();
+  return (data as any)?.state === 'verified';
+}
+export const AGREEMENT_FIRST = 'Please sign your Client Services Agreement first. It takes a minute, and then the deposit opens.';
+
 /* The executive pays their own $500 search deposit, from inside the app. The
    same Checkout keeps the payment method on file for the monthly retainer. */
 export async function startDepositPayment(clientId: string, email: string, name: string | null): Promise<string> {
   const gate = await depositGateFor(clientId);
   if (!gate) throw new Error('There is no open search to pay a deposit on.');
   if (gate.status !== 'due') throw new Error('That deposit is already settled.');
+  if (!(await agreementSigned(clientId))) throw new Error(AGREEMENT_FIRST);
   return checkoutForClaimedDeposit(clientId, email, name, gate.searchId, gate.cents);
 }
 
@@ -208,6 +219,7 @@ export async function startDepositPaymentForSearch(searchId: string): Promise<st
     const { data: profile } = await db.from('profiles')
       .select('email, full_name').eq('id', clientId).maybeSingle();
     if (!profile) throw new Error('Could not find that account.');
+    if (!(await agreementSigned(clientId))) throw new Error(AGREEMENT_FIRST);
     return checkoutForClaimedDeposit(
       clientId, (profile as any).email, (profile as any).full_name ?? null, searchId, cents
     );

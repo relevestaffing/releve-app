@@ -32,10 +32,6 @@ export async function POST(req: Request) {
   const name = String(b.name ?? '').trim();
   const email = String(b.email ?? '').trim().toLowerCase();
   const role = String(b.role ?? '').trim() || undefined;
-  /* Whatever signing link (DocuSign, most likely) is already in hand for
-     this person — the same by-hand pattern OnboardingSender already uses
-     on the executive side. Not stored, only used for this one send. */
-  const docsUrl = String(b.docs_url ?? '').trim() || undefined;
   if (!name) return NextResponse.json({ error: 'What is their name?' }, { status: 400 });
   if (!email || !email.includes('@')) return NextResponse.json({ error: 'That email does not look right.' }, { status: 400 });
 
@@ -61,7 +57,7 @@ export async function POST(req: Request) {
 
     /* The record stands whether or not the mail server answers — a failed
        send should never look like a failed save. */
-    const tpl = templates.applicationInvited({ name: firstName(name, ''), role: role ?? 'the role', docsUrl });
+    const tpl = templates.applicationInvited({ name: firstName(name, ''), role: role ?? 'the role' });
     const sent = await send(email, tpl);
 
     return NextResponse.json({ ok: true, emailed: sent });
