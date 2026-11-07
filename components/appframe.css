@@ -1,4 +1,10 @@
-/* The app frame (Nona, 3 November 2026: "I want it to LOOK more like an app").
+/* 7 November 2026: Nona asked for the phone app to look like the desktop app again, keeping the
+   premium feel, on console, talent and client. The Midnight dark panels are gone: phones show the
+   desktop's own cream paper on the green wall. The bar and the banner take the desktop sidebar's
+   colour and type (#131C17, Lora spaced capitals), so the phone reads as the desktop, folded. She
+   chose a slim tab bar in those colours over a menu-only phone.
+
+   The app frame (Nona, 3 November 2026: "I want it to LOOK more like an app").
    She chose the App frame and an App-style Home, to read as a premium App Store
    app, on all three roles. Phones and tablets only: the desktop is untouched.
    Kept inside the Design Standard: square corners, no icons, no pills, flat
@@ -23,18 +29,18 @@
     display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:0!important;
     padding:0 0 env(safe-area-inset-bottom)!important;border:0!important;border-radius:0!important;
     border-top:1px solid rgba(214,221,226,.12)!important;
-    background:#101813!important;box-shadow:none!important}
+    background:#131C17!important;box-shadow:none!important}
   html:not(.rv-native) body .quickbar a{
     position:relative;height:var(--tabs);padding:0!important;border-radius:0!important;background:none!important;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;color:#8A9C8D}
-  html:not(.rv-native) body .quickbar a:not(.on):not([data-pending]) span{color:#8A9C8D!important}
-  html:not(.rv-native) body .quickbar a span{font-size:9px;letter-spacing:.2em;padding-left:.2em}
-  html:not(.rv-native) body .quickbar a.on,html:not(.rv-native) body .quickbar .on,html:not(.rv-native) body .quickbar a.on span{color:#F3F3EA!important;background:none!important}
+    display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(243,239,230,.58)}
+  html:not(.rv-native) body .quickbar a:not(.on):not([data-pending]) span{color:rgba(243,239,230,.58)!important}
+  html:not(.rv-native) body .quickbar a span{font-family:'Lora',serif;font-size:10px;letter-spacing:.22em;padding-left:.22em;text-transform:uppercase}
+  html:not(.rv-native) body .quickbar a.on,html:not(.rv-native) body .quickbar .on,html:not(.rv-native) body .quickbar a.on span{color:#F3EFE6!important;background:none!important}
   /* the page you are on: a rule across the top of its tab */
   html:not(.rv-native) body .quickbar a.on::before{
-    top:-1px;left:16%;right:16%;width:auto;height:2px;border-radius:0;background:#C9D3CB;transform:none}
-  html:not(.rv-native) body .quickbar a[data-pending],html:not(.rv-native) body .quickbar a[data-pending] span{color:#F3F3EA!important;background:none!important}
-  html:not(.rv-native) body .quickbar a[data-pending]::before{content:"";position:absolute;top:-1px;left:16%;right:16%;height:2px;background:#C9D3CB}
+    top:-1px;left:16%;right:16%;width:auto;height:2px;border-radius:0;background:#F3EFE6;transform:none}
+  html:not(.rv-native) body .quickbar a[data-pending],html:not(.rv-native) body .quickbar a[data-pending] span{color:#F3EFE6!important;background:none!important}
+  html:not(.rv-native) body .quickbar a[data-pending]::before{content:"";position:absolute;top:-1px;left:16%;right:16%;height:2px;background:#F3EFE6}
   html:not(.rv-native) body .page-body{padding-bottom:calc(var(--tabs) + env(safe-area-inset-bottom) + 30px)!important}
 
   /* ── Ask Relève: a word in the top bar ── */
@@ -62,9 +68,9 @@
 
   /* ── the banner is solid: nothing shows through it or above it ── */
   html:not(.rv-native) body .shell.scrolled::after,html:not(.rv-native) body .shell[data-title].scrolled::after{
-    background:#101813!important;border-bottom:1px solid rgba(214,221,226,.1)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
-  html:not(.rv-native) body .shell.scrolled:not([data-title])::after{background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,#101813!important}
-  html:not(.rv-native) body .shell.scrolled .menu-trigger{color:#F3F3EA}
+    background:#131C17!important;border-bottom:1px solid rgba(214,221,226,.1)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+  html:not(.rv-native) body .shell.scrolled:not([data-title])::after{background:url(/logo-white.png) center calc(20px + env(safe-area-inset-top))/auto 24px no-repeat,#131C17!important}
+  html:not(.rv-native) body .shell.scrolled .menu-trigger{color:#F3EFE6}
   html.rv-standalone:not(.rv-native) body .rv-back.scrolled{color:#fff}
   /* pull to refresh drops from under the banner, never over it */
   html:not(.rv-native) body .ptr{top:calc(64px + env(safe-area-inset-top) + 6px);z-index:40}
@@ -85,6 +91,12 @@
   html:not(.rv-native) body .qa-tile,html:not(.rv-native) body a.money-stat,html:not(.rv-native) body .choose-card{
     box-shadow:0 1px 0 #E3DED2,0 16px 30px -20px rgba(5,10,8,.65),inset 0 1px 0 rgba(255,255,255,.95)!important}
 
+  /* ── paper reads like paper: dark ink, no wall shadow on text inside it ── */
+  html:not(.rv-native) body .page-body .push-setup.push-setup :is(p,li,ol,b,a){color:#3A463D!important;text-shadow:none!important}
+  html:not(.rv-native) body .page-body .push-setup.push-setup > div:first-child{color:#26312B!important;text-shadow:none!important}
+  /* the one action under a title lines up with the title */
+  html:not(.rv-native) body .mobile-action{padding-left:6px!important;padding-right:6px!important}
+
   /* ── Jump to: the other rooms, one tap from Home ── */
   .home-jump{
     order:-3;display:flex;gap:0;margin:0 -18px;padding:0 18px;overflow-x:auto;scrollbar-width:none;
@@ -99,94 +111,3 @@
   .home-jump i{font-style:normal;margin-left:9px;color:#B0C4B2}
 }
 @media (min-width:901px){.home-jump{display:none}}
-
-/* ═════════════════════ MIDNIGHT (Nona chose direction B, 3 November 2026) ═════════════════════
-   "Simplicity, high end, million dollar feel." On phones the white slabs are gone:
-   the page stays in the dark green, and every surface is a raised olive panel with
-   a hairline edge and cream text. Colour roles are re-pointed on the surface itself,
-   so everything written for light paper (var(--ink), var(--fern), var(--sage) ...)
-   reads correctly on it without touching a single component. Desktop is unchanged. */
-@media (max-width:900px){
-  html:not(.rv-native) body .page-body :is(.card,.setup,.qa-tile,a.money-stat,.money-stat,.choose-card,.today-card,.founder-band,.stat,.pick,.req-choice):not(.dark):not(.card .card):not(.setup .card),
-  html:not(.rv-native) body :is(.modal,.tb-panel){
-    background:#17211B!important;background-image:none!important;
-    border:1px solid rgba(214,221,226,.12)!important;box-shadow:none!important;color:#C8D0C7;
-    --fern:#E8EDE4;--ink:#F3F3EA;--body:#C8D0C7;--sage:#9CAC9E;--muted:#8D9C8F;--pale:#6F8173;
-    --cream:#212D26;--paper:#17211B;--white:#17211B;--mist:#26342C;
-    --line:rgba(214,221,226,.14);--line-strong:rgba(214,221,226,.26);
-    --good:#86B492;--warn:#D1B070;--crit:#D98B7C}
-  html:not(.rv-native) body .page-body .card.dark{border:1px solid rgba(214,221,226,.16)!important;box-shadow:none!important}
-
-  /* panels inside panels stay flat on the surface they sit on */
-  html:not(.rv-native) body .page-body .card .card:not(.dark):not(.stat){background:#1D2922!important;border:1px solid rgba(214,221,226,.1)!important;box-shadow:none!important}
-
-  /* status: a word and a dot, never a pale block */
-  html:not(.rv-native) body .page-body .pill{background:none!important;background-image:none!important;padding:0!important;box-shadow:none!important;
-    border:0!important;color:#9CAC9E!important;letter-spacing:.18em;font-size:10px}
-  html:not(.rv-native) body .page-body .pill.good{color:#86B492!important}
-  html:not(.rv-native) body .page-body .pill.warn{color:#D1B070!important}
-  html:not(.rv-native) body .page-body .pill.crit,html:not(.rv-native) body .page-body .pill.bad{color:#D98B7C!important}
-
-  /* fields */
-  html:not(.rv-native) body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea){
-    background:#0F1712!important;color:#EEF0E8!important;border-color:rgba(214,221,226,.24)!important}
-  html:not(.rv-native) body :is(input,textarea)::placeholder{color:#7F9183!important}
-  html:not(.rv-native) body :is(.card,.modal,.tb-panel) :is(input,select,textarea):focus{border-color:#C9D3CB!important;box-shadow:0 0 0 1px #C9D3CB!important}
-
-  /* tables */
-  html:not(.rv-native) body table.data{background:transparent!important}
-  html:not(.rv-native) body table.data :is(th,td){border-color:rgba(214,221,226,.12)!important;color:#C8D0C7}
-  html:not(.rv-native) body table.data th{color:#9CAC9E!important;background:transparent!important}
-  html:not(.rv-native) body table.data tr:hover td{background:rgba(232,237,228,.04)!important}
-
-  /* the dividers inside panels */
-  html:not(.rv-native) body .page-body :is(.card,.setup) :is(hr,.rule,.divider){border-color:rgba(214,221,226,.14)!important;background:rgba(214,221,226,.14)!important}
-
-  /* the CRM workspace carries its own light paper variables: re-point them */
-  html:not(.rv-native) body :is(.ws,.ws-panel,.ws-pop,.ws-bulk){
-    --ws-paper:#17211B;--ws-canvas:#101813;--ws-line:rgba(214,221,226,.14);--ws-line-2:rgba(214,221,226,.09);--ws-hover:rgba(232,237,228,.05);
-    --ws-sel:rgba(232,237,228,.1);--ws-ink:#F3F3EA;--ws-sub:#B7C1B6;--ws-faint:#8D9C8F;--ws-fern:#46604F;--ws-leaf:#86B492;
-    --ws-red:#D98B7C;--ws-amber:#D1B070;--ws-green:#86B492;color:#F3F3EA}
-  html:not(.rv-native) body .ws{box-shadow:none!important;border:1px solid rgba(214,221,226,.12)}
-  html:not(.rv-native) body :is(.ws-tile,.ws-add,.ws-tbtn .badge){color:#F3F3EA!important}
-  html:not(.rv-native) body :is(.ws-search input,.ws-view,.ws-cb,.ws-name b.editable:hover,.ws-name input.inl,.ws-quick input,.ws-quick select,.ws-chip:hover,.ws-card,.ws-mark,.ws-edit:hover,.ws-edit:focus,.ws-details,.ws-pop input,.ws-pop select){
-    background:#0F1712!important;color:#EEF0E8!important;border-color:rgba(214,221,226,.2)!important}
-  html:not(.rv-native) body :is(.ws-pop,.ws-panel){background:#1B2720!important;color:#F3F3EA!important;border:1px solid rgba(214,221,226,.16)!important;box-shadow:0 18px 40px -16px rgba(0,0,0,.7)!important}
-  html:not(.rv-native) body .ws-stage{background:rgba(232,237,228,.08)!important;color:#C8D0C7!important}
-  html:not(.rv-native) body .ws-mark.done{background:#46604F!important;color:#F3F3EA!important}
-  html:not(.rv-native) body .ws-card{background:#1D2922!important}
-  html:not(.rv-native) body .page-body .card .empty-card:not(.dark):not(.stat){background:transparent!important;border:0!important;box-shadow:none!important}
-
-  /* install-on-phone note: a panel, not a cream slab */
-  html:not(.rv-native) body .push-setup{background:#17211B!important;border:1px solid rgba(214,221,226,.12)!important;box-shadow:none!important}
-  html:not(.rv-native) body .push-setup :is(div,p,li,ol,b,a){color:#C8D0C7!important}
-  html:not(.rv-native) body .push-setup > div:first-child{color:#F3F3EA!important}
-  html:not(.rv-native) body .push-setup button{background:#E8EDE4!important;color:#17211B!important}
-
-  /* an empty state sits on its panel, it is not a second panel */
-  html:not(.rv-native) body .page-body .card .empty-card{background:transparent!important;border:0!important;box-shadow:none!important}
-
-  /* every other light surface the app names */
-  html:not(.rv-native) body :is(.picker-chosen,.cd-day,.cd-nudge,.composer,.confirm-row,.drawer,.firstrun,.founder-tile,.match-card,.method-step,.money-strip,.next-step,.owner-select,.picker-list,.push-bar,.rolefit,.role-card,.setup-next,.status-menu,.tally-row,.tb-row,.tb-compose,.end-why,.chip-note,.rationale,.fortnight-bar,.nav-drawer,.brand-error-card,.dir-head,.slot,.date-cell,.cd-row,.lead-table):not(.dark){
-    background:#1D2922!important;background-image:none!important;border-color:rgba(214,221,226,.12)!important;box-shadow:none!important;color:#C8D0C7;
-    --fern:#E8EDE4;--ink:#F3F3EA;--body:#C8D0C7;--sage:#9CAC9E;--muted:#8D9C8F;--pale:#6F8173;--cream:#26342C;--paper:#1D2922;--white:#1D2922;--mist:#26342C;
-    --line:rgba(214,221,226,.14);--line-strong:rgba(214,221,226,.26)}
-  html:not(.rv-native) body .picker-chosen{background:#17211B!important}
-  html:not(.rv-native) body .next-step{background:#17211B!important;border:1px solid rgba(214,221,226,.12)!important}
-  html:not(.rv-native) body .avail-cell{background:#0F1712!important;border-color:rgba(214,221,226,.18)!important}
-  html:not(.rv-native) body .avail-cell.on{background:#46604F!important;border-color:#46604F!important}
-  html:not(.rv-native) body .ws-rowmenu{background:transparent!important;color:#C8D0C7!important;border-color:transparent!important}
-
-  /* first-run and sign-in sit on the same dark panel */
-  html:not(.rv-native) body :is(.welcome-card,.auth-card){
-    background:#17211B!important;background-image:none!important;border:1px solid rgba(214,221,226,.12)!important;box-shadow:none!important;color:#C8D0C7;
-    --fern:#E8EDE4;--ink:#F3F3EA;--body:#C8D0C7;--sage:#9CAC9E;--muted:#8D9C8F;--pale:#6F8173;--cream:#26342C;--paper:#17211B;--white:#17211B;--mist:#26342C;
-    --line:rgba(214,221,226,.14);--line-strong:rgba(214,221,226,.26)}
-  html:not(.rv-native) body :is(.welcome-card,.auth-card) :is(h1,h2,h3,.lede){color:#F3F3EA!important}
-
-  /* pull to refresh */
-  html:not(.rv-native) body .ptr{background:#17211B;color:#E8EDE4;box-shadow:0 10px 26px -10px rgba(0,0,0,.7),inset 0 0 0 1px rgba(214,221,226,.18)}
-
-  /* the wall is calmer behind a dark page */
-  html:not(.rv-native) body main.main > .sun-page{opacity:.8}
-}

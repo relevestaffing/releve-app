@@ -416,7 +416,10 @@ export default async function Shell({
      off with ?native=0, on for everyone once NATIVE_ALL=1. */
   let nativePref: string | undefined;
   try { nativePref = (await cookies()).get('rv_native')?.value; } catch { nativePref = undefined; }
-  const nativeOn = process.env.NATIVE_ALL === '1' ? nativePref !== '0' : (nativePref === '1' || (founder && nativePref !== '0'));
+  /* 7 November 2026: Nona asked for the phone app to look like the desktop app again. The native
+     shell is off for everyone (NATIVE_ALL and the owner default no longer turn it on); ?native=1 still
+     opens it in one browser for a look. */
+  const nativeOn = nativePref === '1';
   const layout = nativeOn && !isHome ? layoutFor(active) : null;
   const matAt = roomAt >= 0 ? roomAt : [...active].reduce((n, c) => n + c.charCodeAt(0), 0);
   const heroMat = layout ? MATERIALS[matAt % MATERIALS.length] : null;
