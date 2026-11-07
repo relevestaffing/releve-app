@@ -332,10 +332,10 @@ const rawTemplates = {
        pointed at the exact same URL, which is exactly the "one CTA with two
        footnotes" this layout was built to avoid. */
     const steps = [
-      { n: 1, label: 'Sign your agreement', note: 'Read and signed on screen.', href: o.agreementUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
-      { n: 2, label: 'Pay your deposit', note: `${amount}, applied in full to your first invoice.`, href: o.payUrl, cta: `Pay ${amount}` },
-      { n: 3, label: 'Open your account', note: 'Where you will meet your candidate.', href: SITE, cta: 'Open account' },
-      { n: 4, label: 'Add Relève to your phone', note: 'Always one tap away.', href: `${SITE}/install`, cta: 'Get the app' }
+      { n: 1, label: 'Sign your agreement', note: 'Takes a minute, right on your screen.', href: o.agreementUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
+      { n: 2, label: 'Place your deposit', note: `${amount}, credited in full to your first invoice.`, href: o.payUrl, cta: `Pay ${amount}` },
+      { n: 3, label: 'Set up your account', note: "This is where your candidate's profile will appear.", href: SITE, cta: 'Open account' },
+      { n: 4, label: 'Add Relève to your phone', note: 'So updates reach you right away.', href: `${SITE}/install`, cta: 'Get the app' }
     ];
     const SERIF = "Georgia,'Times New Roman',serif", SANS = 'Helvetica,Arial,sans-serif';
     const ROMAN = ['I', 'II', 'III', 'IV'];
@@ -360,7 +360,7 @@ const rawTemplates = {
     const begin = steps[0].href;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><style>@media (max-width:480px){.px{padding-left:26px!important;padding-right:26px!important}.cta{padding:16px 24px!important;letter-spacing:2.2px!important;font-size:11px!important}.h1{font-size:25px!important}}</style></head>
 <body style="margin:0;padding:0;background:#E7E2D5;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Your search begins with four short steps.${'&zwnj;&nbsp;'.repeat(60)}</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Four short steps to get started.${'&zwnj;&nbsp;'.repeat(60)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#E7E2D5;padding:40px 12px;"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#F5F2EA;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(34,48,42,.10);">
   <tr><td style="padding:14px 14px 0;">
@@ -368,9 +368,9 @@ const rawTemplates = {
   </td></tr>
 
   <tr><td class="px" align="center" style="padding:50px 52px 0;">
-    <div style="font-family:${SANS};font-size:10.5px;letter-spacing:4px;text-transform:uppercase;color:#8FA593;">Your search is open</div>
+    <div style="font-family:${SANS};font-size:10.5px;letter-spacing:4px;text-transform:uppercase;color:#8FA593;">Getting started</div>
     <div style="margin-top:16px;font-family:${SERIF};font-size:34px;line-height:1.2;color:#22302A;">${esc(hello)}</div>
-    <div style="margin:18px auto 0;max-width:420px;font-family:${SERIF};font-size:16.5px;line-height:1.75;color:#4A5A4F;">It was a pleasure speaking with you. Four short steps open your search, and each one leads straight to the next.</div>
+    <div style="margin:18px auto 0;max-width:420px;font-family:${SERIF};font-size:16.5px;line-height:1.75;color:#4A5A4F;">Thanks for choosing Relève. Here is how we get started. It takes about ten minutes.</div>
   </td></tr>
 
   <tr><td class="px" align="center" style="padding:36px 52px 0;">
@@ -388,15 +388,15 @@ const rawTemplates = {
   <tr><td class="px" align="center" style="padding:44px 40px 0;">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="#35443A" style="background:#35443A;padding:4px;border-radius:2px;">
       <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border:1px solid #6E8073;">
-        <a class="cta" href="${begin}" style="display:inline-block;padding:17px 44px;white-space:nowrap;font-family:${SERIF};font-size:12px;letter-spacing:3.4px;text-transform:uppercase;color:#F5F2EA;text-decoration:none;">Begin with your agreement</a>
+        <a class="cta" href="${begin}" style="display:inline-block;padding:17px 44px;white-space:nowrap;font-family:${SERIF};font-size:12px;letter-spacing:3.4px;text-transform:uppercase;color:#F5F2EA;text-decoration:none;">Sign your agreement</a>
       </td></tr></table>
     </td></tr></table>
-    <div style="margin-top:18px;font-family:${SANS};font-size:12.5px;line-height:1.6;color:#7C887F;font-weight:300;">Your agreement is attached, should you wish to read it first.</div>
+    <div style="margin-top:18px;font-family:${SANS};font-size:12.5px;line-height:1.6;color:#7C887F;font-weight:300;">A copy is attached if you would like to read it first.</div>
   </td></tr>
 
   <tr><td align="center" style="padding:52px 40px 58px;">
     <div style="width:44px;height:1px;background:#B0C4B2;margin:0 auto 26px;font-size:0;line-height:0;">&nbsp;</div>
-    <div style="font-family:${SERIF};font-style:italic;font-size:17px;line-height:1.6;color:#4A5A4F;">Once your deposit is in, we begin.</div>
+    <div style="font-family:${SERIF};font-style:italic;font-size:17px;line-height:1.6;color:#4A5A4F;">Once your deposit is in, we start your search.</div>
   </td></tr>
 </table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;"><tr><td style="padding:26px 8px 0;text-align:center;font-family:${SANS};font-size:10px;line-height:1.9;letter-spacing:3px;text-transform:uppercase;color:#8A8F82;">
@@ -405,7 +405,7 @@ const rawTemplates = {
 </td></tr></table></body></html>`;
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nIt was a pleasure speaking with you. Four short steps open your search, and each one leads straight to the next:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}\n   ${s.note}`).join('\n\n')}\n\nOnce your deposit is in, we begin.\n\nConsider it handled.\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThanks for choosing Relève. Here is how we get started. It takes about ten minutes:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}\n   ${s.note}`).join('\n\n')}\n\nOnce your deposit is in, we start your search.\n\nConsider it handled.\nRelève`,
       html
     };
   },
