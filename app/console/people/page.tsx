@@ -65,7 +65,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
      interviewing, placed or paused. Drives the section, the stage label and
      the saved views (the Directory at Asana quality, 2 November 2026). */
   const STAGE = {
-    invited: { label: 'Invited', color: '#6E8CA8' }, onboarding: { label: 'Onboarding', color: '#C6A465' },
+    invited: { label: 'Invited', color: '#6E8CA8' }, onboarding: { label: 'Onboarding', color: '#9AA5AC' },
     hiring: { label: 'Hiring', color: '#4E7A5C' }, interviewing: { label: 'Interviewing', color: '#8A6DA3' },
     placed: { label: 'Placed', color: '#35443A' }, paused: { label: 'On hold', color: '#A08478' }
   };
@@ -148,7 +148,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
           { key: 'zone', label: 'Timezone', width: '110px', opt: true }
         ]}
         sections={[
-          { key: 'start', label: 'Getting started', color: '#C6A465' },
+          { key: 'start', label: 'Getting started', color: '#9AA5AC' },
           { key: 'search', label: 'Searching', color: '#4E7A5C' },
           { key: 'placed', label: 'Placed', color: '#35443A' },
           { key: 'paused', label: 'On hold', color: '#A08478' }

@@ -220,7 +220,7 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
       ];
       case 'due': return [
         { key: 'over', label: 'Overdue', color: '#A4483A' },
-        { key: 'today', label: 'Today', color: '#A7792F', accept: () => ({ next_follow_up: today }), addAs: { next_follow_up: today } },
+        { key: 'today', label: 'Today', color: '#6F7C84', accept: () => ({ next_follow_up: today }), addAs: { next_follow_up: today } },
         { key: 'week', label: 'Next seven days', color: '#4E7A5C', accept: () => ({ next_follow_up: addDays(today, 3) }), addAs: { next_follow_up: addDays(today, 3) } },
         { key: 'later', label: 'Later', color: '#6E8CA8', accept: () => ({ next_follow_up: addDays(today, 14) }), addAs: { next_follow_up: addDays(today, 14) } },
         { key: 'none', label: 'No date', color: '#9AA39C', accept: () => ({ next_follow_up: null }), addAs: { next_follow_up: null } }

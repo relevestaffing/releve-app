@@ -35,7 +35,7 @@ export type Touch = {
    considered, not loud. */
 export const PROSPECT_STAGES: { key: ProspectStage; label: string; color: string; group: StageGroup }[] = [
   { key: 'new',       label: 'New lead',    color: '#6E8CA8', group: 'leads' },        // slate blue
-  { key: 'contacted', label: 'Contacted',   color: '#C6A465', group: 'leads' },        // gold
+  { key: 'contacted', label: 'Contacted',   color: '#9AA5AC', group: 'leads' },        // silver
   { key: 'nurturing', label: 'Nurturing',   color: '#7FA98B', group: 'leads' },        // soft fern
   { key: 'booked',    label: 'Call booked', color: '#4E7A5C', group: 'conversation' }, // fern
   { key: 'held',      label: 'Call held',   color: '#3E6B6E', group: 'conversation' }, // teal

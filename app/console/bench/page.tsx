@@ -63,14 +63,14 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       return {
         id: t.id, name: t.name, sub: `${t.role}${t.loc ? ` · ${t.loc}` : ''}`, photo: t.photo_url ?? null,
         section: placed ? 'placed' : 'ready',
-        stage: { label: placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review', color: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#C6A465' },
+        stage: { label: placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review', color: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#9AA5AC' },
         ownerId: manager,
         tags: [placed ? 'placed' : 'ready', verdict !== 'Valid' ? 'review' : '', !canBook && !placed ? 'unbookable' : '', manager === profile.id ? 'mine' : '', manager ? '' : 'nomanager'].filter(Boolean),
         search: [t.name, t.role, t.loc, type].filter(Boolean).join(' '),
         fullHref: `/console/talent/${t.id}`,
         headline: <>{type} · {t.yrs} yrs · {canBook ? 'interview hours set' : <span style={{ color: '#A4483A' }}>no interview hours</span>}</>,
         cells: {
-          stage: <span className="ws-stage" style={{ ['--c' as any]: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#C6A465', cursor: 'default' }}>{placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review'}</span>,
+          stage: <span className="ws-stage" style={{ ['--c' as any]: placed ? STAGE_COLOR.Placed : verdict === 'Valid' ? (STAGE_COLOR[t.stage] ?? '#4E7A5C') : '#9AA5AC', cursor: 'default' }}>{placed ? 'Placed' : verdict === 'Valid' ? (t.stage || 'Vetted') : 'To review'}</span>,
           profile: <span className="ws-tag">{type}</span>,
           validity: <span className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span>,
           pay: pay[t.id] != null ? <span>{money(pay[t.id]! * 100)}<span className="ws-faint"> /mo</span></span> : <span className="ws-faint">Not set</span>,
