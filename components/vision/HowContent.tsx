@@ -1,4 +1,3 @@
-import { money, DEPOSIT_CENTS } from '@/lib/money-public';
 
 /* The body of "How Relève works", as a fragment so it renders the same whether
    it sits inside the page (in Shell) or as a step in the first-run tour. No
@@ -31,14 +30,14 @@ export default function HowContent() {
     <>
       <div className="card dark">
         <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 14 }}>
-          The whole idea
+          What you get
         </div>
         <h2 style={{ fontSize: 30, color: 'var(--cream)', marginBottom: 14, maxWidth: 620 }}>
-          Someone you can trust with it. Everything after, handled.
+          A trusted professional, chosen for you and fully managed.
         </h2>
         <p className="small" style={{ maxWidth: 580, color: 'var(--pale)' }}>
-          One person, vetted on six fronts and matched to how you work, prepared
-          for your role and in front of you within fourteen days.
+          One person, vetted on six fronts and matched to how you work, in front
+          of you within fourteen days.
         </p>
       </div>
 
@@ -84,20 +83,6 @@ export default function HowContent() {
         <p className="small" style={{ color: 'var(--cream)', maxWidth: 560, margin: 0 }}>
           One vetted candidate, chosen for you personally, in front of you within
           fourteen days. Not a list to sort. A person to meet.
-        </p>
-      </div>
-
-      <div className="card">
-        <div className="card-head"><h3>What it costs</h3></div>
-        <div className="money-strip">
-          <div className="money-stat">
-            <div className="n">{money(DEPOSIT_CENTS)}</div>
-            <div className="k">Deposit to open your search</div>
-          </div>
-        </div>
-        <p className="small muted" style={{ marginTop: 4, maxWidth: 560 }}>
-          Your {money(DEPOSIT_CENTS)} deposit opens the search. It is credited in full
-          toward your first month once you are placed.
         </p>
       </div>
     </>
