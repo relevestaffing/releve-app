@@ -55,12 +55,12 @@ export default function DeletePerson({ id, name: rawName, pending }: {
   if (archiving) return (
     <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       <span className="xs muted">
-        Archive {name}? They leave every list and count. Everything on file stays, and you can put them back from Tidy up.
+        Archive {name}? They leave every list and count. Everything on file stays, and you can restore them from Tidy up.
       </span>
       <button className="btn sm solid" disabled={busy} onClick={archive}>
         {busy ? 'Archiving…' : 'Yes, archive'}
       </button>
-      <button className="btn sm ghost" disabled={busy} onClick={() => setArchiving(false)}>Keep them</button>
+      <button className="btn sm ghost" disabled={busy} onClick={() => setArchiving(false)}>Cancel</button>
     </div>
   );
 
@@ -85,13 +85,13 @@ export default function DeletePerson({ id, name: rawName, pending }: {
   return (
     <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
       {pending ? (
-        <span className="xs muted">Remove this record?</span>
+        <span className="xs muted">Remove this invitation? There is no account or history behind it.</span>
       ) : (
         <>
           <span className="xs muted">
             {(rawName ?? '').trim()
-              ? 'Type their first name to remove everything on file for them. This cannot be undone.'
-              : 'Type REMOVE to remove everything on file for them. This cannot be undone.'}
+              ? 'Type their first name to permanently remove their account and everything on file. This cannot be undone.'
+              : 'Type REMOVE to permanently remove this account and everything on file. This cannot be undone.'}
           </span>
           <span className="ff" style={{ margin: 0 }}>
             <input aria-label="Type the name to confirm" value={typed} autoFocus disabled={busy} style={{ width: 110 }}

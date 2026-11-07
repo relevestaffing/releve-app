@@ -13,7 +13,7 @@ export default function EmailCheck() {
       const r = await fetch('/api/admin/email-test', { method: 'POST', body: '{}' });
       setRes(await r.json());
     } catch {
-      setRes({ ok: false, stage: 'unreachable', says: 'Could not reach the server at all.' });
+      setRes({ ok: false, stage: 'unreachable', says: 'Could not reach the server.' });
     }
     setBusy(false);
   }
@@ -24,8 +24,8 @@ export default function EmailCheck() {
         <div style={{ flex: 1, minWidth: 240 }}>
           <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)' }}>Is email working?</b>
           <div className="small muted" style={{ marginTop: 3 }}>
-            Every notification in the platform fails quietly if it is not. This sends one
-            to you and reports exactly what the mail host said.
+            If email is down, every notification fails without warning. This sends a test
+            to you and shows the mail host's exact reply.
           </div>
         </div>
         <button className="btn sm solid" disabled={busy} onClick={run}>
@@ -53,7 +53,7 @@ export default function EmailCheck() {
                     <li key={k}><b>{k}</b>: {String(v)}</li>
                   ))}
                 </ul>
-                <p className="xs muted">Names and whether a value exists. Never the values themselves.</p>
+                <p className="xs muted">Setting names and whether each one is set. Values are never shown.</p>
               </div>
             </details>
           )}

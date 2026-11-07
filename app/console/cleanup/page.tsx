@@ -37,8 +37,7 @@ export default async function CleanupPage() {
       {!configured() && (
         <div className="card tight" style={{ marginBottom: 22 }}>
           <p className="small muted">
-            This is the preview. Real accounts appear here once the app is running
-            against the live database.
+            This is the preview. Accounts appear here once the app is connected to the live database.
           </p>
         </div>
       )}
@@ -52,7 +51,7 @@ export default async function CleanupPage() {
           </div>
           <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>
             Run <code>supabase/part40-archive.sql</code> in the Supabase SQL editor and
-            reload this page. Removing works either way; only archiving is waiting on it.
+            reload this page. Removing works now; archiving needs this step.
           </p>
         </div>
       )}

@@ -24,14 +24,14 @@ export default async function ConsoleAsk() {
     : ['What is waiting on the team today?', 'Which interviews are coming up?', 'What does the Book say about releases?'];
 
   return (
-    <Shell profile={profile} active="/console/ask" title="Ask Relève" crumb={founder ? 'Ask, look up, and fix. Changes wait for your confirmation.' : 'Ask and look up'}>
+    <Shell profile={profile} active="/console/ask" title="Ask Relève" crumb={founder ? 'Ask a question or request a change. Nothing changes until you confirm.' : 'Ask a question or look something up'}>
       <AskReleve who="admin" founder={founder} starters={starters} managerHref="/console/messages" />
 
       {founder && (
         <div className="card" style={{ marginTop: 24 }}>
-          <div className="card-head"><h3>What the assistant has done</h3><span className="xs muted">{log.length ? `Last ${log.length}` : ''}</span></div>
+          <div className="card-head"><h3>Assistant activity</h3><span className="xs muted">{log.length ? `Last ${log.length}` : ''}</span></div>
           {!log.length ? (
-            <p className="small muted" style={{ margin: 0 }}>Nothing yet. Proposals you confirm or dismiss appear here, with the outcome.</p>
+            <p className="small muted" style={{ margin: 0 }}>Nothing yet. Each change you confirm or dismiss is listed here with its outcome.</p>
           ) : (
             <table className="data">
               <thead><tr><th>When</th><th>What</th><th>Kind</th><th>Outcome</th></tr></thead>
@@ -41,7 +41,7 @@ export default async function ConsoleAsk() {
                     <td className="xs muted" style={{ whiteSpace: 'nowrap' }}>{fmtWhen(a.confirmed_at ?? a.created_at)}</td>
                     <td className="small">{a.summary}</td>
                     <td className="xs muted">{a.kind}</td>
-                    <td><span className={`pill ${a.status === 'done' ? 'good' : a.status === 'failed' ? 'crit' : ''}`}>{a.status === 'proposed' ? 'Waiting' : a.status === 'done' ? 'Done' : a.status === 'failed' ? 'Did not work' : 'Dismissed'}</span>
+                    <td><span className={`pill ${a.status === 'done' ? 'good' : a.status === 'failed' ? 'crit' : ''}`}>{a.status === 'proposed' ? 'Waiting' : a.status === 'done' ? 'Done' : a.status === 'failed' ? 'Failed' : 'Dismissed'}</span>
                       {a.status === 'failed' && a.result?.error && <div className="xs muted" style={{ marginTop: 4 }}>{String(a.result.error)}</div>}</td>
                   </tr>
                 ))}

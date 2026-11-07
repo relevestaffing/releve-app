@@ -34,9 +34,9 @@ export default function WiseBatch({ count, skipped, owner = true }: {
         body: JSON.stringify({ reference })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) { toast.bad(d.error ?? 'That did not record.'); setBusy(false); return; }
+      if (!r.ok) { toast.bad(d.error ?? 'Not recorded. Please try again.'); setBusy(false); return; }
       toast.saved(
-        `${d.marked} recorded as paid${d.notified ? `, ${d.notified} told by email` : ''}`
+        `${d.marked} recorded as paid${d.notified ? `, ${d.notified} emailed` : ''}`
       );
       if (d.failed?.length) toast.bad(`Could not record: ${d.failed.join(', ')}`);
       setConfirming(false); setReference(''); setBusy(false);
@@ -62,7 +62,7 @@ export default function WiseBatch({ count, skipped, owner = true }: {
         </p>
       ) : (
         <p className="small muted" style={{ maxWidth: 'var(--measure)', marginBottom: 16 }}>
-          Nobody in this run can go in a Wise batch yet.
+          No one in this run can be paid by Wise batch yet.
         </p>
       )}
 
@@ -86,14 +86,14 @@ export default function WiseBatch({ count, skipped, owner = true }: {
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--line)' }}>
           <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 14 }}>
             This records all <b>{count}</b> as paid and emails each person to say their
-            money is on the way. Only do this once the batch has actually gone through in Wise.
+            money is on the way. Do this only after the batch has gone through in Wise.
           </p>
           <div className="ff" style={{ maxWidth: 360 }}>
             <label htmlFor="wise-ref">Wise reference <span className="muted">(optional)</span></label>
             <input id="wise-ref" value={reference} disabled={busy}
               placeholder="Batch reference from Wise"
               onChange={e => setReference(e.target.value)} />
-            <span className="xs muted">Ties every one of these back to the one transfer in Wise.</span>
+            <span className="xs muted">Links each payment to the Wise batch.</span>
           </div>
           <div className="row" style={{ gap: 10, marginTop: 14 }}>
             <button className="btn sm solid" disabled={busy} onClick={markSent}>

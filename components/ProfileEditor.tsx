@@ -53,7 +53,7 @@ export default function ProfileEditor({ initial }: { initial: any }) {
         </div>
         <div className="ff"><label htmlFor={`${fid}-7`}>A short introduction</label>
           <textarea id={`${fid}-7`} name="bio" rows={4} defaultValue={initial.bio ?? ''}
-            placeholder="Two or three sentences. What you have run, who you have supported, and what you are good at when nobody is watching." /></div>
+            placeholder="Two or three sentences: the work you have led, who you have supported and what you do best." /></div>
         <p className="xs muted">Write it the way you would say it. Executives read this before anything else.</p>
       </div>
 
@@ -63,11 +63,11 @@ export default function ProfileEditor({ initial }: { initial: any }) {
           instrument now, and it is the deep one. */}
       <div className="card tight">
         <p className="small" style={{ margin: 0 }}>
-          <b>Your skills are set on their own page.</b> Twelve areas of work, each
-          broken down properly. That is what executives are matched against.
+          <b>Your skills have their own page.</b> There are twelve areas of work, each
+          with its own questions. This is what we use to match you with executives.
         </p>
         <a className="btn sm ghost" href="/app/skills" style={{ marginTop: 14 }}>
-          Open Your Skills
+          Go to your skills
         </a>
       </div>
 
@@ -76,26 +76,25 @@ export default function ProfileEditor({ initial }: { initial: any }) {
       <div className="card" id="photo" style={{ scrollMarginTop: 90 }}>
         <div className="card-head"><h3>Photo</h3><span className="pill">Optional, but it helps</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
-          A clear photo of your face. A plain background and good light is all it takes.
-          It saves on its own, so you do not need to press save below for this one.
+          A clear photo of your face, with a plain background and good light. Your photo
+          saves automatically, so you do not need to press Save below.
         </p>
         <PhotoUpload initial={initial.photo_url} name={initial.full_name ?? ''} />
       </div>
 
       {/* The checklist links here with #video, same reasoning as #photo. */}
       <div className="card" id="video" style={{ scrollMarginTop: 90 }}>
-        <div className="card-head"><h3>Introduction video</h3><span className="pill">Optional, but it stands out</span></div>
+        <div className="card-head"><h3>Introduction video</h3><span className="pill">Optional, but it helps you stand out</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
-          Executives read a lot of profiles. Thirty seconds of you, in your own voice,
-          is the fastest way to become a person rather than a row.
-          It saves on its own, so you do not need to press save below for this one.
+          Executives read many profiles. A thirty-second video in your own voice helps them
+          get to know you. Your video saves automatically, so you do not need to press Save below.
         </p>
         <VideoUpload initial={initial.intro_video_url} name={initial.full_name ?? ''} />
       </div>
 
       <div className="row" style={{ gap: 14, marginTop: 24, flexWrap: 'wrap' }}>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save your profile'}</button>
-        <span className="small muted">Your Relève team is notified of changes. Your pay is set by Relève and is never shown to executives.</span>
+        <span className="small muted">Relève is told when you make changes. Your pay is set by Relève and is never shown to executives.</span>
       </div>
     </form>
   );

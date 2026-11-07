@@ -23,7 +23,7 @@ export default function RateSetter({ placementId, cents }: { placementId: string
 
   async function save() {
     const c = toCents(text);
-    if (c == null || c <= 0) { toast.bad('That is not a rate.'); return; }
+    if (c == null || c <= 0) { toast.bad('Enter a monthly rate in US dollars.'); return; }
     setBusy(true);
     try {
       const r = await fetch('/api/admin/money', {
@@ -36,7 +36,7 @@ export default function RateSetter({ placementId, cents }: { placementId: string
       /* Saved either way, but say so when it sits outside the quoted band —
          a number outside $2,500–$4,500 should be deliberate, not a typo. */
       if (d.outsideQuotedBand)
-        toast.ok(`Set to ${money(c)}, outside the ${money(RATE_MIN_CENTS)} to ${money(RATE_MAX_CENTS)} band`);
+        toast.ok(`Rate set to ${money(c)}, outside the standard ${money(RATE_MIN_CENTS)} to ${money(RATE_MAX_CENTS)} range`);
       else toast.saved(`Rate set to ${money(c)} a month`);
       setJustSet(c); setEditing(false); router.refresh();
     } catch { setBusy(false); toast.bad('No connection. Nothing was saved.'); }
@@ -46,7 +46,7 @@ export default function RateSetter({ placementId, cents }: { placementId: string
     <span className="rate-set">
       <b className="amount">{money(shownCents)}</b>
       <span className="xs muted">/mo</span>
-      {shownCents != null && !rateInRange(shownCents) && <span className="pill warn">Outside band</span>}
+      {shownCents != null && !rateInRange(shownCents) && <span className="pill warn">Outside range</span>}
       <button className="btn sm ghost" onClick={() => setEditing(true)}>Change</button>
     </span>
   );

@@ -98,13 +98,13 @@ export default async function PlacementView({
             <div>
               <h2 style={{ fontSize: 24, color: 'var(--cream)', marginBottom: 6 }}>{p.talent_name}</h2>
               <p style={{ fontFamily: 'var(--display)', fontSize: 16, color: 'var(--pale)' }}>
-                {[talentSelf.headline, talentSelf.location].filter(Boolean).join(' · ') || 'Your talent'}
+                {[talentSelf.headline, talentSelf.location].filter(Boolean).join(' · ') || 'Your assistant'}
               </p>
             </div>
           </div>
           {talentSelf.bio && <p className="small" style={{ maxWidth: 620, marginTop: 18 }}>{talentSelf.bio}</p>}
           <span className="xs muted" style={{ display: 'inline-block', marginTop: 14 }}>
-            See their full profile, breakdown and intro video →
+            See their full profile, skills and intro video →
           </span>
         </Link>
       )}
@@ -118,7 +118,7 @@ export default async function PlacementView({
         </div>
         <div className="tally-row">
           <div><b>{open.length}</b><span>open {open.length === 1 ? 'task' : 'tasks'}</span></div>
-          <div><b>{done.length}</b><span>task {done.length === 1 ? 'win' : 'wins'}</span></div>
+          <div><b>{done.length}</b><span>completed</span></div>
           <div><b>{overdue.length}</b><span>overdue</span></div>
         </div>
         <div className="row" style={{ gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
@@ -147,8 +147,8 @@ export default async function PlacementView({
             <div className="card-head"><h3>How you are doing</h3></div>
             {!shared.length ? (
               <p className="small muted">
-                Nothing yet. {WORDS.tsm}s write this after your first full month,
-                and you will see it here the moment it is ready.
+                Your {WORDS.tsm} writes this after your first full month. It will
+                appear here when it is ready.
               </p>
             ) : shared.map(f => (
               <div key={f.id} style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid var(--mist)' }}>
@@ -176,8 +176,8 @@ export default async function PlacementView({
         {manager && <div style={{ marginBottom: 16 }}><ManagerLine manager={manager} /></div>}
         <p className="small muted" style={{ marginBottom: 16, maxWidth: 620 }}>
           {side === 'client'
-            ? 'Anything that is not working, or anything you want changed, say it here directly. That is what they are for.'
-            : 'Yours, not the executive’s. Nothing you send is passed on.'}
+            ? 'If anything is not working, or you want something changed, tell them directly.'
+            : 'This conversation is private. Nothing you send is passed to your executive.'}
         </p>
         <a className="btn sm ghost" href="/app/messages?tab=sm">
           {manager?.id ? `Message ${firstName(manager.name)}` : `Message ${side === 'client' ? WORDS.csmShort : WORDS.tsmShort}`}
@@ -196,12 +196,12 @@ export default async function PlacementView({
             return (
               <div key={o.id} className="row between" style={{ padding: '10px 0', borderBottom: '1px solid var(--mist)', gap: 12, flexWrap: 'wrap' }}>
                 <span className="small"><b>{dayLabel(o.starts_on)}</b> to <b>{dayLabel(o.ends_on)}</b></span>
-                <span className={`pill ${st?.tone ?? ''}`}>{o.state === 'requested' ? 'Requested, Relève arranging cover' : st?.label ?? o.state}</span>
+                <span className={`pill ${st?.tone ?? ''}`}>{o.state === 'requested' ? 'Requested, cover being arranged' : st?.label ?? o.state}</span>
                 {o.cover_note && <span className="xs muted" style={{ width: '100%' }}>Cover: {o.cover_note}</span>}
               </div>
             );
           })}
-          <p className="xs muted" style={{ marginTop: 10 }}>Relève arranges cover before the day. Nothing is approved without it.</p>
+          <p className="xs muted" style={{ marginTop: 10 }}>Relève arranges cover in advance, and no time off is approved without it.</p>
         </div>
       )}
 

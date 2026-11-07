@@ -61,8 +61,8 @@ export default async function PayPage() {
           ))}
           <p className="small muted" style={{ margin: 0 }}>
             {placementRates.length > 1
-              ? 'Each paid by Relève, one per placement. This is what was agreed in each offer.'
-              : 'A month, paid by Relève. This is what was agreed in your offer.'}
+              ? 'Paid monthly by Relève, one rate per placement, as agreed in each offer.'
+              : 'Paid monthly by Relève, as agreed in your offer.'}
           </p>
         </div>
       )}
@@ -70,12 +70,11 @@ export default async function PayPage() {
       <div className="card">
         <div className="card-head"><h3>When you are paid</h3></div>
         <p className="small" style={{ marginTop: 0, maxWidth: 640 }}>
-          Monthly. Relève prepares each month’s pay at the start of the month and sends it to the
-          account below. Every payment appears in the list underneath with the date it was sent and
-          a reference.
+          Once a month. Relève prepares your pay at the start of each month and sends it to the
+          account below. Each payment is listed underneath with the date it was sent and a reference.
         </p>
         <p className="xs muted" style={{ margin: '10px 0 0' }}>
-          A question about a payment? Write to your Talent Success Manager. Replies within one business day, usually sooner.
+          If you have a question about a payment, write to your Talent Success Manager. You will have a reply within one business day.
         </p>
       </div>
       {!placementRates.length && rate != null && (
@@ -83,7 +82,7 @@ export default async function PayPage() {
           <div className="card-head"><h3>Your rate</h3></div>
           <div className="score" style={{ marginBottom: 4 }}>{money(rate)}</div>
           <p className="small muted" style={{ margin: 0 }}>
-            A month, paid by Relève. This is what was agreed in your offer.
+            Paid monthly by Relève, as agreed in your offer.
           </p>
         </div>
       )}
@@ -92,7 +91,7 @@ export default async function PayPage() {
 
       {watchPay.length > 0 && (
         <div className="card">
-          <div className="card-head"><h3>Taking The Watch</h3>
+          <div className="card-head"><h3>Taking The Watch™</h3>
             <span className="pill">{money(watchPay.reduce((n, w) => n + w.cents, 0))}</span></div>
           <p className="small muted" style={{ marginBottom: 14 }}>
             Paid at $6 an hour for the time you spent, {placements.length ? 'with your first month' : 'by Relève once it is scored'}.
@@ -117,9 +116,8 @@ export default async function PayPage() {
         <div className="card-head"><h3>Your payments</h3></div>
         {payments.length === 0 ? (
           <p className="small muted" style={{ margin: 0 }}>
-            Nothing yet. Once you are placed, every payment appears here with the date it
-            was sent and a reference, so if anything ever goes missing, there is a record
-            rather than a conversation.
+            No payments yet. Once you are placed, each payment will appear here with the date
+            it was sent and a reference.
           </p>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>

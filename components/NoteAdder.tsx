@@ -23,7 +23,7 @@ export default function NoteAdder({ placementId }: { placementId: string }) {
     const ok = await saving(() => fetch('/api/admin/notes', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ placement_id: placementId, body: f.get('body'), kind: f.get('kind') })
-    }), 'Noted');
+    }), 'Note added');
     setBusy(false);
     if (ok) { form.reset(); router.refresh(); }
   }
@@ -38,7 +38,7 @@ export default function NoteAdder({ placementId }: { placementId: string }) {
         <select aria-label="Kind of note" name="kind" defaultValue="note" style={{ maxWidth: 170 }}>
           {KINDS.map(k => <option key={k.k} value={k.k}>{k.label}</option>)}
         </select>
-        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Add to the file'}</button>
+        <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Add note'}</button>
       </div>
     </form>
   );

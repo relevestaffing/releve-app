@@ -39,7 +39,7 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
     <>
       <div className="card">
         <div className="card-head">
-          <h3>What your hours are worth.</h3>
+          <h3>The cost of a full-time hire</h3>
           <span className="pill good"><span className="dot" />Save {over}{fmt(ongoingSave)} a year</span>
         </div>
 
@@ -74,8 +74,8 @@ export default function ValueCalculator({ retainerMonthlyCents, placed }: {
           <li>No recruiting fee.</li>
           <li>No payroll, benefits or HR to run. They are a virtual contractor, not headcount.</li>
           <li>A qualified candidate within fourteen days of your search opening, not months.</li>
-          <li>Not the right fit? We replace them, and the replacement is covered. No bad hire to exit.</li>
-          <li>A fixed commitment (six months, or three on the Starter plan), then three-month terms you can end with thirty days&rsquo; notice. No severance, no sunk spend.</li>
+          <li>If the fit is not right, we replace them, and the replacement is covered.</li>
+          <li>A fixed commitment (six months, or three on the Starter plan), then three-month terms you can end with thirty days&rsquo; notice. No severance.</li>
         </ul>
       </div>
     </>

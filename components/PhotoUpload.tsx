@@ -22,9 +22,9 @@ function squareJpeg(file: File): Promise<Blob> {
       const ctx = c.getContext('2d');
       if (!ctx) return reject(new Error('Your browser could not process that image.'));
       ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
-      c.toBlob(b => b ? resolve(b) : reject(new Error('Could not read that image.')), 'image/jpeg', 0.86);
+      c.toBlob(b => b ? resolve(b) : reject(new Error('This image could not be read. Please try another.')), 'image/jpeg', 0.86);
     };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file did not open as an image.')); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('This file did not open as an image. Please choose a JPG, PNG or HEIC.')); };
     img.src = url;
   });
 }
@@ -40,8 +40,8 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
   async function take(file: File | undefined) {
     setErr(null);
     if (!file) return;
-    if (!file.type.startsWith('image/')) return setErr('That needs to be an image: a JPG, PNG or HEIC from your phone or camera roll.');
-    if (file.size > MAX_INPUT_MB * 1024 * 1024) return setErr(`That photo is over ${MAX_INPUT_MB}MB. Pick a smaller one.`);
+    if (!file.type.startsWith('image/')) return setErr('Please choose an image: a JPG, PNG or HEIC from your phone or computer.');
+    if (file.size > MAX_INPUT_MB * 1024 * 1024) return setErr(`This photo is over ${MAX_INPUT_MB}MB. Please choose a smaller one.`);
 
     setBusy(true);
     try {
@@ -51,7 +51,7 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
       body.append('photo', blob, 'photo.jpg');
       const res = await fetch('/api/photo', { method: 'POST', body });
       const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'The upload did not go through.');
+      if (!res.ok) throw new Error(out.error ?? 'The upload did not finish. Please try again.');
       setPreview(out.url);
       toast.saved('Photo updated');
       router.refresh();
@@ -89,8 +89,8 @@ export default function PhotoUpload({ initial, name }: { initial?: string | null
             )}
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>
-            From your computer or phone: JPG, PNG or HEIC. Drag one here if you prefer.
-            We crop it to a square for you, so anything roughly centred works.
+            JPG, PNG or HEIC, from your computer or phone. You can also drag a photo here.
+            We crop it to a square, so keep your face near the centre.
           </p>
         </div>
       </div>

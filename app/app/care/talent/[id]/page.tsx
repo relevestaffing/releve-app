@@ -36,7 +36,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
 
   return (
     <Shell profile={profile} active={backHref} title={placement.talent_name}
-      crumb="Their profile, as they wrote it"
+      crumb="Their profile"
       action={<Link className="btn sm ghost" href={backHref}>Back to the placement</Link>}>
 
       <div className="card dark">
@@ -56,7 +56,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
         <div className="card-head"><h3>In their own words</h3></div>
         {self.bio
           ? <p className="small" style={{ maxWidth: 640 }}>{self.bio}</p>
-          : <p className="small muted">They have not written their introduction yet. It appears here once they do.</p>}
+          : <p className="small muted">Their introduction will appear here once they write it.</p>}
         {self.intro_video_url && (
           <video src={self.intro_video_url} controls playsInline preload="metadata"
             style={{ width: '100%', maxWidth: 420, background: 'var(--ink)', display: 'block', marginTop: 18 }} />
@@ -66,7 +66,7 @@ export default async function TalentProfileForClient({ params }: { params: Promi
       <div className="card">
         <div className="card-head"><h3>Their skills breakdown</h3></div>
         {!disciplines.length ? (
-          <p className="small muted">Their skills breakdown is not filled in yet. Relève asks for it during onboarding.</p>
+          <p className="small muted">Their skills breakdown will appear here once they complete it during onboarding.</p>
         ) : disciplines.map(d => {
           const comps = compsOf(d);
           const years = skills?.years?.[d];

@@ -31,14 +31,14 @@ const since = (iso: string | null): string => {
 };
 const carrying = (m: { executives: number; talent: number }): string => {
   const parts: string[] = [];
-  if (m.executives) parts.push(`${m.executives} exec`);
+  if (m.executives) parts.push(`${m.executives} executive${m.executives === 1 ? '' : 's'}`);
   if (m.talent) parts.push(`${m.talent} talent`);
-  return parts.join(' · ') || 'Nothing live';
+  return parts.join(' · ') || 'No live accounts';
 };
 
 /* What each entry in the log actually means, in words rather than table names. */
 const SAYS: Record<string, string> = {
-  release: 'released a candidate to a client',
+  release: 'sent a candidate to an executive',
   vetting_verified: 'verified a document',
   vetting_rejected: 'rejected a document',
   vetting_submitted: 'received a document',
@@ -46,8 +46,8 @@ const SAYS: Record<string, string> = {
   invoice_sent: 'sent an invoice',
   invoice_paid: 'marked an invoice paid',
   invoice_void: 'voided an invoice',
-  rate_set: 'changed what a client is charged',
-  talent_pay_set: 'changed what a talent is paid',
+  rate_set: 'changed an executive\u2019s rate',
+  talent_pay_set: 'changed a talent\u2019s pay',
   payout_details_set: 'added payout details',
   payout_details_changed: 'changed payout details',
   team_added: 'gave someone console access',
@@ -161,7 +161,7 @@ export default async function ConsoleTeam() {
           <table className="data">
             <thead><tr>
               <th>Name</th><th>Role</th>
-              {owner && <><th>Carrying</th><th>Open items</th></>}
+              {owner && <><th>Accounts</th><th>Open items</th></>}
               {owner && <th aria-label="Actions" />}
             </tr></thead>
             <tbody>
@@ -186,7 +186,7 @@ export default async function ConsoleTeam() {
                           <div className="xs muted wrap" style={{ marginTop: 4 }}>
                             {[l.openRequests && `${l.openRequests} request${l.openRequests === 1 ? '' : 's'}`,
                               l.reviewsOverdue && `${l.reviewsOverdue} review${l.reviewsOverdue === 1 ? '' : 's'} due`,
-                              l.flaggedReports && `${l.flaggedReports} report${l.flaggedReports === 1 ? '' : 's'} up for review`]
+                              l.flaggedReports && `${l.flaggedReports} report${l.flaggedReports === 1 ? '' : 's'} to review`]
                               .filter(Boolean).join(', ')}
                           </div>
                         )}
@@ -197,7 +197,7 @@ export default async function ConsoleTeam() {
                     {owner && (
                       <td>
                         {lastOwner
-                          ? <span className="xs muted">Only owner</span>
+                          ? <span className="xs muted">Sole owner</span>
                           : <TeamMemberRemove userId={t.user_id} name={t.name} self={self} />}
                       </td>
                     )}
@@ -211,7 +211,7 @@ export default async function ConsoleTeam() {
         {invites.length > 0 && (
           <div style={{ marginTop: 18 }}>
             <p className="xs muted" style={{ marginBottom: 8 }}>
-              Invited, not signed in yet. Each becomes an admin the first time they sign in with this email.
+              Invited, not signed in yet. Each gets console access the first time they sign in with this email.
             </p>
             <table className="data">
               <thead><tr><th>Name</th><th>Email</th><th>Role</th>{owner && <th aria-label="Actions" />}</tr></thead>
@@ -239,7 +239,7 @@ export default async function ConsoleTeam() {
         </div>
         <p className="xs muted" style={{ marginTop: 16 }}>
           {owner
-            ? 'To add someone, use their email. If they already have a Relève account, they get console access as soon as you confirm. If not, they get it the first time they sign in with that email.'
+            ? 'Add someone by email. If they already have a Relève account, access starts as soon as you confirm. If not, it starts the first time they sign in with that email.'
             : 'Only an owner can add, change or remove people on the team.'}
         </p>
       </div>
@@ -251,17 +251,16 @@ export default async function ConsoleTeam() {
           <h3>Database backup</h3>
           <span className={`pill ${backupState === 'good' ? 'good' : backupState === 'warn' ? 'warn' : 'crit'}`}>
             <span className="dot" />
-            {backupState === 'good' ? 'Ran recently' : backupState === 'warn' ? 'Getting stale' : 'Not confirmed'}
+            {backupState === 'good' ? 'Up to date' : backupState === 'warn' ? 'Overdue' : 'Not confirmed'}
           </span>
         </div>
         {!backup?.last_success ? (
           <p className="small" style={{
             marginBottom: 0, padding: '13px 17px', background: 'var(--cream)',
             borderLeft: '2px solid #8C4A3F' }}>
-            <b>No successful backup has ever reported in.</b> Either the nightly
-            backup has not been switched on yet, or it has not run since this page
-            started watching for it. Nothing is lost either way. Switch the nightly backup on and every
-            day from then on can be restored.
+            <b>No successful backup on record.</b> The nightly backup is either not switched
+            on or has not run since monitoring began. Switch it on and every day from then
+            can be restored.
           </p>
         ) : (
           <p className="small muted" style={{ marginBottom: 0 }}>
@@ -274,27 +273,26 @@ export default async function ConsoleTeam() {
 
       <div className="card">
         <div className="card-head">
-          <h3>Every email, and whether it arrived</h3>
+          <h3>Email delivery</h3>
           <span className="xs muted">Last 60 attempts</span>
         </div>
         {!mailEverWorked && (
           <p className="small" style={{
             marginBottom: 16, padding: '13px 17px', background: 'var(--cream)',
             borderLeft: '2px solid #8C4A3F' }}>
-            <b>No email has ever been sent successfully from this platform.</b> Until
-            that changes, every invitation, receipt and interview confirmation is going
-            nowhere, and the page that sent it said nothing was wrong. Use the check
-            above; it reports the mail host&rsquo;s own words.
+            <b>No email has been sent successfully yet.</b> Until this is fixed, invitations,
+            receipts and interview confirmations are not being delivered. Run the check above
+            to see the mail host&rsquo;s exact response.
           </p>
         )}
         <p className="small muted" style={{ marginBottom: 18 }}>
           {failed.length > 0
-            ? `${failed.length} of the last ${mail.length} were refused. Each row names who and what, so it can be sent again.`
-            : 'One row per attempt, successful or not. This is the only evidence that email works.'}
+            ? `${failed.length} of the last ${mail.length} were refused. Each row shows the recipient and message, so it can be resent.`
+            : 'Every send attempt, successful or not.'}
         </p>
         {!mail.length ? (
           <p className="small muted">
-            Nothing attempted yet. It fills the moment anything sends, or fails to.
+            No send attempts yet.
           </p>
         ) : (
           <table className="data">
@@ -326,17 +324,16 @@ export default async function ConsoleTeam() {
           eleven days and nothing anywhere said so. */}
       <div className="card">
         <div className="card-head">
-          <h3>Sign-ins that did not go through</h3>
+          <h3>Failed sign-ins</h3>
           <span className={`pill ${signins.length ? 'warn' : 'good'}`}>
-            {signins.length ? `${signins.length} to look at` : <><span className="dot" />All clear</>}
+            {signins.length ? `${signins.length} to review` : <><span className="dot" />All clear</>}
           </span>
         </div>
         {!signins.length ? (
           <div className="empty"><span className="tick" />
             <p className="small">
-              Everyone who has tried to sign in has got in. Anybody who cannot
-              lands here the moment it happens, and the team is emailed once an
-              hour at most.
+              No failed sign-ins. Any failure appears here right away, and the team
+              is emailed at most once an hour.
             </p>
           </div>
         ) : (
@@ -346,7 +343,7 @@ export default async function ConsoleTeam() {
               {signins.map((s, i) => (
                 <tr key={i}>
                   <td className="xs">{when(s.at)}</td>
-                  <td><div className="xs">{s.email ?? 'Not known yet'}</div></td>
+                  <td><div className="xs">{s.email ?? 'Unknown'}</div></td>
                   <td><div className="xs">
                     {signinStageLabel(s.stage)}
                     {s.detail && <><br /><span className="muted">{s.detail}</span></>}
@@ -361,11 +358,11 @@ export default async function ConsoleTeam() {
 
       <div className="card">
         <div className="card-head">
-          <h3>What has been done</h3>
+          <h3>Activity log</h3>
           <span className="xs muted">Newest first</span>
         </div>
         {!log.length ? (
-          <p className="small muted">Nothing recorded yet. It starts filling the moment anyone acts.</p>
+          <p className="small muted">No activity recorded yet.</p>
         ) : (
           <table className="data">
             <thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>

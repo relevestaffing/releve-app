@@ -22,8 +22,8 @@ export const metadata = { title: 'Executive' };
 export const dynamic = 'force-dynamic';
 
 const AGREEMENT_WORDS: Record<string, string> = {
-  not_started: 'To sign in their account', submitted: 'Signed, with Relève',
-  verified: 'Signed and filed', rejected: 'Needs another look'
+  not_started: 'Not signed yet', submitted: 'Signed, with Relève to file',
+  verified: 'Signed and filed', rejected: 'Needs a closer look'
 };
 
 /* The executive's record (Sage, 25 October 2026).
@@ -85,7 +85,7 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
       <Strip a={acct} accountHref={talentHref} />
 
       <Tabs tabs={[
-        { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={talentHref} emptyText="Use Assign placement at the top to place someone with them." /> },
+        { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={talentHref} emptyText="No placement yet. Use Assign placement above." /> },
         { key: 'hours', label: 'Hours', body: <HoursTab a={acct} /> },
         { key: 'billing', label: 'Billing', count: acct.billing.invoices.length, body: <BillingTab a={acct} /> },
         { key: 'communication', label: 'Communication', body: (
@@ -105,7 +105,7 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
               <dt>Time zone</dt><dd>{zoneLabel(avail?.timezone || client.timezone) || <span className="ws-faint">Not given</span>}</dd>
               <dt>Signed in</dt><dd>{client.signed_in ? 'Yes' : 'Not yet'}</dd>
               <dt>Agreement</dt><dd>{AGREEMENT_WORDS[agreement?.state ?? 'not_started'] ?? 'Not started'}</dd>
-              <dt>Open role</dt><dd>{brief?.role_title || 'No brief written yet'}</dd>
+              <dt>Open role</dt><dd>{brief?.role_title || 'No brief yet'}</dd>
               <dt>Signature</dt><dd>{type ? type.n : 'Not completed yet'}</dd>
             </dl>
             <div style={{ marginTop: 18 }}><AccountManagerPicker personId={id} side="client" team={team as any} current={csm} /></div>

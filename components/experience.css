@@ -241,3 +241,7 @@
 
 /* The real Relève logo, never a typed imitation (2 November 2026). */
 .rv-wait-logo{display:block;width:min(300px,70vw);height:auto;animation:rvWaitFade .8s ease both}
+
+/* Polish pass (7 Nov 2026): the not-found and error pages sit outside the wall,
+   so the phone's old rounded buttons came back there. Square, like the app. */
+html body .brand-error :is(.btn,input,select,textarea){border-radius:0!important}

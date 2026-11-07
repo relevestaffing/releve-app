@@ -41,7 +41,7 @@ export default async function BriefPage({ searchParams }: { searchParams: Promis
     <Shell profile={profile} active="/app/brief" title={profile.role === 'client' ? 'The briefing' : 'Your briefing'} >
       <Empty of={profile.role === 'client' ? {
         title: 'The briefing opens with your placement',
-        body: 'Once someone starts with you, this is where you write down your tools, the access they will have and how you like things done. It is theirs to read before day one.',
+        body: 'When your assistant is placed, this is where you note your tools, their access and how you like things done, so they can read it before day one.',
         cta: { label: 'Back to your dashboard', href: '/app' }
       } : {
         title: 'Your briefing arrives with your placement',
@@ -82,8 +82,8 @@ export default async function BriefPage({ searchParams }: { searchParams: Promis
         </div>
         {!filled.length ? (
           <p className="small muted" style={{ margin: 0 }}>
-            {exec} has not written the briefing yet. Your Talent Success Manager can help fill it in with you;
-            until then, ask anything on a task or in Messages.
+            {exec} has not written the briefing yet. Your Talent Success Manager can help complete it.
+            Until then, ask your questions on a task or in Messages.
           </p>
         ) : filled.map(f => (
           <div key={f.key} className="brief-block">

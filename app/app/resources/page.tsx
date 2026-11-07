@@ -24,10 +24,10 @@ export default async function Resources() {
         <div className="eyebrow">Free training</div>
         <h2 style={{ margin: '8px 0 10px', fontWeight: 400 }}>The Handled Business</h2>
         <p style={{ maxWidth: 620, margin: '0 0 12px' }}>
-          Sixteen short lessons on exactly where a virtual professional steps into a business:
+          Sixteen short lessons on where a virtual professional fits into a business:
           your inbox, calendar, social media, email marketing, lead follow-up, client experience,
-          billing, operations, personal admin and AI automation. Each one shows the week before and
-          after, the hours it gives back and where the revenue comes from.
+          billing, operations, personal admin and AI automation. Each shows the week before and
+          after, the hours it returns and where the revenue comes from.
         </p>
         <p className="small muted" style={{ maxWidth: 620, margin: '0 0 18px' }}>
           Use it to see what else you could hand off, or share the ideas with your professional.

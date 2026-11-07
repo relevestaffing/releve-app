@@ -22,7 +22,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     <BrandedError
       eyebrow="A moment"
       title="This page did not load"
-      line="Nothing you entered has been lost. Try again, and if it happens twice, write to us and we will look at it straight away."
+      line="Nothing you saved has been lost. Please try again, and write to us if it happens again."
       retry={reset} home="/" digest={error.digest} detail={error?.message} />
   );
 }

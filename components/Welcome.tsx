@@ -9,60 +9,60 @@ type Panel = { h: string; lede: string; points?: string[]; note?: string };
 
 const TALENT: Panel[] = [
   { h: 'Welcome to Relève',
-    lede: 'You have been invited to join the roster, the assessed and verified group Relève puts in front of executives. This account is where that happens.',
+    lede: 'You have been invited to join the Relève roster, the professionals we assess, verify and introduce to executives. Everything from here happens in this account.',
     points: [
-      'We place virtual staff with executives who need a right hand, not a task-taker.',
-      'You are never sent to a role on volume. You are matched to one person, deliberately.',
-      'Everything you do here is between you, us, and eventually one executive.'
+      'We place virtual professionals with executives who want a trusted right hand.',
+      'Each introduction is to one executive, chosen for the fit. We never put people forward on volume.',
+      'What you share here stays between you, Relève and, once you are placed, your executive.'
     ] },
-  { h: 'The part that matters',
-    lede: 'Most agencies match on a resume. We match on how you actually work, because that is what decides whether a placement lasts.',
+  { h: 'How we match',
+    lede: 'We match on how you work as well as your resume, because that is what decides whether a placement lasts.',
     points: [
-      'The Signature asks how you work and who you are under pressure, across eighteen facets.',
-      'It takes twenty to twenty-five minutes. It saves as you go, so you can stop and come back.',
-      'There is no right answer. An honest profile is what puts you in a role that lasts.'
+      'The Talent Signature™ is our assessment of how you work, and how you handle pressure, across eighteen facets.',
+      'It takes twenty to twenty-five minutes and saves as you go, so you can stop and return later.',
+      'There are no right answers. Honest ones lead to a role that lasts.'
     ],
-    note: 'Executives never see your pay, and never see how you rank against other candidates.' },
+    note: 'Executives never see your pay or how you compare with other candidates.' },
   { h: 'What happens next',
     /* This used to list Signature, availability and profile as the whole of
        it — true when it was written, wrong since Vetting, Skills and the
        Watch joined the checklist. A first-time talent reading "three things"
        here and then meeting a nine-item dashboard is exactly the kind of
        first impression that costs trust nobody gets back. */
-    lede: 'Your dashboard tracks every step until it is done. Four matter most:',
+    lede: 'Your dashboard shows each step until it is done. These four come first.',
     points: [
-      'Verify who you are, and sign your agreement: a document check we run once, never shown to an executive.',
-      'Take the Signature: twenty to twenty-five minutes, saved as you go. Nothing is matched until it exists.',
-      'Break down your skills. Every discipline you claim opens its own quick breakdown.',
-      'Complete Taking The Watch for each discipline you claimed: a real day of work, done once, that clears you to be put forward.'
+      'Verify your identity and sign your contractor agreement. We check your document once, and no executive ever sees it.',
+      'Take the Talent Signature™. Every match starts from it.',
+      'Break down your skills. Each discipline you choose has its own short breakdown.',
+      'Complete Taking The Watch™, a real day of work in each discipline you choose. You take it once, and it clears you to be put forward.'
     ],
-    note: 'Set your availability along the way, so an executive can actually book you. Once everything is cleared, we do the work. You will hear from your Talent Success Manager when a role fits.' }
+    note: 'Set your availability too, so executives can book time with you. Once you are cleared, your Talent Success Manager will be in touch when a role fits.' }
 ];
 
 const CLIENT: Panel[] = [
   { h: 'Welcome to Relève',
-    lede: 'This is your account. Your search, your candidates and your messages all live here, so the work that fills your week leaves your desk.',
+    lede: 'This is your account. Your search, your candidates and your messages are all here.',
     points: [
       'Every candidate is vetted on six fronts and matched to how you work before you meet them.',
-      'A vetted candidate in front of you within fourteen days, and replaced if the fit is not right.',
-      'A Client Success Manager handles your side. A Talent Success Manager handles theirs.'
+      'Your first vetted candidate within fourteen days, and a replacement if the fit is not right.',
+      'Your Client Success Manager looks after you. A Talent Success Manager supports your assistant.'
     ] },
   { h: 'How this begins',
-    lede: 'Three short screens, then the one step that starts everything.',
+    lede: 'A short tour, then your deposit.',
     points: [
-      'See how Relève works, what a placement can take off your plate, and what it is worth against a full-time hire.',
-      'Open your search with your $500 deposit. It is credited in full toward your first month, and sourcing begins the moment it is paid.',
-      'Read as much or as little as you like. If you are ready, you can pay your deposit straight away.'
+      'See how Relève works, what you can hand off, and the time it gives back.',
+      'Open your search with the $500 deposit. It is credited in full once your assistant is placed with you, and sourcing begins as soon as it is paid.',
+      'Skip ahead to the deposit whenever you are ready.'
     ],
-    note: 'If you already arranged the deposit on your call, that step is done and you move straight on.' },
+    note: 'If you arranged the deposit on your call, that step is already done.' },
   { h: 'Once your search is open',
-    lede: 'Then the part only you can give us: how you actually work.',
+    lede: 'Next, we learn how you work.',
     points: [
-      'Build your Executive Signature: about fifteen minutes, saved as you go. Every candidate is scored against it before their name reaches you.',
-      'Break down the role: what the person will own, and what they must be good at.',
-      'Set the hours you are open to meeting candidates. We never offer anyone a slot outside them.'
+      'Take the Executive Signature™, about fifteen minutes and saved as you go. Every candidate is scored against it before you see their name.',
+      'Break down the role: what your assistant will own, and the skills it calls for.',
+      'Set the hours you are free to meet candidates. We only offer times inside them.'
     ],
-    note: 'Then we put forward one vetted professional. You approve them and we book the introduction, or decline and we bring the next. Your Client Success Manager is with you throughout.' }
+    note: 'We then put forward one vetted professional. Approve them and we arrange the introduction, or decline and we bring you the next. Your Client Success Manager is with you throughout.' }
 ];
 
 export default function Welcome({ role }: { role: 'client' | 'talent' }) {
@@ -134,9 +134,9 @@ export default function Welcome({ role }: { role: 'client' | 'talent' }) {
       });
       /* Go through either way — a failed flag must not trap anyone on the
          tour — but say so, because they will see it again next time. */
-      if (!r.ok) toast.bad('Taking you through now. We could not save your place, so you may see this again.');
+      if (!r.ok) toast.bad('We could not save your progress, so this tour may show again next time.');
     } catch {
-      toast.bad('Taking you through now. We could not save your place, so you may see this again.');
+      toast.bad('We could not save your progress, so this tour may show again next time.');
     }
     router.push('/app');
     router.refresh();

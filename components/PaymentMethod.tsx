@@ -28,10 +28,10 @@ export default function PaymentMethod({ account, ready }: {
         body: JSON.stringify({ action: 'setup' })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d.url) { toast.bad(d.error ?? 'That did not open. Please try again.'); setBusy(false); return; }
+      if (!r.ok || !d.url) { toast.bad(d.error ?? 'The payment page did not open. Please try again.'); setBusy(false); return; }
       window.location.href = d.url;
     } catch {
-      toast.bad('No connection. Nothing was changed.');
+      toast.bad('You appear to be offline. Nothing was changed.');
       setBusy(false);
     }
   }
@@ -51,11 +51,11 @@ export default function PaymentMethod({ account, ready }: {
             {account?.method_kind === 'card'
               ? <>Card ending <b>{account?.last4}</b>{account?.bank_name ? ` · ${account.bank_name}` : ''}.</>
               : <><b>{account?.bank_name ?? 'Your bank'}</b> account ending <b>{account?.last4}</b>.</>}
-            {' '}Invoices are collected from this automatically when they fall due.
+            {' '}Invoices are paid from it automatically when due.
           </p>
           <p className="xs muted" style={{ marginBottom: 16, maxWidth: 620 }}>
-            We hold nothing but the last four digits. The account details stay with
-            Stripe, who are the ones actually moving the money.
+            We keep only the last four digits. Your full details are held securely by
+            Stripe, our payment processor.
           </p>
           <button className="btn sm ghost" disabled={busy} onClick={start}>
             {busy ? 'One moment…' : 'Use a different account'}
@@ -64,13 +64,12 @@ export default function PaymentMethod({ account, ready }: {
       ) : (
         <>
           <p className="small" style={{ marginBottom: 14, maxWidth: 620 }}>
-            Link a bank account once and your monthly retainer is collected on its own.
-            No invoice to remember, nothing to approve each month.
+            Link a bank account once and your monthly retainer is paid automatically,
+            with nothing to approve each month.
           </p>
           <p className="xs muted" style={{ marginBottom: 18, maxWidth: 620 }}>
-            Bank debit rather than card, because the card fees on a retainer this size
-            are roughly a hundred dollars a month and neither of us gets anything for
-            them. A card is still available if your bank will not link.
+            We recommend bank debit: card fees on a retainer this size come to roughly
+            a hundred dollars a month. You can use a card if your bank will not link.
           </p>
           <button className="btn solid" disabled={busy} onClick={start}>
             {busy ? 'Opening…' : 'Set up payment'}

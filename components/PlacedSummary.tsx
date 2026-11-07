@@ -23,7 +23,7 @@ export default function PlacedSummary({
     <div className="card">
       <div className="card-head">
         <h3>{one ? 'Working with you' : `Your team of ${placements.length}`}</h3>
-        {hiring && <span className="pill"><span className="dot" />And still hiring</span>}
+        {hiring && <span className="pill"><span className="dot" />Search open</span>}
       </div>
 
       <div className="stack" style={{ gap: 12 }}>
@@ -56,8 +56,8 @@ export default function PlacedSummary({
 
       <p className="xs muted" style={{ marginTop: 16, maxWidth: 620 }}>
         {hiring
-          ? 'A search is still open alongside this, so your candidate screens stay where they are.'
-          : 'Want a second person? Tell your Client Success Manager and we will open a new search. The hiring screens come back the moment we do.'}
+          ? 'You also have a search open, so your candidate screens remain available.'
+          : 'To add a second person, tell your Client Success Manager and we will open a new search.'}
       </p>
     </div>
   );

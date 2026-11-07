@@ -18,8 +18,8 @@ export default async function AuditView({ params }: { params: Promise<{ token: s
         <AuditStyle />
         <div className="audit-mast"><img className="audit-logo" src="/logo-fern.png" alt="Relève Executive Staffing" width="1200" height="360" /></div>
         <div className="audit-gone">
-          <h1>That link is not active</h1>
-          <p>Ask your Relève contact to send a fresh one, or reply to the email it came from and we will help.</p>
+          <h1>That link is no longer active</h1>
+          <p>Reply to the email it came from and we will send you a new one.</p>
         </div>
       </main>
     );

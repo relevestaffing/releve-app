@@ -7,7 +7,7 @@ import { fmtDay, DASH } from '@/lib/words';
 import { mineFor } from '@/lib/experience';
 import Link from 'next/link';
 
-export const metadata = { title: 'End of week' };
+export const metadata = { title: 'Weekly reports' };
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +41,7 @@ export default async function ConsoleCheckins({ searchParams }: { searchParams: 
       }>
       <ConsoleTabs active="/console/checkins" items={[
         { href: '/console/placements', label: 'Placements' },
-        { href: '/console/checkins', label: 'End of week' },
+        { href: '/console/checkins', label: 'Weekly reports' },
         { href: '/console/care', label: 'Care' }
       ]} />
 
@@ -52,13 +52,13 @@ export default async function ConsoleCheckins({ searchParams }: { searchParams: 
             : DASH}</div></div>
         <div className="card stat"><div className="eyebrow">With a concern</div>
           <div className="score">{attention.filter(c => c.week_ending === week).length}</div></div>
-        <div className="card stat"><div className="eyebrow">Still to come</div>
+        <div className="card stat"><div className="eyebrow">Not yet filed</div>
           <div className="score">{missing.length}</div></div>
       </div>
 
       {missing.length > 0 && (
         <div className="card">
-          <div className="card-head"><h3>Not filed yet</h3><span className="pill">{missing.length} outstanding</span></div>
+          <div className="card-head"><h3>Not filed yet</h3><span className="pill">{missing.length} to come</span></div>
           <ul className="past-list">
             {missing.map(p => (
               <li key={p.id}>
@@ -73,7 +73,7 @@ export default async function ConsoleCheckins({ searchParams }: { searchParams: 
       <div className="card">
         <div className="card-head"><h3>This week</h3></div>
         {thisWeek.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing filed yet this week.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">No reports filed yet this week.</p></div>
         ) : thisWeek.map(c => {
           const p = byPlacement.get(c.placement_id);
           return (
@@ -82,7 +82,7 @@ export default async function ConsoleCheckins({ searchParams }: { searchParams: 
                 <b>{p?.talent_name ?? 'Talent'}</b>
                 <span className="xs muted">
                   with {p?.client_name ?? DASH}{c.hours != null ? ` · ${c.hours}h` : ''}
-                  {c.needs_attention && <span className="pill crit" style={{ marginLeft: 10 }}>Needs a look</span>}
+                  {c.needs_attention && <span className="pill crit" style={{ marginLeft: 10 }}>Needs a closer look</span>}
                 </span>
               </div>
               {c.shipped && <p className="small"><span className="muted">Accomplished: </span>{c.shipped}</p>}

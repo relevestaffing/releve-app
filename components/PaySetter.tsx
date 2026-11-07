@@ -28,7 +28,7 @@ export default function PaySetter({ talentId, cents, compact = false }: {
 
   async function save() {
     const c = toCents(text);
-    if (c == null || c <= 0) { toast.bad('That is not a monthly rate.'); return; }
+    if (c == null || c <= 0) { toast.bad('Enter a monthly amount in US dollars.'); return; }
     setBusy(true);
     try {
       const r = await fetch('/api/payout', {
@@ -38,7 +38,7 @@ export default function PaySetter({ talentId, cents, compact = false }: {
       const d = await r.json().catch(() => ({}));
       setBusy(false);
       if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); return; }
-      toast.saved(`Relève pays ${money(c)} a month`);
+      toast.saved(`Pay set to ${money(c)} a month`);
       setJustSet(c); setEditing(false); router.refresh();
     } catch { setBusy(false); toast.bad('No connection, so nothing was saved.'); }
   }

@@ -13,18 +13,18 @@ export default function NextStep({ steps, current }: { steps: Step[]; current: s
     <div className="next-step">
       <div>
         <div className="eyebrow" style={{ marginBottom: 6 }}>
-          {next ? 'Next' : 'That is everything'}
+          {next ? 'Next' : 'All done'}
         </div>
         <div className="small">
           {next
             ? <>{next.title}{next.minutes ? `, ${next.minutes}` : ''}. {next.blurb}</>
-            : <>Your setup is complete. Nothing else is needed from you. We take it from here.</>}
+            : <>Your setup is complete. We take it from here.</>}
         </div>
       </div>
       <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
         {next && <Link className="btn solid" href={next.href}>{next.title}</Link>}
         <Link className="btn ghost" href="/app">
-          {next ? 'Back to your list' : 'Back to your dashboard'}
+          {next ? 'Back to your checklist' : 'Back to your dashboard'}
         </Link>
       </div>
     </div>

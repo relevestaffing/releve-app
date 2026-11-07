@@ -70,7 +70,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
     placed: { label: 'Placed', color: '#35443A' }, paused: { label: 'On hold', color: '#A08478' }
   };
   const AGREE: Record<string, [string, string]> = {
-    not_started: ['To sign', ''], submitted: ['With Relève', 'warn'], verified: ['Signed', 'good'], rejected: ['Needs a look', 'bad']
+    not_started: ['Not signed', ''], submitted: ['Under review', 'warn'], verified: ['Signed', 'good'], rejected: ['Needs a closer look', 'bad']
   };
 
   const rows: PersonRow[] = clients.map((c, i) => {
@@ -96,13 +96,13 @@ export default async function People({ searchParams }: { searchParams: Promise<{
       fullHref: c.signed_in ? `/console/executive/${c.key}` : null,
       headline: brief?.role_title
         ? `${brief.role_title}${opened !== null && !brief?.closed_at ? ` · search open ${opened} day${opened === 1 ? '' : 's'}` : ''}`
-        : 'No role brief yet',
+        : 'No brief yet',
       cells: {
         stage: <span className="ws-stage" style={{ ['--c' as any]: STAGE[key].color, cursor: 'default' }}>{STAGE[key].label}</span>,
         onboarding: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Ring key="r" done={done} total={steps.length} /><span key="t" className="ws-muted">{done} of {steps.length}</span></span>,
         role: brief?.role_title ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{brief.role_title}</span> : <span className="ws-faint">No brief yet</span>,
         agreement: <span className={`ws-tag ${aTone}`}>{aLabel}</span>,
-        zone: <span className="ws-muted">{zoneLabel(c.timezone) || '—'}</span>
+        zone: <span className="ws-muted">{zoneLabel(c.timezone) || '·'}</span>
       },
       props: [
         { k: 'Company', v: c.org_name || <span key="c" className="ws-faint">Not given</span> },
@@ -113,7 +113,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
         { k: 'Onboarding', v: <div key="o" style={{ display: 'grid', gap: 6, padding: '8px 0' }}>
           {steps.map(st => <div key={st.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: st.done ? '#22302A' : '#9AA59C' }}>
             <span key="d" className={`ws-fresh ${st.done ? 'g' : 'n'}`} /><span key="t">{st.title}</span></div>)}</div> },
-        { k: 'Open role', v: brief?.role_title || <span key="r" className="ws-faint">No brief written yet</span> }
+        { k: 'Open role', v: brief?.role_title || <span key="r" className="ws-faint">No brief yet</span> }
       ],
       tabs: [
         { key: 'role', label: 'Role brief', body: <RoleBriefEditor clientKey={c.key} pending={!c.signed_in} initial={brief ?? {}} name={c.full_name} /> },

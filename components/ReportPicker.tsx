@@ -18,7 +18,7 @@ export default function ReportPicker({ months, month, placements, placement }: {
     <form className="report-picker" action="/app/report" method="get">
       {placements.length > 1 && (
         <>
-          <label className="sr-only" htmlFor={`${uid}-who`}>Whose month</label>
+          <label className="sr-only" htmlFor={`${uid}-who`}>Placement</label>
           <select id={`${uid}-who`} name="placement" defaultValue={placement}
             onChange={e => go(month, e.target.value)}>
             {placements.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}

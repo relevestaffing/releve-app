@@ -5,7 +5,7 @@ import {
 import { firstName } from '@/lib/words';
 
 const TONE = { strong: 'good', covered: 'good', thin: 'warn', missing: 'warn' } as const;
-const WORD = { strong: 'Strong', covered: 'Covered', thin: 'Lighter', missing: 'To discuss' } as const;
+const WORD = { strong: 'Strong', covered: 'Covered', thin: 'Limited', missing: 'To discuss' } as const;
 
 /* Can this person do the job — discipline by discipline, competency by
    competency. The Signature answers whether two people will get on; this

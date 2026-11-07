@@ -58,19 +58,19 @@ export type TalentPayment = {
 export const PAYOUT_METHODS: { key: PayoutMethod; label: string; asks: string; hint: string }[] = [
   { key: 'wise',     label: 'Wise',
     asks: 'The email address on your Wise account',
-    hint: 'Usually the cheapest and quickest way for us to send money abroad.' },
+    hint: 'An international transfer service that pays into your local bank account.' },
   { key: 'payoneer', label: 'Payoneer',
     asks: 'The email address on your Payoneer account',
-    hint: 'Widely used across the Philippines and easy to withdraw from.' },
-  { key: 'bank',     label: 'Straight to my bank',
+    hint: 'Widely used in the Philippines. You can withdraw to your local bank.' },
+  { key: 'bank',     label: 'Bank transfer',
     asks: 'Bank name, account number, and any SWIFT or routing code',
-    hint: 'Slower and sometimes carries a receiving fee at your end.' },
+    hint: 'Can take longer, and your bank may charge a fee to receive it.' },
   { key: 'paypal',   label: 'PayPal',
     asks: 'The email address on your PayPal account',
-    hint: 'Simple, though PayPal takes a larger cut than the others.' },
+    hint: 'PayPal usually charges higher fees than the other options.' },
   { key: 'other',    label: 'Something else',
-    asks: 'Tell us how, and everything we need to send it',
-    hint: 'If none of the above suits you, describe what does.' }
+    asks: 'Tell us the method and the details we need to pay you',
+    hint: 'If none of these work for you, tell us what does.' }
 ];
 
 /* One shared source for the tax-residency prompt, reused everywhere it is
@@ -127,9 +127,9 @@ export function taxNote(p: Partial<Payout> | null): string | null {
 export function payoutMissing(p: Partial<Payout> | null): string[] {
   if (!p || !p.method) return ['Choose how you would like to be paid.'];
   const out: string[] = [];
-  if (!(p.beneficiary ?? '').trim()) out.push('We need the name on the account, exactly as it appears there.');
-  if (!(p.detail ?? '').trim()) out.push('We need the account details themselves.');
-  if (!taxAnswered(p)) out.push(`${TAX_RESIDENCE_PROMPT}: one question, below.`);
+  if (!(p.beneficiary ?? '').trim()) out.push('Add the name on the account, exactly as it appears.');
+  if (!(p.detail ?? '').trim()) out.push('Add the account details.');
+  if (!taxAnswered(p)) out.push(`${TAX_RESIDENCE_PROMPT} in the question below.`);
   return out;
 }
 

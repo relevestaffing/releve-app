@@ -20,15 +20,15 @@ export type Prof = 'none' | 'learning' | 'solid' | 'deep';
 
 export const NEEDS: { key: Need; label: string; hint: string }[] = [
   { key: 'core',   label: 'Must have',  hint: 'The role does not work without it' },
-  { key: 'useful', label: 'Nice to have', hint: 'Helps, but would not decide it' },
+  { key: 'useful', label: 'Nice to have', hint: 'Helpful, but not essential' },
   { key: 'no',     label: 'Not needed', hint: 'Not part of this role' }
 ];
 
 export const PROFS: { key: Prof; label: string; hint: string }[] = [
   { key: 'none',     label: 'Never done it', hint: '' },
-  { key: 'learning', label: 'Some exposure', hint: 'Have helped with it, would need direction' },
-  { key: 'solid',    label: 'Can run it',    hint: 'Do this unsupervised, week in week out' },
-  { key: 'deep',     label: 'Could teach it', hint: 'Have set it up from nothing and improved it' }
+  { key: 'learning', label: 'Some exposure', hint: 'I have helped with it and would need guidance' },
+  { key: 'solid',    label: 'Can run it',    hint: 'I do this regularly, without supervision' },
+  { key: 'deep',     label: 'Could teach it', hint: 'I have set it up from the start and improved it' }
 ];
 
 /* A specific, checkable competency. The hint exists so that two people
@@ -62,26 +62,26 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'ea',
     name: 'Executive assistance',
-    blurb: 'Your inbox, your diary, your travel, and the follow-through around them.',
+    blurb: 'Your inbox, calendar and travel, and the follow-up around them.',
     aka: ['Executive Assistant', 'Personal Assistant', 'Chief of Staff'],
     comps: [
       { key: 'inbox_triage', label: 'Inbox triage', hint: 'Reading everything, surfacing the few things that need you' },
       { key: 'inbox_draft', label: 'Drafting in your voice', hint: 'Replies that go out without you rewriting them' },
       { key: 'calendar', label: 'Calendar ownership', hint: 'Booking, moving, protecting focus time, resolving conflicts' },
       { key: 'timezones', label: 'Multi-timezone scheduling', hint: 'Coordinating people across three or more zones without errors' },
-      { key: 'travel', label: 'Travel and itineraries', hint: 'Flights, hotels, ground, visas, and rebooking when it collapses' },
+      { key: 'travel', label: 'Travel and itineraries', hint: 'Flights, hotels, ground transport, visas, and rebooking when plans change' },
       { key: 'meeting_prep', label: 'Meeting preparation', hint: 'Agendas, briefing notes, background on who you are meeting' },
       { key: 'minutes', label: 'Minutes and action capture', hint: 'What was decided, who owns it, by when' },
       { key: 'chasing', label: 'Following up on your behalf', hint: 'Staying on top of people who owe you things, without being pushy' },
       { key: 'gatekeeping', label: 'Gatekeeping', hint: 'Saying no to people without damaging the relationship' },
-      { key: 'confidential', label: 'Handling confidential material', hint: 'Board papers, comp, legal, personal matters' },
+      { key: 'confidential', label: 'Handling confidential material', hint: 'Board papers, compensation, legal and personal matters' },
       { key: 'events', label: 'Events and offsites', hint: 'Venue, logistics, run of day, budget' },
-      { key: 'exec_reporting', label: 'Board and investor prep', hint: 'Assembling the pack, following up on inputs, formatting' }
+      { key: 'exec_reporting', label: 'Board and investor prep', hint: 'Putting the pack together, collecting inputs, formatting' }
     ],
     details: [
       { key: 'inbox_volume', kind: 'choice',
-        ask: 'How much email lands on you in a normal day?',
-        askTalent: 'What inbox volume have you actually managed?',
+        ask: 'How much email do you get on a normal day?',
+        askTalent: 'What inbox volume have you handled?',
         options: ['Under 50', '50 to 150', '150 to 300', '300+'] },
       { key: 'access', kind: 'choice',
         ask: 'How much access will they have?',
@@ -97,12 +97,12 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'social',
     name: 'Social media and content',
-    blurb: 'Publishing, growing an audience, and everything that feeds it.',
+    blurb: 'Posting, growing an audience, and the content behind it.',
     aka: ['Social Media Manager', 'Content Manager', 'Community Manager'],
     comps: [
       { key: 'strategy', label: 'Content strategy', hint: 'Deciding what to post and why, not just filling a calendar' },
       { key: 'calendar_content', label: 'Running a content calendar', hint: 'Planning weeks ahead and keeping it fed' },
-      { key: 'copy', label: 'Writing captions and hooks', hint: 'Copy that sounds like the brand and earns the scroll-stop' },
+      { key: 'copy', label: 'Writing captions and hooks', hint: 'Copy that sounds like the brand and stops the scroll' },
       { key: 'shortform', label: 'Short-form video editing', hint: 'Reels, TikToks, Shorts: cutting, captions, sound' },
       { key: 'graphics', label: 'Graphics from a template', hint: 'Canva or Figma, on brand, without a designer' },
       { key: 'scheduling_tools', label: 'Scheduling tools', hint: 'Later, Buffer, Metricool, native schedulers' },
@@ -116,15 +116,15 @@ export const DISCIPLINES: Discipline[] = [
     details: [
       { key: 'channels', kind: 'text',
         ask: 'Which channels does this role cover?',
-        askTalent: 'Which channels have you actually run?',
+        askTalent: 'Which channels have you run?',
         placeholder: 'Instagram, LinkedIn, TikTok, a newsletter' },
       { key: 'cadence', kind: 'choice',
         ask: 'How often do you want to post?',
-        askTalent: 'What posting cadence have you sustained?',
+        askTalent: 'What posting schedule have you kept up?',
         options: ['A few times a month', 'Weekly', 'Several times a week', 'Daily or more'] },
       { key: 'ownership_social', kind: 'choice',
         ask: 'How much of it is theirs to decide?',
-        askTalent: 'How much have you owned outright before?',
+        askTalent: 'How much have you owned end to end?',
         options: ['I approve everything', 'I approve the plan, not each post', 'They own it end to end'] },
       { key: 'budget_social', kind: 'choice',
         ask: 'Will they handle a paid budget?',
@@ -144,17 +144,17 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'reconcile', label: 'Bank reconciliation', hint: 'Matching transactions and finding what does not' },
       { key: 'expenses', label: 'Expense management', hint: 'Receipts, categories, card reconciliation, policy' },
       { key: 'payroll', label: 'Payroll administration', hint: 'Running or coordinating payroll and contractor payments' },
-      { key: 'reporting_fin', label: 'Management reporting', hint: 'P&L, cash position, a monthly pack that means something' },
+      { key: 'reporting_fin', label: 'Management reporting', hint: 'P&L, cash position, and a monthly report you can act on' },
       { key: 'forecast', label: 'Cash flow forecasting', hint: 'Knowing what the balance will be in six weeks' },
-      { key: 'budget', label: 'Budget tracking', hint: 'Actual against plan, and flagging drift early' },
+      { key: 'budget', label: 'Budget tracking', hint: 'Actual against plan, and raising overspend early' },
       { key: 'tax_prep', label: 'Tax and year-end prep', hint: 'Getting the books ready for the accountant' },
-      { key: 'accounting_sw', label: 'Accounting software', hint: 'Xero, QuickBooks, Wave: running it, not just entering into it' },
-      { key: 'vendor', label: 'Vendor and subscription management', hint: 'What we pay for, whether we still need it' },
+      { key: 'accounting_sw', label: 'Accounting software', hint: 'Xero, QuickBooks, Wave: running the system, not just entering data' },
+      { key: 'vendor', label: 'Vendor and subscription management', hint: 'What the business pays for, and whether it is still needed' },
       { key: 'audit_trail', label: 'Documentation and audit trail', hint: 'Records a third party could follow' }
     ],
     details: [
       { key: 'software_fin', kind: 'text',
-        ask: 'What are your books kept in?',
+        ask: 'What software are your books kept in?',
         askTalent: 'Which accounting systems do you know well?',
         placeholder: 'Xero, QuickBooks Online, Ramp, Bill.com' },
       { key: 'scale_fin', kind: 'choice',
@@ -175,20 +175,20 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'support',
     name: 'Customer support and success',
-    blurb: 'Answering customers, solving problems, and keeping them.',
+    blurb: 'Answering customers, solving their problems, and keeping them coming back.',
     aka: ['Customer Support', 'Client Success', 'Help Desk'],
     comps: [
-      { key: 'tickets', label: 'Ticket handling', hint: 'Working a queue to a service level without dropping anyone' },
+      { key: 'tickets', label: 'Ticket handling', hint: 'Working a queue to agreed response times without missing anyone' },
       { key: 'live_chat', label: 'Live chat', hint: 'Several conversations at once, in real time' },
       { key: 'phone_support', label: 'Phone support', hint: 'Comfortable on inbound and outbound calls' },
-      { key: 'escalation', label: 'De-escalation', hint: 'Turning an angry customer around rather than passing them on' },
+      { key: 'escalation', label: 'De-escalation', hint: 'Calming an upset customer instead of passing them on' },
       { key: 'troubleshoot', label: 'Technical troubleshooting', hint: 'Diagnosing a problem rather than reciting a script' },
-      { key: 'kb', label: 'Writing help articles', hint: 'Documentation that stops the question being asked again' },
-      { key: 'onboarding_cs', label: 'Customer onboarding', hint: 'Walking a new customer to their first success' },
-      { key: 'retention', label: 'Renewals and retention', hint: 'Spotting a customer about to leave, and acting' },
+      { key: 'kb', label: 'Writing help articles', hint: 'Articles that stop the same question coming back' },
+      { key: 'onboarding_cs', label: 'Customer onboarding', hint: 'Guiding a new customer to their first result' },
+      { key: 'retention', label: 'Renewals and retention', hint: 'Noticing when a customer may leave, and acting on it' },
       { key: 'crm_support', label: 'Support tooling', hint: 'Zendesk, Intercom, HelpScout, Front' },
       { key: 'feedback_loop', label: 'Feeding issues back', hint: 'Turning repeated complaints into a change request' },
-      { key: 'sla', label: 'Working to a service level', hint: 'Response and resolution times as a discipline' },
+      { key: 'sla', label: 'Working to a service level', hint: 'Meeting agreed response and resolution times' },
       { key: 'multilingual', label: 'Second language support', hint: 'Handling customers in another language' }
     ],
     details: [
@@ -202,7 +202,7 @@ export const DISCIPLINES: Discipline[] = [
         placeholder: 'Email, live chat, phone, Instagram DMs' },
       { key: 'hours_cs', kind: 'choice',
         ask: 'What coverage do you need?',
-        askTalent: 'What hours can you genuinely cover?',
+        askTalent: 'What hours can you reliably cover?',
         options: ['Business hours, my timezone', 'Extended hours', 'Weekend cover too'] }
     ]
   },
@@ -210,15 +210,15 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'sales',
     name: 'Sales and CRM',
-    blurb: 'Pipeline, follow-up, and keeping the commercial machine recorded.',
+    blurb: 'Your pipeline, follow-up and CRM records, kept up to date.',
     aka: ['Sales Assistant', 'SDR', 'Revenue Operations'],
     comps: [
       { key: 'crm_hygiene', label: 'CRM hygiene', hint: 'Every deal, contact and note where it should be' },
-      { key: 'prospecting', label: 'Prospect research', hint: 'Building a list that is actually qualified' },
+      { key: 'prospecting', label: 'Prospect research', hint: 'Building a list of genuinely qualified prospects' },
       { key: 'outreach_cold', label: 'Cold outreach', hint: 'Writing and sending sequences that get replies' },
-      { key: 'followup', label: 'Follow-up discipline', hint: 'Nobody goes cold because someone forgot' },
+      { key: 'followup', label: 'Follow-up discipline', hint: 'No lead is lost because someone forgot to follow up' },
       { key: 'proposals', label: 'Proposals and quotes', hint: 'Assembling, formatting, sending, and following up' },
-      { key: 'demo_booking', label: 'Booking meetings', hint: 'Getting a qualified call in the diary' },
+      { key: 'demo_booking', label: 'Booking meetings', hint: 'Getting a qualified call on the calendar' },
       { key: 'pipeline_report', label: 'Pipeline reporting', hint: 'What is where, what is stuck, what will close' },
       { key: 'contracts', label: 'Contract administration', hint: 'Sending, following up for a signature, filing' },
       { key: 'crm_build', label: 'Configuring the CRM', hint: 'Building fields, stages, automations, not just using them' },
@@ -245,21 +245,21 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'ops',
     name: 'Operations and project management',
-    blurb: 'Holding work together across people, and building the process.',
+    blurb: 'Keeping projects on track across people, and building the processes behind them.',
     aka: ['Operations Manager', 'Project Manager', 'Program Coordinator'],
     comps: [
       { key: 'plan', label: 'Planning a project', hint: 'Scope, milestones, owners, dependencies' },
-      { key: 'track', label: 'Tracking to a deadline', hint: 'Knowing what is late before it is late' },
-      { key: 'coordinate', label: 'Coordinating other people', hint: 'Following up across departments without authority' },
+      { key: 'track', label: 'Tracking to a deadline', hint: 'Seeing a delay before it happens' },
+      { key: 'coordinate', label: 'Coordinating other people', hint: 'Following up with other teams without formal authority' },
       { key: 'sop', label: 'Writing process documentation', hint: 'A standard operating procedure (SOP) someone else can follow without asking' },
       { key: 'automate', label: 'Building automations', hint: 'Zapier, Make, native integrations' },
       { key: 'tools_admin', label: 'Administering the tool stack', hint: 'Notion, Asana, ClickUp, Monday: setting them up' },
       { key: 'vendor_ops', label: 'Vendor management', hint: 'Selecting, briefing and holding suppliers to account' },
-      { key: 'status', label: 'Status reporting', hint: 'A weekly update people actually read' },
+      { key: 'status', label: 'Status reporting', hint: 'A weekly update people read' },
       { key: 'risk', label: 'Spotting risk early', hint: 'Raising the problem while it is still small' },
       { key: 'budget_ops', label: 'Managing a project budget', hint: 'Tracking spend against plan' },
       { key: 'improve', label: 'Process improvement', hint: 'Making the second time faster than the first' },
-      { key: 'meetings_run', label: 'Running meetings', hint: 'Chairing, keeping to time, landing decisions' }
+      { key: 'meetings_run', label: 'Running meetings', hint: 'Chairing, keeping to time, reaching decisions' }
     ],
     details: [
       { key: 'pm_tools', kind: 'text',
@@ -280,21 +280,21 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'marketing',
     name: 'Marketing and campaigns',
-    blurb: 'Email, funnels, launches and the numbers underneath them.',
+    blurb: 'Email, funnels, launches and the numbers behind them.',
     aka: ['Marketing Assistant', 'Campaign Manager', 'Growth Associate'],
     comps: [
       { key: 'email_marketing', label: 'Email marketing', hint: 'Building, sending, segmenting, testing' },
       { key: 'funnels', label: 'Funnels and landing pages', hint: 'Building a page and the sequence behind it' },
       { key: 'copy_marketing', label: 'Marketing copy', hint: 'Subject lines, landing pages, ad copy' },
       { key: 'launch', label: 'Running a launch', hint: 'A dated campaign with moving parts and a deadline' },
-      { key: 'ads', label: 'Paid advertising', hint: 'Meta, Google: building, monitoring, optimizing' },
+      { key: 'ads', label: 'Paid advertising', hint: 'Meta and Google: building, monitoring and improving campaigns' },
       { key: 'seo', label: 'SEO and blog', hint: 'Keywords, briefs, on-page, publishing' },
       { key: 'webinar', label: 'Webinars and events', hint: 'Promotion, registration, run of show, follow-up' },
       { key: 'analytics_mkt', label: 'Marketing analytics', hint: 'GA4, attribution, knowing what worked' },
       { key: 'crm_marketing', label: 'Marketing automation', hint: 'Klaviyo, ActiveCampaign, HubSpot workflows' },
       { key: 'affiliate', label: 'Affiliates and partnerships', hint: 'Recruiting and managing partners' },
-      { key: 'brand_assets', label: 'Managing brand assets', hint: 'Keeping a library and holding the standard' },
-      { key: 'ab_test', label: 'Testing', hint: 'Running a real test and reading the result honestly' }
+      { key: 'brand_assets', label: 'Managing brand assets', hint: 'Keeping the asset library organized and on brand' },
+      { key: 'ab_test', label: 'Testing', hint: 'Running a proper test and reading the result honestly' }
     ],
     details: [
       { key: 'mkt_stack', kind: 'text',
@@ -306,7 +306,7 @@ export const DISCIPLINES: Discipline[] = [
         askTalent: 'What audience sizes have you worked with?',
         options: ['Under 1,000', '1,000 to 10,000', '10,000 to 100,000', '100,000+'] },
       { key: 'mkt_spend', kind: 'choice',
-        ask: 'Monthly marketing spend they would touch?',
+        ask: 'What monthly marketing spend would they look after?',
         askTalent: 'What monthly spend have you managed?',
         options: ['None', 'Under $5k', '$5k to $25k', '$25k+'] }
     ]
@@ -318,16 +318,16 @@ export const DISCIPLINES: Discipline[] = [
     blurb: 'Hiring admin, onboarding, and keeping the team running.',
     aka: ['Recruiting Coordinator', 'HR Assistant', 'People Ops'],
     comps: [
-      { key: 'sourcing', label: 'Sourcing candidates', hint: 'Finding people, not just posting an advert' },
+      { key: 'sourcing', label: 'Sourcing candidates', hint: 'Finding people, not just posting a job ad' },
       { key: 'screening', label: 'Screening applications', hint: 'Narrowing applicants down against a brief' },
-      { key: 'interview_coord', label: 'Interview coordination', hint: 'Scheduling panels across diaries without friction' },
-      { key: 'candidate_comms', label: 'Candidate communication', hint: 'Keeping people warm, including the rejections' },
+      { key: 'interview_coord', label: 'Interview coordination', hint: 'Scheduling interview panels across busy calendars' },
+      { key: 'candidate_comms', label: 'Candidate communication', hint: 'Keeping candidates informed, including those who are turned down' },
       { key: 'onboarding_hr', label: 'Onboarding new starters', hint: 'Paperwork, accounts, first-week plan' },
       { key: 'contracts_hr', label: 'Contracts and paperwork', hint: 'Offer letters, agreements, right-to-work records' },
       { key: 'hris', label: 'HR systems', hint: 'BambooHR, Rippling, Gusto, Deel' },
       { key: 'policy', label: 'Policies and handbook', hint: 'Drafting and keeping them current' },
       { key: 'reviews_hr', label: 'Performance review admin', hint: 'Running the cycle, following up on the inputs' },
-      { key: 'culture', label: 'Team events and culture', hint: 'The things that make a remote team feel like one' },
+      { key: 'culture', label: 'Team events and culture', hint: 'Events that help a remote team feel like a team' },
       { key: 'payroll_hr', label: 'Payroll coordination', hint: 'Working with finance to get people paid correctly' },
       { key: 'compliance_hr', label: 'Compliance record-keeping', hint: 'Knowing what must be kept, and keeping it' }
     ],
@@ -346,25 +346,25 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'data',
     name: 'Data, research and reporting',
-    blurb: 'Turning scattered information into something you can decide from.',
+    blurb: 'Research and reports you can make decisions from.',
     aka: ['Research Assistant', 'Data Analyst', 'Reporting Analyst'],
     comps: [
-      { key: 'spreadsheets', label: 'Advanced spreadsheets', hint: 'Pivots, lookups, formulas that survive someone else opening them' },
+      { key: 'spreadsheets', label: 'Advanced spreadsheets', hint: 'Pivots, lookups, and formulas that still work when someone else opens the file' },
       { key: 'dashboards', label: 'Building dashboards', hint: 'Looker Studio, Power BI, or a live sheet that updates itself' },
       { key: 'research', label: 'Desk research', hint: 'Finding, verifying, and summarizing to a brief' },
       { key: 'data_clean', label: 'Cleaning data', hint: 'Making a messy export usable' },
       { key: 'reporting_pack', label: 'Recurring reporting', hint: 'The same pack every month, right every time' },
       { key: 'competitor', label: 'Competitor and market analysis', hint: 'Structured comparison, not a list of links' },
       { key: 'survey', label: 'Surveys and feedback', hint: 'Designing, running, and reading the results' },
-      { key: 'sql', label: 'SQL or querying', hint: 'Pulling their own data rather than asking someone' },
-      { key: 'viz', label: 'Presenting findings', hint: 'A chart that makes the point without narration' },
+      { key: 'sql', label: 'SQL or querying', hint: 'Pulling data directly instead of asking someone' },
+      { key: 'viz', label: 'Presenting findings', hint: 'Charts that make the point on their own' },
       { key: 'crm_data', label: 'Data entry at volume', hint: 'Accurate, fast, and consistent over hundreds of rows' },
-      { key: 'automation_data', label: 'Automating a report', hint: 'Making it build itself next month' },
+      { key: 'automation_data', label: 'Automating a report', hint: 'Setting it up to build itself each month' },
       { key: 'sense_check', label: 'Sense-checking numbers', hint: 'Noticing when a figure cannot be right' }
     ],
     details: [
       { key: 'data_tools', kind: 'text',
-        ask: 'What would they work in?',
+        ask: 'Which tools would they work in?',
         askTalent: 'Which data tools do you know well?',
         placeholder: 'Google Sheets, Excel, Looker Studio, Airtable, SQL' },
       { key: 'data_depth', kind: 'choice',
@@ -377,13 +377,13 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'design',
     name: 'Design and creative',
-    blurb: 'Making things look the way the brand should look.',
+    blurb: 'Graphics, decks and video that look the way your brand should.',
     aka: ['Graphic Designer', 'Creative Assistant', 'Brand Designer'],
     comps: [
       { key: 'canva', label: 'Template-based design', hint: 'Canva or similar, on brand, at speed' },
       { key: 'adobe', label: 'Professional design tools', hint: 'Figma, Illustrator, Photoshop, InDesign' },
-      { key: 'brand_system', label: 'Working to a brand system', hint: 'Staying inside the rules without being told' },
-      { key: 'decks', label: 'Presentation design', hint: 'Turning a rough deck into something worth showing' },
+      { key: 'brand_system', label: 'Working to a brand system', hint: 'Following the brand rules without reminders' },
+      { key: 'decks', label: 'Presentation design', hint: 'Turning a rough deck into a polished one' },
       { key: 'social_assets', label: 'Social assets', hint: 'Sized, formatted and scheduled per channel' },
       { key: 'video_edit', label: 'Video editing', hint: 'Cutting, captions, color, sound' },
       { key: 'web_design', label: 'Web pages', hint: 'Webflow, Squarespace, Wix, or a WordPress theme' },
@@ -391,7 +391,7 @@ export const DISCIPLINES: Discipline[] = [
       { key: 'photo_edit', label: 'Photo retouching', hint: 'Cleaning up product and portrait shots' },
       { key: 'motion', label: 'Motion and animation', hint: 'After Effects or template-based motion' },
       { key: 'asset_library', label: 'Managing a brand library', hint: 'Everything findable and current' },
-      { key: 'brief_taking', label: 'Working from a brief', hint: 'Getting close on the first attempt' }
+      { key: 'brief_taking', label: 'Working from a brief', hint: 'Getting it nearly right the first time' }
     ],
     details: [
       { key: 'design_tools', kind: 'text',
@@ -408,20 +408,20 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'personal',
     name: 'Personal and household',
-    blurb: 'The life admin that takes the same hours as the business.',
+    blurb: 'The personal and family admin that competes with the business for your time.',
     aka: ['Personal Assistant', 'Household Manager', 'Lifestyle Manager'],
     comps: [
       { key: 'appointments', label: 'Personal appointments', hint: 'Medical, dental, and the reminders around them' },
       { key: 'family_cal', label: 'Family calendar', hint: 'Schools, activities, and who is where' },
       { key: 'gifts', label: 'Gifts and occasions', hint: 'Researched, bought, wrapped, sent, on time' },
       { key: 'household_vendors', label: 'Household vendors', hint: 'Cleaners, contractors, deliveries, repairs' },
-      { key: 'personal_travel', label: 'Personal and family travel', hint: 'Vacations with the same rigor as business trips' },
-      { key: 'reservations', label: 'Reservations', hint: 'Restaurants, tickets, and the ones that are hard to get' },
+      { key: 'personal_travel', label: 'Personal and family travel', hint: 'Vacations planned with the same care as business trips' },
+      { key: 'reservations', label: 'Reservations', hint: 'Restaurants and tickets, including the hard-to-get ones' },
       { key: 'household_admin', label: 'Household admin', hint: 'Insurance, subscriptions, renewals, bills' },
-      { key: 'personal_shop', label: 'Personal shopping', hint: 'Sourcing and returning without supervision' },
+      { key: 'personal_shop', label: 'Personal shopping', hint: 'Finding, buying and returning items without supervision' },
       { key: 'property', label: 'Property coordination', hint: 'Second homes, rentals, and the people who look after them' },
-      { key: 'staff_household', label: 'Household staff coordination', hint: 'Rotas, instructions, and standards' },
-      { key: 'discretion_personal', label: 'Discretion in personal matters', hint: 'The reason this work needs the right person' },
+      { key: 'staff_household', label: 'Household staff coordination', hint: 'Schedules, instructions and standards' },
+      { key: 'discretion_personal', label: 'Discretion in personal matters', hint: 'Keeping private matters private' },
       { key: 'wellness', label: 'Wellness and routine', hint: 'Trainers, appointments, and protecting the time for them' }
     ],
     details: [
@@ -439,22 +439,22 @@ export const DISCIPLINES: Discipline[] = [
   {
     key: 'tech',
     name: 'Technical and systems',
-    blurb: 'Keeping the tools working and joining them together.',
+    blurb: 'Keeping your tools working and connected.',
     aka: ['Technical Assistant', 'Systems Administrator', 'Automation Specialist'],
     comps: [
-      { key: 'saas_admin', label: 'SaaS administration', hint: 'Accounts, permissions, licences, offboarding' },
-      { key: 'integrations', label: 'Integrations', hint: 'Making two systems talk without a developer' },
+      { key: 'saas_admin', label: 'SaaS administration', hint: 'Accounts, permissions, licenses, offboarding' },
+      { key: 'integrations', label: 'Integrations', hint: 'Connecting two systems without a developer' },
       { key: 'zapier_deep', label: 'Automation platforms', hint: 'Zapier, Make, n8n: multi-step, with error handling' },
       { key: 'website_admin', label: 'Website maintenance', hint: 'Updates, plugins, uptime, small fixes' },
       { key: 'ecommerce', label: 'E-commerce platforms', hint: 'Shopify, WooCommerce: products, orders, apps'
  },
       { key: 'data_migration', label: 'Data migration', hint: 'Moving from one system to another without loss' },
       { key: 'security_hygiene', label: 'Security hygiene', hint: 'Password managers, 2FA, access reviews' },
-      { key: 'ai_tools', label: 'AI tooling', hint: 'Using it well and knowing when not to' },
-      { key: 'docs_tech', label: 'Technical documentation', hint: 'Writing down how the system actually works' },
+      { key: 'ai_tools', label: 'AI tooling', hint: 'Using AI well, and knowing when not to' },
+      { key: 'docs_tech', label: 'Technical documentation', hint: 'Writing down how the systems work' },
       { key: 'troubleshoot_tech', label: 'Troubleshooting', hint: 'Working a problem methodically to its cause' },
       { key: 'no_code', label: 'No-code app building', hint: 'Airtable, Softr, Bubble, internal tools' },
-      { key: 'backup', label: 'Backups and continuity', hint: 'Knowing what would be lost, and preventing it' }
+      { key: 'backup', label: 'Backups and continuity', hint: 'Knowing what could be lost, and protecting it' }
     ],
     details: [
       { key: 'stack_tech', kind: 'text',

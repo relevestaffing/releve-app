@@ -21,10 +21,10 @@ export default function PayInvoiceButton({ invoiceId, label, className }: {
         body: JSON.stringify({ action: 'pay_invoice', invoice_id: invoiceId })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d.url) { toast.bad(d.error ?? 'That did not open. Please try again.'); setBusy(false); return; }
+      if (!r.ok || !d.url) { toast.bad(d.error ?? 'The payment page did not open. Please try again.'); setBusy(false); return; }
       window.location.href = d.url;
     } catch {
-      toast.bad('No connection. Nothing was changed.');
+      toast.bad('You appear to be offline. Nothing was changed.');
       setBusy(false);
     }
   }

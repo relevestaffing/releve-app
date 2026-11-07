@@ -19,7 +19,7 @@ export default async function SignAgreement({ params }: { params: Promise<{ toke
       <img className="auth-logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
       <div className="auth-card">
         <h2 style={{ fontSize: 24, marginBottom: 12 }}>That link has expired</h2>
-        <p className="note">Ask your Client Success Manager to send a fresh one. It takes a minute.</p>
+        <p className="note">Your Client Success Manager can send you a new one.</p>
       </div>
     </div></div>
   );

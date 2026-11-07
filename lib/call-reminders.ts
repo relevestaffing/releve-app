@@ -70,12 +70,12 @@ export function dayBeforeEmail(c: Call, host: string): Message {
     html: shell('Your call is tomorrow',
       p(`${esc(first(c.name))},`) +
       p(`Your discovery call with Relève is on <b>${esc(w.day)}, at ${esc(text)}</b>.`) +
-      p(`You will have ${minutes(c)} with ${esc(host)}. Bring a rough sense of what fills your week, and we will use the time to decide what comes off your plate first.`) +
+      p(`You will have ${minutes(c)} with ${esc(host)}. Come with a rough idea of what fills your week, and we will work out together what to hand off first.`) +
       p('If the time no longer works, you can reschedule or cancel below, or reply to this email.') +
       tagline(),
       c.join ? { label: 'Join on Zoom', href: c.join } : undefined,
       c.changes.length ? c.changes : undefined),
-    text: `${first(c.name)},\n\nYour discovery call with Relève is tomorrow, ${w.day}, at ${text}.\n\nYou will have ${minutes(c)} with ${host}. Bring a rough sense of what fills your week, and we will use the time to decide what comes off your plate first.${c.join ? `\n\nJoin on Zoom: ${c.join}` : ''}\n\nIf the time no longer works, you can reschedule or cancel here, or reply to this email.${changeText ? `\n${changeText}` : ''}\n\nConsider it handled.\nRelève`
+    text: `${first(c.name)},\n\nYour discovery call with Relève is tomorrow, ${w.day}, at ${text}.\n\nYou will have ${minutes(c)} with ${host}. Come with a rough idea of what fills your week, and we will work out together what to hand off first.${c.join ? `\n\nJoin on Zoom: ${c.join}` : ''}\n\nIf the time no longer works, you can reschedule or cancel here, or reply to this email.${changeText ? `\n${changeText}` : ''}\n\nConsider it handled.\nRelève`
   };
 }
 

@@ -28,7 +28,7 @@ export default async function ConsoleInvoice({ params }: { params: Promise<{ id:
       action={<Link className="btn sm ghost" href="/console/money#invoices">Back to Billing</Link>}>
       <InvoiceDocument inv={inv} />
       {inv.status === 'failed' && inv.failure_reason && (
-        <p className="xs muted no-print" style={{ marginTop: 16 }}>Last attempt: {inv.failure_reason}</p>
+        <p className="xs muted no-print" style={{ marginTop: 16 }}>Last attempt failed: {inv.failure_reason}</p>
       )}
     </Shell>
   );

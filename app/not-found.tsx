@@ -9,8 +9,8 @@ export default function NotFound() {
   return (
     <BrandedError
       eyebrow="Not found"
-      title="There is nothing at this address"
-      line="The link may be out of date, or the page may belong to another account. Your own account is one step back."
+      title="We could not find that page"
+      line="The link may be out of date, or the page may belong to another account."
       home="/app" />
   );
 }

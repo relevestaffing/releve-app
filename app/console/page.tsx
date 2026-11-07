@@ -42,7 +42,7 @@ const day = (iso: string | null) => iso
 const HEALTH: Record<string, { label: string; tone: string }> = {
   good:  { label: 'On track', tone: 'good' },
   watch: { label: 'Watch',    tone: 'warn' },
-  poor:  { label: 'Needs you', tone: 'crit' }
+  poor:  { label: 'Needs attention', tone: 'crit' }
 };
 
 /* How late a lead's follow-up is, in words, for the glance card. Due today
@@ -79,7 +79,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
   const leadRow: Attention[] = due.length ? [{
     key: 'lead_followups', level: dueOverdue ? 'high' : 'medium', rank: dueOverdue ? 3 : 8, count: due.length,
     what: `${due.length} lead${due.length === 1 ? '' : 's'} to follow up`,
-    why: dueOverdue ? 'a touch is overdue; a short note today keeps the conversation warm' : 'due a touch today',
+    why: dueOverdue ? 'past due; a short note today keeps the conversation open' : 'due today',
     href: '/console/prospects', cta: 'Open leads'
   } as Attention] : [];
   const todo = [...attention, ...leadRow].sort((a, b) => a.rank - b.rank);
@@ -174,7 +174,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
         </div>
         {!due.length ? (
           <p className="small" style={{ margin: 0, color: 'var(--sage)' }}>
-            No leads are due a follow-up today. The lead board is where you work them.
+            No follow-ups due today. Leads appear here on the day they fall due.
           </p>
         ) : (
           <>
@@ -198,7 +198,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               })}
             </ul>
             <Link className="btn sm ghost" href="/console/prospects" style={{ marginTop: 16 }}>
-              Open your leads
+              Open leads
             </Link>
           </>
         )}
@@ -237,12 +237,11 @@ export default async function Console({ searchParams }: { searchParams: Promise<
           <div className="empty"><span className="tick" />
             {vitals.clients + vitals.talent === 0 ? (
               <p className="small">
-                Nothing has started yet. Add an executive, write their brief, build the roster.
+                Nothing here yet. Start by adding an executive and writing their role brief.
               </p>
             ) : (
               <p className="small">
-                Nothing is waiting on you. Every end of week report is in, every invoice is
-                settled, and nobody is stuck.
+                Nothing needs you today. Every weekly report is in and every invoice is paid.
               </p>
             )}
           </div>
@@ -300,7 +299,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               <Link className={`money-stat ${vitals.searchesOpen > 0 && vitals.benchReady < vitals.searchesOpen ? 'alert' : ''}`} href="/console/bench">
                 <div className="n">{vitals.benchReady}</div><div className="k">Ready to place</div></Link>
               <Link className="money-stat" href="/console/matching"><div className="n">{vitals.candidatesOut}</div><div className="k">Candidates out</div></Link>
-              <Link className="money-stat" href="/console/interviews"><div className="n">{vitals.interviewsUpcoming}</div><div className="k">Interviews, 14 days</div></Link>
+              <Link className="money-stat" href="/console/interviews"><div className="n">{vitals.interviewsUpcoming}</div><div className="k">Interviews, next 14 days</div></Link>
             </div>
           </div>
 
@@ -310,7 +309,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               <Link className="money-stat" href="/console/bench"><div className="n">{vitals.talent}</div><div className="k">Talent</div></Link>
               <Link className="money-stat" href="/console/vetting"><div className="n">{vitals.verified}</div><div className="k">Fully verified</div></Link>
               <Link className="money-stat" href="/console/bench">
-                <div className="n">{vitals.available}</div><div className="k">On the roster, not placed</div></Link>
+                <div className="n">{vitals.available}</div><div className="k">Not yet placed</div></Link>
               <Link className="money-stat" href="/console/placements"><div className="n">{vitals.placementsLive}</div><div className="k">In seat</div></Link>
             </div>
           </div>
@@ -332,8 +331,8 @@ export default async function Console({ searchParams }: { searchParams: Promise<
             <div className="empty"><span className="tick" />
               <p className="small">
                 {mine
-                  ? 'No live placements have you as their Client or Talent Success Manager yet. Assign yourself from a placement, or switch to Everyone.'
-                  : 'Nobody is placed yet. When a search closes, place the pair from the Placements page and they will appear here with their health.'}
+                  ? 'You are not the Client or Talent Success Manager on any live placement yet. Assign yourself from a placement, or switch to Everyone.'
+                  : 'No live placements yet. When a search closes, make the placement from Placements and it appears here with its health.'}
               </p>
               <Link className="btn sm solid" href="/console/placements" style={{ marginTop: 14 }}>
                 Make a placement
@@ -354,12 +353,12 @@ export default async function Console({ searchParams }: { searchParams: Promise<
                         <Link href={`/console/placements/${p.id}`}>
                           <b>{p.org_name ?? p.client_name}</b>
                         </Link>
-                        {!p.csm_id && <div className="xs muted">Ready for a manager</div>}
+                        {!p.csm_id && <div className="xs muted">No manager assigned</div>}
                       </td>
                       <td>{p.talent_name}
                         <div className="xs muted">
                           {p.days} days in seat · last report {day(p.lastCheckin)}
-                          {p.overdueTasks > 0 && ` · ${p.overdueTasks} to follow up on`}
+                          {p.overdueTasks > 0 && ` · ${p.overdueTasks} overdue task${p.overdueTasks === 1 ? '' : 's'}`}
                         </div>
                       </td>
                       <td className="amount">{money(p.rate_month_cents)}</td>

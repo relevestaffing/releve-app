@@ -18,7 +18,7 @@ export default async function ConsoleVetting() {
   const talent = people.filter(p => p.role === 'talent');
   return (
     <Shell profile={profile} active="/console/directory" title="Verification"
-      crumb="To review"
+      crumb="Identity and agreements to review"
       action={<Link className="btn sm ghost" href="/console/directory">← Directory</Link>}>
       <IssueAgreement talent={talent} />
       <VettingReview rows={rows} />

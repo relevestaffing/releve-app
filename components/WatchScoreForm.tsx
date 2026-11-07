@@ -56,12 +56,12 @@ export default function WatchScoreForm({ attemptId, existing }: { attemptId: str
       <div className="ff"><label htmlFor={`${fid}-5`}>Result</label>
         <select id={`${fid}-5`} name="overall_result" defaultValue={existing?.overall_result ?? 'cleared'}>
           <option value="cleared">Cleared</option>
-          <option value="needs_retake">Needs another try</option>
+          <option value="needs_retake">Retake needed</option>
         </select></div>
 
       <div className="ff"><label htmlFor={`${fid}-6`}>Feedback for the talent</label>
         <textarea id={`${fid}-6`} name="talent_feedback" rows={4} defaultValue={existing?.talent_feedback ?? ''}
-          placeholder="Specific and constructive. This is all they see. No scores, no comparisons to anyone else." required /></div>
+          placeholder="Specific and constructive. This is all they see: no scores and no comparisons with others." required /></div>
 
       <div className="ff"><label htmlFor={`${fid}-7`}>Internal notes <span className="muted">(optional, console only)</span></label>
         <textarea id={`${fid}-7`} name="reviewer_notes" rows={3} defaultValue={existing?.reviewer_notes ?? ''} /></div>

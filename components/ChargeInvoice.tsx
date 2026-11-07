@@ -36,7 +36,7 @@ export default function ChargeInvoice({ invoiceId, amount, who, method }: {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) toast.bad(d.error ?? 'That did not go through.');
-      else toast.saved(`Submitted: ${amount} from ${who}. It shows as paid once it clears.`);
+      else toast.saved(`Charge of ${amount} submitted for ${who}. It shows as paid once it clears.`);
       router.refresh();
     } catch { toast.bad('No connection. Nothing was charged.'); }
     setBusy(false); setConfirming(false);
@@ -47,9 +47,9 @@ export default function ChargeInvoice({ invoiceId, amount, who, method }: {
      would want to have checked afterwards. */
   if (confirming) return (
     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-      <span className="xs">{amount} from {method}?</span>
+      <span className="xs">Charge {amount} to {method}?</span>
       <button className="btn sm solid" disabled={busy} onClick={charge}>
-        {busy ? 'Submitting…' : 'Yes, charge it'}
+        {busy ? 'Submitting…' : 'Confirm charge'}
       </button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setConfirming(false)}>Cancel</button>
     </div>

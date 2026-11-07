@@ -46,17 +46,16 @@ export default async function Signals() {
 
       <div className="card tight">
         <p className="small" style={{ margin: 0, maxWidth: 660 }}>
-          <b>Are the people you put forward the right people?</b> This is the early answer:
-          how often an executive approves rather than declines, how they
-          score the interviews, and what they say when someone is not right. The
-          later answer, six months in, is on Reports under <i>Is the assessment right?</i>
+          <b>How well your candidates land.</b> How often executives approve a candidate,
+          how they score interviews, and why they decline. The six-month view is on
+          Reports under <i>Assessment accuracy</i>.
         </p>
       </div>
 
       <div className="grid-4">
         <div className="card stat"><div className="eyebrow">Decisions recorded</div>
           <div className="score">{decisions.length}</div></div>
-        <div className="card stat"><div className="eyebrow">Approved</div>
+        <div className="card stat"><div className="eyebrow">Approval rate</div>
           <div className="score">{rate === null ? DASH : `${rate}%`}</div></div>
         <div className="card stat"><div className="eyebrow">Interviews scored</div>
           <div className="score">{rated.length}</div></div>
@@ -69,7 +68,7 @@ export default async function Signals() {
           {passed.length > 0 && <span className="pill">{passed.length} on file</span>}</div>
         {ranked.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nobody has passed on a candidate yet, or nobody has told you why.</p></div>
+            <p className="small">No declines with a reason recorded yet.</p></div>
         ) : (
           <>
             <ul className="past-list">
@@ -82,10 +81,10 @@ export default async function Signals() {
             </ul>
             {worst && worst[1] >= 3 && (
               <p className="small" style={{ marginTop: 18 }}>
-                <b>Worth noticing:</b> “{worst[0]}” is your most common rejection.
-                {worst[0].includes('experience') && ' That is a briefing problem, not a matching one. It means the role brief and the roster are describing different jobs.'}
-                {worst[0].includes('timezone') && ' That is a conditions problem. The overlap check should be catching this before a name reaches an executive.'}
-                {worst[0].includes('Communication') && ' That is the one your Signature should be predicting. If it keeps appearing, the instrument is missing something real.'}
+                <b>Most common reason:</b> “{worst[0]}”.
+                {worst[0].includes('experience') && ' This usually means the role brief and the roster describe different jobs. Tighten the brief first.'}
+                {worst[0].includes('timezone') && ' The overlap check should catch this before a candidate reaches an executive.'}
+                {worst[0].includes('Communication') && ' The Relève Signature™ should predict this. If it keeps appearing, the assessment is missing something.'}
               </p>
             )}
           </>
@@ -95,7 +94,7 @@ export default async function Signals() {
       <div className="card">
         <div className="card-head"><h3>Recent decisions</h3></div>
         {decisions.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing recorded yet.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">No decisions recorded yet.</p></div>
         ) : (
           <table className="data" style={{ boxShadow: 'none' }}>
             <thead><tr><th>Executive</th><th>Candidate</th><th>Decision</th><th>In their words</th><th>When</th></tr></thead>
@@ -122,7 +121,7 @@ export default async function Signals() {
           {noes > 0 && <span className="pill warn">{noes} said no</span>}</div>
         {feedback.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">No interview has been scored yet. Both sides are asked once the time has passed.</p></div>
+            <p className="small">No interviews scored yet. Both sides are asked for a score after each interview.</p></div>
         ) : feedback.slice(0, 20).map(f => (
           <div key={f.id} className={`checkin ${f.proceed === 'no' ? 'flagged' : ''}`}>
             <div className="row between" style={{ marginBottom: 6 }}>
@@ -132,7 +131,7 @@ export default async function Signals() {
               </span>
             </div>
             {f.strengths && <p className="small"><span className="muted">Stood out: </span>{f.strengths}</p>}
-            {f.concerns && <p className="small"><span className="muted">Pause: </span>{f.concerns}</p>}
+            {f.concerns && <p className="small"><span className="muted">Concerns: </span>{f.concerns}</p>}
             {f.notes && <p className="small"><span className="muted">For Relève: </span>{f.notes}</p>}
           </div>
         ))}

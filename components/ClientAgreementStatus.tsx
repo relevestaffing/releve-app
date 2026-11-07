@@ -9,15 +9,15 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
   const copy: Record<Exclude<State, 'verified'>, { head: string; body: string }> = {
     not_started: {
       head: 'Sign your Client Services Agreement',
-      body: 'Read it and sign in your account. It takes a few minutes, and a copy is emailed to you.'
+      body: 'Read and sign it here in your account. It takes a few minutes, and a copy is emailed to you.'
     },
     submitted: {
       head: 'Agreement signed',
-      body: 'Received, and filed with us.'
+      body: 'Received and on file.'
     },
     rejected: {
-      head: 'Your agreement needs another look',
-      body: 'Your Client Success Manager is in touch about it.'
+      head: 'Your agreement needs a closer look',
+      body: 'Your Client Success Manager will be in touch about it.'
     }
   };
   if (state === 'verified') return (
@@ -27,7 +27,7 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
         <span className="pill good"><span className="dot" />Signed and filed</span>
       </div>
       <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>
-        Signed and on file. A copy was emailed to you, and you can download it any time.
+        A copy was emailed to you, and you can download it here at any time.
       </p>
       <a className="btn sm ghost" href="/api/agreement/copy" style={{ marginTop: 6 }}>Download your copy</a>
     </div>
@@ -40,7 +40,7 @@ export default function ClientAgreementStatus({ state }: { state: State }) {
         <h3>{head}</h3>
         <span className={`pill ${state === 'submitted' ? 'good' : 'warn'}`}>
           <span className="dot" />
-          {state === 'submitted' ? 'With Relève' : state === 'rejected' ? 'Needs a look' : 'To sign'}
+          {state === 'submitted' ? 'Under review' : state === 'rejected' ? 'Needs a closer look' : 'To sign'}
         </span>
       </div>
       <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>

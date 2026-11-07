@@ -58,19 +58,19 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
           {pendingSignature.map(r => (
             <p key={r.id} className="small" style={{ margin: '4px 0' }}>
               <b>{r.talent?.full_name ?? r.talent?.email ?? 'Candidate'}</b>, sent
-              {r.submitted_at && ` ${fmtWhen(r.submitted_at)}`}, nothing to do here until
-              it comes back signed.
+              {r.submitted_at && ` ${fmtWhen(r.submitted_at)}`}. No action needed until it
+              is signed.
             </p>
           ))}
         </div>
       )}
 
       <div className="card">
-        <div className="card-head"><h3>Waiting on you</h3>
+        <div className="card-head"><h3>To review</h3>
           <span className={`pill ${waiting.length ? 'warn' : 'good'}`}>
             {waiting.length ? waiting.length : <><span className="dot" />Clear</>}</span></div>
         {waiting.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing waiting. Documents appear here the moment someone uploads one.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">Nothing to review. Documents appear here as soon as they are uploaded.</p></div>
         ) : waiting.map(r => (
           <div className="vet-item" key={r.id}>
             <div className="row between" style={{ gap: 14, flexWrap: 'wrap' }}>
@@ -97,14 +97,14 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                       onClick={() => decide(r.id, 'verified', undefined, r.expires_on ?? undefined, r.talent_id, r.kind)}>
                       {busy ? 'Verifying…' : 'Yes, verify'}
                     </button>
-                    <button className="btn sm ghost" disabled={busy} onClick={() => setVerifying(null)}>Not yet</button>
+                    <button className="btn sm ghost" disabled={busy} onClick={() => setVerifying(null)}>Cancel</button>
                   </>
                 ) : (
                   <>
                     <button className="btn sm solid" disabled={busy}
                       onClick={() => { setRejecting(null); setVerifying(r.id); }}>Verify</button>
                     <button className="btn sm ghost" disabled={busy}
-                      onClick={() => { setVerifying(null); setRejecting(rejecting === r.id ? null : r.id); }}>Needs another try</button>
+                      onClick={() => { setVerifying(null); setRejecting(rejecting === r.id ? null : r.id); }}>Send back</button>
                   </>
                 )}
               </div>
@@ -117,8 +117,8 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
                 <div className="ff"><label htmlFor={`fix-${r.id}`}>What do they need to fix?</label>
                   <input id={`fix-${r.id}`} name="reason" required
                     placeholder="The photo is cut off. We need to see all four corners." /></div>
-                <p className="xs muted" style={{ marginBottom: 10 }}>They see this word for word, so make it useful.</p>
-                <button className="btn solid" disabled={busy}>Send it back</button>
+                <p className="xs muted" style={{ marginBottom: 10 }}>They see this exactly as written.</p>
+                <button className="btn solid" disabled={busy}>Send back</button>
               </form>
             )}
           </div>
@@ -126,7 +126,7 @@ export default function VettingReview({ rows }: { rows: Row[] }) {
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>Everything else</h3><span className="pill">{rest.length}</span></div>
+        <div className="card-head"><h3>Other documents</h3><span className="pill">{rest.length}</span></div>
         {rest.length === 0 ? (
           <div className="empty"><span className="tick" /><p className="small">No decisions recorded yet.</p></div>
         ) : (

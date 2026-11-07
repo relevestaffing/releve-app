@@ -35,14 +35,14 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
       d = await r.json().catch(() => ({}));
     } catch {
       setBusy(null);
-      toast.bad('No connection, so the interview was not booked.');
+      toast.bad('You appear to be offline. The interview was not booked.');
       return;
     }
     setBusy(null);
     /* Only claim it is booked once the server says so. Showing "Confirmed"
        over a failed request is how someone turns up to a meeting nobody made. */
     if (!r.ok) {
-      toast.bad(d.error ? `Not booked. ${d.error}` : 'That slot could not be booked. Please pick another.');
+      toast.bad(d.error ? `Not booked. ${d.error}` : 'That time could not be booked. Please choose another.');
       router.refresh();
       return;
     }
@@ -58,10 +58,10 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
           <div className="eyebrow" style={{ marginBottom: 6 }}>Interview booked</div>
           <div className="small"><b>{talentName}</b> · {done.when} ({zoneLabel(tz)})</div>
           {done.url
-            ? <a className="small" href={done.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>Join link</a>
+            ? <a className="small" href={done.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>Join the call</a>
             : clientId
               /* Relève booking it: say plainly that the link is owed, and why. */
-              ? <div className="xs" style={{ marginTop: 6, color: 'var(--warn, #B4762E)' }}>No meeting link was made{done.warning ? `: ${done.warning}` : ''}. Both sides were told it is coming; send it yourself.</div>
+              ? <div className="xs" style={{ marginTop: 6, color: 'var(--warn, #B4762E)' }}>No meeting link was created{done.warning ? `: ${done.warning}` : ''}. Both sides were told one is coming, so please send it.</div>
               : <div className="xs muted" style={{ marginTop: 6 }}>Relève will send the meeting link shortly.</div>}
         </div>
         <span className="pill good"><span className="dot" />Confirmed</span>
@@ -76,7 +76,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
       </button>
       {!slots.length && (
         <p className="xs muted" style={{ margin: 0 }}>
-          Your hours and theirs do not overlap this week. Relève will arrange it: <a href="/app/messages" style={{ textDecoration: 'underline' }}>message your Client Success Manager</a> with a time that suits you.
+          Your available hours do not overlap this week. <a href="/app/messages" style={{ textDecoration: 'underline' }}>Message your Client Success Manager</a> with a time that suits you, and we will arrange it.
         </p>
       )}
     </div>
@@ -88,7 +88,7 @@ export default function BookInterview({ talentId, talentName, slots, tz, clientI
         <h3>Times you are both free</h3>
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
-      <p className="xs muted" style={{ marginBottom: 16 }}>Shown in your time ({zoneLabel(tz)}). 45 minutes.</p>
+      <p className="xs muted" style={{ marginBottom: 16 }}>Times in {zoneLabel(tz)}. Each interview is 45 minutes.</p>
       {Object.entries(byDay).slice(0, 5).map(([day, list]) => (
         <div className="slot-day" key={day}>
           <h4>{day}</h4>

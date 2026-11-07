@@ -61,9 +61,9 @@ export default function CheckinForm({ placement, week, existing }: {
             inputMode="decimal" defaultValue={existing?.hours ?? ''} placeholder="40" />
         </div>
 
-        <div className="ff"><label htmlFor={id('shipped')}>Tasks accomplished</label>
+        <div className="ff"><label htmlFor={id('shipped')}>Tasks completed</label>
           <textarea id={id('shipped')} name="shipped" rows={4} defaultValue={existing?.shipped ?? ''}
-            placeholder="The board pack, the inbox back to zero, the new supplier onboarded." /></div>
+            placeholder="Finished the board report, cleared the inbox, set up the new supplier." /></div>
 
         <div className="ff"><label htmlFor={id('win')}>A win from the week</label>
           <textarea id={id('win')} name="win" rows={2} defaultValue={existing?.win ?? ''}

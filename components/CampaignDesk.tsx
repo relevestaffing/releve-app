@@ -9,7 +9,7 @@ type Row = {
 };
 
 const PILL: Record<string, string> = { scheduled: 'pill good', held: 'pill warn', sending: 'pill', sent: 'pill', failed: 'pill crit', cancelled: 'pill' };
-const LABEL: Record<string, string> = { scheduled: 'Sends on schedule', held: 'Held', sending: 'Sending', sent: 'Sent', failed: 'Failed', cancelled: 'Cancelled' };
+const LABEL: Record<string, string> = { scheduled: 'Scheduled', held: 'Held', sending: 'Sending', sent: 'Sent', failed: 'Failed', cancelled: 'Cancelled' };
 
 export default function CampaignDesk({ campaigns, me, ready }: { campaigns: Row[]; me: string; ready: boolean }) {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function CampaignDesk({ campaigns, me, ready }: { campaigns: Row[
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'That did not work.');
       if (action === 'test') setNote(`Test sent to ${j.to}.`);
-      if (action === 'draft_next') setNote(j.made?.length ? 'The next email is drafted and the preview is on its way.' : 'The next email is already drafted.');
+      if (action === 'draft_next') setNote(j.made?.length ? 'The next email is drafted. A preview is on its way to you.' : 'The next email is already drafted.');
       if (action === 'edit') setEditing(null);
       router.refresh();
     } catch (e: any) { setNote(e?.message || 'That did not work.'); }
@@ -56,12 +56,12 @@ export default function CampaignDesk({ campaigns, me, ready }: { campaigns: Row[
             <p className="small muted">{c.written_by === 'team' ? 'Edited by the team.' : 'Written by Claude.'}</p>
             <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
               {!done && c.status !== 'held' && <button className="btn solid" disabled={!!busy} onClick={() => act('hold', { id: c.id })}>Hold this email</button>}
-              {!done && c.status === 'held' && <button className="btn solid" disabled={!!busy} onClick={() => { if (new Date(c.send_at).getTime() > Date.now() || confirm('Its send time has passed, so this goes to every subscriber right now. Send it?')) act('resume', { id: c.id }); }}>{new Date(c.send_at).getTime() > Date.now() ? 'Send on schedule' : 'Send it now'}</button>}
-              {!done && c.status === 'cancelled' && <button className="btn solid" disabled={!!busy} onClick={() => { if (new Date(c.send_at).getTime() > Date.now() || confirm('Its send time has passed, so putting it back sends it to every subscriber right now. Send it?')) act('resume', { id: c.id }); }}>{new Date(c.send_at).getTime() > Date.now() ? 'Put it back' : 'Put it back and send now'}</button>}
+              {!done && c.status === 'held' && <button className="btn solid" disabled={!!busy} onClick={() => { if (new Date(c.send_at).getTime() > Date.now() || confirm('The send time has passed, so this goes to every subscriber now. Send it?')) act('resume', { id: c.id }); }}>{new Date(c.send_at).getTime() > Date.now() ? 'Send on schedule' : 'Send now'}</button>}
+              {!done && c.status === 'cancelled' && <button className="btn solid" disabled={!!busy} onClick={() => { if (new Date(c.send_at).getTime() > Date.now() || confirm('The send time has passed, so restoring it sends it to every subscriber now. Send it?')) act('resume', { id: c.id }); }}>{new Date(c.send_at).getTime() > Date.now() ? 'Restore' : 'Restore and send now'}</button>}
               {!done && <button className="btn" disabled={!!busy} onClick={() => setEditing(c.id)}>Edit</button>}
-              {!done && <button className="btn" disabled={!!busy} onClick={() => act('redraft', { id: c.id })}>{busy === 'redraft' + c.id ? 'Rewriting…' : 'Rewrite it'}</button>}
+              {!done && <button className="btn" disabled={!!busy} onClick={() => act('redraft', { id: c.id })}>{busy === 'redraft' + c.id ? 'Rewriting…' : 'Rewrite'}</button>}
               <button className="btn" disabled={!!busy} onClick={() => act('test', { id: c.id, to: me })}>Send me a test</button>
-              {!done && c.status !== 'cancelled' && <button className="btn" disabled={!!busy} onClick={() => { if (confirm('Skip this email? It will not send. You can put it back later.')) act('cancel', { id: c.id }); }}>Skip this one</button>}
+              {!done && c.status !== 'cancelled' && <button className="btn" disabled={!!busy} onClick={() => { if (confirm('Skip this email? It will not send. You can restore it later.')) act('cancel', { id: c.id }); }}>Skip this email</button>}
             </div>
           </div>
         )}
@@ -73,9 +73,9 @@ export default function CampaignDesk({ campaigns, me, ready }: { campaigns: Row[
           }}>
             <div className="ff"><label htmlFor={`s-${c.id}`}>Subject</label><input id={`s-${c.id}`} name="subject" defaultValue={c.subject} maxLength={90} /></div>
             <div className="ff"><label htmlFor={`p-${c.id}`}>Preview line</label><input id={`p-${c.id}`} name="preheader" defaultValue={c.preheader ?? ''} maxLength={140} /></div>
-            <div className="ff"><label htmlFor={`b-${c.id}`}>Email <span className="muted">(a blank line between paragraphs)</span></label>
+            <div className="ff"><label htmlFor={`b-${c.id}`}>Body <span className="muted">(leave a blank line between paragraphs)</span></label>
               <textarea id={`b-${c.id}`} name="body" rows={16} defaultValue={c.paragraphs.join('\n\n')} /></div>
-            <div className="ff"><label htmlFor={`c-${c.id}`}>Button words</label><input id={`c-${c.id}`} name="cta_label" defaultValue={c.cta_label ?? ''} maxLength={40} /></div>
+            <div className="ff"><label htmlFor={`c-${c.id}`}>Button label</label><input id={`c-${c.id}`} name="cta_label" defaultValue={c.cta_label ?? ''} maxLength={40} /></div>
             <div className="row" style={{ gap: 10 }}>
               <button className="btn solid" disabled={!!busy}>Save</button>
               <button type="button" className="btn" onClick={() => setEditing(null)}>Cancel</button>
@@ -91,7 +91,7 @@ export default function CampaignDesk({ campaigns, me, ready }: { campaigns: Row[
       {note && <div className="card tight"><p className="small" role="status" style={{ margin: 0 }}>{note}</p></div>}
       <div className="row between">
         <h2 style={{ margin: 0 }}>Coming up</h2>
-        {ready && <button className="btn" disabled={!!busy} onClick={() => act('draft_next')}>{busy === 'draft_next' ? 'Writing…' : 'Write the next one now'}</button>}
+        {ready && <button className="btn" disabled={!!busy} onClick={() => act('draft_next')}>{busy === 'draft_next' ? 'Drafting…' : 'Draft the next email'}</button>}
       </div>
       {upcoming.length ? upcoming.map(card)
         : <div className="card tight"><p className="small muted" style={{ margin: 0 }}>Nothing drafted yet. Claude writes each email two days before it sends.</p></div>}

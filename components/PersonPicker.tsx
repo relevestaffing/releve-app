@@ -100,8 +100,8 @@ export default function PersonPicker({
               {shown.length === 0 ? (
                 <div className="picker-none">
                   {people.length === 0
-                    ? 'Nobody on file yet.'
-                    : `Nobody matches “${q.trim()}”.`}
+                    ? 'No one on file yet.'
+                    : `No match for “${q.trim()}”.`}
                 </div>
               ) : shown.map((p, i) => (
                 <button key={p.id} type="button" role="option"

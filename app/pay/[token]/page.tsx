@@ -16,8 +16,8 @@ export const dynamic = 'force-dynamic';
    nothing at Stripe (mail scanners open links too); the button below does,
    by posting to ./go, which sends the person on to the payment page. */
 const ERRORS: Record<string, string> = {
-  settled: 'This deposit is already settled. Nothing more to do here.',
-  stripe: 'Card and bank payment is not switched on yet. Your Client Success Manager will take this deposit directly. Nothing is wrong with your link.',
+  settled: 'This deposit has already been paid. There is nothing more to do.',
+  stripe: 'Online payment is not available yet. Your Client Success Manager will arrange the deposit with you directly.',
   failed: 'The payment page did not open. Please try once more, or reply to your onboarding email and we will help.'
 };
 
@@ -36,10 +36,10 @@ export default async function PayDeposit({ params, searchParams }: {
   let canPay = false;
   if (!verified) {
     heading = 'That link has expired';
-    message = 'Ask your Client Success Manager to send a fresh one. It takes a minute.';
+    message = 'Your Client Success Manager can send you a new one.';
   } else if (!summary?.ok) {
-    heading = summary?.settled ? 'Already settled' : 'That link has expired';
-    message = summary?.settled ? ERRORS.settled : 'Ask your Client Success Manager to send a fresh one. It takes a minute.';
+    heading = summary?.settled ? 'Already paid' : 'That link has expired';
+    message = summary?.settled ? ERRORS.settled : 'Your Client Success Manager can send you a new one.';
   } else if (!stripeReady()) {
     message = ERRORS.stripe;
   } else {
@@ -60,8 +60,8 @@ export default async function PayDeposit({ params, searchParams }: {
                 <b>{money(summary.cents)}</b>{summary.who ? <> for {summary.who}</> : null}. This opens your search.
               </p>
               <p className="xs muted" style={{ marginBottom: 20 }}>
-                Credited in full against your first month once your assistant is placed with you. By bank or card,
-                on Stripe&rsquo;s secure page.
+                It is credited in full once your assistant is placed with you. Pay by bank or card on
+                Stripe&rsquo;s secure page.
               </p>
             </>
           )}

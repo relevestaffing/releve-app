@@ -34,7 +34,7 @@ export default async function ReportPage({ searchParams }: {
     <Shell profile={profile} active="/app/report" title="Your month">
       <Empty of={{
         title: 'Your first month report is on its way',
-        body: 'Once someone starts, this page fills in as the month goes: the tasks finished, the highlights they share with you and what is coming next. A summary arrives by email on the first of each month.',
+        body: 'Once your assistant starts, this page fills in through the month with finished tasks, the highlights they share and what comes next. A summary arrives by email on the first of each month.',
         cta: { label: 'Ask your Client Success Manager', href: '/app/messages' }
       }} />
     </Shell>
@@ -65,7 +65,7 @@ export default async function ReportPage({ searchParams }: {
           <div className="card-head"><h3>Completed</h3><span className="xs muted">{fmtMonth(month)}</span></div>
           {!r.completed.length ? (
             <p className="small muted" style={{ margin: 0 }}>
-              {isCurrent ? `Nothing ticked off yet this month. As ${who} finishes work, it appears here by name.` : `No tasks were marked done in ${fmtMonth(month)}.`}
+              {isCurrent ? `Nothing completed yet this month. Each task ${who} finishes will appear here.` : `No tasks were marked done in ${fmtMonth(month)}.`}
             </p>
           ) : (
             <ul className="report-list">
@@ -81,7 +81,7 @@ export default async function ReportPage({ searchParams }: {
           <div className="card-head"><h3>Highlights from {who}</h3></div>
           {!r.highlights.length ? (
             <p className="small muted" style={{ margin: 0 }}>
-              {who} writes a short note at the end of each day and can choose one highlight to share with you. None shared for this month yet.
+              {who} writes a short note at the end of each day and can share a highlight with you. None yet this month.
             </p>
           ) : (
             <ul className="report-list">
@@ -112,7 +112,7 @@ export default async function ReportPage({ searchParams }: {
             {!r.pulse ? (
               <>
                 <p className="small muted" style={{ marginTop: 0 }}>
-                  {isCurrent ? 'Your answer for this month is not in yet. It takes a minute, and it comes to us, not to ' + who + '.' : 'No answer was filed for this month.'}
+                  {isCurrent ? 'You have not told us about this month yet. It takes a minute, and your answer comes to Relève, not to ' + who + '.' : 'No answer was filed for this month.'}
                 </p>
                 {isCurrent && <Link className="btn sm ghost" href={placements.length > 1 ? `/app/care/${p.id}` : '/app/care'}>Tell us how this month went</Link>}
               </>
@@ -140,7 +140,7 @@ export default async function ReportPage({ searchParams }: {
           )}
           <div className="row" style={{ gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
             <Link className="btn sm ghost" href="/app/tasks">Open the task list</Link>
-            <Link className="btn sm ghost" href="/app/messages?tab=sm">Talk it through with your Client Success Manager</Link>
+            <Link className="btn sm ghost" href="/app/messages?tab=sm">Message your Client Success Manager</Link>
           </div>
         </div>
       </div>

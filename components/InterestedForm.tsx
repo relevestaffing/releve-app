@@ -27,11 +27,11 @@ export default function InterestedForm() {
         body: JSON.stringify({ name, email, org, need, source: 'website' })
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setErr(data?.error || 'That did not go through. Please try again in a moment.'); return; }
+      if (!res.ok) { setErr(data?.error || 'Your details did not send. Please try again in a moment.'); return; }
       setName(''); setEmail(''); setOrg(''); setNeed('');
       setDone(true);
     } catch {
-      setErr('That did not go through. Please check your connection and try again.');
+      setErr('No connection. Please check your internet and try again.');
     } finally {
       setBusy(false);
     }
@@ -42,9 +42,9 @@ export default function InterestedForm() {
       <>
         <div className="eyebrow" style={{ marginBottom: 10 }}>Relève Executive Staffing</div>
         <h2 style={{ fontSize: 24, marginBottom: 12 }}>Thank you</h2>
-        <p className="note">We have your details and we will be in touch shortly. Consider it handled.</p>
+        <p className="note">We have your details and will be in touch shortly.</p>
         <p className="note" style={{ marginTop: 20 }}>
-          Ready to talk now? <a href={CALENDLY}>Book a discovery call.</a>
+          To talk sooner, <a href={CALENDLY}>book a discovery call</a>.
         </p>
       </>
     );
@@ -55,7 +55,7 @@ export default function InterestedForm() {
       <div className="eyebrow" style={{ marginBottom: 10 }}>Relève Executive Staffing</div>
       <h2 style={{ fontSize: 24, marginBottom: 10 }}>Tell us you&rsquo;re interested</h2>
       <p className="note" style={{ marginBottom: 24 }}>
-        Leave your details and a little about the role, and a person will be in touch. No pressure, no obligation.
+        Leave your details and a note about the role, and we will be in touch.
       </p>
       <form onSubmit={submit}>
         <div className="ff">
@@ -84,7 +84,7 @@ export default function InterestedForm() {
       </form>
       {err && <div className="err" role="alert">{err}</div>}
       <p className="note" style={{ marginTop: 22 }}>
-        Ready to talk now? <a href={CALENDLY}>Book a discovery call.</a>
+        To talk sooner, <a href={CALENDLY}>book a discovery call</a>.
       </p>
     </>
   );

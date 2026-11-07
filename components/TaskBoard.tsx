@@ -170,14 +170,14 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        toast.bad(d.error ?? 'That task did not update.');
+        toast.bad(d.error ?? 'The task did not update. Please try again.');
         load();
         return false;
       }
       if (word) toast.saved(word);
       return true;
     } catch {
-      toast.bad('No connection, so nothing was saved.');
+      toast.bad('You appear to be offline. Nothing was saved.');
       load();
       return false;
     }
@@ -199,7 +199,7 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
     if (toggling) return;
     setToggling(t.id);
     setTasks(list => list!.map(x => x.id === t.id ? { ...x, done: false, status: 'todo' } : x));
-    const ok = await patch(t, { status: 'todo' }, 'Back on the list');
+    const ok = await patch(t, { status: 'todo' }, 'Reopened');
     if (ok) load();
     setToggling(null);
   }
@@ -212,9 +212,9 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
     try {
       const res = await fetch('/api/tasks/item', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: t.id, action: 'send_back', note }) });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { toast.bad(d.error ?? 'That did not go back.'); return false; }
+      if (!res.ok) { toast.bad(d.error ?? 'The task was not sent back. Please try again.'); return false; }
       toast.saved(`Sent back to ${counterpart}`); load(); return true;
-    } catch { toast.bad('No connection, so nothing was saved.'); return false; }
+    } catch { toast.bad('You appear to be offline. Nothing was saved.'); return false; }
   }
   async function remove(t: TaskX) {
     const ok = await saving(() => fetch(`/api/tasks?id=${t.id}`, { method: 'DELETE' }), 'Task removed');
@@ -304,9 +304,9 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
                   <input id={`tf-on-${placementId}`} name="origin_note" placeholder="Tuesday board call" /></div>
               </div>
             )}
-            <p className="xs muted" style={{ margin: '-4px 0 10px' }}>Files can be attached once the task is on the list.</p>
+            <p className="xs muted" style={{ margin: '-4px 0 10px' }}>You can attach files once the task is added.</p>
             <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-              <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : side === 'client' ? `Assign to ${counterpart}` : 'Add to the list'}</button>
+              <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : side === 'client' ? `Assign to ${counterpart}` : 'Add task'}</button>
               <button type="button" className="btn ghost sm" onClick={() => setComposing(false)}>Cancel</button>
             </div>
           </form>
@@ -316,8 +316,8 @@ export default function TaskBoard({ placementId, me, side, counterpart, limit, s
           <div className="empty" style={{ paddingTop: 10 }}><span className="tick" />
             <p className="small">
               {side === 'client'
-                ? `Nothing on ${counterpart}'s list yet. The first week goes best with three small, finishable things.`
-                : 'Nothing open. Anything you pick up yourself can go on here too.'}
+                ? `Nothing assigned to ${counterpart} yet. Three small tasks they can finish are a good way to start the first week.`
+                : 'Nothing open. You can add work you take on yourself here too.'}
             </p>
           </div>
         ) : (
@@ -462,7 +462,7 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
         const d = await r.json().catch(() => ({}));
         if (!r.ok) toast.bad(d.error ?? `${file.name} did not upload.`);
         else toast.saved(`${file.name} attached`);
-      } catch { toast.bad('No connection. Nothing was uploaded.'); }
+      } catch { toast.bad('You appear to be offline. Nothing was uploaded.'); }
     }
     setUploading(false);
     if (fileInput.current) fileInput.current.value = '';
@@ -470,7 +470,7 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
   }
   async function removeFile(f: TaskFile) {
     const r = await fetch(`/api/tasks/files?id=${f.id}`, { method: 'DELETE' });
-    if (!r.ok) { const d = await r.json().catch(() => ({})); toast.bad(d.error ?? 'That file was not removed.'); return; }
+    if (!r.ok) { const d = await r.json().catch(() => ({})); toast.bad(d.error ?? 'The file was not removed. Please try again.'); return; }
     toast.saved('File removed'); onChanged();
   }
 
@@ -530,8 +530,8 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
             {status === 'review' && executiveSide ? (
               !sendingBack ? (
                 <>
-                  <button className="btn sm solid" onClick={onFinish}>Accept, it is done</button>
-                  <button className="btn sm ghost" onClick={() => setSendingBack(true)}>Send it back</button>
+                  <button className="btn sm solid" onClick={onFinish}>Accept as done</button>
+                  <button className="btn sm ghost" onClick={() => setSendingBack(true)}>Send back</button>
                 </>
               ) : (
                 <form className="tb-sendback" onSubmit={async e => { e.preventDefault(); if (await onSendBack(note)) { setSendingBack(false); setNote(''); } }}>
@@ -544,21 +544,21 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
                 </form>
               )
             ) : status === 'review' ? (
-              <p className="small muted" style={{ margin: 0 }}>Finished and with {counterpart} to review. You will hear when it is accepted or needs another pass.</p>
+              <p className="small muted" style={{ margin: 0 }}>Sent to {counterpart} for review. We will let you know when it is accepted or needs changes.</p>
             ) : (
               <>
                 <button className="btn sm solid" onClick={onFinish}>
-                  {side === 'talent' && !mine ? 'Finished, send for review' : 'Mark it done'}
+                  {side === 'talent' && !mine ? 'Send for review' : 'Mark as done'}
                 </button>
                 <select className={`task-status ${status}`} value={status} aria-label="Status" onChange={e => onStatus(e.target.value as TaskStatus)}>
                   {TASK_STATUSES.filter(s => s.key !== 'done' && s.key !== 'review').map(s => <option key={s.key} value={s.key}>{statusLabel(s.key, side)}</option>)}
                 </select>
-                {side === 'talent' && <button className="btn sm ghost" onClick={() => setAsking(a => !a)}>{asking ? 'Not now' : 'Ask a question'}</button>}
+                {side === 'talent' && <button className="btn sm ghost" onClick={() => setAsking(a => !a)}>{asking ? 'Cancel' : 'Ask a question'}</button>}
               </>
             )}
           </div>
         )}
-        {t.done && <div className="tb-actions"><button className="btn sm ghost" onClick={onReopen}>Put it back on the list</button></div>}
+        {t.done && <div className="tb-actions"><button className="btn sm ghost" onClick={onReopen}>Reopen</button></div>}
 
         {/* files */}
         <div className="tb-section">
@@ -571,7 +571,7 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
             )}
           </div>
           {files.length === 0 ? (
-            <p className="xs muted" style={{ margin: 0 }}>{side === 'talent' ? 'Nothing attached. Add the finished work here when it is ready.' : `Nothing attached. A document, a screenshot or last time's version saves ${counterpart} a round trip.`}</p>
+            <p className="xs muted" style={{ margin: 0 }}>{side === 'talent' ? 'Nothing attached. Add the finished work here when it is ready.' : `Nothing attached yet. A document, screenshot or previous version saves ${counterpart} having to ask.`}</p>
           ) : (
             <ul className="tb-files">
               {files.map(f => (
@@ -593,10 +593,10 @@ function TaskPanel({ t, me, side, counterpart, today, tz, files, canEdit, onClos
         </div>
 
         <div className="tb-panel-foot">
-          {canEdit && !t.done && <button className="task-link" onClick={() => setEditing(v => !v)}>{editing ? 'Close edit' : 'Edit the task'}</button>}
+          {canEdit && !t.done && <button className="task-link" onClick={() => setEditing(v => !v)}>{editing ? 'Cancel edit' : 'Edit task'}</button>}
           {!t.done && googleCalendarLink(t) && <a className="task-link" href={googleCalendarLink(t)!} target="_blank" rel="noopener">Add to Google Calendar</a>}
           {mine && (confirmRemove
-            ? <span className="row" style={{ gap: 6 }}><button className="btn sm solid" onClick={onRemove}>Remove it</button><button className="btn sm ghost" onClick={() => setConfirmRemove(false)}>Keep</button></span>
+            ? <span className="row" style={{ gap: 6 }}><button className="btn sm solid" onClick={onRemove}>Remove task</button><button className="btn sm ghost" onClick={() => setConfirmRemove(false)}>Cancel</button></span>
             : <button className="task-link danger" onClick={() => setConfirmRemove(true)}>Remove</button>)}
         </div>
       </aside>
@@ -641,7 +641,7 @@ function TaskTalk({ task, me, side, counterpart, question, onSent }: {
   return (
     <div className="task-thread tb-thread">
       {items === null ? <p className="xs muted">Loading…</p>
-        : items.length === 0 ? <p className="xs muted" style={{ margin: '0 0 10px' }}>Nothing yet. Anything about this task goes here, so it stays with the task.</p>
+        : items.length === 0 ? <p className="xs muted" style={{ margin: '0 0 10px' }}>No comments yet. Notes about this task stay here with it.</p>
         : items.map(c => (
           <div key={c.id} className={`c${c.is_question ? ' question' : ''}`}>
             <span className="who">{c.author_id === me ? 'You'
@@ -654,9 +654,9 @@ function TaskTalk({ task, me, side, counterpart, question, onSent }: {
       <form onSubmit={send} data-keep-open>
         <label className="sr-only" htmlFor={`tc-${task.id}`}>{question ? 'Your question' : 'Your comment'}</label>
         <textarea id={`tc-${task.id}`} name="body" rows={2} required
-          placeholder={question ? `What do you need from ${counterpart} to move this on?` : side === 'client' ? `A note for ${counterpart}` : 'Add a comment'} />
+          placeholder={question ? `What do you need from ${counterpart} to finish this?` : side === 'client' ? `A note for ${counterpart}` : 'Add a comment'} />
         <div className="row" style={{ gap: 8 }}>
-          <button className="btn sm solid" disabled={sending}>{sending ? 'Sending…' : question ? 'Send the question' : 'Add'}</button>
+          <button className="btn sm solid" disabled={sending}>{sending ? 'Sending…' : question ? 'Send question' : 'Add'}</button>
         </div>
       </form>
     </div>

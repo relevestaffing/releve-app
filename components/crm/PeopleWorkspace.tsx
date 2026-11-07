@@ -47,7 +47,7 @@ export default function PeopleWorkspace({ title, noun, rows: allRows, cols, sect
   async function archive(r: PersonRow) {
     setGone(g => new Set(g).add(r.id));
     if (!(await setArchived(r, true))) { setGone(g => { const n = new Set(g); n.delete(r.id); return n; }); return; }
-    toast.undo(`${r.name} is archived`, async () => {
+    toast.undo(`${r.name} archived`, async () => {
       if (await setArchived(r, false)) setGone(g => { const n = new Set(g); n.delete(r.id); return n; });
     });
   }
@@ -92,7 +92,7 @@ export default function PeopleWorkspace({ title, noun, rows: allRows, cols, sect
     };
     if (!(await save(next))) { setOwners(o => ({ ...o, [r.id]: prev })); toast.bad('That did not save. Please try again.'); return; }
     const who = team.find(t => t.user_id === next);
-    toast.undo(next ? `${r.name} is now with ${cleanName(who?.name)}` : `${r.name} has no manager`, async () => {
+    toast.undo(next ? `${r.name} assigned to ${cleanName(who?.name)}` : `${r.name} unassigned`, async () => {
       setOwners(o => ({ ...o, [r.id]: prev })); await save(prev);
     });
   }
@@ -145,7 +145,7 @@ export default function PeopleWorkspace({ title, noun, rows: allRows, cols, sect
           <div className="ws-head" role="row">
             <div /><div>Name</div>
             {cols.map(c => <div key={c.key}>{c.label}</div>)}
-            {side && <div>{side === 'client' ? 'Success manager' : 'Talent manager'}</div>}
+            {side && <div>{side === 'client' ? 'Client Success Manager' : 'Talent Success Manager'}</div>}
           </div>
           {sections.map(sec => {
             const list = shown.filter(r => r.section === sec.key);
@@ -230,7 +230,7 @@ export default function PeopleWorkspace({ title, noun, rows: allRows, cols, sect
           {(tab === 'overview' || !current.tabs?.length) && (
             <>
               <dl className="ws-props">
-                {side && <><dt><Icon.user />{side === 'client' ? 'Success manager' : 'Talent manager'}</dt>
+                {side && <><dt><Icon.user />{side === 'client' ? 'Client Success Manager' : 'Talent Success Manager'}</dt>
                   <dd><OwnerPicker ownerId={owners[current.id] ?? null} team={team} onPick={o => setOwner(current, o)} label="Manager" /></dd></>}
                 {current.props.map(({ k, v }) => <FragmentPair key={k} k={k} v={v} />)}
               </dl>

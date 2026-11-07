@@ -42,9 +42,9 @@ export default async function Applications() {
         <div className="card empty-card">
           <div className="empty-mark" aria-hidden="true" />
           <h3>Nobody has applied yet</h3>
-          <p className="small">Applications land here from live postings, with answers and resume.</p>
+          <p className="small">Applications to live postings appear here with their answers and resume.</p>
           <Link className="btn sm ghost" href="/console/postings" style={{ marginTop: 18 }}>
-            Write a role
+            Post a role
           </Link>
         </div>
       ) : (

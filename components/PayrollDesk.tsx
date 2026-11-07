@@ -24,10 +24,10 @@ export function RunPayroll({ month }: { month: string }) {
         body: JSON.stringify({ action: 'run', month })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) toast.bad(d.error ?? 'That did not run.');
+      if (!r.ok) toast.bad(d.error ?? 'Payroll did not run. Please try again.');
       else toast.saved(d.made ? `${d.made} payment${d.made === 1 ? '' : 's'} to make` : 'Everyone this month is already listed');
       router.refresh();
-    } catch { toast.bad('No connection.'); }
+    } catch { toast.bad('No connection. Please try again.'); }
     setBusy(false);
     setArmed(false);
   }
@@ -39,7 +39,7 @@ export function RunPayroll({ month }: { month: string }) {
   return (
     <span className="rate-set">
       <button className="btn sm solid" disabled={busy} onClick={run}>
-        {busy ? 'Working…' : 'Yes, list this month’s pay'}
+        {busy ? 'Working…' : 'List this month’s payments'}
       </button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button>
     </span>
@@ -123,7 +123,7 @@ export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout:
     const ok = await saving(() => fetch('/api/payout', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ action: 'taxform', talent_id: p.talent_id, held: true })
-    }), `Recorded: the signed ${form} is on file`);
+    }), `Signed ${form} recorded as on file`);
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -135,8 +135,8 @@ export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout:
     const feeText = String(f.get('fee') ?? '').trim();
     const sent = sentText ? toCents(sentText) : null;
     const fee = feeText ? toCents(feeText) : null;
-    if (sentText && sent == null) { toast.bad('The amount sent is not a dollar amount.'); return; }
-    if (feeText && fee == null) { toast.bad('The fee is not a dollar amount.'); return; }
+    if (sentText && sent == null) { toast.bad('Enter the amount sent in dollars, for example 1450.00.'); return; }
+    if (feeText && fee == null) { toast.bad('Enter the fee in dollars, for example 4.50.'); return; }
     setBusy(true);
     const ok = await saving(() => fetch('/api/payout', {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -154,10 +154,10 @@ export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout:
 
   if (marking) return (
     <form onSubmit={mark} className="decide-form">
-      <div className="ff"><label htmlFor={`st-${p.id}`}>What happened</label>
+      <div className="ff"><label htmlFor={`st-${p.id}`}>Outcome</label>
         <select id={`st-${p.id}`} name="state" defaultValue="sent">
           <option value="sent">Sent</option>
-          <option value="failed">It did not go through</option>
+          <option value="failed">Failed</option>
         </select></div>
       <div className="grid-2" style={{ gap: 14 }}>
         <div className="ff"><label htmlFor={`sent-${p.id}`}>Amount sent, US dollars <span className="muted">(if not {money(p.amount_cents, true)})</span></label>
@@ -165,12 +165,12 @@ export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout:
         <div className="ff"><label htmlFor={`fee-${p.id}`}>Transfer fee Relève paid, US dollars <span className="muted">(optional)</span></label>
           <input id={`fee-${p.id}`} name="fee" inputMode="decimal" placeholder="0.00" /></div>
       </div>
-      <div className="ff"><label htmlFor={`ref-${p.id}`}>Reference <span className="muted">(the transfer id)</span></label>
-        <input id={`ref-${p.id}`} name="reference" placeholder="So a question in six months has an answer" /></div>
-      <div className="ff"><label htmlFor={`fx-${p.id}`}>What landed locally <span className="muted">(optional, a note)</span></label>
+      <div className="ff"><label htmlFor={`ref-${p.id}`}>Reference <span className="muted">(transfer ID)</span></label>
+        <input id={`ref-${p.id}`} name="reference" placeholder="The PayPal or Wise transfer ID" /></div>
+      <div className="ff"><label htmlFor={`fx-${p.id}`}>Amount received locally <span className="muted">(optional)</span></label>
         <input id={`fx-${p.id}`} name="fx_note" placeholder="For example: PHP 196,400 at Wise rate" /></div>
       <div className="row" style={{ gap: 10 }}>
-        <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : 'Record it'}</button>
+        <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
         <button type="button" className="btn sm ghost" onClick={() => setMarking(false)}>Cancel</button>
       </div>
     </form>
@@ -188,7 +188,7 @@ export function PaymentRow({ p, payout, providers }: { p: TalentPayment; payout:
           {p.reference && ` · ${p.reference}`}
         </div>
         {p.note && <div className="xs muted">{p.note}</div>}
-        {p.fx_note && <div className="xs muted">Landed: {p.fx_note}</div>}
+        {p.fx_note && <div className="xs muted">Received: {p.fx_note}</div>}
       </div>
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         {p.paused && p.state !== 'sent' && (

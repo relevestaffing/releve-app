@@ -25,13 +25,13 @@ export function TimeOffDecider({ id, state, talentName }: { id: string; state: T
 
   async function decide(next: TimeOffState) {
     if (next === 'approved' && !cover.trim()) {
-      toast.bad('Say who is covering before you approve.');
+      toast.bad('Add who is covering before you approve.');
       return;
     }
     setBusy(true);
     const ok = await saving(
       () => post({ action: 'time_off_decide', id, state: next, cover_note: next === 'approved' ? cover : reason.trim() || null }),
-      next === 'approved' ? `Approved, and cover noted. ${who} has been emailed` : `Declined. ${who} has been emailed`
+      next === 'approved' ? `Approved with cover noted. ${who} has been emailed` : `Declined. ${who} has been emailed`
     );
     setBusy(false);
     if (ok) { setDeclining(false); router.refresh(); }
@@ -40,11 +40,11 @@ export function TimeOffDecider({ id, state, talentName }: { id: string; state: T
   if (declining) return (
     <div style={{ marginTop: 10 }}>
       <p className="small" style={{ marginBottom: 10 }}>
-        Decline this time off? {who} is emailed that it could not be approved and that their Talent Success Manager will write to them.
+        Decline this time off? {who} is emailed that it could not be approved and that their Talent Success Manager will be in touch.
       </p>
       <div className="ff" style={{ marginBottom: 10 }}>
-        <input aria-label="Why, for your own record" value={reason} onChange={e => setReason(e.target.value)}
-          placeholder="Why, for your own record (optional)" autoFocus disabled={busy}
+        <input aria-label="Reason (internal)" value={reason} onChange={e => setReason(e.target.value)}
+          placeholder="Reason (internal, optional)" autoFocus disabled={busy}
           onKeyDown={e => {
             if (e.key === 'Escape') setDeclining(false);
             if (e.key === 'Enter' && !busy) { e.preventDefault(); decide('declined'); }
@@ -52,7 +52,7 @@ export function TimeOffDecider({ id, state, talentName }: { id: string; state: T
       </div>
       <div className="row" style={{ gap: 8 }}>
         <button className="btn sm solid" disabled={busy} onClick={() => decide('declined')}>
-          {busy ? 'Declining…' : 'Yes, decline it'}
+          {busy ? 'Declining…' : 'Decline time off'}
         </button>
         <button className="btn sm ghost" disabled={busy} onClick={() => setDeclining(false)}>Keep it open</button>
       </div>
@@ -89,11 +89,11 @@ export function OutcomeForm({ placementId, predicted }: { placementId: string; p
   async function submit() {
     const n = Number(score);
     if (!Number.isInteger(n) || n < 0 || n > 100) {
-      toast.bad('Score it out of 100.');
+      toast.bad('Enter a score from 0 to 100.');
       return;
     }
     if (retained == null) {
-      toast.bad('Say whether they are still in place.');
+      toast.bad('Choose whether they are still in place.');
       return;
     }
     setBusy(true);
@@ -109,11 +109,11 @@ export function OutcomeForm({ placementId, predicted }: { placementId: string; p
     <div style={{ marginTop: 12 }}>
       {predicted != null &&
         <p className="xs muted" style={{ marginBottom: 10 }}>
-          The engine predicted <b>{predicted}</b>. Score what actually happened,
-          honestly. A flattering number here makes every future match worse.
+          The engine predicted <b>{predicted}</b>. Score what happened. A generous
+          number here makes every future match worse.
         </p>}
       <div className="grid-2" style={{ gap: 12 }}>
-        <div className="ff"><label htmlFor={`${fid}-1`}>How it actually went, out of 100</label>
+        <div className="ff"><label htmlFor={`${fid}-1`}>Outcome score (0 to 100)</label>
           <input id={`${fid}-1`} value={score} inputMode="numeric" placeholder="78"
             onChange={e => setScore(e.target.value)} /></div>
         <div className="ff"><span className="label-like" id={`${fid}-kept`}>Still in place?</span>

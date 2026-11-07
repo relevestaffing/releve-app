@@ -27,7 +27,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
         /* No status codes here. This is the first screen a new account ever
            sees, and "Something went wrong (500)" tells them nothing they can
            act on and everything about how little we thought about them. */
-        setErr(out.error ?? 'We could not set your account up just now. Try again, and write to hello@relevestaffing.com if it happens twice.');
+        setErr(out.error ?? 'We could not set up your account. Please try again, or write to hello@relevestaffing.com if it happens again.');
         setBusy(null); return;
       }
       /* a full navigation, not just a refresh — the whole account changed shape */
@@ -35,7 +35,7 @@ export default function ChooseRole({ name }: { name?: string | null }) {
     } catch (e: any) {
       setErr(e?.name === 'AbortError'
         ? 'That took too long. Please try again.'
-        : 'Could not reach the server. Check your connection and try again.');
+        : 'No connection. Check your internet and try again.');
       setBusy(null);
     }
   }
@@ -46,9 +46,9 @@ export default function ChooseRole({ name }: { name?: string | null }) {
         <img className="logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="welcome-card">
           <h1>{name ? `Welcome, ${firstName(name)}` : 'Welcome to Relève'}</h1>
-          <p className="lede">First, which of these describes you?</p>
+          <p className="lede">Which of these describes you?</p>
           <p className="small" style={{ marginTop: 14 }}>
-            Invited by Relève already? This is not your account. Sign out below and sign in with the address your invitation was sent to.
+            If Relève sent you an invitation, sign out below and sign in with the email address it was sent to.
           </p>
         </div>
 
@@ -62,29 +62,28 @@ export default function ChooseRole({ name }: { name?: string | null }) {
             <div className="eyebrow">I am hiring</div>
             <h3>Executive</h3>
             <p>
-              You need a right hand you can trust. We vet them on six fronts, match them to how you
-              work, and handle everything after.
+              A trusted virtual professional, vetted on six fronts, matched to how you work and fully
+              managed by Relève.
             </p>
             <p className="xs muted" style={{ marginTop: 10 }}>
-              This starts with a short discovery call, not a sign-up form. Reach out and we will find a time.
+              Every search begins with a short discovery call. Write to us and we will find a time.
             </p>
             <span className="choose-go">Talk to us →</span>
           </a>
 
-          <button className="choose-card" disabled={!!busy} onClick={() => { if (confirm('Set this account up as talent, someone looking to be placed? This cannot be switched from inside the account afterwards.')) choose('talent'); }}>
-            <div className="eyebrow">I am looking to be placed</div>
+          <button className="choose-card" disabled={!!busy} onClick={() => { if (confirm('Set this account up as talent? This cannot be changed from inside the account later.')) choose('talent'); }}>
+            <div className="eyebrow">I am looking for a placement</div>
             <h3>Talent</h3>
             <p>
-              You want a seat beside one executive, not a queue of tasks from twelve. We place you
-              deliberately, and support the relationship after you land.
+              You want to work closely with one executive. We match you with care and support you
+              throughout the placement.
             </p>
             <span className="choose-go">{busy === 'talent' ? 'One moment…' : 'Continue as talent →'}</span>
           </button>
         </div>
 
         <p className="xs muted" style={{ marginTop: 22, maxWidth: 440, marginInline: 'auto' }}>
-          Pick the one that fits. If you choose wrong, your Relève contact can move you across;
-          the account cannot switch itself once it is set up.
+          If you choose the wrong one, your Relève contact can change it for you.
         </p>
         {err && <p className="small" style={{ color: 'var(--crit)', marginTop: 14 }}>{err}</p>}
         {/* The one way out that is not a choice: the same quiet sign-out the

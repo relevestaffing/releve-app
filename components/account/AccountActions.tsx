@@ -39,7 +39,7 @@ export default function AccountActions({ id, name, side, options, archived, list
     const ok = await setArchived(true);
     setBusy(false); setConfirm(false);
     if (!ok) return;
-    toast.undo(`${name} is archived`, async () => { if (await setArchived(false)) router.refresh(); });
+    toast.undo(`${name} archived`, async () => { if (await setArchived(false)) router.refresh(); });
     router.push(listHref);
   }
 
@@ -51,7 +51,7 @@ export default function AccountActions({ id, name, side, options, archived, list
         {close => (
           <div role="menu">
             {archived ? (
-              <button className="ws-opt" role="menuitem" onClick={async () => { close(); if (await setArchived(false)) { toast.saved(`${name} is back`); router.refresh(); } }}>
+              <button className="ws-opt" role="menuitem" onClick={async () => { close(); if (await setArchived(false)) { toast.saved(`${name} restored`); router.refresh(); } }}>
                 <Icon.swap />Restore {name.split(' ')[0]}</button>
             ) : (
               <button className="ws-opt acct-danger" role="menuitem" onClick={() => { close(); setConfirm(true); }}>
@@ -69,9 +69,9 @@ export default function AccountActions({ id, name, side, options, archived, list
           <div className="acct-confirm">
             <h3>Archive {name}?</h3>
             <p>They leave every list in the console. Nothing is deleted: their placements, invoices, messages and files stay, and you can restore them at any time from Tidy up.</p>
-            <p className="ws-faint">Someone in a live placement, with an unpaid invoice, or still owed pay cannot be archived until that is settled.</p>
+            <p className="ws-faint">Anyone with a live placement, an unpaid invoice or pay still owed cannot be archived until that is settled.</p>
             <div className="acct-confirm-foot">
-              <button type="button" className="btn sm" onClick={() => setConfirm(false)}>Keep</button>
+              <button type="button" className="btn sm" onClick={() => setConfirm(false)}>Cancel</button>
               <button type="button" className="btn sm solid" disabled={busy} onClick={archive}>{busy ? 'Archiving…' : 'Archive'}</button>
             </div>
           </div>
@@ -107,8 +107,8 @@ export function AssignPlacement({ id, name, side, options, onClose, onDone }: {
     const r = await fetch('/api/admin/placements', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
     const d = await r?.json().catch(() => ({}));
     setBusy(false);
-    if (!r?.ok) { toast.bad(d?.error ?? 'The placement was not made. Please try again.'); return; }
-    toast.saved(`${side === 'client' ? picked?.name : name} is placed with ${side === 'client' ? name : picked?.name}`);
+    if (!r?.ok) { toast.bad(d?.error ?? 'The placement was not created. Please try again.'); return; }
+    toast.saved(`${side === 'client' ? picked?.name : name} placed with ${side === 'client' ? name : picked?.name}`);
     onDone();
   }
 
@@ -125,7 +125,7 @@ export function AssignPlacement({ id, name, side, options, onClose, onDone }: {
           <input id={`${fid}-q`} type="search" placeholder={`Search ${other === 'talent' ? 'talent' : 'executives'}`} value={q} onChange={e => setQ(e.target.value)} autoFocus />
         </label>
         <div className="acct-picks" role="listbox" aria-label={`Choose the ${other}`}>
-          {list.length === 0 && <p className="ws-faint" style={{ padding: 12 }}>Nobody matches.</p>}
+          {list.length === 0 && <p className="ws-faint" style={{ padding: 12 }}>No matches.</p>}
           {list.map(o => (
             <button key={o.id} type="button" role="option" aria-selected={who === o.id} className={`acct-pick${who === o.id ? ' on' : ''}`} onClick={() => setWho(o.id)}>
               <span className="acct-radio" aria-hidden="true" />
@@ -148,7 +148,7 @@ export function AssignPlacement({ id, name, side, options, onClose, onDone }: {
           </div>
         </div>
 
-        <p className="ws-faint acct-note">Both of them get an email saying the placement has started. Billing starts from the plan you pick.</p>
+        <p className="ws-faint acct-note">Both are emailed that the placement has started. Billing follows the chosen plan from the start date.</p>
         <div className="acct-confirm-foot">
           <button type="button" className="btn sm" onClick={onClose}>Cancel</button>
           <button type="button" className="btn sm solid" disabled={!who || busy} onClick={submit}>

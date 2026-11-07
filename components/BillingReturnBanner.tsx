@@ -8,18 +8,18 @@ import { useEffect, useState } from 'react';
 const COPY: Record<string, Record<string, { head: string; body: string; tone: 'good' | '' }>> = {
   paid: {
     done: { head: 'Thank you. Your payment is on its way.', tone: 'good',
-      body: 'A card settles in moments; a bank transfer takes a few business days and shows as clearing until then. A receipt follows by email.' },
+      body: 'Card payments clear right away. Bank transfers take a few business days and show as clearing until then. We will email your receipt.' },
     cancelled: { head: 'Nothing was charged.', tone: '', body: 'The invoice is still open whenever you are ready.' }
   },
   setup: {
     done: { head: 'Your payment method is on file.', tone: 'good',
-      body: 'Future invoices are collected from it automatically when they are issued. It may take a moment to appear below.' },
+      body: 'Future invoices will be paid from it automatically. It may take a moment to appear below.' },
     cancelled: { head: 'Nothing was changed.', tone: '', body: 'You can link a bank account or card whenever you are ready.' }
   },
   deposit: {
     done: { head: 'Thank you. Your deposit is on its way.', tone: 'good',
-      body: 'Your search is open. A bank transfer takes a few business days to settle; nothing more is needed from you.' },
-    cancelled: { head: 'Nothing was charged.', tone: '', body: 'Your deposit is ready whenever you are.' }
+      body: 'Your search is open. Bank transfers take a few business days to clear, and there is nothing more you need to do.' },
+    cancelled: { head: 'Nothing was charged.', tone: '', body: 'You can pay your deposit whenever you are ready.' }
   }
 };
 

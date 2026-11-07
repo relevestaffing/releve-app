@@ -21,7 +21,7 @@ export default async function CheckinPage() {
 
   return (
     <Shell profile={profile} active="/app/checkin" title="End of week report"
-      crumb={`Every Friday, to ${WORDS.tsmShort}`}>
+      crumb={`Sent every Friday to ${WORDS.tsmShort}`}>
       {placements.length === 0 ? (
         <Empty of={EMPTY.checkinUnplaced} />
       ) : placements.map(p => (

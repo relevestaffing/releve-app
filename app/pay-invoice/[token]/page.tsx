@@ -11,9 +11,9 @@ export const dynamic = 'force-dynamic';
    link: no session, the token names one invoice, and nothing is created at
    Stripe until the button below is pressed (B24). */
 const ERRORS: Record<string, string> = {
-  settled: 'This invoice is already settled. Nothing more to do here.',
+  settled: 'This invoice has already been paid. There is nothing more to do.',
   failed: 'The payment page did not open. Please try once more, or reply to the invoice email and we will help.',
-  busy: 'This invoice is being collected right now. Give it half an hour, or check your billing page.'
+  busy: 'A payment for this invoice is already in progress. Check your billing page in about half an hour.'
 };
 
 export default async function PayInvoicePage({ params, searchParams }: {
@@ -29,12 +29,12 @@ export default async function PayInvoicePage({ params, searchParams }: {
   let canPay = false;
   if (!verified || !summary || (!summary.ok && !summary.settled)) {
     heading = 'That link has expired';
-    message = 'The invoice is always in your account under Billing, or ask your Client Success Manager for a fresh link.';
+    message = 'You can find this invoice under Billing in your account, or ask your Client Success Manager for a new link.';
   } else if (summary.settled) {
-    heading = 'Already settled';
+    heading = 'Already paid';
     message = ERRORS.settled;
   } else if (!stripeReady()) {
-    message = 'Card and bank payment is not switched on yet. Your Client Success Manager will arrange this directly.';
+    message = 'Online payment is not available yet. Your Client Success Manager will arrange payment with you directly.';
   } else {
     canPay = true;
     if (e && ERRORS[e]) message = ERRORS[e];

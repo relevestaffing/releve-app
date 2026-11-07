@@ -17,10 +17,10 @@ export type BillingAccount = {
 export const PAYMENT_STATUS: Record<string, { label: string; tone: string; says: string }> = {
   draft:      { label: 'Not yet sent', tone: '',     says: 'Being prepared.' },
   sent:       { label: 'Due',          tone: 'warn', says: 'Due on receipt.' },
-  processing: { label: 'Clearing',     tone: '',     says: 'Collected from your account and clearing. Bank transfers take a few days.' },
+  processing: { label: 'Clearing',     tone: '',     says: 'Taken from your account. Bank payments take a few days to clear.' },
   paid:       { label: 'Paid',         tone: 'good', says: 'Received in full.' },
-  failed:     { label: 'Needs another try', tone: 'warn', says: 'The last attempt did not go through. Pay it from this page, by bank or card.' },
+  failed:     { label: 'Did not go through', tone: 'warn', says: 'The last payment did not go through. You can pay from this page, by bank or card.' },
   void:       { label: 'Void',         tone: '',     says: 'Cancelled. Nothing is owed.' },
   refunded:   { label: 'Refunded',     tone: '',     says: 'Returned to you in full.' },
-  disputed:   { label: 'Under review', tone: '',     says: 'Your bank has asked about this payment. We are working through it with them.' }
+  disputed:   { label: 'Under review', tone: '',     says: 'Your bank has raised a question about this payment. We are resolving it with them.' }
 };

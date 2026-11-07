@@ -39,7 +39,7 @@ export default function AccountManagerPicker({ personId, side, team, current }: 
       <label htmlFor={fid}>{label}</label>
       <select id={fid} value={value} disabled={busy}
         onChange={e => { setValue(e.target.value); save(e.target.value); }}>
-        <option value="">Nobody yet</option>
+        <option value="">Not assigned</option>
         {team
           .filter(p => p.team_role === kind || p.team_role === 'owner' || p.team_role === 'manager')
           .map(p => <option key={p.user_id} value={p.user_id}>{p.name}</option>)}

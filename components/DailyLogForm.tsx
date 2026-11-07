@@ -54,14 +54,14 @@ export default function DailyLogForm({ placementId, executive, today, logs }: {
           min="0" max="24" step="0.25" defaultValue={existing?.hours ?? ''} placeholder="8" />
       </div>
       <div className="ff">
-        <label htmlFor={`lg-done-${placementId}`}>What got done</label>
+        <label htmlFor={`lg-done-${placementId}`}>What you finished</label>
         <textarea id={`lg-done-${placementId}`} name="done_text" rows={4} maxLength={4000}
           defaultValue={existing?.done_text ?? ''}
-          placeholder="Inbox to zero, Thursday's board pack drafted, three supplier calls booked." />
+          placeholder="Cleared the inbox, drafted Thursday's board report, booked three supplier calls." />
       </div>
       <div>
         <div className="ff">
-          <label htmlFor={`lg-block-${placementId}`}>Anything in the way <span className="muted">(private)</span></label>
+          <label htmlFor={`lg-block-${placementId}`}>Anything blocking your work <span className="muted">(private)</span></label>
           <input id={`lg-block-${placementId}`} name="blockers" maxLength={2000}
             defaultValue={existing?.blockers ?? ''} placeholder="Waiting on access to the finance drive" />
         </div>

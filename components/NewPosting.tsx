@@ -8,10 +8,10 @@ import Overlay from './Overlay';
    twice as well. */
 export default function NewPosting() {
   const [open, setOpen] = useState(false);
-  if (!open) return <button className="btn sm solid" onClick={() => setOpen(true)}>Write a role</button>;
+  if (!open) return <button className="btn sm solid" onClick={() => setOpen(true)}>New role</button>;
   return (
-    <Overlay onClose={() => setOpen(false)} label="A new role">
-      <div className="card-head"><h3>A new role</h3>
+    <Overlay onClose={() => setOpen(false)} label="New role">
+      <div className="card-head"><h3>New role</h3>
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button></div>
       <PostingEditor onDone={() => setOpen(false)} />
     </Overlay>

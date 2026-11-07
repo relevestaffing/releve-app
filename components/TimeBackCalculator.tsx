@@ -55,12 +55,12 @@ export default function TimeBackCalculator() {
         </div>
         <div className="money-stat" style={{ boxShadow: 'inset 3px 0 0 var(--fern)' }}>
           <div className="n" style={{ color: 'var(--fern)' }}>{fmt(dollars)}</div>
-          <div className="k">Of your focus, returned every year</div>
+          <div className="k">Value of your time, every year</div>
         </div>
       </div>
 
       <p className="verdict" style={{ marginTop: 4 }}>
-        {hours} hours a week is <b>{weeks} working weeks</b> a year that go back to the work only you can do.
+        {hours} hours a week gives you back <b>{weeks} working weeks</b> a year for the work only you can do.
       </p>
     </div>
   );

@@ -59,9 +59,9 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
           <div className="score">{stage.toBook.length}</div></div>
         <div className="card stat"><div className="eyebrow">Booked</div>
           <div className="score">{stage.booked.length}</div></div>
-        <div className="card stat"><div className="eyebrow">Your decision</div>
+        <div className="card stat"><div className="eyebrow">Awaiting decision</div>
           <div className="score">{stage.decide.length}</div></div>
-        <div className="card stat"><div className="eyebrow">In the platform</div>
+        <div className="card stat"><div className="eyebrow">On the platform</div>
           <div className="score">{stage.inside.length}</div></div>
       </div>
 
@@ -69,7 +69,7 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
         <div className="card-head"><h3>Where they came from</h3></div>
         {sources.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nobody has applied yet, so there is nothing to break down.</p></div>
+            <p className="small">Sources appear here once people apply.</p></div>
         ) : (
           <ul className="past-list">
             {sources.map(([label, n]) => (
@@ -87,10 +87,9 @@ export default async function PostingFile({ params }: { params: Promise<{ id: st
       {apps.length === 0 ? (
         <div className="card empty-card">
           <div className="empty-mark" aria-hidden="true" />
-          <h3>The queue is empty for now</h3>
+          <h3>No applications yet</h3>
           <p className="small">
-            Once someone applies to this role, they land here,
-            grouped by where they stand, the same way your Applications page groups the whole queue.
+            Applications to this role appear here, grouped by stage as on the Applications page.
           </p>
         </div>
       ) : (

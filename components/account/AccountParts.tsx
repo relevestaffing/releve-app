@@ -33,12 +33,12 @@ export function Strip({ a, accountHref }: { a: Account; accountHref: (id: string
           <div className="acct-v"><Link href={accountHref(c.otherId)}>{c.otherName}</Link></div>
           <div className="acct-s">Since {dayLabel(c.startedOn)} · {since(c.startedOn)}</div>
           <div className="acct-s">{c.noticeOn ? <span className="acct-tag warn">Notice given</span> : <span className="acct-tag good">Live</span>}</div>
-        </> : <><div className="acct-v none">Not placed</div><div className="acct-s faint">{a.placements.length ? `${a.placements.length} past placement${a.placements.length > 1 ? 's' : ''}` : 'Never placed yet'}</div></>}
+        </> : <><div className="acct-v none">Not placed</div><div className="acct-s faint">{a.placements.length ? `${a.placements.length} past placement${a.placements.length > 1 ? 's' : ''}` : 'Never placed'}</div></>}
       </div>
       <div className="acct-cell">
         <div className="acct-k">Hours</div>
         {a.hours.reported ? <>
-          <div className="acct-v">{a.hours.thisWeek != null ? `${a.hours.thisWeek} this week` : a.hours.lastWeek != null ? `${a.hours.lastWeek} last week` : 'Not in yet'}</div>
+          <div className="acct-v">{a.hours.thisWeek != null ? `${a.hours.thisWeek} this week` : a.hours.lastWeek != null ? `${a.hours.lastWeek} last week` : 'Not reported yet'}</div>
           <div className="acct-s">{a.hours.thisWeek != null && a.hours.lastWeek != null ? `${a.hours.lastWeek} last week · ` : ''}{a.hours.thisMonth} so far this month</div>
           <div className="acct-s faint">{cap ? `Plan allows ${cap} a week` : `${a.hours.lastFour} over the last 4 weeks`}</div>
         </> : <><div className="acct-v none">None reported</div><div className="acct-s faint">From the Friday report</div></>}
@@ -78,7 +78,7 @@ export function PlacementTab({ a, accountHref, emptyText }: { a: Account; accoun
             {a.side === 'talent' && <><dt>Their pay</dt><dd>{c.talentPayCents != null ? `${money(c.talentPayCents)} a month` : 'Not set'}</dd></>}
           </dl>
           <div className="acct-hero-foot">
-            <Link className="btn sm" href={`/console/placements/${c.id}`}>Open placement</Link><span className="ws-faint acct-hint">Tasks, notice and ending the placement live there.</span>
+            <Link className="btn sm" href={`/console/placements/${c.id}`}>Open placement</Link><span className="ws-faint acct-hint">Manage tasks, notice and ending there.</span>
           </div>
         </div>
       ) : (
@@ -116,10 +116,10 @@ export function HoursTab({ a }: { a: Account }) {
         <div><div className="acct-k">Plan allows</div><div className="acct-fig">{cap ? `${cap}/wk` : 'Unlimited'}</div></div>
       </div>
       {!a.hours.reported ? (
-        <div className="acct-empty"><b>No hours reported yet.</b><span>Hours come in with the talent&rsquo;s report every Friday.</span></div>
+        <div className="acct-empty"><b>No hours reported yet.</b><span>Hours arrive with the talent&rsquo;s Friday report.</span></div>
       ) : (
         <table className="acct-table">
-          <thead><tr><th>Week ending</th>{a.side === 'client' && <th>Talent</th>}<th>Hours</th><th className="bar-h" aria-label="Chart" /><th>Workload</th><th>Flagged</th></tr></thead>
+          <thead><tr><th>Week ending</th>{a.side === 'client' && <th>Talent</th>}<th>Hours</th><th className="bar-h" aria-label="Chart" /><th>Workload</th><th>Note</th></tr></thead>
           <tbody>{a.hours.weeks.map(w => {
             const over = cap != null && (w.hours ?? 0) > cap;
             return (
@@ -152,7 +152,7 @@ export function BillingTab({ a }: { a: Account }) {
         <div><div className="acct-k">Paid to date</div><div className="acct-fig">{money(b.paidCents)}</div></div>
       </div>
       {!b.invoices.length ? (
-        <div className="acct-empty"><b>Nothing billed yet.</b><span>The deposit and the monthly invoices appear here as they go out.</span></div>
+        <div className="acct-empty"><b>No invoices yet.</b><span>The deposit and monthly invoices appear here once issued.</span></div>
       ) : (
         <table className="acct-table">
           <thead><tr><th>Invoice</th><th>For</th><th>Issued</th><th>Due</th><th className="r">Amount</th><th>Status</th></tr></thead>

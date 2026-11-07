@@ -29,23 +29,22 @@ export default async function Campaigns() {
 
       <div className="card tight">
         <p className="small" style={{ margin: 0, maxWidth: 680 }}>
-          <b>Relève&rsquo;s email, written for you.</b> Claude drafts each one two days ahead and
-          emails you a preview. It goes to everyone on the list Tuesday and Thursday at 9:00 AM
-          Pacific, from The Relève Letter, unless you hold it here. Edit anything you like
-          before it sends.
+          <b>The Relève Letter, Relève&rsquo;s twice-weekly email.</b> Claude drafts each one two days
+          ahead and emails you a preview. It goes to everyone on the list Tuesday and Thursday at
+          9:00 AM Pacific unless you hold it here. You can edit it until it sends.
         </p>
       </div>
 
       {!stats.ready && (
         <div className="card tight"><p className="small" style={{ margin: 0 }}>
-          <b>One step left:</b> the campaigns tables (part 54) are not in the database yet.
+          <b>Setup needed:</b> run part 54 to add the campaign tables to the database.
         </p></div>
       )}
       {stats.ready && !mailingAddress() && (
         <div className="card tight"><p className="small" style={{ margin: 0 }}>
-          <span className="pill warn">Sending is paused</span>&nbsp; Every marketing email must show a
-          mailing address. Add it in Netlify as <code>CAMPAIGN_MAILING_ADDRESS</code> and sending turns
-          on by itself. Until then drafts are still written and previewed, and held at send time.
+          <span className="pill warn">Sending is paused</span>&nbsp; Marketing email must show a mailing
+          address. Add it in Netlify as <code>CAMPAIGN_MAILING_ADDRESS</code> and sending resumes
+          automatically. Until then, drafts are still written and previewed, then held at send time.
         </p></div>
       )}
 
@@ -56,7 +55,7 @@ export default async function Campaigns() {
         <div className="card stat"><div className="eyebrow">Next send</div><div className="small" style={{ marginTop: 10 }}>{next[0]?.when ?? ''}</div></div>
       </div>
 
-      <p className="small" style={{ margin: '4px 0 18px' }}><a href="/console/email-list">See everyone on the list, and unsubscribe someone by hand &rarr;</a></p>
+      <p className="small" style={{ margin: '4px 0 18px' }}><a href="/console/email-list">View the email list or unsubscribe someone &rarr;</a></p>
 
       <CampaignDesk campaigns={rows as any} me={profile.email} ready={stats.ready} />
     </Shell>

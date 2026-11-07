@@ -45,7 +45,7 @@ export default function TeamInbox({ me, initialThread, initialMine = false, init
           if (!hit) {
             hit = {
               subject_id: initialThread, name: initialName?.trim() || (initialRole === 'talent' ? 'Talent' : 'Executive'),
-              role: initialRole, org_name: null, last: 'Nothing written yet', last_at: new Date().toISOString(),
+              role: initialRole, org_name: null, last: 'No messages yet', last_at: new Date().toISOString(),
               waiting: false, unread: 0
             };
             ts = [hit, ...ts];
@@ -75,7 +75,7 @@ export default function TeamInbox({ me, initialThread, initialMine = false, init
 
   if (failed) return (
     <div className="card"><div className="empty"><span className="tick" />
-      <p className="small">Your threads did not load.</p>
+      <p className="small">Messages did not load.</p>
       <button className="btn sm ghost" onClick={() => load()}>Try again</button>
     </div></div>
   );
@@ -94,7 +94,7 @@ export default function TeamInbox({ me, initialThread, initialMine = false, init
     <div className="dir-head inbox-filter">
       <nav className="tabs" role="tablist" aria-label="Which conversations">
         <button type="button" role="tab" className={view === 'us' ? 'on' : ''} aria-selected={view === 'us'} onClick={() => setView('us')}>
-          Writing to us{unreadThreads ? <span className="tab-n">{unreadThreads}</span> : null}
+          To Relève{unreadThreads ? <span className="tab-n">{unreadThreads}</span> : null}
         </button>
         <button type="button" role="tab" className={view === 'direct' ? 'on' : ''} aria-selected={view === 'direct'} onClick={() => setView('direct')}>
           Executive and talent
@@ -124,7 +124,7 @@ export default function TeamInbox({ me, initialThread, initialMine = false, init
           </div>
           {view === 'us' ? (
             !threads.length ? (
-              <p className="small muted">{mine ? 'Nobody you look after has written in yet.' : 'No one has written in yet.'}</p>
+              <p className="small muted">{mine ? 'No messages yet from the people you look after.' : 'No messages yet.'}</p>
             ) : (
               <ul id="inbox-threads">
                 {threads.map(t => (
@@ -143,7 +143,7 @@ export default function TeamInbox({ me, initialThread, initialMine = false, init
             )
           ) : (
             !direct.length ? (
-              <p className="small muted">No executive and talent have written to each other yet.</p>
+              <p className="small muted">No messages between executives and talent yet.</p>
             ) : (
               <ul id="inbox-threads">
                 {direct.map(d => (
@@ -170,7 +170,7 @@ export default function TeamInbox({ me, initialThread, initialMine = false, init
               ? <MessageThread placement={open.d.placement_id} me={me} readOnly
                   theirName={`${open.d.org_name ?? open.d.client_name} and ${open.d.talent_name}`} />
               : <div className="card inbox-unchosen"><div className="empty"><span className="tick" />
-                  <p className="small">Choose a thread to read it.</p></div></div>}
+                  <p className="small">Choose a conversation.</p></div></div>}
         </div>
       </div>
     </>

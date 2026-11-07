@@ -46,7 +46,7 @@ export default function TableSearch({ scope, rows = 'tbody > tr', groups, placeh
       <input value={q} onChange={e => setQ(e.target.value)}
         placeholder={placeholder} aria-label={placeholder} />
       {none && <p className="xs muted" style={{ marginTop: 6 }}>
-        Nobody matches &ldquo;{q.trim()}&rdquo;.
+        No match for &ldquo;{q.trim()}&rdquo;.
       </p>}
     </div>
   );

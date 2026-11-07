@@ -12,11 +12,11 @@ export const PRIORITIES: { key: Priority; label: string }[] = [
   { key: 'low',    label: 'Low' }
 ];
 export const ORIGINS: { key: Origin; label: string; hint: string }[] = [
-  { key: 'meeting',   label: 'From a meeting',  hint: 'Came out of a call or a conversation' },
-  { key: 'email',     label: 'From email',      hint: 'Landed in the inbox' },
-  { key: 'check_in',  label: 'From a report', hint: 'Raised in an end of week report' },
+  { key: 'meeting',   label: 'From a meeting',  hint: 'Raised on a call or in a conversation' },
+  { key: 'email',     label: 'From email',      hint: 'Arrived by email' },
+  { key: 'check_in',  label: 'From a report', hint: 'Raised in a weekly report' },
   { key: 'recurring', label: 'Recurring',       hint: 'Happens every week or month' },
-  { key: 'self',      label: 'Self-directed',   hint: 'Spotted it and picked it up' }
+  { key: 'self',      label: 'Self-directed',   hint: 'Taken on without being asked' }
 ];
 
 export type Task = {
@@ -142,15 +142,15 @@ export const VETTING_ITEMS: {
 }[] = [
   { kind: 'identity', label: 'Proof of identity',
     ask: 'A clear photo or scan of your passport, or a government photo ID.',
-    why: 'Executives are handing over calendars, inboxes and sometimes finances. Knowing who you are is the floor.',
+    why: 'Clients trust you with their calendar, email and sometimes their finances, so we confirm who you are first.',
     expires: true, issuedByTeam: false },
   { kind: 'agreement', label: 'Your agreement with Relève',
-    ask: 'Your contractor agreement and NDA. We send it to you, you sign it, and we file it here.',
+    ask: 'Your contractor agreement and NDA. We send it to you to sign, then keep it on file here.',
     why: '',
     expires: false, issuedByTeam: true }
 ];
 
 export const VETTING_WORDING: Record<VettingState, string> = {
-  not_started: 'Not started', submitted: 'With Relève', verified: 'Verified',
-  rejected: 'Needs another try', expired: 'Expired'
+  not_started: 'Not started', submitted: 'Under review', verified: 'Verified',
+  rejected: 'Sent back', expired: 'Expired'
 };

@@ -32,17 +32,17 @@ export default function GuaranteeBadge({ openedAt, firstCandidateOn, guaranteeDa
           <p className="small" style={{ color: 'var(--cream)', margin: 0, maxWidth: 560 }}>
             {met
               ? withinPromise
-                ? <>Your first candidate was in front of you on <b>day {dayNumber}</b>, inside the promise.</>
-                : <>Your first candidate was in front of you on <b>day {dayNumber}</b>.</>
+                ? <>Your first candidate was presented on <b>day {dayNumber}</b>, within the guarantee.</>
+                : <>Your first candidate was presented on <b>day {dayNumber}</b>.</>
               : past
-                ? <>Day <b>{dayNumber}</b>. We are holding out for the right person rather than an available one, and your Client Success Manager is on this search personally. You will hear from them with an update.</>
-                : <>Day <b>{dayNumber} of {days}</b>. One vetted candidate, chosen for you by hand, never a list to sort through.</>}
+                ? <>Day <b>{dayNumber}</b>. We are waiting for the right person rather than the first available one. Your Client Success Manager is leading this search personally and will be in touch with an update.</>
+                : <>Day <b>{dayNumber} of {days}</b>. We will put forward one vetted candidate, chosen for you by hand.</>}
           </p>
           <p className="xs" style={{ color: 'var(--pale)', margin: '10px 0 0', maxWidth: 560 }}>
-            And if a hire does not work out, we find the replacement.
+            If a hire does not work out, we find a replacement.
           </p>
         </div>
-        {withinPromise && <span className="pill good"><span className="dot" />Kept</span>}
+        {withinPromise && <span className="pill good"><span className="dot" />Met</span>}
       </div>
       <div className="fortnight-bar">
         <i style={{ width: `${pct}%` }} />

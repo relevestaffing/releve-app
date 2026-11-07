@@ -75,7 +75,7 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { setNote(j.error || 'That did not cancel.'); return; }
     setCancelling(null);
-    setNote(quietly ? `${b.name}'s call is cancelled. They were not emailed.` : `${b.name}'s call is cancelled, and they have been told.`);
+    setNote(quietly ? `${b.name}'s call is cancelled. They were not emailed.` : `${b.name}'s call is cancelled and they have been emailed.`);
     router.refresh();
   }
 
@@ -89,8 +89,8 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
       <div className="card">
         <div className="card-head"><h3>Your booking link</h3></div>
         <p className="small muted" style={{ marginTop: 0 }}>
-          Send this to anyone you want on a discovery call. It is a page on the website, so nobody needs the app.
-          The Book a Call buttons on the website use the same hours.
+          Send this to anyone you want on a discovery call. It is a page on the website, so no sign-in is needed.
+          The website's Book a Call buttons use the same hours.
         </p>
         <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <code style={{ fontSize: 15 }}>{LINK.replace('https://', '')}</code>
@@ -200,9 +200,9 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
           {([
             ['durationMin', 'Call length (minutes)', 10, 240],
             ['incrementMin', 'Start times every (minutes)', 5, 120],
-            ['bufferBeforeMin', 'Free time before each call (minutes)', 0, 240],
-            ['bufferAfterMin', 'Free time after each call (minutes)', 0, 240],
-            ['maxPerDay', 'Most calls in a day (0 = no limit)', 0, 50],
+            ['bufferBeforeMin', 'Buffer before each call (minutes)', 0, 240],
+            ['bufferAfterMin', 'Buffer after each call (minutes)', 0, 240],
+            ['maxPerDay', 'Maximum calls a day (0 = no limit)', 0, 50],
             ['minNoticeHours', 'Minimum notice (hours)', 0, 720],
             ['daysAhead', 'How far ahead people can book (days)', 1, 120]
           ] as const).map(([k, label, lo, hi]) => (
@@ -264,9 +264,9 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
                 {b.joinUrl && <a className="btn sm ghost" href={b.joinUrl} target="_blank" rel="noopener">Zoom</a>}
                 {cancelling === b.id ? (
                   <>
-                    <button className="btn sm solid" onClick={() => cancel(b, false)}>Cancel and tell them</button>
-                    <button className="btn sm ghost" onClick={() => cancel(b, true)}>Cancel quietly</button>
-                    <button className="btn sm ghost" onClick={() => setCancelling(null)}>Keep</button>
+                    <button className="btn sm solid" onClick={() => cancel(b, false)}>Cancel and email them</button>
+                    <button className="btn sm ghost" onClick={() => cancel(b, true)}>Cancel without emailing</button>
+                    <button className="btn sm ghost" onClick={() => setCancelling(null)}>Keep the call</button>
                   </>
                 ) : <button className="btn sm ghost" onClick={() => setCancelling(b.id)}>Cancel call</button>}
               </div>

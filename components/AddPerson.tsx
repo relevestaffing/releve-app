@@ -36,11 +36,11 @@ export default function AddPerson() {
       setErr(why); toast.bad(`Not saved. ${why}`); return;
     }
     if (d.emailed === false) {
-      toast.bad(`${body.full_name} added, but the welcome email did not send. Tell them to sign in with ${body.email}.`);
-      setMsg(`${body.full_name} added. The welcome email did not send, so tell them yourself to sign in with ${body.email}. Their record attaches itself the first time they do.`);
+      toast.bad(`${body.full_name} added, but the welcome email did not send. Ask them to sign in with ${body.email}.`);
+      setMsg(`${body.full_name} added. The welcome email did not send, so ask them to sign in with ${body.email}. Their account links to this record when they do.`);
     } else {
       toast.saved(`${body.full_name} added and emailed`);
-      setMsg(`${body.full_name} added. A welcome email went to ${body.email}. Their record attaches itself the first time they sign in with it.`);
+      setMsg(`${body.full_name} added. A welcome email went to ${body.email}. Their account links to this record when they first sign in.`);
     }
     (e.target as HTMLFormElement).reset();
   }
@@ -54,8 +54,8 @@ export default function AddPerson() {
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="small muted" style={{ marginBottom: 20 }}>
-        Creates the record now and emails them a welcome note with how to sign in. When they sign in with
-        this email address the account attaches itself. No password is needed.
+        Creates their record and emails a welcome note with sign-in instructions. No password is
+        needed: when they sign in with this email, their account links to this record.
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>

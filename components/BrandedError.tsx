@@ -40,7 +40,7 @@ export default function BrandedError({
             <a className="btn ghost" href={`mailto:${CONTACT_EMAIL}?subject=${subject}`}>Write to us</a>
           </div>
           <p className="xs muted" style={{ marginTop: 18 }}>
-            {CONTACT_EMAIL} reaches a person. Replies within one business day, usually sooner.
+            Write to {CONTACT_EMAIL}. We reply within one business day, usually sooner.
           </p>
           {(digest || detail) && (
             <p className="xs muted" style={{ marginTop: 10, opacity: .7, overflowWrap: 'anywhere' }}>

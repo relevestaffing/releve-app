@@ -35,7 +35,7 @@ export default function InvoiceDocument({ inv, actions }: {
       ].filter(Boolean).join('. '),
       cents: subtotal
     });
-    if (credit > 0) lines.push({ what: 'Search deposit credit', detail: 'Your $500 deposit, credited as agreed.', cents: -credit });
+    if (credit > 0) lines.push({ what: 'Search deposit credit', detail: 'Your $500 deposit, credited in full.', cents: -credit });
   }
 
   return (

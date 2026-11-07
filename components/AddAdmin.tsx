@@ -55,7 +55,7 @@ export default function AddAdmin() {
       <p className="small" style={{ margin: 0 }}>
         <b>{form.email}</b> already has a Relève account
         {existing.name ? <> in the name of <b>{existing.name}</b></> : null}, on the {existing.side} side.
-        Giving it console access moves it to the Relève team.
+        Giving console access moves this account to the Relève team.
       </p>
       <div className="row" style={{ gap: 8 }}>
         <button className="btn sm solid" disabled={busy} onClick={() => send(true)}>

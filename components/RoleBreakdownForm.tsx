@@ -55,8 +55,8 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
           {picked.length > 0 && <span className="pill">{picked.length} chosen</span>}
         </div>
         <p className="small muted" style={{ marginBottom: 20, maxWidth: 520 }}>
-          Everything the role covers, most important first. Each one opens
-          questions specific to it.
+          Choose everything the role covers, most important first. Each area
+          you choose adds a few questions about it.
         </p>
 
         <div className="disc-grid">
@@ -76,7 +76,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
         </div>
         {picked.length > 0 && (
           <p className="xs muted" style={{ marginTop: 16 }}>
-            This role is <b>{roleShape(draft)}</b>. The first one you picked carries
+            This role is <b>{roleShape(draft)}</b>. The first area you chose carries
             the most weight when we rank candidates.
           </p>
         )}
@@ -100,8 +100,8 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
               </div>
             </div>
             <p className="small muted" style={{ marginBottom: 20 }}>
-              Which of these does the role actually need? Be strict with
-              <b> must have</b>. We will not put anyone forward who cannot do those.
+              Which of these does the role need? Be strict with
+              <b> must have</b>: we only put forward people who can do all of them.
             </p>
 
             {d.comps.map(c => (
@@ -124,7 +124,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
 
             {d.details.length > 0 && (
               <div className="detail-block">
-                <div className="eyebrow" style={{ marginBottom: 14 }}>A little more about this</div>
+                <div className="eyebrow" style={{ marginBottom: 14 }}>A few details</div>
                 {d.details.map(q => (
                   <div className="ff" key={q.key}>
                     {q.kind === 'choice'
@@ -157,7 +157,7 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
       {/* ---------- the part that is the same for every role ---------- */}
       {picked.length > 0 && (
         <div className="card">
-          <div className="card-head"><h3>However the role is made up</h3></div>
+          <div className="card-head"><h3>About the role overall</h3></div>
 
           <div className="ff">
             <label htmlFor={`${fid}-1`}>The three or four things that matter most</label>
@@ -188,10 +188,10 @@ export default function RoleBreakdownForm({ initial }: { initial: RoleBreakdown 
           </div>
 
           <button className="btn solid" disabled={busy} onClick={save}>
-            {busy ? 'Saving…' : done ? 'Save the role breakdown' : 'Save what I have so far'}
+            {busy ? 'Saving…' : done ? 'Save the role breakdown' : 'Save and finish later'}
           </button>
           {!done && <p className="xs muted" style={{ marginTop: 12 }}>
-            Some competencies are still unanswered. You can come back. Nothing is lost.
+            A few questions are still unanswered. Your answers are saved, so you can finish later.
           </p>}
         </div>
       )}

@@ -63,7 +63,7 @@ export default function AuditDesk({ prospectId, email, website, elivateMember, a
       }
       if (!done) {
         setWriting(false); setBuilding(false);
-        toast.bad('Still writing. It will appear in this list shortly; refresh in a minute.');
+        toast.bad('Still writing. Refresh in a minute to see it here.');
         return;
       }
     }
@@ -88,8 +88,8 @@ export default function AuditDesk({ prospectId, email, website, elivateMember, a
 
       {!aiOn && (
         <p className="small muted" style={{ marginTop: 0 }}>
-          Audits are written by Claude inside your console. Add your Anthropic API key
-          (ANTHROPIC_API_KEY) in Netlify to switch this on, the same way the payout keys work.
+          Claude writes audits here once your Anthropic API key (ANTHROPIC_API_KEY) is added
+          in Netlify, the same way as the payout keys.
         </p>
       )}
 
@@ -180,15 +180,15 @@ function KeyPointsForm({ website, elivateMember, writing, onClose, onGenerate }:
               placeholder="What they pay now, what they get, and the gaps. e.g. $600/mo for ~4 posts a week, low editing, ~40 followers, no outreach." /></div>
           <div className="ff"><label>What they sell, and their ideal client</label>
             <textarea rows={2} value={offer} onChange={e => setOffer(e.target.value)}
-              placeholder="e.g. Trains the managers inside growing companies; buyers are decision makers at growing companies." /></div>
+              placeholder="e.g. Trains managers at growing companies; buyers are founders and heads of HR." /></div>
           <div className="ff"><label>What they want more of</label>
             <textarea rows={2} value={goals} onChange={e => setGoals(e.target.value)}
               placeholder="e.g. A full calendar of discovery calls, a polished brand presence." /></div>
           <div className="ff"><label>Anything else from the call</label>
             <textarea rows={2} value={notes} onChange={e => setNotes(e.target.value)}
-              placeholder="Optional. Anything worth weaving in." /></div>
+              placeholder="Optional. Anything the audit should mention." /></div>
           <button className="btn solid" disabled={writing}>{writing ? 'Writing the audit…' : 'Write the audit'}</button>
-          {writing && <p className="xs muted" style={{ marginTop: 10 }}>Claude is writing it now. This takes a minute or two. You can keep this open.</p>}
+          {writing && <p className="xs muted" style={{ marginTop: 10 }}>Claude is writing the audit. This takes a minute or two.</p>}
         </form>
       </div>
     </Overlay>
@@ -246,7 +246,7 @@ function Editor({ state, email, link, onClose, onSaved, onSent }: {
           <input value={title} onChange={e => setTitle(e.target.value)} /></div>
         <div className="ff"><label>The audit</label>
           <textarea className="audit-text" rows={18} value={content} onChange={e => setContent(e.target.value)} />
-          <span className="xs muted">This is the audit's wording. Open the link to see it formatted for the client.</span></div>
+          <span className="xs muted">Plain text. Open the link to see it as the client will.</span></div>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <button className="btn solid" disabled={busy} onClick={save}>{busy ? 'Working…' : 'Save'}</button>
           <a className="btn ghost" href={link} target="_blank" rel="noreferrer">Open the link</a>

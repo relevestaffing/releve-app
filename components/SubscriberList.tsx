@@ -33,7 +33,7 @@ export default function SubscriberList({ rows }: { rows: Row[] }) {
       const res = await fetch('/api/admin/subscribers', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: r.id, action }) });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j.error || 'That did not save.');
-      setNote(action === 'unsubscribe' ? `${r.email} is unsubscribed and will not receive any more list emails.` : `${r.email} is back on the list.`);
+      setNote(action === 'unsubscribe' ? `${r.email} is unsubscribed and will receive no further list emails.` : `${r.email} is subscribed again.`);
       setConfirm(null);
       router.refresh();
     } catch (e: any) { setNote(e?.message || 'That did not save.'); }
@@ -46,7 +46,7 @@ export default function SubscriberList({ rows }: { rows: Row[] }) {
         <p className="small" style={{ margin: 0, maxWidth: 680 }}>
           <b>Everyone on Relève&rsquo;s email list.</b> If someone asks to stop receiving emails, find them
           here and press <b>Unsubscribe</b>. It works the same as their own unsubscribe link, takes effect
-          straight away, and can be undone.
+          immediately, and can be undone.
         </p>
       </div>
 
@@ -89,10 +89,10 @@ export default function SubscriberList({ rows }: { rows: Row[] }) {
                       {r.subscribed ? (confirm === r.id ? (
                         <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
                           <button className="btn sm solid" disabled={busy === r.id} onClick={() => act(r, 'unsubscribe')}>{busy === r.id ? 'Saving…' : 'Yes, unsubscribe'}</button>
-                          <button className="btn sm ghost" onClick={() => setConfirm(null)}>Keep</button>
+                          <button className="btn sm ghost" onClick={() => setConfirm(null)}>Cancel</button>
                         </span>
                       ) : <button className="btn sm ghost" onClick={() => setConfirm(r.id)}>Unsubscribe</button>)
-                      : <button className="btn sm ghost" disabled={busy === r.id} onClick={() => act(r, 'resubscribe')}>{busy === r.id ? 'Saving…' : 'Put back on the list'}</button>}
+                      : <button className="btn sm ghost" disabled={busy === r.id} onClick={() => act(r, 'resubscribe')}>{busy === r.id ? 'Saving…' : 'Resubscribe'}</button>}
                     </td>
                   </tr>
                 ))}

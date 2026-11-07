@@ -36,23 +36,23 @@ export default function AgreementSign({ name, email, version, kind = 'client', t
         body: JSON.stringify({ token, version, agreed: true, signed_name: tidy(signed), business: tidy(business), country: tidy(country) })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) { toast.bad(d.error ?? 'That did not sign. Please try again.'); setBusy(false); return; }
+      if (!r.ok) { toast.bad(d.error ?? 'The agreement was not signed. Please try again.'); setBusy(false); return; }
       setDone({ to: d.to ?? email, emailed: d.emailed !== false });
       if (token) { setTimeout(() => { window.location.href = `/pay/${encodeURIComponent(token)}`; }, 1600); return; }
       router.refresh();
     } catch {
-      toast.bad('No connection. Nothing was signed.');
+      toast.bad('No connection, so nothing was signed. Please try again.');
       setBusy(false);
     }
   }
 
   if (done) return (
     <div className="card">
-      <div className="card-head"><h3>Signed. Thank you.</h3><span className="pill good"><span className="dot" />Filed</span></div>
+      <div className="card-head"><h3>Thank you. Your agreement is signed.</h3><span className="pill good"><span className="dot" />Filed</span></div>
       <p className="small" style={{ maxWidth: 560, marginBottom: 12 }}>
         {done.emailed
-          ? <>Your signed copy is on its way to <b>{done.to}</b> for your records.{token ? ' Taking you to your deposit now.' : ' It is kept in your account.'}</>
-          : <>Your agreement is signed and kept in your account. We could not email the copy just now; you can download it below.</>}
+          ? <>A signed copy is on its way to <b>{done.to}</b>.{token ? ' Next, your deposit.' : ' It is also kept in your account.'}</>
+          : <>Your agreement is signed and saved. We could not email your copy just now.{!talent && !token ? ' You can download it below.' : ''}</>}
       </p>
       <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
         {token
@@ -75,7 +75,7 @@ export default function AgreementSign({ name, email, version, kind = 'client', t
           autoComplete="name" aria-invalid={mismatch} />
         <span className="xs muted">
           {mismatch
-            ? <>That does not match the name on your account{onFile ? <> ({onFile})</> : null}. Sign as yourself, or <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Please correct the name on my account')}`}>ask us to correct the name</a> first.</>
+            ? <>This does not match the name on your account{onFile ? <> ({onFile})</> : null}. Type it as shown, or <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Please correct the name on my account')}`}>ask us to correct the name</a>.</>
             : 'Typing your name here is your signature. It is recorded with the date, the version of the agreement and your email.'}
         </span>
       </div>
@@ -84,13 +84,13 @@ export default function AgreementSign({ name, email, version, kind = 'client', t
           <input value={country} onChange={e => setCountry(e.target.value)} autoComplete="country-name" />
         </div>
       ) : (
-        <div className="ff"><label>Business legal name (leave blank if you are signing as an individual)</label>
+        <div className="ff"><label>Business legal name (leave blank if signing as an individual)</label>
           <input value={business} onChange={e => setBusiness(e.target.value)} autoComplete="organization" />
         </div>
       )}
-      <button className="btn solid" disabled={!ready} onClick={sign}>{busy ? 'Signing…' : 'Sign agreement'}</button>
+      <button className="btn solid" disabled={!ready} onClick={sign}>{busy ? 'Signing…' : 'Sign the agreement'}</button>
       <p className="xs muted" style={{ marginTop: 10, maxWidth: 520 }}>
-        A copy is emailed to {email} straight away.
+        A signed copy is emailed to {email}.
       </p>
     </div>
   );

@@ -49,14 +49,14 @@ export default function OfferDesk({ offers, clients, talent }: {
   /* Both recipients, named, so the sentence on the confirm says exactly who
      is about to get an email. */
   function sentToast(mailed: number, exec: string, tal: string) {
-    if (mailed >= 2) return `Sent to both sides, ${exec} and ${tal}`;
-    if (mailed === 1) return `Saved, but only one of the two emails went out. Check the address on file for ${exec} and ${tal}`;
-    return `Saved, but neither email went out. Check the addresses on file for ${exec} and ${tal}`;
+    if (mailed >= 2) return `Sent to ${exec} and ${tal}`;
+    if (mailed === 1) return `Saved, but only one email sent. Check the email addresses for ${exec} and ${tal}`;
+    return `Saved, but neither email sent. Check the email addresses for ${exec} and ${tal}`;
   }
 
   function formReady(): boolean {
     if (!f.client_id || !f.talent_id || !f.role_title || !f.starts_on) {
-      toast.bad('Executive, talent, role and start date are all needed.');
+      toast.bad('Add the executive, talent, role and start date.');
       return false;
     }
     const rate = f.rate ? toCents(f.rate) : null;
@@ -143,10 +143,9 @@ export default function OfferDesk({ offers, clients, talent }: {
 
         {!open ? (
           <p className="small muted">
-            After the interviews, before the placement. Both sides see the role, the
-            start date and
-            the terms (each sees only their own number) and answer it in their own account. When both say yes, one button turns it into a
-            placement with the terms already agreed.
+            Use this after interviews. Both sides see the role, start date and terms in
+            their own account (each sees only their own figure) and accept or decline there.
+            When both accept, one click turns it into a placement on the agreed terms.
           </p>
         ) : (
           <>
@@ -190,26 +189,25 @@ export default function OfferDesk({ offers, clients, talent }: {
               <input id={`${fid}-3`} value={f.hours} onChange={e => set('hours', e.target.value)}
                 placeholder="40 a week, four hours overlapping 8am Pacific" /></div>
 
-            <div className="ff"><label htmlFor={`${fid}-4`}>What this role owns outright</label>
+            <div className="ff"><label htmlFor={`${fid}-4`}>What this role owns</label>
               <textarea id={`${fid}-4`} rows={2} value={f.scope} onChange={e => set('scope', e.target.value)}
                 placeholder="Inbox and calendar, board prep, running the weekly leadership meeting." /></div>
 
             <div className="grid-2" style={{ gap: 14 }}>
-              <div className="ff"><label htmlFor={`${fid}-5`}>The executive pays (USD a month)</label>
+              <div className="ff"><label htmlFor={`${fid}-5`}>Executive pays (USD/month)</label>
                 <input id={`${fid}-5`} value={f.rate} inputMode="decimal" onChange={e => set('rate', e.target.value)}
                   placeholder="3500" />
                 {outside && <p className="xs muted" style={{ marginTop: 6 }}>
-                  Outside the {money(RATE_MIN_CENTS)} to {money(RATE_MAX_CENTS)} band in your terms.
+                  Outside your standard range of {money(RATE_MIN_CENTS)} to {money(RATE_MAX_CENTS)}.
                 </p>}</div>
-              <div className="ff"><label htmlFor={`${fid}-6`}>The talent is paid (USD/mo)</label>
+              <div className="ff"><label htmlFor={`${fid}-6`}>Talent is paid (USD/month)</label>
                 <input id={`${fid}-6`} value={f.pay} inputMode="decimal" onChange={e => set('pay', e.target.value)}
                   placeholder="1450" /></div>
             </div>
 
             {margin != null && margin > 0 && (
               <p className="xs muted" style={{ marginBottom: 16 }}>
-                Margin <b>{money(margin)}</b> a month. Neither side ever sees the other's figure.
-                The executive's offer and the talent's offer are separate views of this row.
+                Margin <b>{money(margin)}</b> a month. Neither side sees the other's figure.
               </p>
             )}
 
@@ -263,9 +261,8 @@ export default function OfferDesk({ offers, clients, talent }: {
             <div className="empty-mark" aria-hidden="true" />
             <h3>No offers yet</h3>
             <p className="small">
-              When an executive has met someone and wants them, make the offer here
-              rather than over email, so the terms, the answers and the dates are
-              all on the record.
+              When an executive wants to go ahead with a candidate, make the offer here
+              rather than by email, so the terms, answers and dates are on record.
             </p>
           </div>
         ) : (
@@ -301,7 +298,7 @@ export default function OfferDesk({ offers, clients, talent }: {
                               <button className="btn sm solid" disabled={busy} onClick={() => sendDraft(o)}>
                                 {busy ? 'Sending…' : 'Yes, send to both'}
                               </button>
-                              <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Keep it</button>
+                              <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Cancel</button>
                             </>
                           ) : (
                             <button className="btn sm solid" disabled={busy}
@@ -311,17 +308,17 @@ export default function OfferDesk({ offers, clients, talent }: {
                         {o.state === 'accepted' && !o.placement_id && (
                           armed?.id === o.id && armed.action === 'place' ? (
                             <>
-                              <span className="xs muted">Place this pair?</span>
+                              <span className="xs muted">Create the placement on these terms?</span>
                               <button className="btn sm solid" disabled={busy}
-                                onClick={() => { setArmed(null); act(o.id, 'place', 'Placed. The terms carried across'); }}>
-                                Confirm
+                                onClick={() => { setArmed(null); act(o.id, 'place', 'Placement created on the agreed terms'); }}>
+                                Create placement
                               </button>
                               <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Cancel</button>
                             </>
                           ) : (
                             <button className="btn sm solid" disabled={busy}
                               onClick={() => setArmed({ id: o.id, action: 'place' })}>
-                              Make the placement
+                              Create placement
                             </button>
                           )
                         )}

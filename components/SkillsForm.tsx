@@ -75,15 +75,14 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
           {picked.length > 0 && <span className="pill">{picked.length} chosen</span>}
         </div>
         <p className="small muted" style={{ marginBottom: 20, maxWidth: 620 }}>
-          Pick every kind of work you can actually do well, as many as apply.
-          Each one opens its own set of questions, because &ldquo;good at social
-          media&rdquo; could mean five different jobs and we would rather know
-          which one you are.
+          Choose every kind of work you do well, as many as apply. Each one opens
+          its own questions, because &ldquo;good at social media&rdquo; can mean
+          several different jobs, and we want to know which one is yours.
         </p>
         <p className="xs muted" style={{ marginBottom: 20 }}>
-          Select only work you could take on immediately. Breadth is worth
-          a lot here, but a claim you cannot back is the fastest way to a
-          placement that does not last.
+          Choose only work you could start right away. Several strong skills
+          are valuable, but a skill you cannot show leads to a placement that
+          does not last.
         </p>
 
         <div className="disc-grid">
@@ -128,7 +127,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             <div className="card-head">
               <h3>{d.name}</h3>
               <div className="row" style={{ gap: 8 }}>
-                {primary === dk && <span className="pill">Home ground</span>}
+                {primary === dk && <span className="pill">Main skill</span>}
                 <span className={`pill ${answered === d.comps.length ? 'good' : ''}`}>
                   {answered === d.comps.length && <span className="dot" />}
                   {answered} of {d.comps.length}
@@ -137,15 +136,15 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             </div>
 
             <div className="ff" style={{ maxWidth: 240 }}>
-              <label htmlFor={`${fid}-years-${dk}`}>Years doing this</label>
+              <label htmlFor={`${fid}-years-${dk}`}>Years of experience</label>
               <input id={`${fid}-years-${dk}`} type="number" min="0" max="40" value={years[dk] ?? ''}
                 onChange={e => setYears({ ...years, [dk]: Number(e.target.value) })} />
             </div>
 
             <p className="small muted" style={{ margin: '6px 0 14px' }}>
-              Honestly, for each one. <b>Never done it</b> is a perfectly good answer.
-              Nobody is strong across all twelve, and a profile claiming otherwise
-              is the one we cannot place.
+              Answer each one honestly. <b>Never done it</b> is a good answer.
+              Nobody is strong in all twelve, and we cannot place a profile that
+              claims to be.
             </p>
             {/* What each level means used to live in a hover tooltip, which does
                 not exist on a phone — where most of these are filled in. */}
@@ -221,7 +220,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
           <div className="ff">
             <label htmlFor={`${fid}-1`}>What are you best at?</label>
             <textarea id={`${fid}-1`} rows={2} value={best} onChange={e => setBest(e.target.value)}
-              placeholder="Taking a messy inbox and a chaotic calendar and making both boring within two weeks." />
+              placeholder="Taking a messy inbox and a busy calendar and putting both in order within two weeks." />
           </div>
 
           <div className="ff">
@@ -229,7 +228,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
             <textarea id={`${fid}-2`} rows={2} value={growing} onChange={e => setGrowing(e.target.value)}
               placeholder="More project ownership. I want to run the process, not just keep it tidy." />
             <p className="xs muted" style={{ marginTop: 6 }}>
-              We use this when a role comes up that stretches you the right way.
+              We use this to match you with roles that help you grow.
             </p>
           </div>
 
@@ -250,7 +249,7 @@ export default function SkillsForm({ initial }: { initial: SkillsProfile | null 
               {busy ? 'Saving…' : done ? 'Save your skills profile' : 'Save what I have so far'}
             </button>
             <span className="xs muted">
-              {savedAt ? `Saved automatically at ${savedAt}` : 'This saves as you go.'}
+              {savedAt ? `Saved automatically at ${savedAt}` : 'Your answers save automatically.'}
             </span>
           </div>
         </div>

@@ -31,7 +31,7 @@ export default function ManagerPicker({ placementId, team, csm, tsm }: {
   }
 
   const opts = (kind: 'client_success' | 'talent_success') => [
-    <option key="" value="">Nobody yet</option>,
+    <option key="" value="">Not assigned</option>,
     ...team
       .filter(p => p.team_role === kind || p.team_role === 'owner' || p.team_role === 'manager')
       .map(p => <option key={p.user_id} value={p.user_id}>{p.name}</option>)

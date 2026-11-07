@@ -56,7 +56,7 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
   if (loadFailed) return (
     <div className="card">
       <div className="empty"><span className="tick" />
-        <p className="small">Could not load your availability.</p>
+        <p className="small">We could not load your availability.</p>
         <button className="btn sm ghost" onClick={load}>Try again</button>
       </div>
     </div>
@@ -81,8 +81,8 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
       <p className="small muted" style={{ marginBottom: 20 }}>
         {who === 'talent'
           ? 'The hours you can take a call. Executives see only the overlap with their own.'
-          : 'The hours you are open to meeting candidates. Nobody is offered a slot outside these.'}
-        {' '}Set once, repeats weekly.
+          : 'The hours you are free to meet candidates. Interviews are only offered inside these.'}
+        {' '}These repeat every week.
       </p>
       <div className="avail-scroll">
       <div className="avail-grid">
@@ -123,7 +123,7 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
         <button className="btn solid" disabled={busy} onClick={save}>{busy ? 'Saving…' : saved ? 'Saved' : 'Save availability'}</button>
         {/* "windows" is what the table calls them. What the person set is
             blocks of time, so that is what the line says. */}
-        <span className="small muted">{windows.length ? `${windows.length} block${windows.length > 1 ? 's' : ''} of time set` : 'Nothing set. You will not be offered any interviews'}</span>
+        <span className="small muted">{windows.length ? `${windows.length} block${windows.length > 1 ? 's' : ''} of time set` : 'No times set yet. Add some so interviews can be offered'}</span>
       </div>
     </div>
   );

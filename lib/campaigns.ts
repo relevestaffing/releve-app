@@ -374,8 +374,8 @@ ${BODY_OPEN}
   <tr><td class="w px" style="${LIGHT}padding:34px 48px 6px;">${bodyHtml}</td></tr>
   <tr><td class="w px" style="${LIGHT}padding:8px 48px 32px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="f" bgcolor="#35443A" style="${FERN}"><tr><td class="f" style="${FERN}padding:30px 30px;">
-      <div class="onf" style="font-family:${SERIF};font-style:italic;font-size:20px;line-height:1.4;color:#FFFFFF;">I'd be glad to do this with you.</div>
-      <p class="onf" style="margin:12px 0 22px;font-family:${SERIF};font-size:15.5px;line-height:1.7;color:#E4ECE4;">Book a free 30-minute Zoom coffee. We'll look at your real week together and map the first things to hand off, in order. No pitch, just a plan.</p>
+      <div class="onf" style="font-family:${SERIF};font-style:italic;font-size:20px;line-height:1.4;color:#FFFFFF;">I'd be glad to help.</div>
+      <p class="onf" style="margin:12px 0 22px;font-family:${SERIF};font-size:15.5px;line-height:1.7;color:#E4ECE4;">Book a free 30-minute Zoom coffee. We'll go through your week together and list the first things to hand off, in order.</p>
       <a href="${esc(cta)}" style="display:inline-block;background-color:#FFFFFF;color:#35443A;text-decoration:none;font-family:${SANS};font-size:11px;font-weight:bold;letter-spacing:2.5px;text-transform:uppercase;padding:15px 28px;">${esc(c.cta_label || 'Book your Zoom coffee')}</a>
     </td></tr></table>
   </td></tr>
@@ -398,9 +398,9 @@ ${BODY_OPEN}
     '',
     `${c.cta_label || 'Book your Zoom coffee'}: ${cta}`,
     '',
-    'Consider it handled,',
-    'Sage',
-    'Sage Jackson, Founder, Relève',
+    'Consider it handled.',
+    'Sage Jackson',
+    'Founder, Relève',
     ...(ps ? ['', `P.S. ${ps}`] : []),
     '',
     '---',
@@ -453,7 +453,7 @@ export async function draftUpcoming(now = new Date(), force = false) {
     if (error) { if (/duplicate/i.test(error.message)) continue; throw new Error(error.message); }
     made.push(s.slot);
     await previewToTeam(row as Campaign,
-      d.notes?.length ? `Held for you: the editor could not get this one fully inside the house rules. ${d.notes.join(' ')} Edit it, or press Redraft, then Resume.`
+      d.notes?.length ? `Held: the editor could not bring this draft within the house rules. ${d.notes.join(' ')} Edit it, or press Redraft, then Resume.`
       : mailingAddress() ? undefined : 'Sending is waiting on a mailing address (CAMPAIGN_MAILING_ADDRESS in Netlify). Until it is added, this email will be held instead of sent.');
     break;   // one draft per run keeps each request inside its time limit
   }

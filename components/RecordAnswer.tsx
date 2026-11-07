@@ -39,21 +39,21 @@ export default function RecordAnswer({ clientId, clientName, talentId, talentNam
     return (
       <form onSubmit={submit} className="decide-form" style={{ textAlign: 'left', minWidth: 260, marginTop: 8 }}>
         <p className="xs muted" style={{ marginBottom: 10 }}>
-          Recording that <b>{clientName}</b> {yes ? 'approved' : 'declined'} <b>{talentName}</b>, as told to you, in their words where you can.
+          Record that <b>{clientName}</b> {yes ? 'approved' : 'declined'} <b>{talentName}</b>. Use their words where you can.
         </p>
         <div className="ff">
-          <label htmlFor={`${fid}-1`}>{yes ? 'What made them right' : 'What was not right'}{yes && <span className="muted"> (optional)</span>}</label>
+          <label htmlFor={`${fid}-1`}>{yes ? 'Why it was a fit' : 'Why it was not a fit'}{yes && <span className="muted"> (optional)</span>}</label>
           <select id={`${fid}-1`} name="reason" required={!yes} defaultValue="">
-            <option value="" disabled={!yes}>{yes ? 'Not said' : 'Choose one…'}</option>
+            <option value="" disabled={!yes}>{yes ? 'No reason given' : 'Choose one…'}</option>
             {(yes ? APPROVE_REASONS : PASS_REASONS).map(r => <option key={r} value={r}>{r}</option>)}
           </select>
         </div>
         <div className="ff">
           <label htmlFor={`${fid}-2`}>In their words <span className="muted">(optional)</span></label>
-          <textarea id={`${fid}-2`} name="note" rows={2} placeholder="What they actually said." />
+          <textarea id={`${fid}-2`} name="note" rows={2} placeholder="What they said." />
         </div>
         <div className="row" style={{ gap: 8 }}>
-          <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : 'Record it'}</button>
+          <button className="btn sm solid" disabled={busy}>{busy ? 'Saving…' : 'Save the answer'}</button>
           <button type="button" className="btn sm ghost" onClick={() => setAsking(null)}>Cancel</button>
         </div>
       </form>
@@ -62,7 +62,7 @@ export default function RecordAnswer({ clientId, clientName, talentId, talentNam
 
   return (
     <div className="row" style={{ gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-      <span className="xs muted" style={{ width: '100%' }}>Told you on a call?</span>
+      <span className="xs muted" style={{ width: '100%' }}>Did they tell you on a call?</span>
       <button className="btn sm ghost" disabled={busy} onClick={() => setAsking('shortlisted')}>They said yes</button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setAsking('passed')}>They said no</button>
     </div>

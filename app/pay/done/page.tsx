@@ -22,16 +22,16 @@ export default async function DepositDone({ searchParams }: { searchParams: Prom
             <>
               <h2 style={{ fontSize: 24, marginBottom: 12 }}>Your search is open.</h2>
               <p className="note" style={{ marginBottom: 10 }}>
-                Your deposit is received. A card settles in moments, a bank transfer in a few business days.
-                Sourcing begins now.
+                Thank you for your deposit. A card payment settles in moments and a bank transfer in a few
+                business days. Sourcing begins now.
               </p>
               <p className="xs muted">
-                Next, open your Relève account with this same email address. Your deposit is already attached to it.
+                Next, open your Relève account with this same email address. Your deposit is already linked to it.
               </p>
             </>
           )}
           <a className="btn solid sm" style={{ marginTop: 20, display: 'inline-block' }} href="/">
-            {cancelled ? 'Open your account' : 'Open your account'}
+            Open your account
           </a>
         </div>
       </div>

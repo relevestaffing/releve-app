@@ -42,7 +42,7 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
     /* emailed:false in real mode means the mail host refused — not preview
        mode. The record stands either way; the words have to say which. */
     if (d.emailed === false && d.note) toast.saved(`${firstName(name)} added. Nothing was emailed in preview mode`);
-    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check Email under The business, Team, and resend`);
+    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check the email settings under The business, Team, then resend`);
     else toast.saved(`Onboarding sent to ${firstName(name)}`);
     if (d.warning) toast.ok(d.warning);
     (e.target as HTMLFormElement).reset();
@@ -65,9 +65,9 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="small muted" style={{ marginBottom: 20, maxWidth: 560 }}>
-        For right after the discovery call. Opens their search and emails them
-        the deposit link, no account needed first, plus account setup and
-        invoicing setup. The role brief can wait until you write it below.
+        Send this after the discovery call. It opens their search and emails the
+        deposit link (no account needed first), with account and invoicing setup.
+        Add the role brief later from their row below.
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>

@@ -44,12 +44,12 @@ export default function TermsGate({ name, side }: {
       });
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
-        toast.bad(d.error ? `Not recorded: ${d.error}` : 'That did not record. Please try again.');
+        toast.bad(d.error ? `Not saved: ${d.error}` : 'Your acceptance was not saved. Please try again.');
         setBusy(false); return;
       }
       window.location.reload();
     } catch {
-      toast.bad('No connection. Nothing was recorded.');
+      toast.bad('No connection, so nothing was saved. Please try again.');
       setBusy(false);
     }
   }
@@ -73,7 +73,7 @@ export default function TermsGate({ name, side }: {
       if (!r.ok) throw new Error();
       setAsked(true); setFixing(false);
     } catch {
-      toast.bad(`That did not send. Write to ${CONTACT_EMAIL} and we will correct it.`);
+      toast.bad(`The request did not send. Write to ${CONTACT_EMAIL} and we will correct it.`);
     } finally { setBusy(false); }
   }
 
@@ -82,10 +82,10 @@ export default function TermsGate({ name, side }: {
       <div className="welcome-inner">
         <img className="logo" src="/logo-fern.png" alt="Relève Executive Staffing" />
         <div className="welcome-card">
-          <h1>{firstName(name, '') ? `One moment, ${firstName(name)}` : 'One moment'}</h1>
+          <h1>{firstName(name, '') ? `Before you begin, ${firstName(name)}` : 'Before you begin'}</h1>
           <p className="lede">
-            Before you go any further, please read how Relève works and what we do
-            with your information.
+            Please read our Terms of Service and Privacy Policy. They set out how
+            Relève works and how we use your information.
           </p>
 
           <div className="terms-links">
@@ -99,14 +99,14 @@ export default function TermsGate({ name, side }: {
 
           <p className="small muted" style={{ marginTop: 18 }}>
             {side === 'talent'
-              ? <>Worth knowing before you tick the box: you work as a contractor rather
-                  than an employee, Relève pays you directly each month, and for twelve
-                  months after we introduce you to an executive, work with them goes
-                  through us. All of it is in Section 5 and Section 6.</>
-              : <>Worth knowing before you tick the box: placements carry a six-month
-                  minimum (three on the Starter plan), invoices go out on the first Monday of each month, and there
-                  is a twelve-month non-circumvention clause covering anyone we
-                  introduce you to. All of it is in Section 5 and Section 6.</>}
+              ? <>The main points: you work as an independent contractor, not an
+                  employee. Relève pays you directly each month. For twelve months after
+                  we introduce you to an executive, any work with them goes through
+                  Relève. Sections 5 and 6 cover these in full.</>
+              : <>The main points: placements have a six-month minimum (three months on
+                  the Starter plan), invoices go out on the first Monday of each month,
+                  and a twelve-month non-circumvention clause covers anyone we introduce
+                  you to. Sections 5 and 6 cover these in full.</>}
           </p>
 
           <label className="terms-tick">
@@ -127,8 +127,8 @@ export default function TermsGate({ name, side }: {
               </div>
               {asked ? (
                 <p className="xs" style={{ color: 'var(--good)', marginTop: 6 }} role="status">
-                  Sent. Your Client Success Manager will correct the name and write to you. {REPLY_PROMISE}
-                  {' '}Once it is updated, sign here as usual.
+                  Sent. Your Client Success Manager will correct the name and let you know. {REPLY_PROMISE}
+                  {' '}Then sign here as usual.
                 </p>
               ) : fixing ? (
                 <form onSubmit={askCorrection} style={{ marginTop: 10 }}>
@@ -145,8 +145,8 @@ export default function TermsGate({ name, side }: {
                 </form>
               ) : mismatch ? (
                 <p className="xs" style={{ color: 'var(--crit)', marginTop: 6 }}>
-                  That does not match the name on this account{onFile ? ` (${onFile})` : ''}.
-                  Sign as yourself, or{' '}
+                  This does not match the name on the account{onFile ? ` (${onFile})` : ''}.
+                  Type it as shown, or{' '}
                   <button type="button" className="inline-link"
                     onClick={() => { setFixing(true); setRightName(tidy(signed)); }}>
                     ask us to correct the name

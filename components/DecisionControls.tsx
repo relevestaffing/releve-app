@@ -29,7 +29,7 @@ export default function DecisionControls({ talentId, name, decision }: {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ talent_id: talentId, state, reason, note })
     }), state === 'shortlisted' ? `${name} approved. We will arrange the introduction`
-      : state === 'passed' ? 'Noted. We will bring the next one forward' : 'Saved');
+      : state === 'passed' ? 'Thank you. We will put forward your next candidate' : 'Saved');
     setBusy(false); setAsking(null);
     if (ok) router.refresh();
   }
@@ -46,7 +46,7 @@ export default function DecisionControls({ talentId, name, decision }: {
       <form onSubmit={submit} className="decide-form">
         <p className="small" style={{ marginBottom: 14 }}>
           {yes
-            ? <>You are approving <b>{name}</b>. Pick a time that suits you from Interviews, or we will arrange it for you.</>
+            ? <>You are approving <b>{name}</b>. Choose an interview time on the Interviews page, or we will arrange one for you.</>
             : <>You are declining <b>{name}</b>. We will put the next candidate forward.</>}
         </p>
         <div className="ff">
@@ -62,7 +62,7 @@ export default function DecisionControls({ talentId, name, decision }: {
           <textarea id={`${fid}-2`} name="note" rows={2}
             placeholder={yes
               ? 'A sentence is plenty. What you say here shapes who we look for next.'
-              : 'A sentence is plenty. This is what makes the next candidate sharper.'} />
+              : 'A sentence is plenty. It helps us choose your next candidate.'} />
         </div>
         <p className="xs muted" style={{ marginBottom: 12 }}>
           Only Relève sees this. {name} is never shown your reason

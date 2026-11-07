@@ -30,7 +30,7 @@ export default function PulseForm({ placementId, talentName, existing }: {
         action: 'pulse', placement_id: placementId,
         going, workload, standout, friction, keep_going: keep
       })
-    }), 'Thank you. That goes straight to your Client Success Manager');
+    }), 'Thank you. This goes to your Client Success Manager.');
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -39,11 +39,11 @@ export default function PulseForm({ placementId, talentName, existing }: {
     <div className="card" data-save-scope>
       <div className="card-head">
         <h3>{existing ? 'Your answer this month' : `How is it going with ${firstName(talentName)}?`}</h3>
-        {existing && <span className="pill good"><span className="dot" />Filed</span>}
+        {existing && <span className="pill good"><span className="dot" />Sent</span>}
       </div>
       <p className="small muted" style={{ marginBottom: 20 }}>
-        Once a month, two minutes. Your talent never sees this. It comes to Relève,
-        so you can say the awkward thing without having to manage it afterwards.
+        Once a month, about two minutes. {firstName(talentName)} never sees this. It comes to
+        Relève, so you can raise anything difficult and leave the conversation to us.
       </p>
 
       <div className="ff">
@@ -77,17 +77,17 @@ export default function PulseForm({ placementId, talentName, existing }: {
       <div className="ff">
         <label htmlFor={`${fid}-1`}>Anything that stood out</label>
         <textarea id={`${fid}-1`} rows={2} value={standout} onChange={e => setStandout(e.target.value)}
-          placeholder="They rebuilt the whole board pack without being asked." />
+          placeholder="They rebuilt the whole board report without being asked." />
       </div>
 
       <div className="ff">
         <label htmlFor={`${fid}-2`}>Anything not working</label>
         <textarea id={`${fid}-2`} rows={2} value={friction} onChange={e => setFriction(e.target.value)}
-          placeholder="Say it plainly. This is the part that actually helps." />
+          placeholder="Say it plainly. This is the part that helps most." />
       </div>
 
       <div className="ff">
-        <span className="label-like" id={`${fid}-again`}>Would you place them again?</span>
+        <span className="label-like" id={`${fid}-again`}>Would you like to keep working with them?</span>
         <div className="pick-row" role="group" aria-labelledby={`${fid}-again`}>
           <button type="button" className={`pick wide ${keep === true ? 'on' : ''}`}
             aria-pressed={keep === true} onClick={() => setKeep(true)}><span>Yes</span></button>
@@ -100,7 +100,7 @@ export default function PulseForm({ placementId, talentName, existing }: {
         {busy ? 'Sending…' : existing ? 'Update your answer' : 'Send to Relève'}
       </button>
       {!ready && <p className="xs muted" style={{ marginTop: 12 }}>
-        The three quick ones are all we need. The boxes are optional.
+        Only the three choices above are required. The written answers are optional.
       </p>}
     </div>
   );

@@ -36,8 +36,8 @@ export default function EndPlacement({
         body: JSON.stringify({ action: 'notice', placement_id: placementId, on, reason: reason || null, note, tell_client: tellClient })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) toast.bad(d.error ?? 'That did not record.');
-      else { toast.saved(`Notice recorded. Runs and bills to ${d.ends_on ?? dayLabel(preview)}`); setMode('idle'); router.refresh(); }
+      if (!r.ok) toast.bad(d.error ?? 'Not recorded. Please try again.');
+      else { toast.saved(`Notice recorded. Billing runs to ${d.ends_on ?? dayLabel(preview)}`); setMode('idle'); router.refresh(); }
     } catch { toast.bad('No connection. Nothing was recorded.'); }
     setBusy(false);
   }
@@ -58,7 +58,7 @@ export default function EndPlacement({
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id: placementId, reason: r })
     }), owesReplacement(r)
-        ? 'Ended. A replacement is now owed, and it is on the Placements page'
+        ? 'Placement ended. A replacement is owed and is listed on Placements'
         : 'Placement ended');
     setBusy(false); setMode('idle'); setEndReason(null);
     if (ok) router.refresh();
@@ -95,7 +95,7 @@ export default function EndPlacement({
       {mode === 'notice' && (
         <div style={{ marginTop: 8 }}>
           <div className="grid-2" style={{ gap: 14 }}>
-            <div className="ff"><label htmlFor="n-on">Date the written notice arrived</label>
+            <div className="ff"><label htmlFor="n-on">Notice received on</label>
               <input id="n-on" type="date" value={on} max={todayInPacific()} min={startedOn ?? undefined}
                 onChange={e => setOn(e.target.value)} /></div>
             <div className="ff"><label htmlFor="n-why">Their reason</label>
@@ -111,7 +111,7 @@ export default function EndPlacement({
             Email the executive a confirmation
           </label>
           <p className="small" style={{ marginBottom: 12 }}>
-            Recorded on {dayLabel(on)}, the placement runs and is billed to <b>{dayLabel(preview)}</b>.
+            With notice on {dayLabel(on)}, the placement runs and is billed to <b>{dayLabel(preview)}</b>.
           </p>
           <div className="row" style={{ gap: 8 }}>
             <button className="btn sm solid" disabled={busy || !on} onClick={notice}>{busy ? 'Recording…' : 'Yes, record notice'}</button>
@@ -132,7 +132,7 @@ export default function EndPlacement({
         <div className="end-why" style={{ marginTop: 12 }}>
           {!endReason ? (
             <>
-              <div className="xs muted" style={{ marginBottom: 8 }}>Why is it ending? The answer decides what is still billed.</div>
+              <div className="xs muted" style={{ marginBottom: 8 }}>Reason for ending. This decides what is still billed.</div>
               <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
                 {ENDED_REASONS.map(r => (
                   <button key={r.key} className="btn sm ghost" disabled={busy} onClick={() => setEndReason(r.key)}>
@@ -146,14 +146,14 @@ export default function EndPlacement({
           ) : (
             <>
               <p className="small" style={{ marginBottom: 10, maxWidth: 620 }}>
-                End it today, {dayLabel(todayInPacific())}, as <b>{ENDED_REASONS.find(r => r.key === endReason)?.label}</b>?{' '}
+                End the placement today, {dayLabel(todayInPacific())}, as <b>{ENDED_REASONS.find(r => r.key === endReason)?.label}</b>?{' '}
                 {owesReplacement(endReason)
                   ? 'Billing stops today, and the replacement carries the rest of the minimum term.'
-                  : 'The minimum term and any notice period are still billed, as the terms set out.'}{' '}
+                  : 'The minimum term and any notice period are still billed, per the terms.'}{' '}
                 Both sides are emailed.
               </p>
               <div className="row" style={{ gap: 8 }}>
-                <button className="btn sm solid danger" disabled={busy} onClick={() => end(endReason)}>{busy ? 'Ending…' : 'Yes, end it'}</button>
+                <button className="btn sm solid danger" disabled={busy} onClick={() => end(endReason)}>{busy ? 'Ending…' : 'End placement'}</button>
                 <button className="btn sm ghost" disabled={busy} onClick={() => setEndReason(null)}>Back</button>
               </div>
             </>

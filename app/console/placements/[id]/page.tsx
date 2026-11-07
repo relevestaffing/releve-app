@@ -70,29 +70,29 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       crumb={p.org_name ?? 'Placement file'}
       action={
         <span className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-          <Link className="btn sm ghost" href={`/app/brief?placement=${id}`}>Edit the briefing</Link>
+          <Link className="btn sm ghost" href={`/app/brief?placement=${id}`}>Edit briefing</Link>
           <Link className="btn sm ghost" href="/console/placements">All placements</Link>
         </span>
       }>
 
       <div className="grid-4">
-        <div className="card stat"><div className="eyebrow">Running</div>
+        <div className="card stat"><div className="eyebrow">In seat</div>
           <div className="score">{daysIn}<span className="of"> days</span></div></div>
         <div className="card stat"><div className="eyebrow">Open tasks</div>
           <div className="score">{open.length}</div></div>
-        <div className="card stat"><div className="eyebrow">End of week filed</div>
+        <div className="card stat"><div className="eyebrow">Weekly reports filed</div>
           <div className="score">{mine.length}</div></div>
         <div className="card stat"><div className="eyebrow">Alerts</div>
           <div className="score">{alerts.filter(a => a.level === 'high').length}</div></div>
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>Needs your attention</h3>
+        <div className="card-head"><h3>Needs attention</h3>
           <span className={`pill ${alerts.length ? 'warn' : 'good'}`}>
             {alerts.length ? `${alerts.length}` : <><span className="dot" />Clear</>}</span></div>
         {alerts.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nothing is off. End of week reports are current, tasks are moving.</p></div>
+            <p className="small">Nothing needs attention. Weekly reports are current and tasks are on schedule.</p></div>
         ) : (
           <ul className="alert-list">
             {alerts.map((a, i) => (
@@ -126,7 +126,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
                 <div className="xs muted">Carries the rest of that placement&rsquo;s minimum term.</div></dd></>}
             <dt>Minimum term</dt>
             <dd>{terms?.minimum_ends ? `Through ${dayLabel(addDaysISO(terms.minimum_ends, -1))}` : '·'}</dd>
-            <dt>Client pays</dt>
+            <dt>Executive pays</dt>
             <dd><RateSetter placementId={id} cents={terms?.rate_month_cents ?? null} />
               {terms?.notice_given_on && <div className="xs muted" style={{ marginTop: 4 }}>
                 Notice given {day(terms.notice_given_on)}{terms.notice_ends_on ? `, billed through ${dayLabel(terms.notice_ends_on)}` : ''}
@@ -136,11 +136,11 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
               fallbackCents={terms?.roster_pay_cents ?? null} clientCents={terms?.rate_month_cents ?? null} /></dd>
             {terms?.suspended_at && <><dt>Paused</dt>
               <dd><span className="pill warn">Since {dayLabel(terms.suspended_at.slice(0, 10))}</span>
-                <div className="xs muted" style={{ margin: '4px 0 6px' }}>{terms.suspended_reason ?? 'An invoice is open fourteen days.'} Payroll is not created while paused; it resumes on its own when paid.</div>
+                <div className="xs muted" style={{ margin: '4px 0 6px' }}>{terms.suspended_reason ?? 'An invoice has been open fourteen days.'} Payroll is on hold until it is paid, then resumes automatically.</div>
                 <ResumePlacement placementId={id} /></dd></>}
           </dl>
           <div className="hr" style={{ margin: '18px 0 16px' }} />
-          <div className="eyebrow" style={{ marginBottom: 12 }}>Who looks after this</div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Success Managers</div>
           <ManagerPicker key={`${p.csm_id}-${p.tsm_id}`} placementId={id} team={team}
             csm={p.csm_id} tsm={p.tsm_id} />
         </div>
@@ -163,11 +163,11 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>End of day</h3>
+        <div className="card-head"><h3>Daily reports</h3>
           <span className="pill">{logs.length ? `Last ${logs.length}` : 'None yet'}</span></div>
         {logs.length === 0 ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nothing filed yet. They write these from their own account.</p></div>
+            <p className="small">No daily reports yet. Talent file these from their own account.</p></div>
         ) : logs.map(l => (
           <div key={l.id} className="checkin">
             <div className="row between" style={{ marginBottom: 6 }}>
@@ -175,7 +175,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
               {l.hours != null && <span className="xs muted">{l.hours}h</span>}
             </div>
             {l.done_text && <p className="small">{l.done_text}</p>}
-            {l.blockers && <p className="small"><span className="muted">In the way: </span>{l.blockers}</p>}
+            {l.blockers && <p className="small"><span className="muted">Blockers: </span>{l.blockers}</p>}
             {l.highlight && (
               <p className="small"><span className="muted">Highlight: </span>{l.highlight}
                 {l.share_highlight && <span className="muted"> · shared with the executive</span>}</p>
@@ -185,9 +185,9 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="card">
-        <div className="card-head"><h3>End of week</h3></div>
+        <div className="card-head"><h3>Weekly reports</h3></div>
         {mine.length === 0 ? (
-          <div className="empty"><span className="tick" /><p className="small">Nothing filed yet.</p></div>
+          <div className="empty"><span className="tick" /><p className="small">No weekly reports yet.</p></div>
         ) : mine.map(c => (
           <div key={c.id} className={`checkin ${c.needs_attention ? 'flagged' : ''}`}>
             <div className="row between" style={{ marginBottom: 6 }}>
@@ -209,12 +209,12 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
 
       <div className="card">
         <div className="card-head">
-          <h3>What the executive says</h3>
-          <span className="xs muted">Monthly pulse</span>
+          <h3>Executive pulse</h3>
+          <span className="xs muted">Monthly</span>
         </div>
         {!pulse ? (
           <div className="empty"><span className="tick" />
-            <p className="small">Nothing filed this month. It sits on their Placement page.</p></div>
+            <p className="small">No pulse this month. The executive files it from their Placement page.</p></div>
         ) : (
           <>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -222,7 +222,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
                 {GOING.find(g => g.n === pulse.going)?.label ?? '·'}
               </span>
               <span className="pill">{WORKLOADS.find(w => w.key === pulse.workload)?.label}</span>
-              {pulse.keep_going === false && <span className="pill crit">Would not place again</span>}
+              {pulse.keep_going === false && <span className="pill crit">Would not continue</span>}
             </div>
             {pulse.standout && <p className="small"><b>Went well.</b> {pulse.standout}</p>}
             {pulse.friction && <p className="small" style={{ marginTop: 6 }}><b>Not working.</b> {pulse.friction}</p>}
@@ -260,7 +260,7 @@ export default async function PlacementFile({ params }: { params: Promise<{ id: 
       <Files kind="placement" ownerId={id} docs={await listDocuments('placement', id).catch(() => [])} />
 
       <div className="card">
-        <div className="card-head"><h3>Your file</h3><span className="pill">{notes.length}</span></div>
+        <div className="card-head"><h3>Notes</h3><span className="pill">{notes.length}</span></div>
         <NoteAdder placementId={id} />
         {notes.length > 0 && (
           <ul className="note-list">

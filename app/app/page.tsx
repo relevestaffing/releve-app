@@ -203,7 +203,7 @@ export default async function AppHome() {
           <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 10 }}>Your placement</div>
           <h2 style={{ fontSize: 28, color: 'var(--cream)', marginBottom: 8 }}>{p.client_name}{p.org_name ? `, ${p.org_name}` : ''}</h2>
           <p className="small" style={{ color: '#D9DDD4', maxWidth: 560, margin: 0 }}>
-            Since {fmtDate(p.started_on)}. Your tasks, your briefing and your daily log live here, and your Talent Success Manager is one message away.
+            Started {fmtDate(p.started_on)}. Your tasks, briefing and daily log are all here, and your Talent Success Manager is a message away.
           </p>
           <div className="row" style={{ gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
             <Link className="btn sm on-dark" href="/app/tasks">Your tasks</Link>
@@ -283,8 +283,8 @@ export default async function AppHome() {
           <div>
             <p className="small" style={{ margin: '0 0 16px', maxWidth: 520 }}>
               {declinedAll
-                ? 'Thank you for telling us why that one was not right. It is exactly how the next match gets sharper. The next candidate is being chosen now.'
-                : 'Your Signature is done and the search is open. We put one person forward by hand rather than sending you a directory: a qualified candidate within fourteen days.'}
+                ? 'Thank you for telling us why that candidate was not right. It shapes who we put forward next, and we are choosing that person now.'
+                : 'Your Signature is complete and your search is open. We choose one candidate for you by hand rather than sending a list, and you will have a qualified candidate within fourteen days.'}
             </p>
             {manager && !stage.placed && <ManagerLine manager={manager} />}
             <div className="row" style={{ gap: 10, marginTop: 16 }}>
@@ -326,7 +326,7 @@ export default async function AppHome() {
         ? { eyebrow: 'Your placement', title: placements[0].talent_name ?? 'Your professional', meta: 'Tasks, hours and messages', href: '/app/tasks', cta: 'Open tasks',
             statsLabel: 'Your team', statsHref: '/app/role',
             stats: [{ n: placements.length, k: 'In seat' }] }
-        : { eyebrow: 'Your search', title: 'Being worked now', meta: 'A qualified candidate within fourteen days', href: '/app/messages?tab=sm', cta: 'Message your manager' };
+        : { eyebrow: 'Your search', title: 'Under way', meta: 'A qualified candidate within fourteen days', href: '/app/messages?tab=sm', cta: 'Message your manager' };
 
     return (
       <Shell profile={profile} active="/app" lead={lead}
@@ -385,7 +385,7 @@ export default async function AppHome() {
             {deposit?.status === 'processing' && (
               <div className="card tight">
                 <div className="row between" style={{ gap: 12, flexWrap: 'wrap' }}>
-                  <span className="small"><b>Your deposit is clearing.</b> Bank transfers take a few business days to settle; your search is open in the meantime and nothing more is needed from you.</span>
+                  <span className="small"><b>Your deposit is clearing.</b> Bank transfers take a few business days. Your search is already open, and there is nothing more you need to do.</span>
                   <span className="pill"><span className="dot" />Clearing</span>
                 </div>
               </div>
@@ -429,7 +429,7 @@ export default async function AppHome() {
           <div className="inner">
             <div style={{ marginBottom: 18 }}>
               <Explain>
-                Twelve measured axes, across eighteen facets. This is what the matching runs on.
+                Twelve axes across eighteen facets. Your matches are based on these.
               </Explain>
             </div>
             <div className="grid-2">
@@ -476,10 +476,9 @@ export default async function AppHome() {
           <div>
             <div className="eyebrow" style={{ marginBottom: 6 }}>Where you are</div>
             <div className="small">
-              Your profile is complete and on the roster. When a role fits how you
-              work, your Talent Success Manager writes to you here and by email, usually
-              with an introduction already in mind. Keep your availability current, and
-              reply to any message the same day.
+              Your profile is complete and you are on the roster. When a role fits how
+              you work, your Talent Success Manager will write to you here and by email.
+              Until then, keep your availability current and reply to messages the same day.
             </div>
           </div>
           <Link className="btn solid" href="/app/talent">See your profile</Link>

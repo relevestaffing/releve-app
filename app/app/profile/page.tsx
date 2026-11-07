@@ -43,7 +43,7 @@ export default async function ExecProfile() {
   return (
     <Shell profile={profile} active="/app/profile" title="Your profile">
       <div className="card dark">
-        <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 16 }}>How this reads to a candidate</div>
+        <div className="eyebrow" style={{ color: 'var(--pale)', marginBottom: 16 }}>What candidates see</div>
         <div className="row" style={{ gap: 18 }}>
           <Portrait id={profile.id} name={initial.full_name ?? ''} cls="lg" url={initial.photo_url} />
           <div>
@@ -68,8 +68,8 @@ export default async function ExecProfile() {
           <div className="empty-mark" aria-hidden="true" />
           <h3>Your profile starts with your {WORDS.execSignature}</h3>
           <p className="small">
-            Every candidate is scored against it. It is how we tell who will actually
-            suit you, not just who is available. Takes about fifteen minutes.
+            We score every candidate against it to find the person who will suit you.
+            It takes about fifteen minutes.
           </p>
           <a className="btn solid" href="/app/signature" style={{ marginTop: 20 }}>
             Take the {WORDS.execSignature}
@@ -100,7 +100,7 @@ export default async function ExecProfile() {
               <p className="small">{type.friction}</p>
               <div style={{ marginTop: 14 }}>
                 <Explain>
-                  Not a flaw. It is what your Client Success Manager weighs when deciding who to put in front of you.
+                  Your Client Success Manager weighs this when choosing who to introduce to you.
                 </Explain>
               </div>
             </div>

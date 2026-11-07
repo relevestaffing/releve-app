@@ -26,20 +26,20 @@ export default async function WatchPage() {
     <Shell profile={profile} active="/app/watch" title="Taking The Watch™">
       {!skillsComplete(skills) ? (
         <div className="card">
-          <div className="card-head"><h3>Break down your skills first</h3></div>
+          <div className="card-head"><h3>Add your skills first</h3></div>
           <p className="small muted" style={{ maxWidth: 560, marginBottom: 18 }}>
-            The Watch is built from the skills you claim. Break them down first.
+            The Watch is based on the skills you list, so please add them first.
           </p>
-          <Link className="btn sm ghost" href="/app/skills">Open your skills</Link>
+          <Link className="btn sm ghost" href="/app/skills">Go to your skills</Link>
         </div>
       ) : (
         <>
           <div className="card tight">
             <Explain>
-              A live, timed simulation of a real day in each discipline you claim: one attempt,
-              three hours, completed on your own time once you start it, and paid at $6 an hour. It is
-              the one part of intake that is observed rather than reported, and it has to be cleared
-              before you join the roster.
+              Taking The Watch™ is a timed work sample: a typical working day in each discipline you
+              list. You have one attempt of three hours, and you choose when to start. It is paid at
+              $6 an hour. This is the one step where we see your work directly, and you need to clear
+              it before you join the roster.
             </Explain>
           </div>
           <WatchBoard items={items} />

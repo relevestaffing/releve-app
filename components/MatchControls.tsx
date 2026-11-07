@@ -29,8 +29,8 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
     setBusy(true); setArmed(null);
     const word: Record<string, string> = {
       add: 'Matched. Not sent yet', remove: 'Unmatched',
-      release: `Approved: ${talentName} is now with ${clientName}`,
-      unrelease: 'Pulled back. No longer visible to them'
+      release: `${talentName} sent to ${clientName}`,
+      unrelease: 'Pulled back. No longer visible to the executive'
     };
     const ok = await saving(() => fetch('/api/admin/matches', {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -51,17 +51,17 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
       <form onSubmit={approve} className="decide-form" style={{ textAlign: 'left', minWidth: 280 }}>
         <p className="small" style={{ marginBottom: 12 }}>
           Send <b>{talentName}</b> to <b>{clientName}</b>? They will see this person
-          in their account and get an email. Nobody else you have released will be
-          visible while this decision is open.
+          in their account and get an email. Other released candidates are hidden
+          while this decision is open.
         </p>
         <div className="ff">
-          <label htmlFor={`${fid}-1`}>Why this person <span className="muted">(they read this)</span></label>
+          <label htmlFor={`${fid}-1`}>Why this person <span className="muted">(the executive reads this)</span></label>
           <textarea id={`${fid}-1`} name="note" rows={3} defaultValue={note ?? ''}
-            placeholder="One or two sentences in your own words. What made you choose them for this role, and for this executive." />
+            placeholder="One or two sentences on why they suit this role and this executive." />
         </div>
         <p className="xs muted" style={{ marginBottom: 12 }}>
-          Optional, but it is the only place we tell them why in our own words.
-          Your name and the time are recorded against this release.
+          Optional, but it is the only place the executive hears why from us.
+          Your name and the time are recorded with this release.
         </p>
         <div className="row" style={{ gap: 10 }}>
           <button className="btn solid" disabled={busy}>{busy ? 'Sending…' : `Approve & send to ${clientName}`}</button>
@@ -76,13 +76,13 @@ export default function MatchControls({ clientId, talentId, talentName, clientNa
       <div className="row" style={{ gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', alignItems: 'center' }}>
         <span className="xs muted">
           {armed === 'unrelease'
-            ? `Pull ${talentName} back from ${clientName}? They disappear from the executive's account.`
-            : `Unmatch ${talentName} from ${clientName}? They disappear from the executive's account and the match is gone.`}
+            ? `Pull ${talentName} back from ${clientName}? They are removed from the executive's account.`
+            : `Unmatch ${talentName} from ${clientName}? They are removed from the executive's account and the match is deleted.`}
         </span>
         <button className="btn sm solid" disabled={busy} onClick={() => act(armed)}>
           {busy ? 'Working…' : armed === 'unrelease' ? 'Yes, pull back' : 'Yes, unmatch'}
         </button>
-        <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Keep it</button>
+        <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(null)}>Cancel</button>
       </div>
     );
   }

@@ -14,8 +14,8 @@ export default function DelegateContent() {
           We tune your assistant to your business.
         </h2>
         <p className="small" style={{ maxWidth: 520, color: 'var(--pale)' }}>
-          Choose what you want off your plate. We shape the role, and match your
-          person, around how your business actually runs.
+          Choose what you want to hand off. We shape the role, and choose your
+          assistant, around how your business runs.
         </p>
       </div>
 

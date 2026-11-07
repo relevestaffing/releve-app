@@ -39,7 +39,7 @@ export default function CalendarConnect() {
       /* On success the browser is already leaving for Google; nothing to reset. */
     } catch {
       setBusy(false);
-      toast.bad('Google did not open. Please try again; your hours below still work as they are.');
+      toast.bad('Google did not open. Please try again. Your hours below still apply.');
     }
   }
   async function disconnect() {
@@ -51,7 +51,7 @@ export default function CalendarConnect() {
   if (failed) return (
     <div className="card">
       <div className="card-head"><h3>Google Calendar</h3></div>
-      <p className="small muted" style={{ marginBottom: 14 }}>Your calendar connection did not load. Your hours below still work as they are.</p>
+      <p className="small muted" style={{ marginBottom: 14 }}>Your calendar connection did not load. Your hours below still apply.</p>
       <button className="btn sm ghost" onClick={load}>Try again</button>
     </div>
   );
@@ -72,10 +72,9 @@ export default function CalendarConnect() {
         <>
           <p className="small" style={{ marginBottom: 14 }}>
             {s.error
-              ? <>We can no longer read your calendar: <b>{s.error}</b> Reconnect below and it will start hiding conflicts again.</>
-              : <>Your existing meetings are hidden automatically. Right now we are holding back{' '}
-                  <b>{s.busy ?? 0} block{s.busy === 1 ? '' : 's'}</b> of busy time over the next ten days,
-                  so nobody can book over something you already have.</>}
+              ? <>We can no longer read your calendar: <b>{s.error}</b> Reconnect below to keep your existing meetings off your bookable times.</>
+              : <>Your existing meetings are kept off your bookable times. We are holding back{' '}
+                  <b>{s.busy ?? 0} block{s.busy === 1 ? '' : 's'}</b> of busy time over the next ten days.</>}
           </p>
           <p className="xs muted" style={{ marginBottom: 18 }}>
             Relève reads only <b>when</b> you are busy, never what the meeting is, who is in it, or anything written in it.
@@ -89,13 +88,12 @@ export default function CalendarConnect() {
       ) : (
         <>
           <p className="small" style={{ marginBottom: 14 }}>
-            Connect your calendar and anything already in it is hidden from your bookable times automatically:
-            you keep the hours below as the times you are <i>willing</i> to meet, and your calendar removes the ones
-            you are genuinely busy.
+            Connect your calendar and your existing meetings are removed from your bookable times automatically.
+            The hours below stay as the times you are willing to meet.
           </p>
           <p className="xs muted" style={{ marginBottom: 18 }}>
-            Relève reads only your free/busy times. Never event titles, guests, or notes.
-            You can disconnect at any moment.
+            Relève sees only when you are busy, never event titles, guests or notes.
+            You can disconnect at any time.
           </p>
           <button className="btn solid" disabled={busy} onClick={connect}>
             {busy ? 'Opening Google…' : 'Connect Google Calendar'}

@@ -83,12 +83,12 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
         { k: 'Location', v: t.loc || DASH },
         { k: 'Profile', v: <span key="p" className="ws-tag">{type}</span> },
         { k: 'Validity', v: <span key="v" className={`ws-tag ${VALID[verdict] ?? 'bad'}`}>{verdict}</span> },
-        { k: 'Interview hours', v: canBook ? 'Set' : <span key="h" style={{ color: '#A4483A' }}>Not set, so nobody can book them</span> },
+        { k: 'Interview hours', v: canBook ? 'Set' : <span key="h" style={{ color: '#A4483A' }}>Not set. Interviews cannot be booked.</span> },
         { k: 'What Relève pays', v: payNode }
       ],
         tabs: [{ key: 'record', label: 'Record', body: <div style={{ display: 'grid', gap: 14 }}>
           <p className="small muted" style={{ margin: 0 }}>The full profile, Signature and documents are on the talent&rsquo;s own page.</p>
-          <div><Link className="btn sm" href={`/console/talent/${t.id}`}>Open the full profile</Link></div>
+          <div><Link className="btn sm" href={`/console/talent/${t.id}`}>Open full profile</Link></div>
           <div><DeletePerson id={t.id} name={t.name} pending={false} /></div></div> }]
       } as PersonRow;
     }),
@@ -97,9 +97,9 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       section: 'onboarding', stage: { label: 'Signature due', color: '#6E8CA8' }, ownerId: managers[t.id] ?? null,
       tags: ['onboarding', managers[t.id] === profile.id ? 'mine' : '', managers[t.id] ? '' : 'nomanager'].filter(Boolean),
       search: [t.name, t.role, t.loc].filter(Boolean).join(' '), fullHref: `/console/talent/${t.id}`,
-      headline: 'Started, Signature not finished, so there is nothing to match against yet.',
+      headline: 'Signature not finished yet, so they cannot be matched.',
       cells: { stage: <span className="ws-stage" style={{ ['--c' as any]: '#6E8CA8', cursor: 'default' }}>Signature due</span>,
-        profile: <span className="ws-faint">Not yet</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
+        profile: <span className="ws-faint">Not yet</span>, validity: <span className="ws-faint">{DASH}</span>, pay: <span className="ws-faint">{DASH}</span>, book: <span className="ws-faint">{DASH}</span> },
       props: [
         { k: 'Role', v: t.role || DASH },
         { k: 'Location', v: t.loc || DASH },
@@ -110,9 +110,9 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
       id: p.id, name: p.full_name, sub: [p.headline ?? p.org_name, p.email].filter(Boolean).join(' · '), photo: null,
       section: 'onboarding', stage: { label: 'Invited', color: '#9AA59C' }, ownerId: null,
       tags: ['invited'], search: [p.full_name, p.email, p.headline].filter(Boolean).join(' '), fullHref: null,
-      headline: 'Added, not yet signed in.',
+      headline: 'Invited, not signed in yet.',
       cells: { stage: <span className="ws-stage" style={{ ['--c' as any]: '#9AA59C', cursor: 'default' }}>Invited</span>,
-        profile: <span className="ws-faint">—</span>, validity: <span className="ws-faint">—</span>, pay: <span className="ws-faint">—</span>, book: <span className="ws-faint">—</span> },
+        profile: <span className="ws-faint">{DASH}</span>, validity: <span className="ws-faint">{DASH}</span>, pay: <span className="ws-faint">{DASH}</span>, book: <span className="ws-faint">{DASH}</span> },
       props: [
         { k: 'Email', v: <a key="e" href={`mailto:${p.email}`}>{p.email}</a> },
         { k: 'Added as', v: p.role },
@@ -147,14 +147,14 @@ export default async function Bench({ searchParams }: { searchParams: Promise<{ 
           { key: 'review', label: 'To review', warn: true }, { key: 'unbookable', label: 'No interview hours', warn: true },
           { key: 'onboarding', label: 'Onboarding' }, { key: 'invited', label: 'Not signed in' }, { key: 'nomanager', label: 'No manager', warn: true }
         ]}
-        empty={{ title: "The roster is empty", text: "Add someone from the top of this list, or let them apply through Careers." }}
+        empty={{ title: "No talent yet", text: "Add someone above, or they can apply through the careers page." }}
       />
 
       {bench.length > 0 && (
       <div className="card">
         <div className="card-head"><h3>Validity detail</h3><span className="pill">Internal only</span></div>
         <details className="more">
-          <summary>Show the raw control measures</summary>
+          <summary>Show raw validity scores</summary>
           <div className="inner">
         <table className="data">
           <thead><tr><th>Talent</th><th>Impression mgmt</th><th>Inconsistency</th><th>Extreme</th><th>Longest run</th><th>Median s/item</th><th>Notes</th></tr></thead>

@@ -37,9 +37,9 @@ export default function WaiveDeposit({ searchId, cents, status }: {
 
   return (
     <span className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      <span className="xs muted">Open their search without the {money(cents)}?</span>
+      <span className="xs muted">Waive the {money(cents)} deposit and open their search?</span>
       <button className="btn sm solid" disabled={busy} onClick={waive}>
-        {busy ? 'Waiving…' : 'Yes, waive it'}
+        {busy ? 'Waiving…' : 'Waive deposit'}
       </button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setArmed(false)}>Cancel</button>
     </span>

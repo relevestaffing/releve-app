@@ -36,7 +36,7 @@ export default async function ConsolePlacements({ searchParams }: { searchParams
       }>
       <ConsoleTabs active="/console/placements" items={[
         { href: '/console/placements', label: 'Placements' },
-        { href: '/console/checkins', label: 'End of week' },
+        { href: '/console/checkins', label: 'Weekly reports' },
         { href: '/console/care', label: 'Care' }
       ]} />
       <PlacementMaker people={people} placements={placements}

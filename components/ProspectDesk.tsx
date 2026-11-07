@@ -33,7 +33,7 @@ export function AddProspect({ calendarOn }: { calendarOn: boolean }) {
         source: f.get('source'), call_at: f.get('call_at') ? new Date(String(f.get('call_at'))).toISOString() : null,
         note: f.get('note')
       })
-    }), 'Added');
+    }), 'Prospect added');
     setBusy(false);
     if (ok) { (e.target as HTMLFormElement).reset(); setOpen(false); router.refresh(); }
   }
@@ -44,7 +44,7 @@ export function AddProspect({ calendarOn }: { calendarOn: boolean }) {
     try {
       r = await fetch('/api/admin/prospects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'import' }) });
       d = await r.json().catch(() => ({}));
-    } catch { setBusy(false); toast.bad('No connection.'); return; }
+    } catch { setBusy(false); toast.bad('No connection. Please try again.'); return; }
     setBusy(false);
     if (!r.ok) { toast.bad(d.error ?? 'Could not read the calendar.'); return; }
     if (d.reason) { toast.bad(d.reason); return; }
@@ -56,7 +56,7 @@ export function AddProspect({ calendarOn }: { calendarOn: boolean }) {
     <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
       {!open && <button className="btn solid" onClick={() => setOpen(true)}>Add a prospect</button>}
       {calendarOn && <button className="btn ghost" disabled={busy} onClick={pull}>
-        {busy ? 'Reading…' : 'Pull calls from the calendar'}</button>}
+        {busy ? 'Importing…' : 'Import from calendar'}</button>}
       {open && (
         <form onSubmit={submit} className="card" style={{ flex: '1 1 100%', marginTop: 8 }}>
           <div className="card-head"><h3>New prospect</h3>
@@ -120,21 +120,21 @@ export function ProspectRow({ p }: { p: Prospect }) {
               onBlur={() => note !== (p.note ?? '') && move(p.stage)} />
           </div>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-            {p.stage === 'booked' && <button className="btn sm ghost" disabled={busy} onClick={() => move('held')}>Call held</button>}
-            {p.stage === 'held' && <button className="btn sm ghost" disabled={busy} onClick={() => move('proposal')}>They are deciding</button>}
+            {p.stage === 'booked' && <button className="btn sm ghost" disabled={busy} onClick={() => move('held')}>Mark call held</button>}
+            {p.stage === 'held' && <button className="btn sm ghost" disabled={busy} onClick={() => move('proposal')}>Mark as deciding</button>}
             <a className="btn sm solid" href={onboardHref}>Send onboarding</a>
             {!losing
               ? <button className="btn sm ghost" disabled={busy} onClick={() => setLosing(true)}>Passed</button>
               : <form className="row" style={{ gap: 8 }} onSubmit={e => { e.preventDefault(); move('lost', { lost_reason: new FormData(e.currentTarget).get('why') }); }}>
-                  <input name="why" aria-label="Why they passed" placeholder="Why, in a few words" style={{ maxWidth: 260, minHeight: 44 }} />
+                  <input name="why" aria-label="Why they passed" placeholder="Reason, in a few words" style={{ maxWidth: 260, minHeight: 44 }} />
                   <button className="btn sm" disabled={busy}>Mark passed</button>
-                  <button type="button" className="btn sm ghost" onClick={() => setLosing(false)}>Keep</button>
+                  <button type="button" className="btn sm ghost" onClick={() => setLosing(false)}>Cancel</button>
                 </form>}
           </div>
         </>
       )}
       {p.stage === 'lost' && p.lost_reason && <p className="small muted" style={{ marginTop: 8 }}>{p.lost_reason}</p>}
-      {p.stage === 'won' && <p className="small muted" style={{ marginTop: 8 }}>Onboarding sent. They are in the Executives tab now.</p>}
+      {p.stage === 'won' && <p className="small muted" style={{ marginTop: 8 }}>Onboarding sent. They now appear under Executives.</p>}
       {p.note && done && <p className="small" style={{ marginTop: 8 }}>{p.note}</p>}
       <span className="xs muted" style={{ display: 'block', marginTop: 6 }}>{firstName(p.full_name)} · {PROSPECT_SOURCES.find(s => s.key === p.source)?.label}</span>
     </div>

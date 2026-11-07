@@ -115,7 +115,7 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
       });
       if (!r.ok || !r.body) {
         const j = await r.json().catch(() => ({}));
-        throw new Error(j.error || 'The assistant did not answer.');
+        throw new Error(j.error || 'Relève could not answer just now.');
       }
       const reader = r.body.getReader();
       const dec = new TextDecoder();
@@ -133,14 +133,14 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
           if (ev.t === 'text') patchLast(m => ({ ...m, content: m.content + ev.d, status: '' }));
           else if (ev.t === 'status') patchLast(m => ({ ...m, status: ev.d }));
           else if (ev.t === 'done') { finished = true; patchLast(m => ({ ...m, content: ev.reply || m.content, proposals: ev.proposals ?? [], status: '', at: new Date().toISOString() })); }
-          else if (ev.t === 'error') throw new Error(ev.d || 'The assistant did not answer.');
+          else if (ev.t === 'error') throw new Error(ev.d || 'Relève could not answer just now.');
         }
       }
       if (!finished) patchLast(m => ({ ...m, status: '' }));
     } catch (e: any) {
       if (e?.name !== 'AbortError') {
-        const why = e?.message ?? 'The assistant did not answer.';
-        patchLast(m => ({ ...m, status: '', content: m.content || `${why} If it keeps happening, your Success Manager can help from Messages.` }));
+        const why = e?.message ?? 'Relève could not answer just now.';
+        patchLast(m => ({ ...m, status: '', content: m.content || `${why} If this keeps happening, message your Success Manager.` }));
       }
     }
     setBusy(false);
@@ -156,12 +156,12 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
       setMsgs(ms => [
         ...ms.map(m => ({ ...m, proposals: m.proposals?.map(x => x.id === p.id ? { ...x, status, result: r.ok ? j.result : { error: j.error } } : x) })),
         { role: 'assistant', at: new Date().toISOString(), live: true,
-          content: !r.ok ? `That did not go through: ${j.error || 'no reason given'}. Nothing changed.`
-            : decision === 'dismiss' ? 'Left as it was. Anything else?'
-            : `Done. ${p.summary.replace(/\.$/, '')}. Anything else while I am here?` }
+          content: !r.ok ? `That change did not go through: ${j.error || 'no reason given'}. Nothing was changed.`
+            : decision === 'dismiss' ? 'Nothing changed. Anything else?'
+            : `Done. ${p.summary.replace(/\.$/, '')}. Anything else?` }
       ]);
-      if (!r.ok) toast.bad(j.error || 'That did not work.');
-    } catch { toast.bad('No connection. Nothing changed.'); }
+      if (!r.ok) toast.bad(j.error || 'That change did not go through.');
+    } catch { toast.bad('You appear to be offline. Nothing was changed.'); }
     setActing('');
   }
 
@@ -202,7 +202,7 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
                       {m.proposals.map(p => (
                         <div key={p.id} className={`ask-proposal ${p.status}`}>
                           <div className="ask-proposal-tag">
-                            {p.status === 'proposed' ? 'Waiting for you' : p.status === 'done' ? 'Done' : p.status === 'failed' ? 'Did not work' : 'Not now'}
+                            {p.status === 'proposed' ? 'Waiting for you' : p.status === 'done' ? 'Done' : p.status === 'failed' ? 'Not completed' : 'Not now'}
                           </div>
                           <div className="small" style={{ marginBottom: p.status === 'proposed' ? 12 : 0 }}>{p.summary}</div>
                           {p.status === 'failed' && p.result?.error && <div className="xs" style={{ color: 'var(--crit)', marginTop: 4 }}>{String(p.result.error)}</div>}
@@ -238,10 +238,10 @@ export default function AskReleve({ who, founder, starters, managerHref, compact
         <div className="ask-foot">
           <span className="xs muted">
             {who === 'admin'
-              ? (founder ? (compact ? 'Proposals wait for your confirmation. All logged.' : 'Changes are proposals until you confirm them, and every one is logged.') : 'Read only here; changes are made from the console pages.')
+              ? (founder ? (compact ? 'Proposals wait for your confirmation. All logged.' : 'Changes are proposals until you confirm them, and every one is logged.') : 'Read only. Make changes from the console pages.')
               : <>Relève answers here. For a decision on your account, <a href={managerHref}>message your Success Manager</a>.</>}
           </span>
-          {msgs.some(m => m.role === 'user') && !compact && <button type="button" className="ask-clear" disabled={busy} onClick={() => { setMsgs(ms => ms.filter(m => m.greeting)); try { sessionStorage.removeItem(CACHE); } catch {} }}>Clear the window</button>}
+          {msgs.some(m => m.role === 'user') && !compact && <button type="button" className="ask-clear" disabled={busy} onClick={() => { setMsgs(ms => ms.filter(m => m.greeting)); try { sessionStorage.removeItem(CACHE); } catch {} }}>Clear conversation</button>}
         </div>
       </form>
     </div>

@@ -23,7 +23,7 @@ export default async function DirectoryTabs({ active }: { active: 'prospects' | 
       <Link className="btn sm" href="/console/vetting">{vet.length} to verify</Link>
     )}
     {watch.length > 0 && (
-      <Link className="btn sm" href="/console/watch">{watch.length} Watch to review</Link>
+      <Link className="btn sm" href="/console/watch">{watch.length} Watch reviews</Link>
     )}
   </>;
 

@@ -17,7 +17,7 @@ export default function SeenFeedback({ id }: { id: string }) {
   return (
     <div className="card tight" style={{ background: 'var(--cream)' }}>
       <p className="small" style={{ margin: 0 }}>
-        <b>New feedback from Relève.</b> Have a read below.
+        <b>New feedback from Relève.</b> You can read it below.
       </p>
     </div>
   );

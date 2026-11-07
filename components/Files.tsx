@@ -21,10 +21,10 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
     fd.set('file', file); fd.set('owner_kind', kind); fd.set('owner_id', ownerId); fd.set('label', label);
     let r: Response, d: any = {};
     try { r = await fetch('/api/admin/documents', { method: 'POST', body: fd }); d = await r.json().catch(() => ({})); }
-    catch { setBusy(false); toast.bad('No connection, so nothing was uploaded.'); return; }
+    catch { setBusy(false); toast.bad('You appear to be offline. Nothing was uploaded.'); return; }
     setBusy(false);
-    if (!r.ok) { toast.bad(d.error ?? 'Could not upload.'); return; }
-    toast.saved('Filed');
+    if (!r.ok) { toast.bad(d.error ?? 'The file did not upload. Please try again.'); return; }
+    toast.saved('File added');
     setLabel('');
     if (input.current) input.current.value = '';
     router.refresh();
@@ -35,7 +35,7 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
     setBusy(true);
     const r = await fetch('/api/admin/documents', { method: 'DELETE', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: doc.id }) }).catch(() => null);
     setBusy(false);
-    if (!r?.ok) { toast.bad('Could not remove it.'); return; }
+    if (!r?.ok) { toast.bad('The file was not removed. Please try again.'); return; }
     toast.saved('Removed');
     router.refresh();
   }
@@ -75,7 +75,7 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
         )}
       <div className="row" style={{ gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div className="ff" style={{ flex: '1 1 220px', margin: 0 }}>
-          <label htmlFor={`${fid}-l`} className="xs muted">What it is</label>
+          <label htmlFor={`${fid}-l`} className="xs muted">Label</label>
           <input id={`${fid}-l`} value={label} onChange={e => setLabel(e.target.value)}
             placeholder="NDA addendum, W-8BEN, SOP for the inbox" />
         </div>
@@ -83,7 +83,7 @@ export default function Files({ kind, ownerId, docs }: { kind: OwnerKind; ownerI
           accept=".pdf,.doc,.docx,image/jpeg,image/png,image/webp"
           onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); }} />
         <button className="btn sm solid" disabled={busy} onClick={() => input.current?.click()}>
-          {busy ? 'Filing…' : 'Add a file'}</button>
+          {busy ? 'Uploading…' : 'Add a file'}</button>
       </div>
     </div>
   );

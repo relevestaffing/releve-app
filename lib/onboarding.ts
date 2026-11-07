@@ -40,30 +40,30 @@ export function talentSteps(o: {
   return [
     { key: 'vetting', title: signLeft ? 'Sign your agreement' : 'Verify who you are', href: signLeft ? '/app/agreement' : '/app/vetting', minutes: signLeft ? '3 min' : '5 min',
       blurb: signLeft
-        ? 'Your identity is verified. One signature left: your contractor agreement is ready to read and sign in your account.'
+        ? 'Your identity is verified. Your contractor agreement is ready to read and sign.'
         : idDone
-          ? 'Verified, and your agreement is signed and filed. There is nothing more for you to do.'
+          ? 'Verified, and your agreement is signed and filed.'
           : sent > 0
-            ? 'Sent, and with us. We check documents within one working day and will email you either way.'
-            : 'Proof of identity. We check it once and never again, and it is never shown to an executive.',
+            ? 'Received. We review documents within one working day and will email you the result.'
+            : 'A one-time identity check. Your document is never shown to an executive.',
       done: idDone && !signLeft, critical: true },
-    { key: 'signature', title: o.signatureInvalid ? 'Retake the Talent Signature' : 'Take the Talent Signature',
+    { key: 'signature', title: o.signatureInvalid ? 'Retake the Talent Signature™' : 'Take the Talent Signature™',
       href: o.signatureInvalid ? '/app/signature?retake=1' : '/app/signature', minutes: '20 to 25 min',
       blurb: o.signatureInvalid
-        ? 'Your last attempt did not pass its own checks, so it cannot be matched. Take it again when you have twenty uninterrupted minutes.'
-        : 'How you work and who you are under pressure. Nothing is matched until this is done.',
+        ? 'Your last attempt did not pass its validity checks, so we cannot match from it. Take it again when you have twenty uninterrupted minutes.'
+        : 'Our assessment of how you work, including under pressure. Every match starts from it.',
       done: o.hasSignature && !o.signatureInvalid, critical: true },
     { key: 'skills', title: 'Break down your skills', href: '/app/skills', minutes: '8 min',
-      blurb: 'Pick every kind of work you are good at. Each opens its own breakdown. This is what decides the roles you are put forward for.',
+      blurb: 'Choose every kind of work you do well, then complete the short breakdown for each. This decides the roles you are put forward for.',
       done: !!o.hasSkills, critical: true },
-    { key: 'watch', title: 'Taking The Watch', href: '/app/watch', minutes: 'About 3 hrs per discipline',
+    { key: 'watch', title: 'Taking The Watch™', href: '/app/watch', minutes: 'About 3 hrs per discipline',
       blurb: o.watch === 'awaiting_review'
-        ? 'Submitted, and with us. Your Talent Success Manager reviews it within two working days and you will hear either way.'
+        ? 'Submitted. Your Talent Success Manager reviews it within two working days and will let you know the result.'
         : o.watch === 'cleared'
-          ? 'Cleared. You are eligible to be put forward for every discipline you claimed.'
+          ? 'Cleared. You can now be put forward in every discipline you chose.'
           : o.watch === 'none'
-            ? 'Comes after you pick your skills below: a real day of work in each discipline you claim, done once. Nobody is put in front of an executive without it.'
-            : 'A real day of work in each discipline you claimed, done once. Nobody is put in front of an executive without it.',
+            ? 'Opens once your skills are broken down: a real day of work in each discipline you choose, done once. Everyone completes it before meeting an executive.'
+            : 'A real day of work in each discipline you chose, done once. Everyone completes it before meeting an executive.',
       /* Only actually cleared counts as done. 'none' used to count as done
          too, on the idea that nothing is outstanding if nothing has been
          claimed yet — but the checklist renders "done" as a checkmark and
@@ -74,19 +74,19 @@ export function talentSteps(o: {
          since skills sits earlier in the list and won't be done either. */
       done: o.watch === 'cleared', critical: true },
     { key: 'availability', title: 'Set your availability', href: '/app/availability', minutes: '2 min',
-      blurb: 'The hours you can genuinely take a call. Without this, no executive can book you.',
+      blurb: 'The hours you are free to take calls, so executives can book time with you.',
       done: o.hasAvailability, critical: true },
     { key: 'profile', title: 'Complete your profile', href: '/app/talent/edit', minutes: '5 min',
       blurb: 'Your role, experience and a short introduction. This is what an executive reads first.',
       done: o.hasProfile },
-    { key: 'payout', title: 'Say how you want to be paid', href: '/app/pay', minutes: '2 min',
-      blurb: 'Relève pays you directly each month. Doing this now means the first payment is not held up while we ask.',
+    { key: 'payout', title: 'Set up how you are paid', href: '/app/pay', minutes: '2 min',
+      blurb: 'Relève pays you directly each month. Set this up now so your first payment goes out on time.',
       done: !!o.hasPayout },
     { key: 'photo', title: 'Add a photo', href: '/app/talent/edit#photo', minutes: '1 min',
-      blurb: 'People hire people. A face makes a real difference to how a profile lands.',
+      blurb: 'A clear photo helps an executive picture working with you.',
       done: o.hasPhoto },
     { key: 'intro_video', title: 'Record a short introduction', href: '/app/talent/edit#video', minutes: '5 min',
-      blurb: 'Thirty to sixty seconds of you, in your own voice. Executives read a lot of profiles. This is what makes yours stick.',
+      blurb: 'Thirty to sixty seconds in your own voice, so an executive has a sense of you before you meet.',
       done: !!o.hasIntroVideo }
   ];
 }
@@ -98,11 +98,11 @@ export function clientSteps(o: {
     /* Blurbs cut to one line each, 12 October 2026. A checklist is read at a
        glance, not studied: if a line needs a second sentence to justify its
        step, the step is not carrying its own weight. */
-    { key: 'signature', title: 'Take the Executive Signature', href: '/app/signature', minutes: 'about 15 min',
+    { key: 'signature', title: 'Take the Executive Signature™', href: '/app/signature', minutes: 'about 15 min',
       blurb: 'How you run your day. Every candidate is scored against it, and your answers save as you go.',
       done: o.hasSignature, critical: true },
     { key: 'role', title: 'Break down the role', href: '/app/role', minutes: '10 min',
-      blurb: 'What your person will own. The more precise you are, the closer the match.',
+      blurb: 'What your assistant will own. The more precise you are, the closer the match.',
       done: !!o.hasRole, critical: true },
     { key: 'availability', title: 'Set your interview hours', href: '/app/availability', minutes: '2 min',
       blurb: 'Candidates are only offered times inside these hours.',

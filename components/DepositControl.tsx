@@ -35,7 +35,7 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
     setValue(next); setBusy(true);
     const ok = await saving(
       () => post({ action: 'deposit_status', search_id: searchId, status: next }),
-      next === 'paid' ? `${money(cents)} deposit marked paid` : next === 'waived' ? 'Deposit waived. Its invoice is void' : `Deposit ${next}`
+      next === 'paid' ? `${money(cents)} deposit marked paid` : next === 'waived' ? 'Deposit waived and its invoice voided' : `Deposit ${next}`
     );
     setBusy(false);
     if (ok) router.refresh(); else setValue(prev);
@@ -71,17 +71,17 @@ export default function DepositControl({ searchId, clientId, status, cents, invo
           <span className="xs muted">{pending === 'paid'
             ? `Mark the ${money(cents)} deposit paid?`
             : pending === 'waived'
-              ? `Waive the ${money(cents)} deposit? Its invoice is voided.`
+              ? `Waive the ${money(cents)} deposit? This voids its invoice.`
               : `Mark the ${money(cents)} deposit due again? This records that the money was not received.`}</span>
           <button className="btn sm solid" disabled={busy}
             onClick={() => { const p = pending; setPending(null); commit(p); }}>
             {busy ? 'Working…' : pending === 'paid' ? 'Yes, mark it paid' : pending === 'waived' ? 'Yes, waive it' : 'Yes, mark it due'}</button>
-          <button className="btn sm ghost" disabled={busy} onClick={() => setPending(null)}>Keep it</button>
+          <button className="btn sm ghost" disabled={busy} onClick={() => setPending(null)}>Cancel</button>
         </>
       ) : (
         <>
           {!invoiced && value !== 'waived' &&
-            <button className="btn sm ghost" disabled={busy} onClick={bill}>Invoice it</button>}
+            <button className="btn sm ghost" disabled={busy} onClick={bill}>Invoice deposit</button>}
           {invoiced && <span className="xs muted">Invoiced</span>}
         </>
       )}

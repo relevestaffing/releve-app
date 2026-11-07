@@ -21,8 +21,8 @@ export default function VideoUpload({ initial, name }: { initial?: string | null
   async function take(file: File | undefined) {
     setErr(null);
     if (!file) return;
-    if (!file.type.startsWith('video/')) return setErr('That needs to be a video: an MP4 or MOV from your phone works well.');
-    if (file.size > MAX_MB * 1024 * 1024) return setErr(`That video is over ${MAX_MB}MB. A shorter clip, thirty to sixty seconds, is plenty.`);
+    if (!file.type.startsWith('video/')) return setErr('Please choose a video file, such as an MP4 or MOV from your phone.');
+    if (file.size > MAX_MB * 1024 * 1024) return setErr(`This video is over ${MAX_MB}MB. Please choose a shorter clip of thirty to sixty seconds.`);
 
     setBusy(true);
     try {
@@ -32,7 +32,7 @@ export default function VideoUpload({ initial, name }: { initial?: string | null
       body.append('video', file, file.name);
       const res = await fetch('/api/video', { method: 'POST', body });
       const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'The upload did not go through.');
+      if (!res.ok) throw new Error(out.error ?? 'The upload did not finish. Please try again.');
       setPreview(out.url);
       toast.saved('Introduction video added');
       router.refresh();
@@ -72,8 +72,8 @@ export default function VideoUpload({ initial, name }: { initial?: string | null
             )}
           </div>
           <p className="xs muted" style={{ marginTop: 10 }}>
-            Thirty to sixty seconds, in your own words: who you are, what you are good at,
-            and what you are like to work with. MP4 or MOV, under {MAX_MB}MB. Drag one here if you prefer.
+            Thirty to sixty seconds in your own words: who you are, what you do best and what
+            you are like to work with. MP4 or MOV, under {MAX_MB}MB. You can also drag a video here.
           </p>
         </div>
       </div>

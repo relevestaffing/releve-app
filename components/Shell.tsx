@@ -140,13 +140,13 @@ const HINTS: Record<string, Record<string, string>> = {
     '/app/talent': 'What executives see about you', '/app/watch': 'Your skills test: a real day of work',
     '/app/vetting': 'Identity, right to work and agreement', '/app/interviews': 'Book and join your interviews',
     '/app/availability': 'When you are free to meet', '/app/care': 'Who you work for and your plan',
-    '/app/tasks': 'Your work, from your executive and you', '/app/log': 'A two-minute note at the end of each day',
+    '/app/tasks': 'Everything you are working on', '/app/log': 'A two-minute note at the end of each day',
     '/app/brief': 'Your executive’s tools and preferences', '/app/checkin': 'Every Friday, to your Talent Success Manager',
     '/app/pay': 'Your rate, payout method and payments', '/app/messages': 'Write to Relève and your executive'
   },
   admin: {
     '/console/directory': 'Leads, executives and talent', '/console/recruiting': 'Applications, introductions and job posts',
-    '/console/matching': 'Pair talent with open searches, and offers', '/console/placements': 'Everyone in seat, Friday reports, requests',
+    '/console/matching': 'Open searches, pairings and offers', '/console/placements': 'Everyone in seat, Friday reports, requests',
     '/console/money': 'Invoices, payroll and the monthly run', '/console/messages': 'Every conversation with clients and talent',
     '/console/content': 'Social posts, the Letter and the email list', '/console/business': 'Reports, calendar, booking page and team'
   }
@@ -260,7 +260,7 @@ async function talentNav(profile: Profile): Promise<NavGroup[]> {
 
 function askStarters(role: string, founder: boolean): string[] {
   if (role === 'client') return ['How does the matching work?', 'What happens after I approve a candidate?', 'When is my first invoice?', 'What does the guarantee cover?'];
-  if (role === 'talent') return ['What is left on my checklist?', 'How is The Watch scored?', 'How am I paid?', 'What happens once I am placed?'];
+  if (role === 'talent') return ['What is left on my checklist?', 'How is Taking The Watch scored?', 'How am I paid?', 'What happens once I am placed?'];
   return founder
     ? ['What is waiting on me today?', 'Show me this week\u2019s posts', 'Which invoices are open?', 'Hold next Tuesday\u2019s Letter']
     : ['What is waiting on the team today?', 'Which interviews are coming up?', 'What does the Book say about releases?'];

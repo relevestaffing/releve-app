@@ -39,8 +39,8 @@ export default function BriefEditor({ placementId, talentName, initial, startOpe
         </span>
       </div>
       <p className="small muted" style={{ marginBottom: 16, maxWidth: 640 }}>
-        What {talentName} needs to work the way you do: your tools, what they can access, and your preferences.
-        They read it on their own Briefing page.
+        Everything {talentName} needs to work the way you do: your tools, their access and your preferences.
+        They read it on their Briefing page.
         {initial?.updated_at ? ` Last updated ${fmtDate(initial.updated_at)}.` : ''}
       </p>
       {!open ? (

@@ -77,17 +77,16 @@ export default async function ConsoleCalendar() {
         <div className="card">
           <div className="empty"><span className="tick" />
             <p className="small">
-              This isn't connected yet. Once the Google Calendar service account
-              is authorised and its key is added to the site, discovery calls,
-              interviews and everything else booked on hello@relevestaffing.com
-              will show up here automatically.
+              Google Calendar is not connected yet. Once the service account key is
+              added to the site, every call and interview on hello@relevestaffing.com
+              appears here.
             </p>
           </div>
         </div>
       ) : !days.length ? (
         <div className="card">
           <div className="empty"><span className="tick" />
-            <p className="small">Nothing booked on hello@ in the next 30 days.</p>
+            <p className="small">Nothing on the hello@relevestaffing.com calendar in the next 30 days.</p>
           </div>
         </div>
       ) : (
@@ -134,7 +133,7 @@ export default async function ConsoleCalendar() {
                             {theirs.map((info, i) => (
                               <span key={i}>
                                 {i > 0 && ' · '}
-                                {info.name ?? (info.role === 'talent' ? 'Talent' : 'Client')}: {timeOf(e.start, info.timezone)} {tzAbbrev(e.start, info.timezone)}
+                                {info.name ?? (info.role === 'talent' ? 'Talent' : 'Executive')}: {timeOf(e.start, info.timezone)} {tzAbbrev(e.start, info.timezone)}
                               </span>
                             ))}
                           </div>

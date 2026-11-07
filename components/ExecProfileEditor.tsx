@@ -88,27 +88,27 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
             {ZONES.map(z => <option key={z} value={z}>{zoneLabel(z)}</option>)}
           </select></div>
         <p className="xs muted">
-          Your timezone decides which interview slots you are offered. It is the one field worth getting exactly right.
+          Your timezone sets which interview times you are offered, so please check it is right.
         </p>
       </div>
 
       <div className="card">
         <div className="card-head"><h3>A short introduction</h3><span className="pill">Optional</span></div>
         <p className="small muted" style={{ marginBottom: 16 }}>
-          Two or three sentences about the business and what the person beside you would be walking into.
-          Candidates read this before an interview, and it is the difference between someone who prepared and someone who did not.
+          Two or three sentences about the business and what your assistant would be stepping into.
+          Candidates read this before an interview, so they arrive prepared.
         </p>
         <div className="ff">
           <textarea aria-label="A short introduction" name="bio" rows={4} defaultValue={initial.bio ?? ''}
-            placeholder="What the company does, what the last year has looked like, and what you actually need off your plate." />
+            placeholder="What the company does, how the last year has gone and what you need off your plate." />
         </div>
       </div>
 
       <div className="card">
         <div className="card-head"><h3>Photo</h3><span className="pill">Optional, but it helps</span></div>
         <p className="small muted" style={{ marginBottom: 18 }}>
-          People prepare differently for a person than for a job title. It saves on its own,
-          so you do not need to press save below for this one.
+          Candidates prepare better when they can see who they are meeting. Your photo saves
+          as soon as you upload it.
         </p>
         <PhotoUpload initial={initial.photo_url} name={initial.full_name ?? ''} />
       </div>
@@ -116,7 +116,7 @@ export default function ExecProfileEditor({ initial }: { initial: any }) {
       <div className="row" style={{ gap: 14 }}>
         <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save your profile'}</button>
         <button type="button" className="btn ghost" onClick={() => setEditing(false)}>Cancel</button>
-        <span className="small muted">Only matched candidates see this, never the wider roster.</span>
+        <span className="small muted">Only candidates matched with you see this.</span>
       </div>
     </form>
   );

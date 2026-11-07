@@ -101,15 +101,15 @@ export default async function ConsoleInterviews({ searchParams }: {
         <Stat label="Coming up" value={upcoming.length} sub="Not yet held" />
         <Stat label="Completed" value={count('Completed')} sub="Interviews held" />
         <Stat label="Did not proceed" value={count('Declined') + count('Cancelled')} sub="Cancelled or declined" />
-        <Stat label="No-shows" value={count('No-show')} sub="Worth a conversation" />
+        <Stat label="No-shows" value={count('No-show')} sub="Did not attend" />
       </div>
 
       <div className="card">
         <div className="card-head"><h3>Coming up</h3>
           <span className="pill">All times {tzLabel}</span></div>
         {upcoming.length === 0
-          ? <Empty title="Nothing in the diary"
-              body="Once you have approved a candidate for an executive, book the introduction below." />
+          ? <Empty title="No introductions booked"
+              body="Once a candidate has been sent to an executive, book the introduction below." />
           : (
             <table className="data">
               <thead><tr><th>Executive</th><th>Candidate</th><th>Stage</th><th>When</th><th>Status</th><th>Link</th></tr></thead>
@@ -138,12 +138,12 @@ export default async function ConsoleInterviews({ searchParams }: {
       </div>
 
       {!clients.length ? (
-        <div className="card tight"><p className="small">No executives on the books yet.</p></div>
+        <div className="card tight"><p className="small">No executives yet.</p></div>
       ) : !bookable.length ? (
         <div className="card tight">
           <p className="small" style={{ margin: 0 }}>
-            Nobody has been sent to <b>{chosen?.full_name ?? 'this executive'}</b> yet, or everyone sent was declined.
-            Send a candidate from Matching and they appear here with the times the two of them are both free.
+            No open candidates for <b>{chosen?.full_name ?? 'this executive'}</b>. Send one from Matching
+            and they appear here with the times both are free.
           </p>
         </div>
       ) : bookable.map(b => (
@@ -153,8 +153,8 @@ export default async function ConsoleInterviews({ searchParams }: {
               <h3 style={{ margin: 0 }}>{b.name}</h3>
               <div className="small muted">
                 {b.role} · {b.slots.length
-                  ? `${b.slots.length} times they and ${chosen?.full_name ?? 'the executive'} are both free`
-                  : 'no overlapping times, so check both availabilities'}
+                  ? `${b.slots.length} times when both are free`
+                  : 'no shared free times; check both sets of availability'}
               </div>
             </div>
           </div>
@@ -188,9 +188,9 @@ export default async function ConsoleInterviews({ searchParams }: {
       {!zoomConfigured() && (
         <div className="card tight">
           <p className="small muted">
-            <b>Meeting links are being added by hand.</b> Zoom is not connected yet, so
-            each booking is recorded without a link and somebody has to send one. Connecting
-            Zoom makes that automatic. The steps are in your notes.
+            <b>Zoom is not connected.</b> Bookings are saved without a meeting link, so send
+            one by hand. Once Zoom is connected, links are added automatically. The setup
+            steps are in your notes.
           </p>
         </div>
       )}

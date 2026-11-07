@@ -16,7 +16,7 @@ export default async function AskPage() {
 
   const starters = profile.role === 'client'
     ? ['How does the matching work?', 'What happens after I approve a candidate?', 'When is my first invoice?', 'What does the guarantee cover?']
-    : ['What is left on my checklist?', 'How is The Watch scored?', 'How am I paid?', 'What happens once I am placed?'];
+    : ['What is left on my checklist?', 'How is Taking The Watch scored?', 'How am I paid?', 'What happens once I am placed?'];
 
   return (
     <Shell profile={profile} active="/app/ask" title="Ask Relève">

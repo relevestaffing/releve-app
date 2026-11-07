@@ -40,7 +40,7 @@ export default async function Postings() {
         <div className="card empty-card">
           <div className="empty-mark" aria-hidden="true" />
           <h3>No roles posted yet</h3>
-          <p className="small">Publish one and it is on the careers page within a minute.</p>
+          <p className="small">Published roles appear on the careers page within a minute.</p>
         </div>
       )}
 
@@ -50,7 +50,7 @@ export default async function Postings() {
       </>}
 
       {drafts.length > 0 && <>
-        <h3 className="section-h">Drafts: only you can see these</h3>
+        <h3 className="section-h">Drafts, visible to the team only</h3>
         {drafts.map(p => <PostingRow key={p.id} post={p} applicants={count[p.id] ?? 0} />)}
       </>}
 

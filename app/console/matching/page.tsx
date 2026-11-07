@@ -50,8 +50,8 @@ export default async function Matching({ searchParams }: {
         { href: '/console/matching', label: 'Matching' },
         { href: '/console/offers', label: 'Offers' }
       ]} />
-      <Empty title="Nobody to match yet"
-        body="There are no executives on the books. Add one and complete their Executive Signature, and this page will rank the roster against them."
+      <Empty title="No executives yet"
+        body="Add an executive. Once they complete their Executive Signature™, the roster is ranked against them here."
         cta={{ label: 'Add an executive', href: '/console/people' }} />
     </Shell>
   );
@@ -69,7 +69,7 @@ export default async function Matching({ searchParams }: {
       <div className="card tight">
         <p className="small">
           <b>{chosen?.full_name ?? 'This executive'} has not completed their
-          Executive Signature yet.</b> Nothing can be ranked until they do.
+          Executive Signature™ yet.</b> The roster is ranked once they do.
         </p>
       </div>
     </Shell>
@@ -123,11 +123,10 @@ export default async function Matching({ searchParams }: {
       {queued > 0 && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>{queued} extra {queued === 1 ? 'person is' : 'people are'} released but not visible.</b>{' '}
-            {inFront ? <>{inFront.person.name} is the candidate {chosen?.full_name ?? 'this executive'} currently
-            sees. </> : null}
-            Nobody behind them appears until that decision is made. Pull the extras back
-            unless you meant to queue them.
+            <b>{queued} more {queued === 1 ? 'candidate is' : 'candidates are'} released and waiting in line.</b>{' '}
+            {inFront ? <>{chosen?.full_name ?? 'This executive'} sees {inFront.person.name} now. </> : null}
+            The next appears only after a decision. Pull the extras back unless you meant
+            to queue them.
           </p>
         </div>
       )}
@@ -135,8 +134,8 @@ export default async function Matching({ searchParams }: {
       {inFront && decided[inFront.person.id]?.state === 'shortlisted' && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--fern)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>{inFront.person.name} was approved.</b> Book the introduction from Interviews.
-            No further releases are needed for this search.
+            <b>{inFront.person.name} was approved.</b> Book the introduction from Introductions.
+            No more releases are needed for this search.
           </p>
         </div>
       )}
@@ -145,7 +144,7 @@ export default async function Matching({ searchParams }: {
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
             <b>Everyone released has been declined.</b> {chosen?.full_name ?? 'This executive'} has
-            nothing in front of them right now. Release the next candidate.
+            no candidate to review. Release the next one.
           </p>
         </div>
       )}
@@ -172,10 +171,10 @@ export default async function Matching({ searchParams }: {
             <div className="row" style={{ gap: 8 }}><span className="pill">{ranked.length} available</span>
               <span className="pill good"><span className="dot" />{releasedCount} approved &amp; sent</span></div></div>
           <p className="small muted" style={{ margin: '0 0 14px' }}>
-            One at a time. Nobody is sent until you approve them here.
+            Executives see one candidate at a time. Nobody is sent until you approve them here.
           </p>
           <table className="data" style={{ boxShadow: 'none' }}>
-            <thead><tr><th>Talent</th><th>Fit</th><th>Role</th><th>Ready</th><th>Style / Disp.</th><th>Confidence</th><th>Weakest axis</th><th>Status</th><th style={{textAlign:'right'}}>Match control</th></tr></thead>
+            <thead><tr><th>Talent</th><th>Fit</th><th>Role</th><th>Ready</th><th>Style / Disp.</th><th>Confidence</th><th>Weakest axis</th><th>Status</th><th style={{textAlign:'right'}}>Action</th></tr></thead>
             <tbody>
               {ranked.map(({ person, match, checks }) => {
                 const worst = [...match.parts].sort((a, b) => a.score - b.score)[0];
@@ -205,7 +204,7 @@ export default async function Matching({ searchParams }: {
                         return <span className="pill good"><span className="dot" />Approved</span>;
                       return person.id === inFront?.person.id
                         ? <>
-                            <span className="pill good"><span className="dot" />With them now</span>
+                            <span className="pill good"><span className="dot" />With the executive</span>
                             <RecordAnswer clientId={clientId} clientName={chosen?.full_name ?? 'the executive'}
                               talentId={person.id} talentName={person.name} />
                           </>
@@ -220,7 +219,7 @@ export default async function Matching({ searchParams }: {
                       talentName={person.name} clientName={chosen?.full_name ?? 'this executive'}
                       matched={!!byTalent[person.id]} released={!!byTalent[person.id]?.released}
                       manual={!!byTalent[person.id]?.manual}
-                      blocked={notReady.length ? `${notReady.join(' · ')}. This person cannot be sent to an executive yet.` : null}
+                      blocked={notReady.length ? `${notReady.join(' · ')}. They can be sent once this is resolved.` : null}
                       note={byTalent[person.id]?.release_note ?? null} /></td>
                   </tr>
                 );
@@ -230,8 +229,8 @@ export default async function Matching({ searchParams }: {
           {!ranked.length && (
             <div className="empty"><span className="tick" />
               <p className="small">
-                No talent available to rank. Everyone on the roster is either placed
-                already or has not completed their Talent Signature.
+                No talent to rank. Everyone on the roster is either placed or has not
+                finished their Talent Signature.
               </p>
             </div>
           )}

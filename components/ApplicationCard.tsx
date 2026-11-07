@@ -34,8 +34,8 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { toast.bad(d.error ? `Not invited. ${d.error}` : 'That did not go through. Please try again.'); setBusy(false); return; }
-      if (d.emailed) toast.saved(`${first} is in. They have the invitation`);
-      else toast.bad(`${first} is in, but the invitation email did not send. Send them the link by hand.`);
+      if (d.emailed) toast.saved(`Invitation sent to ${first}`);
+      else toast.bad(`${first} is added, but the invitation email did not send. Send them the link yourself.`);
       setBusy(false); setInviting(false);
       router.refresh();
     } catch {
@@ -110,7 +110,7 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             </button>
           )}
           <button className="btn sm ghost" onClick={() => setMore(m => !m)}>
-            {more ? 'Less' : 'Read it'}
+            {more ? 'Hide' : 'Full application'}
           </button>
         </div>
       </div>
@@ -153,13 +153,13 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
           <div className="ff"><label htmlFor={`${fid}-1`}>How did the call go?</label>
             <select id={`${fid}-1`} name="result" defaultValue="held">
               <option value="held">We spoke</option>
-              <option value="no_show">They did not come</option>
+              <option value="no_show">They did not join</option>
             </select></div>
-          <div className="ff"><label htmlFor={`${fid}-2`}>Notes <span className="muted">(yours only)</span></label>
+          <div className="ff"><label htmlFor={`${fid}-2`}>Notes <span className="muted">(team only)</span></label>
             <textarea id={`${fid}-2`} name="notes" rows={3} defaultValue={app.call_notes ?? ''}
               placeholder="How they came across, what they asked, anything you want to remember before deciding." /></div>
           <p className="xs muted" style={{ marginBottom: 12 }}>
-            Never shown to {first}, and never shown to an executive.
+            Not shown to {first} or to any executive.
           </p>
           <div className="row" style={{ gap: 10 }}>
             <button className="btn solid" disabled={busy}>{busy ? 'Saving…' : 'Save'}</button>
@@ -171,9 +171,9 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
           onSubmit={e => { e.preventDefault();
             const fd = new FormData(e.currentTarget);
             act({ state: 'declined', team_note: String(fd.get('team_note') ?? '') },
-                'Declined. They are not emailed'); }}>
-          <div className="ff"><label htmlFor={`${fid}-3`}>Why, for your own records <span className="muted">(optional)</span></label>
-            <input id={`${fid}-3`} name="team_note" placeholder="A few words is plenty." /></div>
+                'Declined. No email sent'); }}>
+          <div className="ff"><label htmlFor={`${fid}-3`}>Reason <span className="muted">(internal, optional)</span></label>
+            <input id={`${fid}-3`} name="team_note" placeholder="A few words" /></div>
           <p className="xs muted" style={{ marginBottom: 12 }}>
             Nothing is sent to {first}. Write to them yourself when you are ready.
           </p>
@@ -195,7 +195,7 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             {app.call_state === 'invited' && (
               <>
                 <button className="btn sm solid" disabled={busy} onClick={() => setResult(true)}>
-                  Record how it went
+                  Record the call
                 </button>
                 <button className="btn sm ghost" disabled={busy} onClick={() => setBooking(true)}>
                   Move the call
@@ -210,22 +210,22 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             {app.state !== 'invited' && app.call_state === 'held' && (
               inviting ? (
                 <>
-                  <span className="xs muted">Email the invitation to {first} at {app.email}? Their talent record is created now.</span>
+                  <span className="xs muted">Send {first} an invitation at {app.email}? This creates their talent record.</span>
                   <button className="btn sm solid" disabled={busy} onClick={invite}>
-                    {busy ? 'Sending…' : 'Yes, send the invitation'}
+                    {busy ? 'Sending…' : 'Send the invitation'}
                   </button>
                   <button className="btn sm ghost" disabled={busy} onClick={() => setInviting(false)}>Not yet</button>
                 </>
               ) : (
                 <button className="btn sm solid" disabled={busy} onClick={() => setInviting(true)}>
-                  Bring {first} into the platform
+                  Invite {first}
                 </button>
               )
             )}
             {app.state === 'new' && (
               <button className="btn sm ghost" disabled={busy}
-                onClick={() => act({ state: 'reviewing' }, 'Marked as reading it')}>
-                I am reading it
+                onClick={() => act({ state: 'reviewing' }, 'Marked as in review')}>
+                Mark as in review
               </button>
             )}
             {app.state !== 'declined' && app.state !== 'invited' && (
@@ -235,8 +235,7 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             )}
             {app.state === 'invited' && (
               <span className="xs muted">
-                Their talent record exists and the invitation is sent. They appear in your
-                Talent list once they sign in.
+                Invitation sent. They appear in Talent once they sign in.
               </span>
             )}
           </div>

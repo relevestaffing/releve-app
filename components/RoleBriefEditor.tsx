@@ -112,7 +112,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
       <p className="xs muted" style={{ marginTop: 8 }}>
         {hiring
           ? `${firstName(name, 'The executive')} can see their candidate, interviews and role brief.`
-          : `${firstName(name, 'The executive')} sees only the people already working with them. Open a search to put someone new in front of them.`}
+          : `${firstName(name, 'The executive')} sees only the people already working with them. Open a search to introduce someone new.`}
       </p>
       <dl className="brief-facts">
         {view.scope && <><dt>Owns</dt><dd>{view.scope}</dd></>}
@@ -126,7 +126,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
   return (
     <form onSubmit={submit} onChange={() => setSaved(false)} className="brief-read">
       <p className="xs muted" style={{ marginBottom: 14 }}>
-        From the discovery call with {firstName(name, 'the executive')}. Written the way you would say it back to them.
+        From the discovery call with {firstName(name, 'the executive')}, written in their words.
       </p>
       <div className="grid-2" style={{ gap: 12 }}>
         <div className="ff"><label htmlFor={`${fid}-1`}>Role</label>
@@ -140,7 +140,7 @@ export default function RoleBriefEditor({ clientKey, pending, initial, name }:
           placeholder="Inbox and calendar, board prep, running the weekly leadership meeting end to end." /></div>
       <div className="grid-2" style={{ gap: 12 }}>
         <div className="ff"><label htmlFor={`${fid}-4`}>Hours</label>
-          <input id={`${fid}-4`} name="hours" defaultValue={initial?.hours ?? ''} placeholder="40 a week, four overlapping 8am to 12pm Pacific" /></div>
+          <input id={`${fid}-4`} name="hours" defaultValue={initial?.hours ?? ''} placeholder="40 a week, overlapping 8am to 12pm Pacific" /></div>
         <div className="ff"><label htmlFor={`${fid}-5`}>Tools they must know</label>
           <input id={`${fid}-5`} name="tools" defaultValue={initial?.tools ?? ''} placeholder="Notion, Superhuman, Ramp" /></div>
       </div>

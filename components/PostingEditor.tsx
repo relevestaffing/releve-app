@@ -39,7 +39,7 @@ export default function PostingEditor({ post, onDone }: {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...f, id: post?.id, state })
     }), state === 'open' ? 'Live on the careers page'
-      : state === 'closed' ? 'Closed and off the site'
+      : state === 'closed' ? 'Closed and removed from the careers page'
       : live ? 'Unpublished and saved as a draft' : 'Draft saved');
     setBusy(false);
     if (ok) { onDone?.(); router.refresh(); }
@@ -57,14 +57,14 @@ export default function PostingEditor({ post, onDone }: {
           </select></div>
       </div>
 
-      <div className="ff"><label htmlFor={`${fid}-3`}>The one line on the card</label>
+      <div className="ff"><label htmlFor={`${fid}-3`}>Card summary</label>
         <input id={`${fid}-3`} value={f.summary} onChange={set('summary')}
           placeholder="Run the diary, the inbox and the follow-through for a founder in the US." />
-        <span className="xs muted">This is all most people read before deciding whether to click.</span></div>
+        <span className="xs muted">Most people read only this before deciding to click.</span></div>
 
       <div className="ff"><label htmlFor={`${fid}-4`}>Opening paragraph <span className="muted">(optional)</span></label>
         <textarea id={`${fid}-4`} rows={3} value={f.about} onChange={set('about')}
-          placeholder="Who they would be working with, and what the work is really like." /></div>
+          placeholder="Who they would work with and what the work involves." /></div>
 
       <div className="grid-2">
         <div className="ff"><label htmlFor={`${fid}-5`}>What this person owns</label>
@@ -83,16 +83,16 @@ export default function PostingEditor({ post, onDone }: {
       </div>
 
       <div className="grid-2">
-        <div className="ff"><label htmlFor={`${fid}-9`}>Pay, if you want it public <span className="muted">(optional)</span></label>
+        <div className="ff"><label htmlFor={`${fid}-9`}>Pay shown publicly <span className="muted">(optional)</span></label>
           <input id={`${fid}-9`} value={f.pay_note} onChange={set('pay_note')} placeholder="Leave blank to show nothing" /></div>
-        <div className="ff"><label htmlFor={`${fid}-10`}>Order on the page</label>
+        <div className="ff"><label htmlFor={`${fid}-10`}>Display order</label>
           <input id={`${fid}-10`} value={f.sort} onChange={set('sort')} inputMode="numeric" placeholder="0" />
-          <span className="xs muted">Lower shows first.</span></div>
+          <span className="xs muted">Lower numbers show first.</span></div>
       </div>
 
       <p className="xs muted">
         Web address: <code>{SITE}/careers/{slug}</code>
-        {post?.opened_at && '. It is fixed, because this role has already been live and the link may be out there.'}
+        {post?.opened_at && '. This is fixed because the role has already been published.'}
       </p>
 
       {missing.length > 0 && (
@@ -105,7 +105,7 @@ export default function PostingEditor({ post, onDone }: {
         <>
           <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 12 }}>
             {armed === 'draft'
-              ? <>Take <b>{f.title || 'this role'}</b> off the careers page and keep it as a draft? Anyone holding the link sees nothing until it is published again.</>
+              ? <>Take <b>{f.title || 'this role'}</b> off the careers page and keep it as a draft? Anyone with the link sees nothing until it is published again.</>
               : <>Close <b>{f.title || 'this role'}</b>? It comes off the careers page and no more applications are taken.</>}
           </p>
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>

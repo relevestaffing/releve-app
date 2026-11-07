@@ -16,7 +16,7 @@ export default function RefundInvoice({ invoiceId, cents }: { invoiceId: string;
 
   async function refund() {
     const c = toCents(amount);
-    if (c == null || c <= 0 || c > cents) { toast.bad(`A refund here can be up to ${money(cents, true)}.`); return; }
+    if (c == null || c <= 0 || c > cents) { toast.bad(`Enter an amount up to ${money(cents, true)}.`); return; }
     setBusy(true);
     try {
       const r = await fetch('/api/admin/money', {
@@ -37,7 +37,7 @@ export default function RefundInvoice({ invoiceId, cents }: { invoiceId: string;
         <input aria-label="Refund amount in US dollars" value={amount} inputMode="decimal" disabled={busy}
           onChange={e => setAmount(e.target.value)} />
       </span>
-      <button className="btn sm solid danger" disabled={busy} onClick={refund}>{busy ? 'Refunding…' : 'Yes, refund'}</button>
+      <button className="btn sm solid danger" disabled={busy} onClick={refund}>{busy ? 'Refunding…' : 'Confirm refund'}</button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</button>
     </div>
   );

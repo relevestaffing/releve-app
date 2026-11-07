@@ -151,12 +151,12 @@ export default function MessageThread({
       {msgs.length === 0 ? (
         <div className="empty-card" style={{ flex: 1, padding: '34px 20px' }}>
           <div className="empty-mark" aria-hidden="true" />
-          <h3>{readOnly || asTeam ? 'Nothing written yet' : placement ? `Nothing yet from either of you` : 'No messages yet'}</h3>
+          <h3>{readOnly || asTeam ? 'Nothing written yet' : placement ? 'No messages yet' : 'No messages yet'}</h3>
           <p className="small">
-            {readOnly ? 'When these two write to each other, it appears here.'
-              : asTeam ? 'When they write in, it appears here and you answer below.'
-              : placement ? `Write to ${theirName ?? 'them'} directly. They see it the moment they open the app.`
-              : 'Anything at all: a question, something that is not working, or something you want us to know. A person reads every message.'}
+            {readOnly ? 'Their messages to each other will appear here.'
+              : asTeam ? 'Their messages will appear here, and you can reply below.'
+              : placement ? `Write to ${theirName ?? 'them'} directly. They will see it next time they open the app.`
+              : 'Ask a question, raise something that is not working, or tell us anything we should know.'}
           </p></div>
       ) : (
         <div className="thread" aria-live="polite">
@@ -185,7 +185,7 @@ export default function MessageThread({
 
       {readOnly ? (
         <p className="xs muted" style={{ marginTop: 14 }}>
-          Read only. This is the executive and their talent writing to each other; reply from their own threads.
+          Read only. This is a conversation between the executive and their talent. Reply from your own thread with either of them.
         </p>
       ) : (
         <form onSubmit={send} className="composer">

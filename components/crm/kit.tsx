@@ -99,7 +99,7 @@ export function dueWords(day: string, today: string): { text: string; tone: 'ove
   if (n === 0) return { text: 'Today', tone: 'today' };
   if (n === 1) return { text: 'Tomorrow', tone: 'soon' };
   if (n === -1) return { text: 'Yesterday', tone: 'over' };
-  if (n < 0) return { text: `${-n} days late`, tone: 'over' };
+  if (n < 0) return { text: `${-n} days overdue`, tone: 'over' };
   const [y, m, d] = day.split('-').map(Number);
   const wd = WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
   if (n < 7) return { text: wd, tone: 'soon' };
@@ -277,7 +277,7 @@ export function DateChip({ day, today, onPick, placeholder = 'Set date', label =
 /* ---------- small marks ---------- */
 export function Fresh({ iso, today }: { iso: string | null | undefined; today: string }) {
   const f = freshness(iso, today);
-  const t = f === 'g' ? 'Touched recently' : f === 'a' ? 'Getting quiet' : f === 'r' ? 'Gone quiet' : 'Never touched';
+  const t = f === 'g' ? 'Touched in the last 3 days' : f === 'a' ? 'No touch in 4 to 10 days' : f === 'r' ? 'No touch in over 10 days' : 'Never touched';
   return <span className={`ws-fresh ${f}`} title={t} aria-label={t} />;
 }
 export function Ring({ done, total, size = 22 }: { done: number; total: number; size?: number }) {

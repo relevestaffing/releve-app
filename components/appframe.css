@@ -111,3 +111,157 @@
   .home-jump i{font-style:normal;margin-left:9px;color:#B0C4B2}
 }
 @media (min-width:901px){.home-jump{display:none}}
+
+/* ═══════════ POLISH PASS (7 November 2026) ═══════════
+   A design-lead sweep of every screen on desktop and phone, inside the Design
+   Standard and today's phone decision. Each rule names what it fixes. */
+
+/* Ask Relève on the desktop: a square tab in the sidebar's colour, not a pill,
+   and the silver dot sits before the words instead of breathing over the A. */
+@media (min-width:901px){
+  html:not(.rv-native) body .ask-fab{
+    border-radius:0!important;background:#131C17!important;background-image:none!important;color:#F3EFE6!important;
+    border:1px solid rgba(214,221,226,.16)!important;padding:14px 22px 14px 20px!important;gap:12px!important;
+    font-size:10.5px!important;letter-spacing:.24em!important;
+    box-shadow:0 20px 38px -20px rgba(5,10,8,.8)!important;transform:none!important}
+  html:not(.rv-native) body .ask-fab:hover{background:#1E2822!important;border-color:rgba(214,221,226,.3)!important}
+  html:not(.rv-native) body .ask-fab::after{
+    position:static!important;order:-1;flex:none;width:5px!important;height:5px!important;
+    background:#C3CBD1!important;box-shadow:none!important;animation:none!important;transform:none!important;opacity:1!important}
+}
+/* the phone's word in the bar: the old pulse painted a grey halo round its underline */
+@media (max-width:900px){
+  html:not(.rv-native) body .ask-fab::after{animation:none!important;box-shadow:none!important;opacity:1!important;transform:none!important}
+}
+
+/* The availability grid: the week runs 24 hours, the grid only had 15 columns,
+   so the days fell out of their rows. 24 columns, and it scrolls inside its box
+   whenever the column would be too thin to read. */
+html body .avail-grid{grid-template-columns:52px repeat(24,minmax(0,1fr))!important;gap:2px!important}
+html body .avail-scroll .avail-grid{min-width:860px}
+html body .avail-hd{font-size:10px!important;letter-spacing:0!important}
+html body .avail-day{font-size:10.5px}
+@media (max-width:900px){
+  html body .avail-scroll .avail-grid{min-width:960px;grid-template-columns:46px repeat(24,minmax(0,1fr))!important}
+  html body .avail-scroll .avail-grid > :is(.avail-day,:first-child){
+    position:sticky;left:0;z-index:1;align-self:stretch;display:flex;align-items:center;background:#FDFCF8}
+}
+
+/* Figures in Lora, as the Standard says, with lining, tabular digits so a
+   column of money still lines up. */
+html body :is(.score,.money-stat .n,.card.stat .score,.card.stat .mono-num,.founder-n,.founder-t-n,.tally-row b){
+  font-family:'Lora',serif!important;font-weight:400!important;font-variant-numeric:lining-nums tabular-nums;letter-spacing:0!important}
+
+/* Status labels are labels, not chips: the late tinted fills made square pills
+   and tone-on-tone blocks. Back to the dot and the spaced capitals. */
+html body .pill:is(.good,.warn,.crit){background:transparent!important;padding:0!important}
+
+/* Empty states: the fiddlehead alone, without the icon-in-a-circle ring. */
+html body .empty-mark,html body .empty .tick{
+  border:0!important;border-radius:0!important;width:32px!important;height:32px!important;
+  background-size:32px!important;margin-bottom:12px!important}
+
+/* "Why": the word is the control; the ? in a circle was an icon badge. */
+html body .explain-mark{display:none!important}
+html body .explain-q .explain-word{padding-bottom:3px;border-bottom:1px solid rgba(121,117,87,.45)}
+
+/* the console's search: a square field like every other field */
+html body .cs-box{border-radius:0!important}
+/* tab counts: a plain number, not a round badge */
+html body .tabs .tab-n,html body .page-body > .dir-head .tab-n{
+  background:none!important;color:inherit!important;border-radius:0!important;padding:0!important;
+  min-width:0!important;height:auto!important;margin-left:7px!important;opacity:.72;font-family:'Lora',serif}
+
+/* The crumb kept the 14px drop of an entrance animation that another rule had
+   replaced, so a two-line crumb ran into the title. It now sits where it lands. */
+html.js .topbar .crumb{transform:none!important}
+@media (min-width:901px){ html body .topbar .crumb{margin-bottom:10px!important} }
+@media (max-width:900px){ html:not(.rv-native) body .topbar .crumb{margin-bottom:6px!important;line-height:1.6} }
+
+/* Silver, never gold: the CRM's "Getting started" and "Onboarding" swatches,
+   and the warning rule on console notices. */
+html body .ws [style*="#C6A465" i]:not(.ws-stage){background:#9AA5AC!important}
+html body .ws-stage[style*="#C6A465" i],html body .ws-tag[style*="#C6A465" i]{--c:#6F7C84!important}
+html body .card[style*="border-left:3px solid var(--warn"]{border-left:2px solid #9AA5AC!important}
+
+/* Overview figures: rules between the three tiles, not a box inside the card */
+html body .founder-tiles{background:none!important;border:0!important;border-radius:0!important;gap:0!important}
+html body .founder-tile{background:transparent!important;border-left:1px solid var(--line)}
+
+/* tables inside a card: the card is the edge, no second border */
+html body .card table.data{border:0!important}
+@media (min-width:901px){ html body table.data td .btn.sm{width:auto!important} }
+
+/* a form's rows of paired fields had no space between them */
+html body form .grid-2 + .grid-2,html body form .grid-2 + .ff,html body form .ff + .grid-2{margin-top:20px}
+
+/* Matching on a laptop: the roster's nine columns were squeezed into two thirds
+   of the page and scrolled sideways. The two cards stack until the screen is wide. */
+@media (max-width:1560px){ html body .match-layout{grid-template-columns:minmax(0,1fr)!important} }
+
+/* The sidebar's quiet text failed contrast at 40%: group labels, the account
+   line and Sign out now read. */
+html:not(.rv-native) body{--on-green-3:rgba(243,239,230,.58)}
+
+/* What to delegate: the tags are words on paper, not tinted chips */
+html body .deleg-tag{background:transparent!important}
+
+@media (max-width:900px){
+  /* one left edge on phones: the title, the crumb and the cards all start 16px in */
+  html:not(.rv-native) body .topbar{padding-left:16px!important;padding-right:16px!important}
+  html:not(.rv-native) body .mobile-action{padding-left:0!important;padding-right:0!important}
+  /* table cells grow to fit an email address instead of snapping it in half */
+  html:not(.rv-native) body table.data td,html:not(.rv-native) body table.data td :is(p,.small,.xs){overflow-wrap:normal!important}
+}
+@media (min-width:901px) and (max-width:1560px){
+  /* stacked, the executive's two radars sit side by side instead of one long column */
+  html body .match-layout > .card:has(> .radar-wrap + .hr){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:48px;align-items:start}
+  html body .match-layout > .card:has(> .radar-wrap + .hr) > .card-head{grid-column:1/-1;grid-row:1}
+  html body .match-layout > .card:has(> .radar-wrap + .hr) > .radar-wrap:nth-child(2){grid-column:1;grid-row:3}
+  html body .match-layout > .card:has(> .radar-wrap + .hr) > .hr{display:none}
+  html body .match-layout > .card:has(> .radar-wrap + .hr) > .eyebrow{grid-column:2;grid-row:2}
+  html body .match-layout > .card:has(> .radar-wrap + .hr) > .radar-wrap:nth-child(5){grid-column:2;grid-row:3}
+}
+@media (min-width:901px){
+  /* the roster's nine columns: tighter cells, one-line headings, flush left edge */
+  html body .match-layout table.data th{white-space:nowrap!important;letter-spacing:.12em!important;padding:12px 10px!important;vertical-align:bottom}
+  html body .match-layout table.data :is(th,td):first-child{padding-left:0!important}
+  html body .match-layout table.data td{padding:16px 10px!important}
+  html body .match-layout table.data td:nth-child(n+8){white-space:normal!important}
+  /* a table wider than its card says so with a soft edge, as it does on phones */
+  html body .card table.data{
+    background:
+      linear-gradient(#FDFCF8,#FDFCF8) 100% 0/24px 100% no-repeat local,
+      radial-gradient(farthest-side at 100% 50%,rgba(31,42,36,.16),rgba(31,42,36,0)) 100% 0/14px 100% no-repeat scroll}
+}
+
+/* What to delegate: the examples read as one line of words, like the role cards */
+html body .deleg-tags{gap:4px 0!important}
+html body .deleg-tag{border:0!important;padding:0!important;background:transparent!important;font-size:12.5px!important}
+html body .deleg-tag:not(:last-child)::after{content:"\00B7";margin:0 8px;color:var(--pale)}
+
+/* the overview's quick links: the words are enough; the line icons were decoration */
+html body a.qa-tile > svg{display:none!important}
+
+/* The Signature Match: still its own named section, opened by a fine rule
+   instead of a cream box inside the card (the assessment row below closes it). */
+html body .card .rationale{background:transparent!important;border:0!important;border-top:1px solid var(--line-strong)!important;
+  padding:26px 0 8px!important;margin:26px 0 6px!important}
+
+/* the message box is one line tall: a long prompt ends in an ellipsis instead of
+   wrapping and showing half of its second line */
+html body .composer textarea::placeholder{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* in a conversation the Ask tab sat on top of the Send button; the thread is
+   already a conversation with a person, so the tab steps aside there */
+html body:has(.chat-card .composer) .ask-fab,html body:has(.page-body .composer) .ask-fab{display:none!important}
+
+/* tables in a card on a laptop: a little less air between columns so the last
+   column (often the button) stays inside the card */
+@media (min-width:901px){
+  html body .card table.data :is(th,td):not(:first-child){padding-left:12px!important}
+  html body .card table.data :is(th,td):not(:last-child){padding-right:12px!important}
+  html body table.data select.pill{letter-spacing:.12em!important;font-size:11px!important;padding-left:0!important}
+  html body .card table.data th{letter-spacing:.18em!important}
+  html body .card table.data td .btn.sm{padding-left:14px!important;padding-right:14px!important;letter-spacing:.16em!important}
+}

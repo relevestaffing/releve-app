@@ -58,8 +58,8 @@ export default function InterviewStatus({ id, status, mode }: {
         <>
           <span className="xs muted">
             {pending === 'Cancelled'
-              ? 'Mark it cancelled? The Zoom meeting is ended and both sides are emailed.'
-              : `Mark it ${pending.toLowerCase()}? The Zoom meeting is ended. Nobody is emailed.`}
+              ? 'Mark as cancelled? This ends the Zoom meeting and emails both sides.'
+              : `Mark as ${pending.toLowerCase()}? This ends the Zoom meeting. No one is emailed.`}
           </span>
           <button className="btn sm solid" disabled={saving}
             onClick={() => set(pending, `Interview marked ${pending}`)}>
@@ -77,16 +77,16 @@ export default function InterviewStatus({ id, status, mode }: {
   if (asking) return (
     <div className="decide-form" style={{ minWidth: 230 }}>
       <p className="small" style={{ margin: '0 0 12px' }}>
-        Tell us you cannot make this one? We will arrange another time with
-        {mode === 'client' ? ' the candidate' : ' the executive'}. Nobody is told anything
-        beyond that it needs moving.
+        Need a different time? We will arrange one with
+        {mode === 'client' ? ' the candidate' : ' the executive'} and tell them only that the
+        interview has moved.
       </p>
       <div className="row" style={{ gap: 10 }}>
         <button className="btn sm solid" disabled={saving}
           onClick={() => set('Cancelled', 'Noted. We will find another time')}>
-          Yes, I need to move it
+          Yes, find another time
         </button>
-        <button className="btn sm ghost" onClick={() => setAsking(false)}>Keep it</button>
+        <button className="btn sm ghost" onClick={() => setAsking(false)}>Keep this time</button>
       </div>
     </div>
   );
@@ -96,11 +96,11 @@ export default function InterviewStatus({ id, status, mode }: {
       {value === 'Confirmed'
         ? pill
         : <button className="btn sm solid" disabled={saving}
-            onClick={() => set('Confirmed', 'Confirmed. It is in the diary')}>
+            onClick={() => set('Confirmed', 'Interview confirmed')}>
             {saving ? 'Saving…' : 'Confirm you will be there'}
           </button>}
       <button className="btn sm ghost" disabled={saving} onClick={() => setAsking(true)}>
-        I need to move it
+        Reschedule
       </button>
     </div>
   );

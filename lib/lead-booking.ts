@@ -53,12 +53,12 @@ export function bookingInvite(o: { name: string; email: string }): Message {
     html: shell('Choose a time to speak',
       p(`${esc(first)},`) +
       p('Thank you for reaching out to Relève. The next step is a thirty-minute conversation about your business and what you would like off your plate.') +
-      p('We will learn how you work and what you are ready to hand off, and talk through what support could look like for you. Bring any questions you have about Relève.') +
+      p('We will learn how you work and talk through what support could look like for you. Bring any questions you have.') +
       p('There is nothing to prepare, and no obligation.') +
       `<p style="margin:0 0 15px;font-size:13.5px;color:#4E6B57;">If you have already booked, your confirmation is in your inbox and there is nothing more to do.</p>` +
       tagline(),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\nThank you for reaching out to Relève. The next step is a thirty-minute conversation about your business and what you would like off your plate.\n\nWe will learn how you work and what you are ready to hand off, and talk through what support could look like for you. Bring any questions you have about Relève.\n\nThere is nothing to prepare, and no obligation.\n\nChoose your time: ${link}\n\nIf you have already booked, your confirmation is in your inbox and there is nothing more to do.\n\nConsider it handled.\nRelève`
+    text: `${first},\n\nThank you for reaching out to Relève. The next step is a thirty-minute conversation about your business and what you would like off your plate.\n\nWe will learn how you work and talk through what support could look like for you. Bring any questions you have.\n\nThere is nothing to prepare, and no obligation.\n\nChoose your time: ${link}\n\nIf you have already booked, your confirmation is in your inbox and there is nothing more to do.\n\nConsider it handled.\nRelève`
   };
 }
 
@@ -75,14 +75,14 @@ export function bookingFollowUp(o: { name: string; email: string; handoff?: stri
   return {
     kind: FOLLOW_UP_KIND,
     from: SENDER,
-    subject: 'Thirty minutes to lighten your week',
-    html: shell('A lighter week',
+    subject: 'A thirty-minute call, whenever it suits you',
+    html: shell('Whenever you are ready',
       p(`${esc(first)},`) +
       p(opener) +
-      p('In thirty minutes we will map what comes off your plate first and who takes it over. You leave with a plan, not a pitch.') +
+      p('In thirty minutes we will work out together what to hand off first and what kind of support would suit you. There is no obligation.') +
       tagline(),
       { label: 'Choose your time', href: link }),
-    text: `${first},\n\n${openerText}\n\nIn thirty minutes we will map what comes off your plate first and who takes it over. You leave with a plan, not a pitch.\n\nChoose your time: ${link}\n\nConsider it handled.\nRelève`
+    text: `${first},\n\n${openerText}\n\nIn thirty minutes we will work out together what to hand off first and what kind of support would suit you. There is no obligation.\n\nChoose your time: ${link}\n\nConsider it handled.\nRelève`
   };
 }
 
@@ -199,11 +199,11 @@ export function callConfirmation(o: { name: string; event: CalendarEvent }): Mes
     html: shell('Your call is confirmed',
       p(`${esc(first)},`) +
       p(`Your discovery call with Relève is set for <b>${esc(timeLine)}</b>. It is already on your calendar.`) +
-      p('Thirty minutes. We will come prepared with what you told us, and you will leave knowing what comes off your plate first and how your 14-day search works.') +
+      p('Thirty minutes. We will have read what you shared, and you will leave knowing what to hand off first and how the 14-day search works.') +
       tagline(),
       join ? { label: 'Join on Zoom', href: join } : undefined,
       changes.length ? changes : undefined),
-    text: `${first},\n\nYour discovery call with Relève is set for ${timeLine}. It is already on your calendar.\n\nThirty minutes. We will come prepared with what you told us, and you will leave knowing what comes off your plate first and how your 14-day search works.${join ? `\n\nJoin on Zoom: ${join}` : ''}${reschedule ? `\nReschedule: ${reschedule}` : ''}${cancel ? `\nCancel: ${cancel}` : ''}\n\nConsider it handled.\nRelève`
+    text: `${first},\n\nYour discovery call with Relève is set for ${timeLine}. It is already on your calendar.\n\nThirty minutes. We will have read what you shared, and you will leave knowing what to hand off first and how the 14-day search works.${join ? `\n\nJoin on Zoom: ${join}` : ''}${reschedule ? `\nReschedule: ${reschedule}` : ''}${cancel ? `\nCancel: ${cancel}` : ''}\n\nConsider it handled.\nRelève`
   };
 }
 

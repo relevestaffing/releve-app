@@ -95,7 +95,7 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
       const now = new Date().toISOString();
       setItems(list => [{ id: `local-${now}`, at: now, by: '__me', kind, body, meta: next ? { next_follow_up: next } : {}, mentions, source: kind === 'note' ? 'activity' : 'touch' }, ...(list ?? [])]);
       if (kind !== 'note') onTouched?.(next);
-      toast.saved(mentions.length ? `Posted, and ${mentions.length === 1 ? nameOf(mentions[0]) : `${mentions.length} people`} told` : kind === 'note' ? 'Comment posted' : `${KINDS.find(k => k.key === kind)?.label} logged`);
+      toast.saved(mentions.length ? `Posted. ${mentions.length === 1 ? nameOf(mentions[0]) : `${mentions.length} people`} notified` : kind === 'note' ? 'Comment posted' : `${KINDS.find(k => k.key === kind)?.label} logged`);
       setText(''); setNext(null); setPicked([]);
     } catch { toast.bad('No connection, so nothing was saved.'); }
     setBusy(false);
@@ -140,7 +140,7 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
           ))}
         </div>}
         <textarea ref={ta} value={text} rows={expanded ? 2 : 1} aria-label="Write here"
-          placeholder={kind === 'note' ? 'Add a comment. Type @ to bring in a teammate.' : `What was said on the ${KINDS.find(k => k.key === kind)?.label.toLowerCase()}?`}
+          placeholder={kind === 'note' ? 'Add a comment. Type @ to mention a teammate.' : `What was said on the ${KINDS.find(k => k.key === kind)?.label.toLowerCase()}?`}
           onChange={e => onType(e.target.value, e.target.selectionStart ?? e.target.value.length)}
           onKeyDown={e => {
             if (mention && options.length && (e.key === 'Enter' || e.key === 'Tab')) { e.preventDefault(); pick(options[0]); return; }
@@ -177,12 +177,12 @@ export function Activity({ type, id, subjectName, team, today, stageLabel, onTou
     <div>
       {foot ? createPortal(composer, foot) : composer}
       {!ready && (
-        <p className="ws-setup">The full history starts once the one-time database setup (part 59) has run. Until then, logged touches show here; stage and owner changes are not recorded yet.</p>
+        <p className="ws-setup">Full history starts once database setup part 59 has run. Until then, only logged touches appear here, and stage and owner changes are not recorded.</p>
       )}
 
       <div className="ws-feed">
-        {items === null && <p className="ws-faint" style={{ paddingLeft: 42 }}>Reading the history…</p>}
-        {items && items.length === 0 && <p className="ws-faint" style={{ paddingLeft: 42 }}>Nothing yet. The first comment, call or change will start the history.</p>}
+        {items === null && <p className="ws-faint" style={{ paddingLeft: 42 }}>Loading history…</p>}
+        {items && items.length === 0 && <p className="ws-faint" style={{ paddingLeft: 42 }}>No activity yet. Comments, calls and changes will appear here.</p>}
         {items && items.map(it => {
           const sys = ['stage', 'owner', 'follow_up', 'created', 'field'].includes(it.kind);
           const I = ICON[it.kind] ?? Icon.dot;

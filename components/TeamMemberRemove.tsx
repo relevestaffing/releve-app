@@ -39,11 +39,11 @@ export default function TeamMemberRemove({ userId, inviteId, name, self }: {
         {invite
           ? `Withdraw the invitation for ${name}?`
           : self
-            ? 'Remove your own console access? You will leave the console straight away.'
-            : `Remove console access for ${name}? Their history stays on record.`}
+            ? 'Remove your own console access? You will leave the console immediately.'
+            : `Remove console access for ${name}? Their account and history are kept.`}
       </span>
       <button className="btn sm solid danger" disabled={busy} onClick={go}>
-        {busy ? 'Working…' : 'Confirm'}
+        {busy ? 'Working…' : invite ? 'Withdraw invitation' : 'Remove access'}
       </button>
       <button className="btn sm ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</button>
     </div>

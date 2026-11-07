@@ -60,8 +60,8 @@ export default async function Care() {
       <div style={{ marginBottom: 22 }}>
         <Explain>
           {side === 'client'
-            ? 'Each person has their own page: what they are working on, how the month has gone, and their 90-Day Success Plan. Tasks and billing cover everyone together.'
-            : 'Each placement has its own page: the 90-Day Success Plan, time off and feedback for that role. Your tasks and end of week reports cover every placement together.'}
+            ? 'Each person has their own page with their current work, their month and their 90-Day Success Plan. Tasks and billing cover everyone in one place.'
+            : 'Each placement has its own page with its 90-Day Success Plan, time off and feedback. Your tasks and end-of-week reports cover all of them in one place.'}
         </Explain>
       </div>
       <div className="stack">

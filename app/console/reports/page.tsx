@@ -177,7 +177,7 @@ export default async function Reports() {
       <h3 className="section-h">Cash collected</h3>
       <div className="card">
         <div className="card-head">
-          <h3>By the month it landed</h3>
+          <h3>By month received</h3>
           <span className="xs muted">Last twelve months · {money(cash12)} · net of refunds</span>
         </div>
         <table className="data cash-table" style={{ boxShadow: 'none' }}>
@@ -233,7 +233,7 @@ export default async function Reports() {
 
       <h3 className="section-h">The pipeline</h3>
       <div className="money-strip">
-        <div className="money-stat"><div className="n">{c.clients}</div><div className="k">Clients</div></div>
+        <div className="money-stat"><div className="n">{c.clients}</div><div className="k">Executives</div></div>
         <div className="money-stat"><div className="n">{c.searchesOpen}</div><div className="k">Open searches</div></div>
         <div className="money-stat">
           <div className="n">{c.medianDaysToPlace ?? DASH}</div><div className="k">Median days to place</div></div>
@@ -248,9 +248,9 @@ export default async function Reports() {
         <div className="money-stat"><div className="n">{c.vetted}</div><div className="k">Fully verified</div></div>
         <div className={`money-stat ${c.talent && c.vetted / c.talent < 0.5 ? 'alert' : ''}`}>
           <div className="n">{c.talent ? Math.round((c.vetted / c.talent) * 100) : 0}%</div>
-          <div className="k">Releasable</div></div>
+          <div className="k">Cleared to send</div></div>
         <div className={`money-stat ${c.checkinsFlagged ? 'alert' : ''}`}>
-          <div className="n">{c.checkinsFlagged}</div><div className="k">End of week to review</div></div>
+          <div className="n">{c.checkinsFlagged}</div><div className="k">Weekly reports to review</div></div>
       </div>
 
       <h3 className="section-h">Placements</h3>
@@ -259,7 +259,7 @@ export default async function Reports() {
         <div className="money-stat"><div className="n">{retention ?? DASH}{retention != null && '%'}</div>
           <div className="k">Seats retained{r.retention.awaitingReplacement ? ` · ${r.retention.awaitingReplacement} awaiting replacement` : ''}</div></div>
         <div className={`money-stat ${c.endedNotWorking ? 'alert' : ''}`}>
-          <div className="n">{c.endedNotWorking}</div><div className="k">Ended not working</div></div>
+          <div className="n">{c.endedNotWorking}</div><div className="k">Ended, not working out</div></div>
         <div className="money-stat"><div className="n">{cal.length}</div><div className="k">Reviewed at six months</div></div>
       </div>
 
@@ -282,40 +282,40 @@ export default async function Reports() {
       <div className="card tight" style={{ marginTop: -8 }}>
         <p className="small muted" style={{ margin: 0, maxWidth: 680 }}>
           {exp.clientsPaying === 0
-            ? 'No paying clients yet. Concentration starts mattering the moment the second one signs.'
+            ? 'No paying clients yet. Concentration matters once a second client signs.'
             : exp.clientsPaying === 1
-              ? <>Everything currently rests on one client{exp.topName ? <>: <b>{exp.topName}</b></> : ''}. Normal this early, and the number to watch: the second and third placements are what turn a single thread into a business.</>
+              ? <>All revenue comes from one client{exp.topName ? <>: <b>{exp.topName}</b></> : ''}. That is normal this early. The next two placements are what spread the risk.</>
               : exp.topShare != null && exp.topShare >= 33
-                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. Worth having a second search in flight now, so the base widens.</>
-                : <>No single client is more than a third of the run rate. The base is spread enough that one departure is a dip, not a crisis. Keep it here as you grow.</>}
+                ? <>{exp.topName ? <><b>{exp.topName}</b> is</> : 'Your largest client is'} <b>{exp.topShare}%</b> of the run rate. Opening another search now would widen the base.</>
+                : <>No client is more than a third of the run rate, so losing one would be a setback the business can absorb.</>}
         </p>
       </div>
 
       <div className="card">
         <div className="card-head">
-          <h3>Is the assessment right?</h3>
+          <h3>Assessment accuracy</h3>
           <span className="xs muted">Six-month calibration</span>
         </div>
         {!cal.length ? (
           <p className="small muted">
-            Nothing to compare yet. Every six-month review you record on the Care page
-            adds a point here, and until there are a handful this question has no answer.
+            Nothing to compare yet. Each six-month review recorded on the Care tab adds a
+            data point here. A handful are needed before the result means much.
           </p>
         ) : (
           <>
             <p className="small" style={{ marginBottom: 16 }}>
-              Across {cal.length} reviewed placement{cal.length === 1 ? '' : 's'}, the engine
+              Across {cal.length} reviewed placement{cal.length === 1 ? '' : 's'}, the match score
               was on average <b>{meanGap != null && meanGap > 0 ? `${meanGap} points pessimistic` :
                 meanGap != null && meanGap < 0 ? `${Math.abs(meanGap)} points optimistic` : 'exactly right'}</b>.
               {meanGap != null && meanGap < -8 &&
-                ' Consistently optimistic means the matching is promising more than it delivers. Worth looking at before it costs a client.'}
+                ' Consistent optimism means the match scores promise more than placements deliver. Review the matching before it costs a client.'}
             </p>
             <table className="data">
               <thead><tr>
                 <th>Client</th><th>Talent</th>
                 <th style={{ textAlign: 'right' }}>Predicted</th>
                 <th style={{ textAlign: 'right' }}>Actual</th>
-                <th style={{ textAlign: 'right' }}>Out by</th>
+                <th style={{ textAlign: 'right' }}>Difference</th>
                 <th>Kept</th>
               </tr></thead>
               <tbody>

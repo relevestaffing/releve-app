@@ -37,8 +37,8 @@ export default async function InvoiceDetail({ params }: { params: Promise<{ id: 
           ? <PayInvoiceButton invoiceId={inv.id} label={`Pay ${money(inv.amount_cents, true)}`} className="btn sm ghost" />
           : null} />
       <p className="xs muted no-print" style={{ marginTop: 16, maxWidth: 620 }}>
-        Something not right about this invoice? Write to your Client Success Manager from Messages rather than
-        paying it. We would rather fix it now.
+        If anything on this invoice looks wrong, message your Client Success Manager before paying
+        and we will correct it.
       </p>
     </Shell>
   );

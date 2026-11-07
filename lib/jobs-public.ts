@@ -67,10 +67,10 @@ export const POST_STATE: { key: PostState; label: string; tone: string; help: st
 
 export const APPLICATION_STATE: { key: ApplicationState; label: string; tone: string }[] = [
   { key: 'new',         label: 'New',            tone: 'warn' },
-  { key: 'reviewing',   label: 'Reading it',     tone: '' },
+  { key: 'reviewing',   label: 'In review',      tone: '' },
   { key: 'call_booked', label: 'Call booked',    tone: 'warn' },
   { key: 'call_held',   label: 'Call held',      tone: '' },
-  { key: 'invited',     label: 'In the platform', tone: 'good' },
+  { key: 'invited',     label: 'Invited',        tone: 'good' },
   { key: 'declined',    label: 'Declined',       tone: '' }
 ];
 
@@ -82,17 +82,17 @@ export const APPLICATION_ORDER: ApplicationState[] =
    never leave somebody wondering whose turn it is. */
 export function whoseTurn(a: { state: ApplicationState; call_state: CallState; call_at: string | null }): string {
   if (a.state === 'declined') return 'Closed.';
-  if (a.state === 'invited') return 'With them. They have the invitation and the assessment.';
-  if (a.call_state === 'no_show') return 'They did not come to the call. Rebook it, or decline.';
-  if (a.call_state === 'held') return 'Yours: decide whether to bring them into the platform.';
+  if (a.state === 'invited') return 'Waiting on them. They have the invitation and the assessment.';
+  if (a.call_state === 'no_show') return 'They missed the call. Rebook it or decline.';
+  if (a.call_state === 'held') return 'Decide whether to invite them.';
   if (a.call_state === 'invited') {
-    if (!a.call_at) return 'A call was offered with no time on it.';
+    if (!a.call_at) return 'A call was offered, but no time was set.';
     return new Date(a.call_at).getTime() > Date.now()
-      ? 'Booked. Nothing to do until the call.'
-      : 'The call time has passed. Say whether it happened.';
+      ? 'Booked. Nothing to do until then.'
+      : 'The call time has passed. Record whether it happened.';
   }
-  if (a.state === 'reviewing') return 'Yours: book the screening call, or decline.';
-  return 'Yours: read it.';
+  if (a.state === 'reviewing') return 'Book the screening call, or decline.';
+  return 'Read the application.';
 }
 
 /* The pipeline, as a set of buckets rather than a single status — a call can
@@ -118,18 +118,18 @@ export function applicationStages(apps: JobApplication[]): Record<ApplicationSta
 }
 
 export const APPLICATION_SECTIONS: { key: ApplicationStageKey; head: string; note: string }[] = [
-  { key: 'unread',   head: 'Nobody has read these yet',
-    note: 'A good applicant who waits a week is applying somewhere else.' },
+  { key: 'unread',   head: 'Not yet read',
+    note: 'Strong applicants do not wait long. Read these first.' },
   { key: 'toBook',   head: 'Ready for a call',
-    note: 'Nothing about Relève reaches them until you have spoken: no account, no assessment.' },
-  { key: 'toRecord', head: 'The call has passed',
-    note: 'Say whether it happened, so the next step is not guesswork in a week.' },
-  { key: 'decide',   head: 'Spoken to: your decision',
-    note: 'Bring them into the platform, or decline. Either is a fine answer.' },
-  { key: 'booked',   head: 'Booked, nothing to do',
+    note: 'They get no account and no assessment until you have spoken.' },
+  { key: 'toRecord', head: 'Call time passed',
+    note: 'Record whether it happened so the next step is clear.' },
+  { key: 'decide',   head: 'Awaiting your decision',
+    note: 'You have spoken. Invite them or decline.' },
+  { key: 'booked',   head: 'Call booked',
     note: 'They have the time and the joining link.' },
-  { key: 'inside',   head: 'In the platform',
-    note: 'They have their account and the assessment is theirs to complete.' },
+  { key: 'inside',   head: 'Invited',
+    note: 'They have an account and the assessment to complete.' },
   { key: 'closed',   head: 'Declined', note: '' }
 ];
 
@@ -157,9 +157,9 @@ export const HEARD_VIA = [
    are the assessment, and the assessment comes after an invitation. */
 export const APPLY_QUESTIONS: { key: string; label: string; hint: string }[] = [
   { key: 'why',   label: 'Why this role?',
-    hint: 'Two or three sentences. We read every one.' },
+    hint: 'Two or three sentences is enough.' },
   { key: 'setup', label: 'Your working setup',
-    hint: 'Your machine, your internet, and whether you have a quiet place to take calls.' }
+    hint: 'Your computer, your internet connection, and whether you have a quiet place for calls.' }
 ];
 
 /* A slug that survives being typed by a human at speed. */
@@ -177,13 +177,13 @@ export function lines(v: string | null | undefined): string[] {
    the console can say the thing rather than mark a field red. */
 export function postReady(p: Partial<JobPost>): string[] {
   const missing: string[] = [];
-  if (!(p.title ?? '').trim())   missing.push('It needs a title.');
-  if (!(p.summary ?? '').trim()) missing.push('It needs the one-line summary that shows on the card.');
-  if (!lines(p.owns).length)     missing.push('Say what this person will own, in at least one line.');
-  if (!lines(p.needs).length)    missing.push('Say what you are looking for, in at least one line.'
+  if (!(p.title ?? '').trim())   missing.push('Add a title.');
+  if (!(p.summary ?? '').trim()) missing.push('Add the one-line summary shown on the card.');
+  if (!lines(p.owns).length)     missing.push('Add at least one line on what this person will own.');
+  if (!lines(p.needs).length)    missing.push('Add at least one line on what you are looking for.'
 );
   if (!(p.location ?? '').trim() && !(p.hours ?? '').trim())
-    missing.push('Give either the hours or the location, so applicants can tell if it fits.');
+    missing.push('Add the hours or the location so applicants can tell if it fits.');
   return missing;
 }
 

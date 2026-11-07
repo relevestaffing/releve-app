@@ -121,7 +121,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
         } catch { /* fall through to the warning */ }
         if (!saveWarned.current) {
           saveWarned.current = true;
-          toast.bad('Your answers have stopped saving. Stay on this page and we will keep trying.');
+          toast.bad('Your answers are not saving right now. Stay on this page and we will keep trying.');
         }
       }
     };
@@ -186,13 +186,13 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       /* Never show a result page over a failed save — the person would
          believe they were finished and close the tab. */
       if (!r.ok) {
-        toast.bad(out.error ?? 'That did not send. Stay on this page and try again.');
+        toast.bad(out.error ?? 'Your Signature did not send. Stay on this page and try again.');
         setBusy(false);
         return;
       }
       setResult(out);
     } catch {
-      toast.bad('No connection. Stay on this page. Your answers are still here.');
+      toast.bad('You appear to be offline. Stay on this page; your answers are still here.');
     }
     setBusy(false);
   }
@@ -202,8 +202,8 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <div className="empty-mark" aria-hidden="true" />
       <h3>We could not load your assessment</h3>
       <p className="small">
-        That is almost always the connection rather than anything you did. Nothing you
-        have already answered is lost. It is saved on our side.
+        This is usually the connection. Every answer you have given is saved, so
+        nothing is lost.
       </p>
       <button className="btn sm solid" style={{ marginTop: 16 }}
         onClick={() => { setQi(-2); setAttempt(n => n + 1); }}>Try again</button>
@@ -222,8 +222,8 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <h2 style={{ fontSize: 32, margin: '0 0 16px' }}>{side === 'client' ? 'Executive Signature' : 'Talent Signature'}</h2>
       <p style={{ maxWidth: 680, marginBottom: 14 }}>
         {side === 'talent'
-          ? 'This is the instrument the whole match is built on. It measures how you work and who you are under pressure across eighteen facets, with controls that detect answers given to impress rather than to describe. Answer as you actually are. An honest profile is what puts you in a role that lasts.'
-          : 'This measures how you actually run your day and what your environment demands of the person beside you, across the same eighteen facets every candidate is measured on, plus the practical conditions of the role. It is what every candidate is scored against before you ever see a name.'}
+          ? 'Every match we make starts here. It measures how you work and how you handle pressure across eighteen facets, and it can tell when answers are given to impress. Answer as you are. An honest profile leads to a role that lasts.'
+          : 'This measures how you run your day and what you need from the person working with you, across the same eighteen facets every candidate is measured on, plus the practical conditions of the role. Every candidate is scored against it before you see a name.'}
       </p>
       <p className="small muted" style={{ marginBottom: 30 }}>
         {data.total} screens, about {side === 'talent' ? 'twenty' : 'fifteen'} minutes.
@@ -250,7 +250,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
       <div className="progress-rail"><span style={{ width: '97%' }} /></div>
       <h2 style={{ fontSize: 24, marginBottom: 12 }}>Conditions</h2>
       <p className="small muted" style={{ marginBottom: 30 }}>
-        Not scored, only checked. A match that clears every axis and fails on hours or discretion is not a match.
+        These are not scored. We use them to check the practical fit, such as hours and discretion.
       </p>
       {/* Controlled and saved on change. These used to be read out of the DOM
           at submit time only, with the middle option pre-selected — so Back
@@ -282,7 +282,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
           <input id={`${fid}-1`} value={conds.tools_other ?? ''}
             onChange={e => setConds({ ...conds, tools_other: e.target.value })}
             onBlur={e => setCond('tools_other', e.target.value.trim())}
-            placeholder="Wix, Mailchimp, a booking system, whatever it actually is" />
+            placeholder="Wix, Mailchimp, a booking system, anything else" />
         </div>
       </div>
       <div className="assess-foot">
@@ -297,7 +297,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
         </div>
       </div>
       <p className="xs muted" style={{ marginTop: 14 }}>
-        These save as you go, the same as your answers. You can leave this page and come back.
+        These save as you go. You can leave and come back at any time.
       </p>
     </div>
   );
@@ -325,7 +325,7 @@ export default function SignatureFlow({ side, existing, fresh = false }: {
         </div>
         <div className="assess-foot">
           <button className="btn ghost sm" onClick={() => setQi(qi - 1)}>← Back</button>
-          <span className="xs muted">Neither answer is the right one</span>
+          <span className="xs muted">There is no right answer</span>
         </div>
         {chip && <div className="chip-note"><span className="tick" />{chip}</div>}
       </div>
@@ -385,7 +385,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
         <div className="row" style={{ gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
           <span className="pill" style={{ borderColor: 'var(--pale)', color: 'var(--pale)', background: 'transparent' }}>{result.disposition}</span>
           <span className={`pill ${result.validity.verdict === 'Valid' ? 'good' : result.validity.verdict === 'Review' ? 'warn' : 'crit'}`}>
-            <span className="dot" />{result.validity.verdict === 'Valid' ? 'Profile verified' : result.validity.verdict === 'Review' ? 'Up for review' : 'Needs retaking'}
+            <span className="dot" />{result.validity.verdict === 'Valid' ? 'Profile verified' : result.validity.verdict === 'Review' ? 'Under review' : 'Needs retaking'}
           </span>
         </div>
         <p style={{ fontFamily: 'var(--display)', fontSize: 19, color: 'var(--pale)', marginBottom: 18 }}>{a.tag}</p>
@@ -420,7 +420,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
       )}
       {a.growth && (
         <div className="card">
-          <div className="card-head"><h3>The growth edge</h3></div>
+          <div className="card-head"><h3>Where to grow</h3></div>
           <p className="small">{a.growth}</p>
         </div>
       )}
@@ -433,13 +433,13 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
         <div className="card" style={{ marginTop: 20 }}>
           <div className="card-head">
             <h3>{result.validity.verdict === 'Invalid'
-              ? 'This one did not come out usable'
-              : 'One note on how we read this'}</h3>
+              ? 'Please retake your Signature'
+              : 'A note on your results'}</h3>
           </div>
           <p className="small" style={{ marginBottom: 14 }}>
             {result.validity.verdict === 'Invalid'
-              ? 'The answers did not hold together well enough to build a match on. That is almost always the assessment\u2019s fault rather than yours. Usually it is a missed reading check, or a run of answers that contradict each other. Nothing is held against you.'
-              : 'Your profile is good and it is being used. This is only a note on how we weigh it, and it reflects the questions rather than you.'}
+              ? 'Your answers were not consistent enough for us to match on. This usually comes from a missed reading check or a run of answers that contradict each other. Nothing is held against you.'
+              : 'Your profile is in use. This note only affects how we weigh some of your answers.'}
           </p>
           {result.validity.flags?.length > 0 && (
             <ul className="plain" style={{ marginBottom: 16 }}>
@@ -451,10 +451,9 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
           {result.validity.verdict === 'Invalid' && (
             <>
               <p className="small muted" style={{ marginBottom: 16 }}>
-                Take it again when you have twenty uninterrupted minutes. Read each statement, and
-                answer as you actually are rather than as you would like to be.
-                A couple of statements ask you to pick one specific answer rather than rate yourself, so read
-                each one carefully before responding.
+                Take it again when you have twenty uninterrupted minutes, and answer as you are
+                rather than as you would like to be. A few statements ask for one specific answer
+                instead of a rating, so read each one carefully.
               </p>
               <a className="btn solid" href="/app/signature?retake=1">Take it again</a>
             </>
@@ -465,7 +464,7 @@ function Results({ result, side }: { result: any; side: 'client' | 'talent' }) {
         {/* Thirteen to twenty minutes of work used to end at an underlined
             phrase inside a sentence, with no mention of what came next. */}
         <div className="row" style={{ gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
-          <a className="btn solid" href="/app">See what is left to do</a>
+          <a className="btn solid" href="/app">See your next steps</a>
         </div>
       </div>
     </div>

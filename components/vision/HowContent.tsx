@@ -14,15 +14,15 @@
 
 const METHOD: { t: string; d: string }[] = [
   { t: 'Your business, studied first',
-    d: 'Your Client Success Manager learns how you operate and builds the role around what you actually need.' },
-  { t: 'Your Executive Signature',
-    d: 'About fifteen minutes measuring how you work. Every candidate is scored against it.' },
+    d: 'Your Client Success Manager learns how you operate and builds the role around what you need.' },
+  { t: 'Your Executive Signature™',
+    d: 'An assessment of how you work, about fifteen minutes long. Every candidate is scored against it.' },
   { t: 'Vetted on six fronts',
     d: 'Tested against your role, identity verified, scored against your Signature, with the reasons written out.' },
   { t: 'Prepared, then presented',
-    d: 'Briefed on your tools and standards before you meet. Your calendar, your terms, your decision.' },
+    d: 'Briefed on your tools and standards before you meet. You choose the time, and the decision is yours.' },
   { t: 'Handled from there',
-    d: 'Your Client Success Manager and your person\'s Talent Success Manager take care of the weekly reports, the coaching and the cover. You stay out of it.' }
+    d: 'Your Client Success Manager and your assistant\'s Talent Success Manager take care of weekly reports, coaching and cover when your assistant is away.' }
 ];
 
 export default function HowContent() {
@@ -33,7 +33,7 @@ export default function HowContent() {
           What you get
         </div>
         <h2 style={{ fontSize: 30, color: 'var(--cream)', marginBottom: 14, maxWidth: 620 }}>
-          A trusted professional, chosen for you and fully managed.
+          A trusted virtual professional, chosen for you and fully managed.
         </h2>
         <p className="small" style={{ maxWidth: 580, color: 'var(--pale)' }}>
           One person, vetted on six fronts and matched to how you work, in front
@@ -70,7 +70,7 @@ export default function HowContent() {
           <li>Your business and role studied first.</li>
           <li>Skills tested against the work you will hand over.</li>
           <li>Scored against your Executive Signature.</li>
-          <li>Identity verified, with a signed agreement on file.</li>
+          <li>Identity verified.</li>
           <li>NDA and contractor agreement signed.</li>
           <li>Personally reviewed by our team before you see them.</li>
         </ul>
@@ -81,8 +81,8 @@ export default function HowContent() {
           The 14-Day Placement Guarantee
         </div>
         <p className="small" style={{ color: 'var(--cream)', maxWidth: 560, margin: 0 }}>
-          One vetted candidate, chosen for you personally, in front of you within
-          fourteen days. Not a list to sort. A person to meet.
+          One vetted candidate, chosen for you personally and in front of you
+          within fourteen days.
         </p>
       </div>
     </>

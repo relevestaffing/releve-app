@@ -58,10 +58,10 @@ export default function WatchAttemptForm({
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        toast.bad(d?.error ?? 'That answer did not save. Try again.');
+        toast.bad(d?.error ?? 'Your answer did not save. Please try again.');
       }
     } catch {
-      toast.bad('That answer did not save. Try again.');
+      toast.bad('Your answer did not save. Please try again.');
     }
   }
 
@@ -78,12 +78,12 @@ export default function WatchAttemptForm({
         body: JSON.stringify({ attemptId })
       });
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) { toast.bad(d?.error ?? 'That did not submit. Your answers are still here, so try again, or write to hello@relevestaffing.com.'); setSubmitting(false); setConfirming(false); return; }
+      if (!res.ok) { toast.bad(d?.error ?? 'Your Watch was not sent. Your answers are still here. Please try again, or write to hello@relevestaffing.com.'); setSubmitting(false); setConfirming(false); return; }
       toast.saved('Submitted. Your Talent Success Manager will review it.');
       router.push('/app/watch');
       router.refresh();
     } catch {
-      toast.bad('That did not submit. Your answers are still here, so try again, or write to hello@relevestaffing.com.');
+      toast.bad('Your Watch was not sent. Your answers are still here. Please try again, or write to hello@relevestaffing.com.');
       setSubmitting(false);
       setConfirming(false);
     }
@@ -96,10 +96,10 @@ export default function WatchAttemptForm({
           <div className="row between" style={{ alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
             <div>
               <div className="eyebrow" style={{ color: 'var(--pale)' }}>{disciplineName}</div>
-              <h2 style={{ color: 'var(--cream)', fontSize: 22, marginTop: 4 }}>Taking The Watch</h2>
+              <h2 style={{ color: 'var(--cream)', fontSize: 22, marginTop: 4 }}>Taking The Watch™</h2>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up. Send what you have' : 'Time remaining'}</div>
+              <div className="xs" style={{ color: 'var(--pale)' }}>{over ? 'Time is up. Please send what you have.' : 'Time remaining'}</div>
               <div className="mono-num" style={{ color: over ? '#D99C8C' : 'var(--cream)' }}>{over ? '+' : ''}{clock}</div>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function WatchAttemptForm({
             <button className="btn solid" onClick={() => setConfirming(true)}>Send the Watch for review</button>
           ) : (
             <>
-              <span className="small muted">You will not be able to change any answer after this.</span>
+              <span className="small muted">You cannot change your answers after you send.</span>
               <button className="btn solid" disabled={submitting} onClick={submit}>
                 {submitting ? 'Sending…' : 'Yes, send it'}
               </button>

@@ -58,7 +58,7 @@ export default async function SignaturePage({ searchParams }: {
             {sig.validity && (
               <span className={`pill ${validityWord}`}>
                 <span className="dot" />
-                {sig.validity.verdict === 'Valid' ? 'Profile verified' : sig.validity.verdict === 'Review' ? 'Up for review' : 'Needs retaking'}
+                {sig.validity.verdict === 'Valid' ? 'Profile verified' : sig.validity.verdict === 'Review' ? 'Under review' : 'Needs retaking'}
               </span>
             )}
             <span className={`pill ${conf.level === 'High' ? 'good' : conf.level === 'Moderate' ? 'warn' : 'crit'}`}>
@@ -75,7 +75,7 @@ export default async function SignaturePage({ searchParams }: {
             <div className="inner">
               <div style={{ marginBottom: 18 }}>
                 <Explain>
-                  The six axes that shape how work actually moves between you and the person beside you.
+                  The six axes that shape how work moves between you and the person you work with.
                 </Explain>
               </div>
               <AxisBars values={sig.scores} axes={L1} />
@@ -87,9 +87,9 @@ export default async function SignaturePage({ searchParams }: {
           <div className="card-head"><h3>In detail</h3></div>
           <div style={{ marginBottom: 22, maxWidth: 640 }}>
             <Explain>
-              Six disposition traits, three measured facets each: eighteen points of resolution,
-              not six. This is the granularity every match is actually scored on{
-                side === 'client' ? ', and it is the same depth your candidates are measured at.' : '.'}
+              Six disposition traits, each measured on three facets. Every match is scored at
+              this level of detail{
+                side === 'client' ? ', and your candidates are measured the same way.' : '.'}
             </Explain>
           </div>
           <div className="grid-2">

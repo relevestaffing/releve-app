@@ -329,8 +329,8 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   if (stripeMode() === 'test') {
     attention.push({
       key: 'stripe_test_mode', rank: -1, level: 'high', count: 1,
-      what: 'Stripe is running on test keys, so no real card will be charged',
-      why: 'a deposit paid now would succeed on screen and move no money; swap STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET for their live values in Netlify before taking a payment',
+      what: 'Stripe is on test keys, so no card will be charged',
+      why: 'a deposit taken now shows as paid but moves no money. In Netlify, replace STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET with the live values before taking a payment',
       href: '/console/money', cta: 'See the money'
     });
   }
@@ -339,14 +339,14 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
     attention.push({
       key: 'email_never', rank: 0, level: 'high', count: 1,
       what: 'email has never gone out successfully',
-      why: 'fix this first: invitations, receipts and interview confirmations all depend on it, and everything else on this list follows from here',
+      why: 'fix this first. Invitations, receipts and interview confirmations all go by email',
       href: '/console/team', cta: 'Test email now'
     });
   } else if (failedWeek > 0) {
     attention.push({
       key: 'email_failing', rank: 0, level: 'high', count: failedWeek,
       what: `${agree(failedWeek, 'email', 'emails')} bounced this week`,
-      why: 'each one is a message somebody is still waiting on; the log names who and what, so it is a quick fix',
+      why: 'the log shows who each was for and why it failed, so you can fix it and resend',
       href: '/console/team', cta: 'See what failed'
     });
   }
@@ -358,18 +358,18 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const signinWeek = Number(signin?.failed_week ?? 0);
   add({ key: 'signin_failing', rank: 0, level: 'high', count: signinWeek,
     what: `${agree(signinWeek, 'sign-in did not go through', 'sign-ins did not go through')} this week`,
-    why: 'the log names the address and where it stopped, so you can get them in and tell them it is sorted',
+    why: 'the log shows the address and where it stopped, so you can get them in and let them know',
     href: '/console/team', cta: 'See the sign-ins' });
 
   const guaranteeCount = guaranteeAtRisk.length;
   add({ key: 'guarantee', rank: 1, level: 'high', count: guaranteeCount,
     what: `${agree(guaranteeCount, 'search is', 'searches are')} close to the 14-day promise`,
-    why: 'send a candidate now and keep the promise you made on day one',
+    why: 'send a first candidate before the 14 days are up',
     href: '/console/care', cta: 'See the searches' });
 
   add({ key: 'suspendable', rank: 2, level: 'high', count: suspendable,
     what: `${agree(suspendable, 'invoice has', 'invoices have')} been open fourteen days or more`,
-    why: 'the placement pauses under the terms; a personal note now usually settles it the same day',
+    why: 'the placement pauses under the terms; a personal note to the client usually settles it',
     href: '/console/money', cta: 'Open Billing' });
 
   /* Paused placements and disputed payments, read on their own so a database
@@ -380,11 +380,11 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   ]);
   add({ key: 'paused', rank: 2.1, level: 'high', count: pausedCount ?? 0,
     what: `${agree(pausedCount ?? 0, 'placement is', 'placements are')} paused for an open invoice`,
-    why: 'payroll for it is on hold; it resumes on its own the day the invoice is paid',
+    why: 'payroll is on hold and resumes on its own once the invoice is paid',
     href: '/console/money', cta: 'See which' });
   add({ key: 'disputed', rank: 2.3, level: 'high', count: disputedCount ?? 0,
     what: `${agree(disputedCount ?? 0, 'payment is', 'payments are')} disputed with the bank`,
-    why: 'Stripe sets a deadline to respond; the signed agreement and the invoice document are the evidence',
+    why: 'respond in Stripe before its deadline, with the signed agreement and the invoice as evidence',
     href: '/console/money', cta: 'Open Billing' });
 
   /* A failed autopay charge used to read exactly like one nobody had tried
@@ -396,7 +396,7 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const autopayFailed = ((invoices.data ?? []) as any[]).filter(i => i.status === 'failed').length;
   add({ key: 'autopay_failed', rank: 2.2, level: 'high', count: autopayFailed,
     what: `${agree(autopayFailed, 'autopay charge', 'autopay charges')} failed`,
-    why: 'the client has a banner and a pay link already; a short personal note helps it land before day fourteen',
+    why: 'the client already has a banner and a pay link; add a short personal note before day fourteen',
     href: '/console/money', cta: 'See what failed' });
 
   /* Split, because these live on two different pages and the old single row
@@ -405,19 +405,19 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const poorPulseCount = flaggedPulse.size;
   add({ key: 'poor_pulse', rank: 3, level: 'high', count: poorPulseCount,
     what: `${agree(poorPulseCount, 'executive shared', 'executives shared')} feedback that needs a response`,
-    why: 'a quick, caring reply here is what turns a bump into loyalty',
+    why: 'read their monthly pulse and reply today',
     href: '/console/care', cta: 'Read what they said' });
 
   const poorCheckinCount = flaggedCheckin.size;
   add({ key: 'poor_checkin', rank: 4, level: 'high', count: poorCheckinCount,
     what: `${agree(poorCheckinCount, 'report needs', 'reports need')} a closer look`,
-    why: 'they took the time to speak up, and following up shows it mattered',
+    why: 'a weekly report raised a concern; read it and follow up this week',
     href: '/console/checkins', cta: 'Read what they said' });
 
   const vettingCount = new Set(vettingPending).size;
   add({ key: 'vetting', rank: 5, level: 'high', count: vettingCount,
     what: `${agree(vettingCount, 'person is', 'people are')} waiting on verification`,
-    why: 'clearing this is what opens the door to their first placement',
+    why: 'once verified, they can be put forward for a search',
     href: '/console/vetting', cta: 'Verify them' });
 
   const offerReadyCount = ((offers.data ?? []) as any[]).filter(o => o.state === 'accepted' && !o.placement_id).length;
@@ -428,8 +428,8 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
 
   const offerOpenCount = ((offers.data ?? []) as any[]).filter(o => ['sent','client_yes','talent_yes'].includes(o.state)).length;
   add({ key: 'offer_open', rank: 6, level: 'medium', count: offerOpenCount,
-    what: `${agree(offerOpenCount, 'offer is', 'offers are')} still open for an answer`,
-    why: 'a quick nudge now keeps the momentum on your side',
+    what: `${agree(offerOpenCount, 'offer is', 'offers are')} waiting on an answer`,
+    why: 'follow up with whichever side has not answered yet',
     href: '/console/offers', cta: 'Follow up' });
 
   /* A search that is open with nobody in front of the executive is the work
@@ -440,12 +440,12 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
     && s.client_id && !clientsWithRelease.has(s.client_id)).length;
   add({ key: 'nobody_released', rank: 6.8, level: 'medium', count: openWithNobody,
     what: `${agree(openWithNobody, 'open search is', 'open searches are')} ready for a first candidate`,
-    why: 'the 14-day window is open and waiting for your next move',
+    why: 'the 14 days run from the day the search opened',
     href: '/console/matching', cta: 'Rank and release' });
 
   add({ key: 'decision', rank: 7, level: 'medium', count: vitals.awaitingDecision,
     what: `${agree(vitals.awaitingDecision, 'candidate is', 'candidates are')} out with no answer yet`,
-    why: 'closing the loop here keeps the search moving toward a placement',
+    why: 'ask the executive for a yes or no so the search can move on',
     href: '/console/matching', cta: 'Follow up' });
 
   /* Somebody wrote to you asking for work. Answering slowly is how a good
@@ -454,7 +454,7 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const newAppsCount = apps.filter(a => a.state === 'new').length;
   add({ key: 'applications', rank: 8, level: 'medium', count: newAppsCount,
     what: `${agree(newAppsCount, 'application is', 'applications are')} unread`,
-    why: 'the sooner you read it, the sooner a great fit gets a call',
+    why: 'read each one and invite the strongest to a screening call',
     href: '/console/applications', cta: 'Read them' });
 
   /* A screening call whose time has come and gone with no outcome recorded is
@@ -464,13 +464,13 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
     || a.call_state === 'no_show').length;
   add({ key: 'call_result', rank: 8.5, level: 'medium', count: callResultCount,
     what: `${agree(callResultCount, 'screening call has', 'screening calls have')} no outcome recorded`,
-    why: 'write it down while it is fresh, so the next step is easy',
+    why: 'record how each went, or mark a no-show, while it is fresh',
     href: '/console/applications', cta: 'Record them' });
 
   const callDecideCount = apps.filter(a => a.call_state === 'held' && a.state !== 'invited' && a.state !== 'declined').length;
   add({ key: 'call_decide', rank: 8.6, level: 'medium', count: callDecideCount,
-    what: `${agree(callDecideCount, 'person met you and is', 'people met you and are')} ready for your answer`,
-    why: 'they liked what they saw, and a decision now keeps that excitement alive',
+    what: `${agree(callDecideCount, 'person is', 'people are')} waiting on a decision after their call`,
+    why: 'move them to the next step or let them know it is a no',
     href: '/console/applications', cta: 'Decide' });
 
   /* Revenue collection began when somebody remembered to press a button. The
@@ -486,20 +486,20 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   add({ key: 'run_month', rank: 2.5, level: 'high',
     count: unbilled,
     what: `${agree(unbilled, 'placement has', 'placements have')} no invoice drafted for this month yet`,
-    why: 'running the month now keeps revenue on schedule',
+    why: 'the daily run has not drafted it; run the month to create it',
     href: '/console/money', cta: 'Run the month' });
 
   const drafted = ((allInv.data ?? []) as any[]).filter(i => i.status === 'draft').length;
   add({ key: 'draft_invoices', rank: 6.5, level: 'medium', count: drafted,
     what: `${agree(drafted, 'invoice is', 'invoices are')} drafted and ready to send`,
-    why: 'sending it is the only step between this work and getting paid for it',
+    why: 'the client is not billed until it is sent',
     href: '/console/money', cta: 'Send them' });
 
   /* Money out. Owing somebody their wages is worse than being owed. */
   const payDueCount = ((payouts.data ?? []) as any[]).filter(p => p.state === 'due').length;
   add({ key: 'pay_due', rank: 1.5, level: 'high', count: payDueCount,
     what: `${agree(payDueCount, 'person is', 'people are')} ready to be paid`,
-    why: 'this is somebody\'s rent, so make it the first thing you clear today',
+    why: 'this is their pay, so clear it first today',
     href: '/console/money', cta: 'Pay them' });
 
   /* Compared live placements against every payout row there was — including
@@ -511,27 +511,27 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const payoutMissingCount = [...livePlacedTalent].filter(t => !payoutBy.has(t)).length;
   add({ key: 'payout_missing', rank: 7.5, level: 'medium', count: payoutMissingCount,
     what: `${agree(payoutMissingCount, 'placed person is', 'placed people are')} missing payment details`,
-    why: 'getting their details on file is what lets you pay them without delay',
+    why: 'ask them to add their details so their pay is not held up',
     href: '/console/placements', cta: 'Follow up' });
 
   add({ key: 'timeoff', rank: 9, level: 'medium', count: timeOffWaiting,
     what: `${agree(timeOffWaiting, 'time-off request is', 'time-off requests are')} waiting on you`,
-    why: 'sorting cover now means a smooth day for everyone',
+    why: 'approve or decline, and arrange cover where needed',
     href: '/console/care', cta: 'Decide' });
 
   add({ key: 'reviews', rank: 14, level: 'medium', count: reviewsDue,
     what: `${agree(reviewsDue, 'six-month review is', 'six-month reviews are')} due`,
-    why: 'this is how every future match gets even better',
+    why: 'record how each placement went; it shapes future matches',
     href: '/console/care', cta: 'Record the outcomes' });
 
   add({ key: 'stale', rank: 12, level: 'medium', count: staleCheckin,
     what: `${agree(staleCheckin, 'placement has', 'placements have')} not checked in for over a week`,
-    why: 'a quick word now keeps the relationship strong',
+    why: 'ask the talent for this week\'s report',
     href: '/console/checkins', cta: 'Check in' });
 
   add({ key: 'norate', rank: 11, level: 'medium', count: noRate,
     what: `${agree(noRate, 'live placement has', 'live placements have')} no rate set`,
-    why: 'setting it now makes sure this placement gets billed on schedule',
+    why: 'a placement cannot be invoiced until its rate is set',
     href: '/console/money', cta: 'Set the rates' });
 
   /* Ranked above the outstanding deposit: this executive cannot even be asked
@@ -539,18 +539,17 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
      day. */
   add({ key: 'awaiting_search', rank: 1.8, level: 'high', count: awaitingSearch,
     what: `${agree(awaitingSearch, 'executive is', 'executives are')} waiting on their search to open`,
-    why: 'they have signed in and can do nothing until the role brief is written, and their account promised them one business day',
+    why: 'write the role brief; their account promised a search within one business day',
     href: '/console/people', cta: 'Write the brief' });
 
   add({ key: 'deposit', rank: 10, level: 'medium', count: depositsDue,
     what: `${agree(depositsDue, 'search has', 'searches have')} an outstanding deposit`,
-    why: 'the deposit covers sourcing that has already started, so it is worth a friendly note'
-,
+    why: 'sourcing has already started; send the client a short reminder',
     href: '/console/money', cta: 'Follow up' });
 
   add({ key: 'manager', rank: 13, level: 'medium', count: noManager,
-    what: `${agree(noManager, 'placement has', 'placements have')} no manager assigned`,
-    why: 'assigning one now means somebody is always looking out for this placement',
+    what: `${agree(noManager, 'placement has', 'placements have')} no Client Success Manager`,
+    why: 'assign one so every placement has a named owner',
     href: '/console/placements', cta: 'Assign someone' });
 
   /* An executive asked for something from their own placement page: a
@@ -559,13 +558,13 @@ export async function consoleSnapshot(opts?: { mine?: string | null }): Promise<
   const reqRows = ((requests as any)?.error ? [] : ((requests as any)?.data ?? [])) as any[];
   const reqOpen = reqRows.filter(r => r.state === 'open' && (!mineId || shownIds.has(r.placement_id))).length;
   add({ key: 'client_requests', rank: 2.8, level: 'high', count: reqOpen,
-    what: `${agree(reqOpen, 'executive has', 'executives have')} asked for something from their placement page`,
-    why: 'each one was promised a reply within one business day; Care has the request and its next step',
+    what: `${agree(reqOpen, 'executive has', 'executives have')} made a request from their placement page`,
+    why: 'each was promised a reply within one business day; Care shows the request and the next step',
     href: mineId ? '/console/care?mine=1' : '/console/care', cta: 'Answer them' });
 
   add({ key: 'unread', rank: 15, level: 'medium', count: unread,
-    what: `${agree(unread, 'message is', 'messages are')} unread`,
-    why: 'answering keeps the relationship personal',
+    what: `${agree(unread, 'message is', 'messages are')} waiting on a reply`,
+    why: 'the latest message in each conversation came from them',
     href: '/console/messages', cta: 'Open the inbox' });
 
   attention.sort((a, b) => a.rank - b.rank);

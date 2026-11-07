@@ -15,7 +15,7 @@ function friendly(raw: string): string {
   if (low.includes('database error') || low.includes('signups not allowed') || low.includes('invitation only') || low.includes('signup is disabled'))
     return 'Relève accounts are opened by invitation. Sign in with the email address your invitation was sent to, or write to hello@relevestaffing.com.';
   if (low.includes('expired') || low.includes('invalid'))
-    return 'That link has already been used or has expired. Links are one-time and last an hour. Send yourself a new one below.';
+    return 'That link has expired or has already been used. Each link works once, for one hour. Request a new one below.';
   return raw;
 }
 
@@ -83,8 +83,8 @@ export default function SignIn({ initialError }: { initialError?: string }) {
                   <span className="eyebrow-rule" aria-hidden="true" />
                   <h2>Check your email</h2>
                 </div>
-                <p className="note">A sign-in link is on its way to <b>{email}</b>. It is valid for one hour and opens your account directly.</p>
-                <button className="btn ghost sm" style={{ marginTop: 24 }} onClick={() => setSent(false)}>Use a different address</button>
+                <p className="note">We have sent a sign-in link to <b>{email}</b>. It works for one hour.</p>
+                <button className="btn ghost sm" style={{ marginTop: 24 }} onClick={() => setSent(false)}>Use a different email</button>
               </div>
             </>
           ) : (
@@ -92,7 +92,7 @@ export default function SignIn({ initialError }: { initialError?: string }) {
               <div className="auth-welcome">
                 <span className="eyebrow-rule" aria-hidden="true" />
                 <h2>Welcome to Relève</h2>
-                <p>{live ? 'Your team, your time, and everything in between, all in one place. Sign in to continue.' : 'Preview mode: sign-in is skipped and nothing is saved.'}</p>
+                <p>{live ? 'Sign in to your account.' : 'Preview mode: sign-in is skipped and nothing is saved.'}</p>
               </div>
               <form onSubmit={magicLink}>
                 <div className="ff">

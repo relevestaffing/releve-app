@@ -9,7 +9,7 @@ export default function HomeJump({ items, unreadHref, unread }: {
 }) {
   if (!items.length) return null;
   return (
-    <nav className="home-jump" aria-label="More of your account">
+    <nav className="home-jump" aria-label="More pages">
       {items.map(i => (
         <Link key={i.href} href={i.href}>
           {i.label}{i.href === unreadHref && !!unread && <i>{unread > 9 ? '9+' : unread}</i>}

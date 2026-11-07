@@ -43,7 +43,7 @@ export default function ClientRequests({ placementId, talentName, existing, toda
     <div className="card">
       <div className="card-head"><h3>Ask for something</h3></div>
       <p className="small muted" style={{ marginBottom: 16, maxWidth: 620 }}>
-        Each of these goes straight to your Client Success Manager as a request, with a reply within one business day.
+        Each request goes straight to your Client Success Manager, who will reply within one business day.
       </p>
 
       <div className="req-grid" role="group" aria-label="What would you like?">
@@ -90,7 +90,7 @@ export default function ClientRequests({ placementId, talentName, existing, toda
             </label>
             <textarea id="rq-note" name="note" rows={3} maxLength={4000} required={kind === 'replacement'}
               placeholder={kind === 'replacement'
-                ? 'Be as direct as you like. This goes to us, not to them, and it is how the next match gets sharper.'
+                ? 'Be as direct as you like. Only Relève sees this, and it helps us choose the right replacement.'
                 : ''} />
           </div>
           <p className="xs muted" style={{ margin: '0 0 14px', maxWidth: 620 }}>{meta.promise}</p>

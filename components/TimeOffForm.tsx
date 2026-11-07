@@ -31,7 +31,7 @@ export default function TimeOffForm({ placementId, existing }: {
         action: 'time_off_request', placement_id: placementId,
         starts_on: from, ends_on: to, reason: why
       })
-    }), 'Asked for. Relève will come back to you');
+    }), 'Request sent. Relève will confirm with you.');
     setBusy(false);
     if (ok) { setOpen(false); setFrom(''); setTo(''); setWhy(''); router.refresh(); }
   }
@@ -40,14 +40,14 @@ export default function TimeOffForm({ placementId, existing }: {
     <div className="card">
       <div className="card-head">
         <h3>Time off</h3>
-        {!open && <button className="btn sm solid" onClick={() => setOpen(true)}>Ask for time off</button>}
+        {!open && <button className="btn sm solid" onClick={() => setOpen(true)}>Request time off</button>}
       </div>
 
       {open && (
         <div style={{ marginBottom: 22 }}>
           <p className="small muted" style={{ marginBottom: 16 }}>
-            Ask as far ahead as you can. Relève arranges cover with your executive,
-            so nobody is caught out on the morning.
+            Please ask as early as you can. Relève arranges cover with your executive
+            so the work continues while you are away.
           </p>
           <div className="grid-2" style={{ gap: 14 }}>
             <div className="ff"><label htmlFor={`${fid}-1`}>First day away</label>
@@ -55,7 +55,7 @@ export default function TimeOffForm({ placementId, existing }: {
             <div className="ff"><label htmlFor={`${fid}-2`}>Last day away</label>
               <input id={`${fid}-2`} type="date" min={from || new Date().toISOString().slice(0, 10)} value={to} onChange={e => setTo(e.target.value)} /></div>
           </div>
-          {bad && <div className="err">The last day cannot be before the first.</div>}
+          {bad && <div className="err">The last day cannot be before the first day.</div>}
           {from && to && !bad &&
             <p className="xs muted">{nights(from, to)} day{nights(from, to) === 1 ? '' : 's'}.</p>}
           <div className="ff"><label htmlFor={`${fid}-3`}>Anything Relève should know (optional)</label>
@@ -71,7 +71,7 @@ export default function TimeOffForm({ placementId, existing }: {
       )}
 
       {!existing.length ? (
-        <p className="small muted">Nothing booked.</p>
+        <p className="small muted">No time off requested yet.</p>
       ) : existing.map(t => {
         const s = TIME_OFF_STATE.find(x => x.key === t.state);
         return (

@@ -20,7 +20,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         <BrandedError
           eyebrow="A moment"
           title="Relève did not load"
-          line="Something on our side stopped this page from opening. Try again in a moment; if it persists, write to us and a person will reply."
+          line="Something on our side stopped Relève from opening. Please try again in a moment, and write to us if it happens again."
           retry={reset} home="/" digest={error.digest} />
       </body>
     </html>

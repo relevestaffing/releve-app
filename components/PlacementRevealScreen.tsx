@@ -21,9 +21,9 @@ export default function PlacementRevealScreen({
     setBusy(true);
     try {
       const res = await fetch('/api/placement-reveal', { method: 'POST' });
-      if (!res.ok) toast.bad('Could not save that you have seen this. It may show again next time.');
+      if (!res.ok) toast.bad('We could not save your progress, so this screen may show again next time.');
     } catch {
-      toast.bad('Could not save that you have seen this. It may show again next time.');
+      toast.bad('We could not save your progress, so this screen may show again next time.');
     }
     router.push('/app');
   }

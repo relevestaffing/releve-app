@@ -47,7 +47,7 @@ export default function GiveNotice({ placementId, talentName, noticeGivenOn, not
       </div>
       <p className="small" style={{ marginBottom: 8, maxWidth: 620 }}>
         Your placement with <b>{talentName}</b> runs to <b>{ends ? dayLabel(ends) : 'the end of the current term'}</b>,
-        and billing continues through that date. Your Client Success Manager will be in touch about a smooth
+        and billing continues through that date. Your Client Success Manager will be in touch to plan the
         handover.
       </p>
       <p className="xs muted" style={{ margin: 0, maxWidth: 620 }}>{NOTICE_TERMS}</p>
@@ -65,12 +65,12 @@ export default function GiveNotice({ placementId, talentName, noticeGivenOn, not
         body: JSON.stringify({ action: 'give_notice', placement_id: placementId, reason, note })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) { toast.bad(d.error ?? 'That did not record. Please try again.'); setBusy(false); return; }
+      if (!r.ok) { toast.bad(d.error ?? 'Your notice was not recorded. Please try again.'); setBusy(false); return; }
       setGiven(d.notice_given_on ?? todayInPacific());
       setEnds(d.notice_ends_on ?? previewEnds);
       toast.saved(`Notice recorded. The placement runs to ${d.ends_on ?? dayLabel(previewEnds)}`);
       router.refresh();
-    } catch { toast.bad('No connection. Nothing was recorded.'); }
+    } catch { toast.bad('You appear to be offline. Nothing was recorded.'); }
     setBusy(false); setConfirming(false);
   }
 
@@ -101,8 +101,8 @@ export default function GiveNotice({ placementId, talentName, noticeGivenOn, not
           </div>
           {reason === 'fit' && (
             <p className="xs muted" style={{ margin: '-6px 0 12px', maxWidth: 560 }}>
-              A replacement is covered by your guarantee and keeps everything you have built. Your Client Success
-              Manager can set one in motion today instead, if you would prefer.
+              A replacement is covered by your guarantee and keeps everything you have built. If you prefer, your
+              Client Success Manager can start one today.
             </p>
           )}
           <div className="ff" style={{ maxWidth: 560 }}>

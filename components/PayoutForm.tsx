@@ -33,7 +33,7 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
     const ok = await saving(() => fetch('/api/payout', {
       method: 'POST', headers: { 'content-type': 'application/json' },
       body: JSON.stringify(f)
-    }), 'Saved. Relève will check these before the first payment');
+    }), 'Saved. Relève will check these details before your first payment.');
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -44,18 +44,17 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
         <h3>How you would like to be paid</h3>
         {initial?.confirmed_at
           ? <span className="pill good"><span className="dot" />Checked by Relève</span>
-          : initial ? <span className="pill warn"><span className="dot" />With Relève to check</span> : null}
+          : initial ? <span className="pill warn"><span className="dot" />Being checked by Relève</span> : null}
       </div>
 
       <p className="small muted" style={{ marginBottom: 22, maxWidth: 620 }}>
-        Relève pays you directly, once a month. These details are seen by the Relève team
-        and by nobody else: never by an executive, and never by anyone else on the roster.
-        You can change them whenever you like; if you do, we check them again before the
-        next payment.
+        Relève pays you directly, once a month. Only the Relève team sees these details.
+        Executives and other professionals on the roster never see them. You can change them
+        at any time, and we will check them again before your next payment.
       </p>
 
       <div className="ff">
-        <span className="label-like" id={`${fid}-how`}>How</span>
+        <span className="label-like" id={`${fid}-how`}>Payment method</span>
         <div className="row" role="group" aria-labelledby={`${fid}-how`} style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
           {PAYOUT_METHODS.map(m => (
             <button key={m.key} type="button"
@@ -70,10 +69,10 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
       {chosen && (
         <>
           <div className="grid-2" style={{ gap: 14 }}>
-            <div className="ff"><label htmlFor={`${fid}-1`}>The name on the account</label>
+            <div className="ff"><label htmlFor={`${fid}-1`}>Name on the account</label>
               <input id={`${fid}-1`} value={f.beneficiary} onChange={e => setF(p => ({ ...p, beneficiary: e.target.value }))}
-                placeholder="Exactly as it appears there" />
-              <span className="xs muted">If it does not match, the transfer bounces and you wait another week.</span></div>
+                placeholder="Exactly as it appears on the account" />
+              <span className="xs muted">If the name does not match, the payment is returned and can be delayed by a week.</span></div>
             <div className="ff"><label htmlFor={`${fid}-2`}>Country</label>
               <input id={`${fid}-2`} value={f.country} onChange={e => setF(p => ({ ...p, country: e.target.value }))}
                 placeholder="Philippines" /></div>
@@ -85,7 +84,7 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
 
           <div className="ff"><label htmlFor={`${fid}-4`}>Anything else we should know <span className="muted">(optional)</span></label>
             <input id={`${fid}-4`} value={f.note} onChange={e => setF(p => ({ ...p, note: e.target.value }))}
-              placeholder="A reference the transfer needs to carry, for instance" /></div>
+              placeholder="For example, a reference the payment must include" /></div>
 
           {/* Tax residency. Asked once, here, because this is the screen where
               somebody is already thinking about money — and because the answer
@@ -93,7 +92,7 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
               payment rather than during it. No tax number is asked for or
               stored, on purpose. */}
           <div className="ff">
-            <span className="label-like" id={`${fid}-tax`}>Where are you tax resident?</span>
+            <span className="label-like" id={`${fid}-tax`}>Where are you a tax resident?</span>
             <div className="row" role="group" aria-labelledby={`${fid}-tax`} style={{ gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
               <button type="button"
                 className={`btn sm ${f.us_person === false ? 'solid' : 'ghost'}`}
@@ -103,12 +102,12 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
                 className={`btn sm ${f.us_person === true ? 'solid' : 'ghost'}`}
                 aria-pressed={f.us_person === true}
                 onClick={() => setF(p => ({ ...p, us_person: true, tax_residence: 'United States' }))}>
-                I am a US person for tax</button>
+                I am a US person for tax purposes</button>
             </div>
             <span className="xs muted" style={{ marginTop: 8 }}>
-              &ldquo;US person&rdquo; means a citizen, a green card holder, or someone
-              resident there for tax. If you are unsure, say outside and we will work it
-              out together.
+              &ldquo;US person&rdquo; means a US citizen, a green card holder, or a US
+              resident for tax purposes. If you are not sure, choose Outside the United
+              States and we will confirm it with you.
             </span>
           </div>
 
@@ -119,10 +118,10 @@ export default function PayoutForm({ initial }: { initial: Payout | null }) {
                 onChange={e => setF(p => ({ ...p, tax_residence: e.target.value }))}
                 placeholder="Philippines" />
               <span className="xs muted">
-                We will send you a W-8BEN to sign before your first payment. It is a short
-                form that says you are taxed where you live rather than in the United
-                States. <b>We never ask for a tax identification number and never store
-                one</b>, the same rule as your identity documents.
+                We will send you a W-8BEN to sign before your first payment. This short form
+                confirms that you are taxed where you live, not in the United States. <b>We
+                never ask for or store a tax identification number</b>, the same rule we follow
+                for your identity documents.
               </span>
             </div>
           )}

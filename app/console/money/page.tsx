@@ -133,7 +133,7 @@ export default async function ConsoleMoney() {
     else if (!(po.detail ?? '').trim()) wiseSkipped.push({ name: who, why: 'no Wise email on file' });
     else if (!(po.beneficiary ?? '').trim()) wiseSkipped.push({ name: who, why: 'no beneficiary name on file' });
     else if ((po.currency || 'USD').toUpperCase() !== 'USD')
-      wiseSkipped.push({ name: who, why: `set up to be paid in ${(po.currency || '').toUpperCase()}, and this run is in US dollars` });
+      wiseSkipped.push({ name: who, why: `paid in ${(po.currency || '').toUpperCase()}; this run is in US dollars` });
     else if (!p.amount_cents || p.amount_cents <= 0) wiseSkipped.push({ name: who, why: 'nothing owed' });
     else wiseReady.push(p);
   }
@@ -192,7 +192,7 @@ export default async function ConsoleMoney() {
         </div>
         <div className="money-stat">
           <div className="n">{money(margin.netCents)}</div>
-          <div className="k">Yours{margin.pct != null ? ` · ${margin.pct}%` : ''}</div>
+          <div className="k">Margin{margin.pct != null ? ` · ${margin.pct}%` : ''}</div>
         </div>
         <div className={`money-stat ${sum.overdueCents > 0 ? 'alert' : ''}`}>
           <div className="n">{money(sum.overdueCents)}</div>
@@ -225,7 +225,7 @@ export default async function ConsoleMoney() {
           )}
           {sum.failedCount > 0 && (
             <p className="small" style={{ margin: '0 0 6px' }}>
-              <b>{sum.failedCount} payment{sum.failedCount === 1 ? '' : 's'} did not go through.</b> They have been emailed a pay link.
+              <b>{sum.failedCount} payment{sum.failedCount === 1 ? '' : 's'} failed.</b> Each executive has been emailed a payment link.
             </p>
           )}
           {sum.disputedCount > 0 && (
@@ -240,7 +240,7 @@ export default async function ConsoleMoney() {
       <div className="money-strip">
         <div className="money-stat">
           <div className="n">{money(sum.outstandingCents)}</div>
-          <div className="k">Asked for · {sum.unpaidCount}</div>
+          <div className="k">Outstanding · {sum.unpaidCount}</div>
         </div>
         <div className={`money-stat ${sum.draftCount > 0 ? 'alert' : ''}`}>
           <div className="n">{sum.draftCount}</div>
@@ -253,7 +253,7 @@ export default async function ConsoleMoney() {
       </div>
       {sum.draftCount > 0 && (
         <p className="small muted" style={{ margin: '-8px 0 20px' }}>
-          {money(sum.draftCents)} drafted, not sent, so not counted as owed.
+          {money(sum.draftCents)} in drafts, not counted as owed until sent.
         </p>
       )}
 
@@ -271,16 +271,16 @@ export default async function ConsoleMoney() {
       {unpaid.length > 0 && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>{unpaid.length === 1 ? `${unpaid[0].talent_name} has` : `${unpaid.length} placed people have`} no pay on file</b>, so
-            the payroll run skips them. Set what Relève pays them on each{' '}
+            <b>{unpaid.length === 1 ? `${unpaid[0].talent_name} has` : `${unpaid.length} placed people have`} no pay set</b>, so
+            payroll skips them. Set their pay on the{' '}
             <Link href={`/console/placements/${unpaid[0].placement_id}`}>placement file</Link> and they join the next run.
           </p>
         </div>
       )}
       <div className="card">
         {duePayments.length === 0 ? (
-          <Empty title="Nobody is waiting to be paid"
-            body="Press Run payroll after the billing run and every live placement appears here with what it owes them." />
+          <Empty title="No talent payments due"
+            body="Run payroll after the billing run. Each live placement then appears here with the amount due." />
         ) : (
           <>
             <WiseBatch count={wiseReady.length} skipped={wiseSkipped} owner={owner} />
@@ -317,8 +317,8 @@ export default async function ConsoleMoney() {
         <div className="card tight">
           <p className="small">
             <b>{sum.placementsWithoutRate} placement{sum.placementsWithoutRate === 1 ? ' has' : 's have'} no
-            rate set.</b> They are skipped by the monthly run, so nothing is billed for them.
-            Set the rate below and they join the next issue.
+            rate set.</b> The monthly run skips them, so nothing is billed.
+            Set the rate below and they are included in the next run.
           </p>
         </div>
       )}
@@ -327,17 +327,17 @@ export default async function ConsoleMoney() {
         <div className="card">
           <div className="card-head">
             <h3>Search deposits</h3>
-            <span className="xs muted">Due once a search begins · refunded only if no candidate is presented · marking paid or waived is the owner&rsquo;s</span>
+            <span className="xs muted">Due when a search opens · refunded only if no candidate is presented · only an owner can mark it paid or waived</span>
           </div>
           <table className="data">
             <thead><tr>
-              <th>Client</th><th>Role</th><th>Opened</th><th>Stage</th><th>Deposit</th>
+              <th>Executive</th><th>Role</th><th>Opened</th><th>Stage</th><th>Deposit</th>
             </tr></thead>
             <tbody>
               {searches.map(sr => (
                 <tr key={sr.id}>
                   <td>{sr.org_name ?? sr.client_name}
-                    {sr.pending && <div className="xs muted">No account yet. The pay link is in their onboarding email</div>}</td>
+                    {sr.pending && <div className="xs muted">Not signed in yet. The payment link is in their onboarding email.</div>}</td>
                   <td className="xs">{sr.role_title}</td>
                   <td className="xs">{dayLabel(sr.opened_at)}</td>
                   <td className="xs">{sr.stage}</td>
@@ -361,8 +361,8 @@ export default async function ConsoleMoney() {
         {!live.length ? <p className="small muted">No live placements yet.</p> : (
           <table className="data">
             <thead><tr>
-              <th>Client</th><th>Talent</th><th>Started</th>
-              <th>Minimum term</th><th style={{ textAlign: 'right' }}>Client pays</th>
+              <th>Executive</th><th>Talent</th><th>Started</th>
+              <th>Minimum term</th><th style={{ textAlign: 'right' }}>Executive pays</th>
             </tr></thead>
             <tbody>
               {live.map(p => {

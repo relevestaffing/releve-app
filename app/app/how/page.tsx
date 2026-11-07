@@ -23,12 +23,12 @@ export default async function HowPage() {
 
       <div className="next-step">
         <div>
-          <div className="eyebrow" style={{ marginBottom: 6 }}>Where the value is</div>
+          <div className="eyebrow" style={{ marginBottom: 6 }}>Next</div>
           <div className="small" style={{ maxWidth: 560 }}>
-            See how many hours, days and dollars come back to you.
+            See the hours and dollars that come back to you, in your own numbers.
           </div>
         </div>
-        <Link className="btn solid" href="/app/value">The value, in your own numbers</Link>
+        <Link className="btn solid" href="/app/value">See the value</Link>
       </div>
     </Shell>
   );

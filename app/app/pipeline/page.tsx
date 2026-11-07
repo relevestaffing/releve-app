@@ -64,18 +64,17 @@ export default async function Pipeline() {
          desktop lands on the fern hero, unreadable. */}
       {!current && (
         <div className="card">
-          <div className="card-head"><h3>{declined.length ? 'We are finding the next one' : EMPTY.shortlist.title}</h3></div>
+          <div className="card-head"><h3>{declined.length ? 'We are choosing your next candidate' : EMPTY.shortlist.title}</h3></div>
           <p className="small" style={{ marginBottom: 16 }}>
             {declined.length
-              ? 'Thank you for telling us why the last one was not right. That is exactly how the next match gets sharper. Your Client Success Manager is already on it.'
+              ? 'Thank you for telling us why that candidate was not right. Your Client Success Manager is using it to choose the next person.'
               : EMPTY.shortlist.body}
           </p>
           <div style={{ marginBottom: 18 }}>
             <Explain>
-              Relève interviews widely, narrows the field itself, and puts forward one
-              professional, matched to the role, matched to how you work, and briefed on
-              your business before you meet. You will have an email the moment there is
-              someone to see.
+              We interview widely and put forward one professional, matched to the role
+              and to how you work, and briefed on your business before you meet. We will
+              email you as soon as your candidate is ready.
             </Explain>
           </div>
           <a className="btn sm ghost" href={EMPTY.shortlist.cta!.href}>{EMPTY.shortlist.cta!.label}</a>
@@ -116,10 +115,9 @@ export default async function Pipeline() {
 
             <div style={{ marginTop: 14 }}>
               <Explain>
-                We do not hand you a stack to sort through. Relève interviews widely, narrows
-                the field itself, and puts forward one professional, matched to the role,
-                matched to how you work, and briefed on your business before you meet.
-                Approve them, or decline and we bring the next.
+                We interviewed widely and chose one professional for you, matched to the
+                role and to how you work, and briefed on your business before you meet.
+                Approve them, or decline and we will put forward someone else.
               </Explain>
             </div>
 
@@ -165,9 +163,9 @@ export default async function Pipeline() {
               )}
 
               <p className="xs muted rationale-foot">
-                Scored against your own Signature, then read and approved by a
-                person at Relève before it reached you. We put nobody forward
-                on a number alone.
+                Scored against your Signature, then reviewed and approved by
+                Relève before it reached you. No one is put forward on a score
+                alone.
               </p>
             </div>
 
@@ -233,8 +231,8 @@ export default async function Pipeline() {
           <div className="inner">
             <div style={{ marginBottom: 14 }}>
               <Explain>
-                People you have already declined. They are never told, and never shown why.
-                If you change your mind about someone, tell your Client Success Manager and we will bring
+                Candidates you declined. They are not told, and never see your reasons. If
+                you change your mind, tell your Client Success Manager and we will bring
                 them back.
               </Explain>
             </div>

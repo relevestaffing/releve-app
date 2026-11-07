@@ -47,7 +47,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
   /* The route books first and mails second, and reports both: a booking can
      stand with no email sent, or with no Zoom link made. Each is said. */
   async function book() {
-    if (!when) { toast.bad('Pick a time first.'); return; }
+    if (!when) { toast.bad('Choose a time first.'); return; }
     setBusy(true);
     const first = firstName(app.full_name);
     try {
@@ -60,19 +60,19 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        toast.bad(d.error ? `Not booked. ${d.error}` : 'That did not book. Please try again.');
+        toast.bad(d.error ? `Not booked. ${d.error}` : 'The call was not booked. Please try again.');
         setBusy(false);
         return;
       }
       if (d.mailed) toast.saved(moving ? `Moved. ${first} has been told` : `${first} has the invitation`);
       else toast.bad(moving
-        ? `Moved, but the email to ${first} did not send. Tell them the new time by hand.`
-        : `Booked, but the email to ${first} did not send. Send the invitation by hand.`);
+        ? `Moved, but the email to ${first} did not send. Please send them the new time yourself.`
+        : `Booked, but the email to ${first} did not send. Please send the invitation yourself.`);
       if (d.warning) toast.bad(String(d.warning));
       setBusy(false);
       onDone(); router.refresh();
     } catch {
-      toast.bad('No connection, so nothing was booked.');
+      toast.bad('You appear to be offline. Nothing was booked.');
       setBusy(false);
     }
   }
@@ -81,8 +81,8 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
     <div className="decide-form" style={{ marginTop: 16 }}>
       <p className="small" style={{ margin: '0 0 14px' }}>
         {moving ? <>Move the call with <b>{app.full_name}</b>. The old meeting is cancelled and they are told the new time.</>
-                : <>A conversation before anything else. Nothing about Relève reaches them
-                    until this has happened: no account, no assessment, no roster.</>}
+                : <>This call comes first. They are not given an account, the assessment or a
+                    place on the roster until it has happened.</>}
       </p>
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -113,7 +113,7 @@ export default function CallBooker({ app, onDone }: { app: JobApplication; onDon
 
       <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
         <button className="btn solid" disabled={busy} onClick={book}>
-          {busy ? 'Sending…' : moving ? 'Move it and tell them' : 'Book it and send the invitation'}
+          {busy ? 'Sending…' : moving ? 'Move the call and tell them' : 'Book and send the invitation'}
         </button>
         <button type="button" className="btn ghost sm" disabled={busy} onClick={onDone}>Cancel</button>
       </div>

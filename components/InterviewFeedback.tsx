@@ -23,7 +23,7 @@ export default function InterviewFeedback({ interviewId, who, side, existing }: 
         interview_id: interviewId, rating, proceed: f.get('proceed'),
         strengths: f.get('strengths'), concerns: f.get('concerns'), notes: f.get('notes')
       })
-    }), 'Thank you. Noted.');
+    }), 'Thank you. Your notes are saved.');
     setBusy(false);
     if (ok) { setOpen(false); router.refresh(); }
   }
@@ -55,11 +55,11 @@ export default function InterviewFeedback({ interviewId, who, side, existing }: 
 
       <div className="ff"><label htmlFor={`${fid}-2`}>What stood out</label>
         <textarea id={`${fid}-2`} name="strengths" rows={2} defaultValue={existing?.strengths ?? ''}
-          placeholder={side === 'client' ? 'What made you think they could do this.' : 'What you liked about the role or the person.'} /></div>
+          placeholder={side === 'client' ? 'What convinced you they could do the role.' : 'What you liked about the role or the person.'} /></div>
 
       <div className="ff"><label htmlFor={`${fid}-3`}>Anything that gave you pause</label>
         <textarea id={`${fid}-3`} name="concerns" rows={2} defaultValue={existing?.concerns ?? ''}
-          placeholder="Be blunt. This is the part that improves the next match." /></div>
+          placeholder="Be candid. It helps us improve the next match." /></div>
 
       <div className="ff"><label htmlFor={`${fid}-4`}>For Relève only <span className="muted">(optional)</span></label>
         <textarea id={`${fid}-4`} name="notes" rows={2} defaultValue={existing?.notes ?? ''} /></div>

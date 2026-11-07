@@ -32,12 +32,12 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
         <span className="pill good"><span className="dot" />Received</span>
       </div>
       <p className="small" style={{ marginBottom: 12, maxWidth: 560 }}>
-        Your <b>{money(cents)}</b> deposit is with Stripe. A card settles in moments; a bank transfer
-        takes a few business days, and either way your Client Success Manager starts sourcing now.
+        Thank you for your <b>{money(cents)}</b> deposit. A card payment settles in moments and a bank
+        transfer in a few business days. Either way, your Client Success Manager begins sourcing now.
       </p>
       <p className="xs muted" style={{ maxWidth: 560 }}>
-        A receipt is on its way to your inbox. It is credited in full against your first month once you
-        are placed.
+        A receipt is on its way to your inbox. Your deposit is credited in full once your assistant is
+        placed with you.
       </p>
     </div>
   );
@@ -49,13 +49,13 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
     <div className="card">
       <div className="card-head"><h3>Open your search</h3></div>
       <p className="small" style={{ marginBottom: 14, maxWidth: 560 }}>
-        The <b>{money(cents)}</b> search deposit is what opens your search. Once it is in, your
-        Client Success Manager begins sourcing, and you build your Signature next so we can
-        match you.
+        Your <b>{money(cents)}</b> deposit opens your search. Once it is in, your Client Success
+        Manager begins sourcing, and you take the Executive Signature™ so we can match you.
       </p>
       <p className="xs muted" style={{ marginBottom: 20, maxWidth: 560 }}>
-        Credited in full against your first month once your assistant is placed with you. Your Client Success Manager sends the payment details directly; this page updates the
-        moment the deposit is recorded. If you have already paid, nothing more is needed.
+        It is credited in full once your assistant is placed with you. Your Client Success Manager
+        will send the payment details, and this page updates once the deposit is recorded. If you
+        have already paid, there is nothing more to do.
       </p>
       <a className="btn solid" href="/app/messages">Ask for the payment details</a>
     </div>
@@ -69,10 +69,10 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
         body: JSON.stringify({ action: 'deposit' })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d.url) { toast.bad(d.error ?? 'That did not open. Please try again.'); setBusy(false); return; }
+      if (!r.ok || !d.url) { toast.bad(d.error ?? 'The payment page did not open. Please try again.'); setBusy(false); return; }
       window.location.href = d.url;
     } catch {
-      toast.bad('No connection. Nothing was changed.');
+      toast.bad('No connection, so nothing was charged. Please try again.');
       setBusy(false);
     }
   }
@@ -82,18 +82,17 @@ export default function DepositGate({ cents, stripeOn = true }: { cents: number;
       <div className="card-head"><h3>Open your search</h3></div>
       {returned === 'cancelled' && (
         <p className="small" style={{ marginBottom: 12 }}>
-          Nothing was charged. Whenever you are ready, it is one step.
+          Nothing was charged. You can pay whenever you are ready.
         </p>
       )}
       <p className="small" style={{ marginBottom: 14, maxWidth: 560 }}>
-        The <b>{money(cents)}</b> search deposit is what opens your search. Put it down and
-        your Client Success Manager begins sourcing. You build your Signature next, so we can
-        match you.
+        Your <b>{money(cents)}</b> deposit opens your search. Once it is in, your Client Success
+        Manager begins sourcing, and you take the Executive Signature™ so we can match you.
       </p>
       <p className="xs muted" style={{ marginBottom: 20, maxWidth: 560 }}>
-        Credited in full against your first month once your assistant is placed with you. Stripe handles the payment itself, bank or card, and
-        whatever you use here is also what your monthly retainer is collected
-        from later, so there is no separate step to link one.
+        It is credited in full once your assistant is placed with you. Pay securely by bank or
+        card through Stripe. The same method is used for your monthly retainer, so there is
+        nothing else to set up.
       </p>
       <button className="btn solid" disabled={busy} onClick={pay}>
         {busy ? 'Opening…' : `Pay your ${money(cents)} deposit`}

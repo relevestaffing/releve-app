@@ -52,7 +52,7 @@ export default async function AgreementPage() {
         </div>
       ) : (
         <p className="small muted" style={{ maxWidth: 560, margin: '0 0 16px' }}>
-          Sign at the bottom. Your copy is emailed to you.
+          Sign at the bottom of the page. We will email you a copy.
         </p>
       )}
 

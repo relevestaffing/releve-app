@@ -52,8 +52,8 @@ export default function Checklist({ steps, heading }: { steps: Step[]; heading?:
       {blocking > 0 && (
         <p className="setup-note">
           {blocking === 1
-            ? 'One step is needed before you can be matched.'
-            : `${blocking} steps are needed before you can be matched.`}
+            ? 'One more step and we can begin matching you.'
+            : `${blocking} more steps and we can begin matching you.`}
         </p>
       )}
 

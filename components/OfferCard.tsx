@@ -31,13 +31,13 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
         body: JSON.stringify({ action: 'answer', id: offer.id, answer: a })
       });
       const d = await r.json().catch(() => ({}));
-      if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save.'); setBusy(false); return; }
+      if (!r.ok) { toast.bad(d.error ? `Your answer did not save. ${d.error}` : 'Your answer did not save. Please try again.'); setBusy(false); return; }
       toast.saved(
-        d.result === 'accepted' ? 'Accepted. Both sides have said yes'
+        d.result === 'accepted' ? 'Accepted. Both sides have said yes.'
         : d.result === 'declined' ? 'Declined. We will be in touch.'
-        : 'Thank you. We are waiting on the other side now');
+        : 'Thank you. We are now waiting for the other side to answer.');
       router.refresh();
-    } catch { toast.bad('No connection, so nothing was saved.'); }
+    } catch { toast.bad('You appear to be offline. Nothing was saved.'); }
     setBusy(false); setConfirming(null);
   }
 
@@ -49,7 +49,7 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
           ? <span className="pill good"><span className="dot" />You said yes</span>
           : mine === 'no'
             ? <span className="pill crit">You declined</span>
-            : <span className="pill warn"><span className="dot" />Waiting on you</span>}
+            : <span className="pill warn"><span className="dot" />Waiting for your answer</span>}
       </div>
 
       <h2 style={{ fontSize: 24, marginBottom: 6 }}>{offer.role_title}</h2>
@@ -60,7 +60,7 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
       <dl className="brief-facts">
         <dt>Starts</dt><dd>{fmtDate(offer.starts_on)}</dd>
         {offer.hours && <><dt>Hours</dt><dd>{offer.hours}</dd></>}
-        {offer.scope && <><dt>Owns</dt><dd>{offer.scope}</dd></>}
+        {offer.scope && <><dt>Responsibilities</dt><dd>{offer.scope}</dd></>}
         <dt>{side === 'client' ? 'You pay' : 'You are paid'}</dt>
         <dd>{upfront
           ? <><b>{money(offer.prepaid_total_cents)}</b> upfront, covering {offer.minimum_months} months</>
@@ -71,12 +71,12 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
 
       {offer.state === 'accepted' ? (
         <p className="small" style={{ marginTop: 20 }}>
-          <b>Both sides have accepted.</b> Relève confirms the start date within one business day and sets everything up.
+          <b>Both sides have accepted.</b> Relève will confirm the start date within one business day and set everything up.
         </p>
       ) : mine ? (
         <p className="small muted" style={{ marginTop: 20 }}>
           {mine === 'yes'
-            ? 'Waiting on the other side. We will let you know the moment they answer.'
+            ? 'Waiting for the other side. We will tell you as soon as they answer.'
             : `We have your answer. Your ${side === 'client' ? 'Client' : 'Talent'} Success Manager will be in touch.`}
         </p>
       ) : (
@@ -88,8 +88,8 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
                   ? <>Accept this offer? That is {upfront
                       ? <><b>{money(offer.prepaid_total_cents)} upfront</b> covering {offer.minimum_months} months</>
                       : <><b>{money(amount)} a month</b> for a minimum of {offer.minimum_months} months</>}, starting {fmtDate(offer.starts_on)}.</>
-                  : <>Decline this offer? We will come back to you either way, and we
-                      keep looking for you.</>}
+                  : <>Decline this offer? We will be in touch, and we will keep looking
+                      for the right match.</>}
               </p>
               <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
                 <button className="btn sm solid" disabled={busy} onClick={() => answer(confirming)}>
@@ -111,9 +111,9 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
             </div>
           )}
           <p className="xs muted" style={{ marginTop: 14 }}>
-            Nothing is settled until both sides have answered. If anything here is
-            not what you discussed, message your {side === 'client' ? 'Client' : 'Talent'} Success
-            Manager before accepting. There is no rush on our side.
+            Nothing is final until both sides have answered. If anything here differs
+            from what you discussed, message your {side === 'client' ? 'Client' : 'Talent'} Success
+            Manager before you accept. There is no rush.
           </p>
         </>
       )}

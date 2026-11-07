@@ -31,7 +31,7 @@ export default function IssueAgreement({ talent }: { talent: Person[] }) {
     try {
       const res = await fetch('/api/vetting', { method: 'POST', body });
       const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'That did not upload.');
+      if (!res.ok) throw new Error(out.error ?? 'Upload failed. Please try again.');
       toast.saved('Filed. They can read it in their account');
       setWho('');
       router.refresh();
@@ -43,18 +43,18 @@ export default function IssueAgreement({ talent }: { talent: Person[] }) {
     <div className="card">
       <div className="card-head"><h3>File a signed agreement</h3></div>
       <p className="small muted" style={{ marginBottom: 18 }}>
-        Talent read and sign their contractor agreement in their own account, and it files itself here. Use this
-        only for a paper copy that came back signed some other way. It appears in their account to read.
+        Talent sign their contractor agreement in their own account, and it is filed here automatically. Use
+        this only for a copy signed outside the app. It then appears in their account.
       </p>
       <div className="grid-2" style={{ gap: 14, alignItems: 'start' }}>
         <div className="ff" style={{ marginBottom: 0 }}><label htmlFor={`${fid}-1`}>Whose agreement</label>
           <select id={`${fid}-1`} value={who} onChange={e => setWho(e.target.value)}>
-            <option value="">Choose a candidate…</option>
+            <option value="">Choose talent…</option>
             {talent.map(p => <option key={p.id} value={p.id}>{p.full_name ?? p.email}</option>)}
           </select></div>
         <div className="ff" style={{ marginBottom: 0 }}><label htmlFor={`${fid}-2`}>Date on the signature</label>
           <input id={`${fid}-2`} type="date" value={signed} onChange={e => setSigned(e.target.value)} />
-          <span className="xs muted">Filing without this leaves them unverified, so they cannot be released.</span></div>
+          <span className="xs muted">Without a signature date they stay unverified and cannot be released.</span></div>
       </div>
       <div className="row" style={{ marginTop: 16, flexWrap: 'wrap', gap: 12 }}>
         <input aria-label="Agreement file" ref={input} type="file" accept="application/pdf,image/*" hidden

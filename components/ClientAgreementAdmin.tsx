@@ -27,7 +27,7 @@ export default function ClientAgreementAdmin({ clientId, state, rejectReason }: 
     try {
       const res = await fetch('/api/agreement/upload', { method: 'POST', body });
       const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'That did not upload.');
+      if (!res.ok) throw new Error(out.error ?? 'Upload failed. Please try again.');
       toast.saved('Filed as signed');
       router.refresh();
     } catch (e: any) { toast.bad(e.message); }
@@ -40,9 +40,9 @@ export default function ClientAgreementAdmin({ clientId, state, rejectReason }: 
 
   return (
     <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-      <span className="pill warn"><span className="dot" />Waiting for them to sign in their account</span>
+      <span className="pill warn"><span className="dot" />Awaiting their signature</span>
       {state === 'rejected' && rejectReason && (
-        <span className="xs muted" title={rejectReason}>Needs another try: </span>
+        <span className="xs muted" title={rejectReason}>Sent back</span>
       )}
       <details>
         <summary className="xs muted" style={{ cursor: 'pointer' }}>File a paper copy instead</summary>

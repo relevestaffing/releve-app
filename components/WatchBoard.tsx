@@ -15,9 +15,9 @@ type Item = {
 const LABEL: Record<WatchStatus, string> = {
   not_started: 'Not started',
   in_progress: 'In progress',
-  awaiting_review: 'Submitted, and with us',
+  awaiting_review: 'Submitted for review',
   cleared: 'Cleared',
-  needs_retake: 'Needs another try'
+  needs_retake: 'Retake needed'
 };
 const TONE: Record<WatchStatus, 'good' | 'warn' | ''> = {
   not_started: '', in_progress: 'warn', awaiting_review: 'warn', cleared: 'good', needs_retake: 'warn'
@@ -37,17 +37,17 @@ export default function WatchBoard({ items }: { items: Item[] }) {
         body: JSON.stringify({ discipline })
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { toast.bad(data?.error ?? 'Could not start that.'); setBusy(null); return; }
+      if (!res.ok) { toast.bad(data?.error ?? 'The Watch did not start. Please try again.'); setBusy(null); return; }
       if (!data?.attemptId) {
         /* Without this an ok response that somehow carries no id sends the
            person to /app/watch/undefined, which bounces straight back here
            with the button still spinning and nothing said. */
-        toast.bad('That did not open. Try again, or write to hello@relevestaffing.com.');
+        toast.bad('The Watch did not open. Please try again, or write to hello@relevestaffing.com.');
         setBusy(null); return;
       }
       router.push(`/app/watch/${data.attemptId}`);
     } catch {
-      toast.bad('Could not start that.');
+      toast.bad('The Watch did not start. Please try again.');
       setBusy(null);
     }
   }
@@ -60,7 +60,7 @@ export default function WatchBoard({ items }: { items: Item[] }) {
             <div>
               <b style={{ fontFamily: 'var(--sub)', color: 'var(--fern)', fontSize: 16 }}>{it.name}</b>
               {it.timeLimitMinutes && (
-                <div className="xs muted">Time-boxed at {Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours once started</div>
+                <div className="xs muted">{Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours, timed from when you start</div>
               )}
             </div>
             <div className="row" style={{ gap: 12, alignItems: 'center' }}>
@@ -77,8 +77,8 @@ export default function WatchBoard({ items }: { items: Item[] }) {
                 <>
                   <span className="small muted">
                     {it.timeLimitMinutes
-                      ? `Once you start, the clock runs for ${Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours straight through, paid at ${money(600)} an hour.`
-                      : 'Once you start, the clock is running.'}
+                      ? `Once you start, the timer runs for ${Math.round(it.timeLimitMinutes / 60 * 10) / 10} hours without stopping. Paid at ${money(600)} an hour.`
+                      : 'The timer starts as soon as you begin.'}
                   </span>
                   <button className="btn sm solid" disabled={busy === it.discipline} onClick={() => start(it.discipline)}>
                     {busy === it.discipline ? 'Starting…' : 'Yes, start'}

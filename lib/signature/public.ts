@@ -14,8 +14,8 @@ export const COND_PUBLIC = [
   { key:'discretion', label:'How sensitive', ord:['Ordinary business information','Financial and legal','Personal and deal-sensitive'],
     cQ:'What kind of information will they see?', tQ:'What kind of confidential work have you handled?' },
   { key:'mix', label:'Who they deal with', ord:['Mostly on their own','A mix of both','Mostly talking to people'],
-    cQ:'Will they be talking to your clients and team, or working quietly behind you?',
-    tQ:'Do you do your best work talking to people, or heads-down on your own?' }
+    cQ:'Will they talk to your clients and team, or work behind the scenes?',
+    tQ:'Do you work best talking to people, or on your own?' }
 ];
 /* What the browser receives for a question: text only. */
 export type Screen =

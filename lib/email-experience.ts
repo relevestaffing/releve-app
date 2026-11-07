@@ -45,13 +45,13 @@ export const experienceEmails = {
     return {
       kind: 'monthlyReport',
       subject,
-      text: `${o.name},\n\nHere is ${o.month} with ${o.talent}: ${stats}.\n\n${o.highlights.length ? `Highlights:\n${o.highlights.map(h => `- ${h}`).join('\n')}\n\n` : ''}${o.focus.length ? `Next month's focus:\n${o.focus.map(h => `- ${h}`).join('\n')}\n\n` : ''}The full report: ${href}\n\nIf there is anything you would change, reply here. Your Client Success Manager reads every reply.\n\nRelève`,
+      text: `${o.name},\n\nHere is ${o.month} with ${o.talent}: ${stats}.\n\n${o.highlights.length ? `Highlights:\n${o.highlights.map(h => `- ${h}`).join('\n')}\n\n` : ''}${o.focus.length ? `Next month's focus:\n${o.focus.map(h => `- ${h}`).join('\n')}\n\n` : ''}The full report: ${href}\n\nTo change anything, reply to this email and your Client Success Manager will take it from there.\n\nRelève`,
       html: shell(`Your month: ${esc(o.month)}`,
         p(`${esc(o.name)},`) +
         p(`Here is ${esc(o.month)} with <b>${esc(o.talent)}</b>: ${esc(stats)}.`) +
         (o.highlights.length ? p('<b>Highlights</b>') + list(o.highlights) : '') +
         (o.focus.length ? p('<b>Next month’s focus</b>') + list(o.focus) : '') +
-        p('If there is anything you would change, reply here. Your Client Success Manager reads every reply.'),
+        p('To change anything, reply to this email and your Client Success Manager will take it from there.'),
         { label: 'Read the full report', href })
     };
   },
@@ -60,12 +60,12 @@ export const experienceEmails = {
   clientRequestTeam: (o: { client: string; talent: string; what: string; note?: string | null; preferred?: string | null; action: string }): Message => ({
     kind: 'clientRequestTeam',
     subject: `${o.client}: ${o.what}`,
-    text: `${o.client} has asked for: ${o.what} (placement with ${o.talent}).\n\n${o.note ? `In their words: "${o.note}"\n\n` : ''}${o.preferred ? `Preferred: ${o.preferred}\n\n` : ''}Next step: ${o.action}. We promise a reply within one business day.\n\n${SITE}/console/care\n\nRelève`,
+    text: `${o.client} has asked for: ${o.what} (placement with ${o.talent}).\n\n${o.note ? `In their words: "${o.note}"\n\n` : ''}${o.preferred ? `Preferred: ${o.preferred}\n\n` : ''}Next step: ${o.action}. The client was promised a reply within one business day.\n\n${SITE}/console/care\n\nRelève`,
     html: shell(esc(`${o.client}: ${o.what}`),
       p(`<b>${esc(o.client)}</b> has asked for: <b>${esc(o.what)}</b>, on the placement with ${esc(o.talent)}.`) +
       (o.note ? quote(o.note) : '') +
       (o.preferred ? p(`Preferred: ${esc(o.preferred)}`) : '') +
-      p(`Next step: ${esc(o.action)}. We promise a reply within one business day.`),
+      p(`Next step: ${esc(o.action)}. The client was promised a reply within one business day.`),
       { label: 'Open Care', href: `${SITE}/console/care` })
   }),
 

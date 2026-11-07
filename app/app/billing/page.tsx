@@ -116,7 +116,7 @@ export default async function Billing() {
                   </div>
                   {p.notice_given_on &&
                     <div className="xs muted">Notice given {dayLabel(p.notice_given_on)}
-                      {p.notice_ends_on ? `. Runs and is billed through ${dayLabel(p.notice_ends_on)}` : ''}</div>}
+                      {p.notice_ends_on ? `. Service and billing continue through ${dayLabel(p.notice_ends_on)}` : ''}</div>}
                 </div>
                 <b className="amount">{money(p.rate_month_cents)}<span className="xs muted"> /mo</span></b>
               </div>

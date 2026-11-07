@@ -33,7 +33,7 @@ export function statusLabel(s: TaskStatus | null | undefined, side: 'client' | '
   const row = TASK_STATUSES.find(x => x.key === (s ?? 'todo')) ?? TASK_STATUSES[0];
   if (side === 'client') return row.client;
   if (side === 'talent') return row.talent;
-  return row.key === 'waiting' ? 'Waiting on the executive' : row.key === 'review' ? 'Finished, awaiting the executive' : row.label;
+  return row.key === 'waiting' ? 'Waiting on the executive' : row.key === 'review' ? 'Awaiting the executive’s review' : row.label;
 }
 
 export type TaskFile = {
@@ -80,21 +80,21 @@ export type ClientRequest = {
 };
 export const REQUEST_KINDS: { key: RequestKind; label: string; ask: string; promise: string; teamAction: string }[] = [
   { key: 'quarterly_review', label: 'Book a quarterly review',
-    ask: 'Thirty minutes with your Client Success Manager to look back at the quarter and set the next one.',
+    ask: 'Thirty minutes with your Client Success Manager to review the quarter and plan the next.',
     promise: 'Your Client Success Manager will write to you with times within one business day.',
     teamAction: 'Offer times for the review' },
   { key: 'replacement', label: 'Request a replacement',
-    ask: 'If it is not the right fit, we find the right person. Tell us what is not working so the next match is sharper.',
+    ask: 'If the fit is not right, tell us what is not working and we will find the right person.',
     promise: 'Your Client Success Manager will call you within one business day to plan the handover. Nothing changes until you have spoken.',
     teamAction: 'Call the executive and open a replacement search' },
   { key: 'pause', label: 'Request a pause',
-    ask: 'Traveling, a quiet season, or a change at work. Tell us the dates you have in mind.',
-    promise: 'This is a request, not a change. Your Client Success Manager will confirm what a pause means for your schedule and billing before anything moves.',
+    ask: 'For travel, a slower season or a change at work. Tell us the dates you have in mind.',
+    promise: 'Nothing changes yet. Your Client Success Manager will first confirm what a pause means for your schedule and billing.',
     teamAction: 'Confirm the pause terms with the executive' }
 ];
 export const REQUEST_STATE: { key: RequestState; label: string; tone: string }[] = [
   { key: 'open',     label: 'Received',  tone: 'warn' },
-  { key: 'in_hand',  label: 'In hand',   tone: '' },
+  { key: 'in_hand',  label: 'In progress', tone: '' },
   { key: 'done',     label: 'Done',      tone: 'good' },
   { key: 'declined', label: 'Closed',    tone: '' }
 ];

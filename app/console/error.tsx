@@ -20,7 +20,7 @@ export default function ConsoleError({ error, reset }: { error: Error & { digest
     <BrandedError
       eyebrow="Relève Console"
       title="This screen did not load"
-      line="Usually a dropped connection or a database that is a migration behind. Try again; the reference below helps if you need to look further."
+      line="Usually a dropped connection or a pending database migration. Try again, and use the reference below if you need to look further."
       retry={reset} home="/console" digest={error.digest} detail={error?.message} />
   );
 }

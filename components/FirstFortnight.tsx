@@ -48,9 +48,9 @@ export default function FirstFortnight({ steps, startedOn, side, today: todayPro
       <div className="fortnight-bar"><i style={{ width: `${(done / steps.length) * 100}%` }} /></div>
       {side !== 'admin' && (
         <p className="xs muted" style={{ margin: '0 0 14px', maxWidth: 560 }}>
-          Relève ticks these off as each one is confirmed, so both of you see the same plan.
-          Finished one of yours? Tell your {side === 'client' ? 'Client' : 'Talent'} Success Manager
-          in a message and it is ticked.
+          Relève marks each step done as it is confirmed, so you both see the same plan. When you
+          finish one of yours, tell your {side === 'client' ? 'Client' : 'Talent'} Success Manager
+          in Messages.
         </p>
       )}
 

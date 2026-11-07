@@ -116,8 +116,9 @@ export default async function Interviews() {
       {!hasAvailRow && (
         <div className="card tight" style={{ borderLeft: '3px solid var(--warn, #B4762E)' }}>
           <p className="small" style={{ margin: 0 }}>
-            <b>Your availability is not set</b>, so times here are shown in {tzLabel} and{' '}
-            {isClient ? 'no interview can be booked at a time you are both free' : 'no executive can book you'}.{' '}
+            <b>Add your availability</b> so{' '}
+            {isClient ? 'we can offer times when you and your candidate are both free' : 'executives can book time with you'}.
+            Until then, times are shown in {tzLabel}.{' '}
             <Link href="/app/availability" style={{ textDecoration: 'underline' }}>Set your availability</Link>. It takes two minutes.
           </p>
         </div>
@@ -134,14 +135,14 @@ export default async function Interviews() {
             ? <a className="btn solid" href={next.meeting_url} target="_blank" rel="noreferrer"
                 style={{ width: '100%', justifyContent: 'center' }}>Join the call</a>
             : <p className="small muted" style={{ margin: 0 }}>
-                The joining link appears here as soon as it is issued. You will get it by email too.
+                The link to join will appear here and arrive by email.
               </p>}
         </div>
       )}
 
       <div className="card">
         <div className="card-head"><h3>Scheduled</h3>
-          {mine.length > 0 && <span className="pill">{mine.filter(i => !['Cancelled', 'Declined', 'No-show'].includes(String(i.status))).length} upcoming or held</span>}</div>
+          {mine.length > 0 && <span className="pill">{mine.filter(i => !['Cancelled', 'Declined', 'No-show'].includes(String(i.status))).length} upcoming or completed</span>}</div>
         {mine.length === 0
           ? <Empty of={isClient ? EMPTY.interviewsClient : EMPTY.interviewsTalent} />
           : (
@@ -170,8 +171,8 @@ export default async function Interviews() {
         {!isClient && (
           <div style={{ marginTop: 18 }}>
             <Explain>
-              Executives can only book you inside the hours you have marked as free.
-              Keep them current and you will never be offered a call at 3am.
+              Executives can only book you during the hours you mark as free, so keep
+              them current.
             </Explain>
           </div>
         )}
@@ -179,7 +180,7 @@ export default async function Interviews() {
 
       {isClient && bookable.length > 0 && (
         <>
-          <div className="section-title"><h2>Meet the person you approved</h2>
+          <div className="section-title"><h2>Book your interview</h2>
             <span className="small muted">Times are shown in your timezone</span></div>
           {bookable.map(b => (
             <div className="card" key={b.id}>

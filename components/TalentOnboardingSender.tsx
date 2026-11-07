@@ -43,7 +43,7 @@ export default function TalentOnboardingSender() {
     /* emailed:false in real mode means the mail host refused — not preview
        mode. The record stands either way; the words have to say which. */
     if (d.emailed === false && d.note) toast.saved(`${firstName(name)} added. Nothing was emailed in preview mode`);
-    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check Email under The business, Team, and resend`);
+    else if (d.emailed === false) toast.bad(`${firstName(name)} added, but the email did not send. Check the email settings under The business, Team, then resend`);
     else toast.saved(`Onboarding sent to ${firstName(name)}`);
     if (d.warning) toast.ok(d.warning);
     (e.target as HTMLFormElement).reset();
@@ -66,9 +66,9 @@ export default function TalentOnboardingSender() {
         <button type="button" className="x-btn" aria-label="Close" onClick={() => setOpen(false)}>×</button>
       </div>
       <p className="small muted" style={{ marginBottom: 20, maxWidth: 560 }}>
-        For someone you have already talked to. Opens their record and emails
-        them the account link with the assessment inside it,
-        with no separate add step. The rest of their profile can wait until you write it below.
+        For talent you have already spoken with. It creates their record and emails
+        their account link, with the assessment inside. Add the rest of their
+        profile later from their row below.
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>

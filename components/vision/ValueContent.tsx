@@ -20,8 +20,8 @@ export default function ValueContent({ retainerMonthlyCents, placed }: {
         </h2>
         <p className="small" style={{ color: 'var(--pale)', maxWidth: 560, margin: 0 }}>
           {placed
-            ? 'The same calibre of hire, once you count benefits, payroll and recruiting. Without the overhead, and inside fourteen days.'
-            : 'Move the sliders to see the hours, the days and the value that return to you each year.'}
+            ? 'The same calibre of hire once benefits, payroll and recruiting are counted, without the overhead, and in front of you within fourteen days.'
+            : 'Move the sliders to see the hours, days and value you get back each year.'}
         </p>
       </div>
 

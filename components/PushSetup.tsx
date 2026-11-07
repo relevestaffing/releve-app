@@ -100,7 +100,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     if (compact) return null;
     return (
       <p style={{ fontSize: 14.5, lineHeight: 1.6, margin: 0, color: '#516053' }}>
-        This browser cannot show notifications. Nothing to do here: open Relève on your phone later and we will walk you through it there.
+        This browser does not support notifications. Open Relève on your phone and we will show you how to turn them on there.
       </p>
     );
   }
@@ -118,7 +118,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
     return (
       <div className="push-setup" style={wrap}>
         <div style={head}>Notifications are on.</div>
-        <p style={{ ...sub, margin: 0 }}>You will hear the moment something needs you on this device.</p>
+        <p style={{ ...sub, margin: 0 }}>This device will notify you of new messages, placement updates, interviews and reminders.</p>
       </div>
     );
   }
@@ -127,8 +127,8 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   if (env.plat === 'ios' && !env.standalone) {
     return (
       <div className="push-setup" style={wrap}>
-        <div style={head}>Put Relève on your phone</div>
-        <p style={sub}>Add Relève to your Home Screen so it opens like an app and can reach you with notifications.</p>
+        <div style={head}>Add Relève to your phone</div>
+        <p style={sub}>Add it to your Home Screen so it opens like an app and can send you notifications.</p>
         <ol style={{ ...stepList, counterReset: 'n', paddingLeft: 0 }}>
           <li style={{ marginBottom: 8 }}><b>1.</b> Tap the <b>Share</b> icon at the bottom of Safari (the square with an arrow pointing up).</li>
           <li style={{ marginBottom: 8 }}><b>2.</b> Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
@@ -150,21 +150,21 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
   // Android / desktop / installed iOS: enable directly.
   if (compact) return (
     <div className="push-bar" role="note">
-      <span className="push-bar-text">Turn on notifications and hear the moment something needs you.</span>
+      <span className="push-bar-text">Turn on notifications for messages, updates and reminders.</span>
       <span className="push-bar-actions">
         <button className="push-bar-on" onClick={enable} disabled={state === 'working'}>{state === 'working' ? 'One moment…' : 'Turn on'}</button>
         <button className="push-bar-dismiss" onClick={() => { setHidden(true); try { localStorage.setItem('releve_push_nudge_dismissed', '1'); } catch {} }}>Not now</button>
       </span>
-      {state === 'denied' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>Notifications are blocked for this site in your browser settings.</span>}
-      {state === 'error' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>That did not take. Try once more, or write to hello@relevestaffing.com.</span>}
+      {state === 'denied' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>Notifications are blocked. Allow them for this site in your browser settings, then try again.</span>}
+      {state === 'error' && <span className="push-bar-text" style={{ flexBasis: '100%' }}>Notifications could not be turned on. Try again, or write to hello@relevestaffing.com.</span>}
     </div>
   );
   return (
     <div className="push-setup" style={wrap}>
       <div style={head}>Turn on notifications</div>
       <p style={sub}>
-        Hear the moment something needs you: a message, an update on your placement, an interview or a reminder.
-        {env.plat === 'android' ? ' You can also add Relève to your home screen from your browser menu, for one-tap access.' : ''}
+        Get notified of new messages, placement updates, interviews and reminders.
+        {env.plat === 'android' ? ' You can also add Relève to your home screen from your browser menu.' : ''}
       </p>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <button style={btn} onClick={enable} disabled={state === 'working'}>
@@ -178,7 +178,7 @@ export default function PushSetup({ compact = false, onDone }: { compact?: boole
         )}
       </div>
       {state === 'denied' && <p style={{ ...sub, margin: '12px 0 0' }}>Notifications are blocked for this site. Turn them back on in your browser settings for relevestaffing.com, then try again.</p>}
-      {state === 'error' && <p style={{ ...sub, margin: '12px 0 0' }}>That did not go through. Please try again in a moment.</p>}
+      {state === 'error' && <p style={{ ...sub, margin: '12px 0 0' }}>Notifications could not be turned on. Please try again in a moment.</p>}
     </div>
   );
 }

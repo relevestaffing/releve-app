@@ -30,9 +30,9 @@ export default function ExecFirstRun() {
         method: 'PATCH', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ onboarded: true })
       });
-      if (!r.ok) toast.bad('Taking you through, though we could not save that you have seen this.');
+      if (!r.ok) toast.bad('We could not save your progress, so this tour may show again next time.');
     } catch {
-      toast.bad('Taking you through, though we could not save that you have seen this.');
+      toast.bad('We could not save your progress, so this tour may show again next time.');
     }
     router.push('/app');
     router.refresh();

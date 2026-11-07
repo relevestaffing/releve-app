@@ -25,7 +25,7 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
     try {
       const res = await fetch('/api/vetting', { method: 'POST', body });
       const out = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error(out.error ?? 'That did not upload.');
+      if (!res.ok) throw new Error(out.error ?? 'The file did not upload. Please try again.');
       toast.saved('Sent to Relève');
       router.refresh();
     } catch (e: any) {
@@ -40,9 +40,9 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
     return openSignedLink(async () => {
       const res = await fetch(`/api/vetting?path=${encodeURIComponent(path)}`);
       const d = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(d.error ?? 'That document did not open.');
+      if (!res.ok) throw new Error(d.error ?? 'The document did not open. Please try again.');
       return d.url;
-    }, msg => toast.bad(msg), 'That document did not open.');
+    }, msg => toast.bad(msg), 'The document did not open. Please try again.');
   }
 
   return (
@@ -51,13 +51,13 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
         <h3>Before you can be placed</h3>
         <span className={`pill ${done === VETTING_ITEMS.length ? 'good' : ''}`}>
           {done === VETTING_ITEMS.length && <span className="dot" />}
-          {done} of {VETTING_ITEMS.length} cleared
+          {done} of {VETTING_ITEMS.length} verified
         </span>
       </div>
       <p className="small muted" style={{ marginBottom: 24 }}>
-        We check these once, for everyone. It is the reason an executive is willing to hand you their calendar
-        in the first week rather than the third month. Nothing here is ever shown to a client:
-        they see that you are cleared, never the documents.
+        We check these once, for everyone on the roster. This is why an executive can trust you
+        with their calendar from your first week. Clients never see these documents. They only
+        see that you are verified.
       </p>
 
       {VETTING_ITEMS.map(item => {
@@ -72,7 +72,7 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
                 {item.why && <p className="xs muted" style={{ margin: '6px 0 0' }}>{item.why}</p>}
                 {state === 'rejected' && row?.reject_reason && (
                   <p className="small" style={{ color: '#7A2E26', marginTop: 10 }}>
-                    <b>Needs another try:</b> {row.reject_reason}
+                    <b>Please upload again:</b> {row.reject_reason}
                   </p>
                 )}
                 {state === 'verified' && row?.expires_on && (
@@ -126,7 +126,7 @@ export default function VettingUpload({ rows }: { rows: Vetting[] }) {
                     <input id={`exp-${item.kind}`} type="date" />
                   </label>
                 )}
-                {state === 'submitted' && <span className="xs muted">We will look at this within a day.</span>}
+                {state === 'submitted' && <span className="xs muted">We will review this within one day.</span>}
               </div>
             )}
           </div>

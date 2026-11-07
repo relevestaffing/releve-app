@@ -14,7 +14,7 @@ export type Workload = 'too_light' | 'about_right' | 'too_heavy';
 export const WORKLOADS: { key: Workload; label: string }[] = [
   { key: 'too_light',   label: 'Not enough to do' },
   { key: 'about_right', label: 'About right' },
-  { key: 'too_heavy',   label: 'More than they can carry' }
+  { key: 'too_heavy',   label: 'Too much for them' }
 ];
 
 export type Pulse = {
@@ -27,10 +27,10 @@ export type Pulse = {
 
 export const GOING = [
   { n: 1, label: 'Struggling' },
-  { n: 2, label: 'Not really working' },
+  { n: 2, label: 'Not working well' },
   { n: 3, label: 'Fine, could be better' },
   { n: 4, label: 'Working well' },
-  { n: 5, label: 'Could not be happier' }
+  { n: 5, label: 'Excellent' }
 ];
 
 /* The month a pulse covers: the first of the current month. */
@@ -41,7 +41,7 @@ export function monthOf(d = new Date()): string {
 /* ---------- time off ---------- */
 export type TimeOffState = 'requested' | 'approved' | 'declined' | 'cancelled';
 export const TIME_OFF_STATE: { key: TimeOffState; label: string; tone: string }[] = [
-  { key: 'requested', label: 'Waiting on Relève', tone: 'warn' },
+  { key: 'requested', label: 'Awaiting approval', tone: 'warn' },
   { key: 'approved',  label: 'Approved',          tone: 'good' },
   { key: 'declined',  label: 'Declined',          tone: 'crit' },
   { key: 'cancelled', label: 'Cancelled',         tone: '' }
@@ -68,9 +68,9 @@ export type Feedback = {
 };
 
 export const FEEDBACK_SCORES: { key: 'quality' | 'communication' | 'ownership'; label: string; what: string }[] = [
-  { key: 'quality',       label: 'Quality',       what: 'The work itself: accurate, finished, needs little sending back' },
-  { key: 'communication', label: 'Communication', what: 'Clear, timely, says when something is stuck' },
-  { key: 'ownership',     label: 'Ownership',     what: 'Picks things up, closes loops, does not wait to be asked' }
+  { key: 'quality',       label: 'Quality',       what: 'Accurate, complete work that rarely needs redoing' },
+  { key: 'communication', label: 'Communication', what: 'Clear and timely, and speaks up when something is stuck' },
+  { key: 'ownership',     label: 'Ownership',     what: 'Takes things on and finishes them without being asked' }
 ];
 
 /* ---------- the first fortnight ---------- */
@@ -88,7 +88,7 @@ export function dueOn(startedOn: string, day: number): string {
 /* ---------- the replacement guarantee ---------- */
 export type EndedReason = 'completed' | 'client_ended' | 'talent_left' | 'not_working' | 'replaced';
 export const ENDED_REASONS: { key: EndedReason; label: string; guaranteed: boolean }[] = [
-  { key: 'completed',    label: 'Ran its course',            guaranteed: false },
+  { key: 'completed',    label: 'Completed',                 guaranteed: false },
   { key: 'client_ended', label: 'Client ended it',           guaranteed: false },
   { key: 'talent_left',  label: 'Talent left',               guaranteed: true },
   { key: 'not_working',  label: 'Not working out',           guaranteed: true },

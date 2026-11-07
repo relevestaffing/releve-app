@@ -108,7 +108,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
   });
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);
   const stateWord = (v?: { state: string } | null) =>
-    !v ? 'Not started' : v.state === 'verified' ? 'Verified' : v.state === 'submitted' ? 'Waiting on you' : v.state === 'rejected' ? 'Rejected' : v.state;
+    !v ? 'Not started' : v.state === 'verified' ? 'Verified' : v.state === 'submitted' ? 'To review' : v.state === 'rejected' ? 'Rejected' : v.state;
   const stateTone = (v?: { state: string } | null) =>
     !v ? '' : v.state === 'verified' ? 'good' : v.state === 'rejected' ? 'crit' : 'warn';
 
@@ -152,9 +152,9 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
 
       <div className="grid-2">
         <div className="card" style={{ alignSelf: 'start' }}>
-          <div className="card-head"><h3>The Signature</h3>{type && <span className="pill">{type.n}</span>}</div>
+          <div className="card-head"><h3>Relève Signature™</h3>{type && <span className="pill">{type.n}</span>}</div>
           {!sig ? (
-            <div className="empty"><span className="tick" /><p className="small">Not taken yet. Nothing can be matched until it is.</p></div>
+            <div className="empty"><span className="tick" /><p className="small">Not taken yet. They can be matched once it is done.</p></div>
           ) : (
             <>
               <Radar series={[{ name, color: '#35443A', values: sig.scores, op: .2 }]} axes={L1} size={230} note={false} />
@@ -187,7 +187,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           <div className="card">
             <div className="card-head"><h3>Availability</h3></div>
             {!avail.timezone?.trim() || !avail.windows?.length ? (
-              <p className="small muted">Not set. No executive can book them until it is.</p>
+              <p className="small muted">Not set yet. Executives can book them once it is.</p>
             ) : (
               <>
                 <p className="xs muted" style={{ marginBottom: 8 }}>{avail.timezone.replace('_', ' ')}</p>
@@ -242,7 +242,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
       <div className="grid-2">
         <div className="card">
           <div className="card-head"><h3>Placements</h3>{placements.length > 0 && <span className="pill">{placements.length} on file</span>}</div>
-          {!placements.length ? <p className="small muted">Never placed yet.</p> : (
+          {!placements.length ? <p className="small muted">Not placed yet.</p> : (
             <ul className="past-list">
               {placements.map(p => (
                 <li key={p.id}>
@@ -254,7 +254,7 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
           )}
         </div>
         <div className="card">
-          <div className="card-head"><h3>Put forward</h3>{decisions.length > 0 && <span className="pill">{decisions.length} on file</span>}</div>
+          <div className="card-head"><h3>Sent to executives</h3>{decisions.length > 0 && <span className="pill">{decisions.length} on file</span>}</div>
           {!decisions.length ? <p className="small muted">Not yet sent to any executive.</p> : (
             <ul className="past-list">
               {decisions.map(d => (
@@ -282,14 +282,14 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
       <Strip a={acct} accountHref={execHref} />
 
       <Tabs tabs={[
-        { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={execHref} emptyText="Use Assign placement at the top to place them with an executive." /> },
+        { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={execHref} emptyText="No placement yet. Use Assign placement above." /> },
         { key: 'hours', label: 'Hours', body: <HoursTab a={acct} /> },
         { key: 'pay', label: 'Pay', body: (
           <div className="acct-tab">
             <PaySetter talentId={id} cents={pay[id] != null ? pay[id]! * 100 : null} />
             <dl className="acct-kv wide" style={{ marginTop: 18 }}>
-              <dt>Paid by</dt>
-              <dd>{payoutReady(payout) ? <>{method?.label ?? payout?.method} {payout?.confirmed_at ? <span className="acct-tag good">Checked</span> : <span className="acct-tag warn">Not checked</span>}</> : <span className="ws-faint">No payment details yet</span>}</dd>
+              <dt>Payout method</dt>
+              <dd>{payoutReady(payout) ? <>{method?.label ?? payout?.method} {payout?.confirmed_at ? <span className="acct-tag good">Confirmed</span> : <span className="acct-tag warn">Not confirmed</span>}</> : <span className="ws-faint">No payment details yet</span>}</dd>
               <dt>Tax form</dt>
               <dd>{payout?.tax_form_on_file ? 'On file' : payout?.tax_residence ? 'Not on file' : <span className="ws-faint">Not asked yet</span>}</dd>
             </dl>

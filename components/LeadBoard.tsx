@@ -52,7 +52,7 @@ async function persist(body: Record<string, unknown>, revert: () => void) {
 
 /* Last touched, said the short way. */
 function sinceDay(iso: string | null, today: string): string {
-  if (!iso) return 'Not yet';
+  if (!iso) return 'Never';
   const day = iso.slice(0, 10);
   const n = daysBetweenISO(day, today);
   if (n <= 0) return 'Today';
@@ -206,7 +206,7 @@ function TouchPanel({ p, team, onClose, onLogged }: {
 
         <div className="touch-log">
           <h4 className="touch-head">History</h4>
-          {touches === null && <p className="small muted">Reading…</p>}
+          {touches === null && <p className="small muted">Loading…</p>}
           {touches && touches.length === 0 && <p className="small muted">No touches logged yet.</p>}
           {touches && touches.map(t => (
             <div key={t.id} className="touch-item">
@@ -321,7 +321,7 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
         body: JSON.stringify({ action: 'import' })
       });
       d = await r.json().catch(() => ({}));
-    } catch { setPulling(false); toast.bad('No connection.'); return; }
+    } catch { setPulling(false); toast.bad('No connection. Please try again.'); return; }
     setPulling(false);
     if (!r.ok) { toast.bad(d.error ?? 'Could not read the calendar.'); return; }
     if (d.reason) { toast.bad(d.reason); return; }
@@ -344,7 +344,7 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
         <p className="small muted" style={{ margin: 0 }}>Every lead, from first interest to signed, in one place.</p>
         {calendarOn && (
           <button className="btn sm ghost" disabled={pulling} onClick={pull}>
-            {pulling ? 'Reading…' : 'Import from calendar'}
+            {pulling ? 'Importing…' : 'Import from calendar'}
           </button>
         )}
       </div>
@@ -355,7 +355,7 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
           <h3>Follow up today</h3>
           {due.length > 0 && <span className="pill warn"><span className="dot" />{due.length}</span>}
         </div>
-        {due.length === 0 && <p className="small muted">Nobody is due today.</p>}
+        {due.length === 0 && <p className="small muted">No follow-ups due today.</p>}
         {due.map(p => {
           const w = dueWords(p.next_follow_up, today);
           return (
@@ -386,7 +386,7 @@ export default function LeadBoard({ prospects, team, calendarOn, today }: {
             </div>
             {groupRows.length === 0
               ? <p className="small muted" style={{ paddingLeft: 15 }}>
-                  {g.key === 'leads' ? 'No leads yet. Add one, or pull calls from the calendar.' : 'Nothing here yet.'}
+                  {g.key === 'leads' ? 'No leads yet. Add one, or import calls from the calendar.' : 'Nothing here yet.'}
                 </p>
               : (
                 <div className="lead-scroll">

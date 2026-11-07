@@ -42,7 +42,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
   }
 
   async function save(shared: boolean) {
-    if (!strengths.trim()) { toast.bad('Say what they are doing well first.'); return; }
+    if (!strengths.trim()) { toast.bad('Add what is going well first.'); return; }
     setBusy(true);
     const ok = await post({
       action: 'feedback_save', placement_id: placementId, talent_id: talentId,
@@ -58,7 +58,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
   async function toggleShare(f: Feedback) {
     setBusy(true);
     const ok = await post({ action: 'feedback_share', id: f.id, shared: !f.shared },
-      f.shared ? 'Hidden again' : `Shared with ${first}. They have been emailed`, !f.shared);
+      f.shared ? `Hidden from ${first}` : `Shared with ${first}. They have been emailed`, !f.shared);
     setBusy(false);
     if (ok) router.refresh();
   }
@@ -67,7 +67,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
     <div className="card">
       <div className="card-head">
         <h3>Feedback for {first}</h3>
-        {!open && <button className="btn sm solid" onClick={() => setOpen(true)}>Write one</button>}
+        {!open && <button className="btn sm solid" onClick={() => setOpen(true)}>Write feedback</button>}
       </div>
 
       {open && (
@@ -98,7 +98,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
 
           <div className="ff"><label htmlFor={`${fid}-3`}>What to build on</label>
             <textarea id={`${fid}-3`} rows={3} value={growing} onChange={e => setGrowing(e.target.value)}
-              placeholder="Written as something to grow into, not a complaint. They will read this exactly as you write it." /></div>
+              placeholder="Frame it as something to grow into. They will read it exactly as written." /></div>
 
           <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
             <button className="btn sm ghost"  disabled={busy} onClick={() => save(false)}>Save as draft</button>
@@ -110,8 +110,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
 
       {!existing.length ? (
         <p className="small muted">
-          Nothing written yet. After their first full month is the natural moment.
-          People do better work when they know how they are doing.
+          No feedback yet. Write the first after their first full month.
         </p>
       ) : existing.map(f => (
         <div key={f.id} style={{ padding: '14px 0', borderTop: '1px solid var(--mist)' }}>
@@ -120,7 +119,7 @@ export default function FeedbackWriter({ placementId, talentId, talentName, exis
             <div className="row" style={{ gap: 8 }}>
               {f.shared
                 ? <span className="pill good"><span className="dot" />
-                    {f.seen_at ? 'Read' : 'Shared, not opened yet'}</span>
+                    {f.seen_at ? 'Read' : 'Shared, not yet read'}</span>
                 : <span className="pill">Draft</span>}
               <button className="btn sm ghost" disabled={busy} onClick={() => toggleShare(f)}>
                 {f.shared ? 'Unshare' : 'Share'}

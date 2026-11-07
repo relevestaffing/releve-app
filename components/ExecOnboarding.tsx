@@ -19,13 +19,13 @@ export default function ExecOnboarding({ deposit, stripeOn, manager }: {
         <span className="pill"><span className="dot" />Clearing</span>
       </div>
       <p className="small" style={{ marginBottom: 12, maxWidth: 560 }}>
-        Thank you. Your <b>{money(deposit.cents)}</b> deposit is on its way through the bank. Bank
-        transfers take a few business days to settle, and your account opens the moment it does.
-        Nothing more is needed from you.
+        Thank you. Your <b>{money(deposit.cents)}</b> deposit is on its way. Bank transfers take a
+        few business days to settle, and your account opens as soon as it does. There is nothing
+        more you need to do.
       </p>
       <p className="xs muted" style={{ maxWidth: 560 }}>
-        It is credited in full against your first month once your assistant is placed with you. This page updates on its own
-        the moment it settles.
+        It is credited in full once your assistant is placed with you. This page updates by itself
+        when the payment settles.
       </p>
     </div>
   );
@@ -47,7 +47,7 @@ export default function ExecOnboarding({ deposit, stripeOn, manager }: {
       <div className="card-head"><h3>Your search is being prepared</h3></div>
       {manager && <div style={{ marginBottom: 16 }}><ManagerLine manager={manager} /></div>}
       <p className="small" style={{ marginBottom: 14, maxWidth: 560 }}>
-        Your search is being set up from our conversation. Here is what happens next.
+        We are setting up your search from our conversation. Here is what happens next.
       </p>
       <ol className="plain" style={{ maxWidth: 560, marginBottom: 14 }}>
         <li><b>Within one business day.</b> Your search opens here, with your $500 deposit link.</li>
@@ -55,8 +55,8 @@ export default function ExecOnboarding({ deposit, stripeOn, manager }: {
         <li><b>Within fourteen days of the search opening.</b> Your first qualified candidate.</li>
       </ol>
       <p className="xs muted" style={{ maxWidth: 560 }}>
-        If you have already arranged your deposit with us directly, your Client Success Manager will open your
-        account. Questions any time: write to them from Messages.
+        If you have arranged your deposit with us directly, your Client Success Manager will open your
+        account. For any question, write to them in Messages.
       </p>
     </div>
   );

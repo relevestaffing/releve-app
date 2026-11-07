@@ -16,11 +16,11 @@ export default async function BillingBanner({ clientId }: { clientId: string }) 
       <div className="row between" style={{ gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
         <p className="small" style={{ margin: 0, maxWidth: 620 }}>
           {n.failed
-            ? <>The last payment on invoice <b>{n.number ?? 'on file'}</b> did not go through. Most often the bank clears it on a second try, or a card works where a bank did not.</>
+            ? <>The last payment on invoice <b>{n.number ?? 'on file'}</b> did not go through. A second attempt usually clears, or you can pay by card.</>
             : <>Invoice <b>{n.number ?? 'on file'}</b> for <b>{money(n.amount_cents, true)}</b> is open.</>}
           {' '}{n.daysLeft > 0
-            ? <>Settle it within {n.daysLeft} day{n.daysLeft === 1 ? '' : 's'} and nothing changes.</>
-            : <>Settle it today and nothing changes.</>}
+            ? <>Please pay within {n.daysLeft} day{n.daysLeft === 1 ? '' : 's'} to keep everything running as normal.</>
+            : <>Please pay today to keep everything running as normal.</>}
         </p>
         {pay
           ? <PayInvoiceButton invoiceId={n.id} label={`Pay ${money(n.amount_cents, true)}`} className="btn sm solid" />

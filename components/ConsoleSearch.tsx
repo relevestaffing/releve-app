@@ -45,7 +45,7 @@ export default function ConsoleSearch() {
       </label>
       {hits !== null && (
         <div className="cs-results" aria-live="polite">
-          {busy && !hits.length ? <p className="cs-empty">Looking…</p>
+          {busy && !hits.length ? <p className="cs-empty">Searching…</p>
             : !hits.length ? <p className="cs-empty">Nothing matches &ldquo;{q.trim()}&rdquo;. Try a first name, a company or an email.</p>
             : (
               <ul>

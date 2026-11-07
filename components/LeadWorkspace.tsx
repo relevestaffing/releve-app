@@ -338,7 +338,7 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
         toast.saved(parts.length ? `${parts.join(' and ')} added` : 'Nothing new on the calendar or in hello@');
         router.refresh();
       }
-    } catch { toast.bad('No connection.'); }
+    } catch { toast.bad('No connection. Please try again.'); }
     setPulling(false);
   }
 
@@ -425,7 +425,7 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
           const full_name = String(f.get('n') ?? '').trim(), email = String(f.get('e') ?? '').trim().toLowerCase();
           const org_name = String(f.get('o') ?? '').trim() || null;
           const source = String(sec.addAs?.source ?? f.get('s') ?? 'linkedin');
-          if (!full_name || !email.includes('@')) { toast.bad('A name and an email, please.'); return; }
+          if (!full_name || !email.includes('@')) { toast.bad('Enter a name and an email.'); return; }
           try {
             const r = await fetch('/api/admin/prospects', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ full_name, email, org_name, source }) });
             const d = await r.json().catch(() => ({}));
@@ -438,7 +438,7 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
             if (d.id) send('PATCH', { id: d.id, owner_id: lead.owner_id, next_follow_up: lead.next_follow_up, ...(lead.stage !== 'new' ? { stage: lead.stage } : {}) });
             toast.saved(`${full_name} added`);
             form.reset(); (form.elements.namedItem('n') as HTMLInputElement)?.focus();
-          } catch { toast.bad('No connection.'); }
+          } catch { toast.bad('No connection. Please try again.'); }
         }} onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setAdding(null); } }}>
           <input name="n" placeholder="Full name" autoFocus aria-label="Full name" />
           <input name="e" type="email" placeholder="Email" aria-label="Email" />
@@ -479,7 +479,7 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
             {close => (
               <>
                 <button className="ws-opt" onClick={() => { close(); quickAdd(); }}>Add a lead<kbd>Tab Q</kbd></button>
-                {calendarOn && <button className="ws-opt" onClick={() => { close(); pull(); }} disabled={pulling}>{pulling ? 'Reading…' : 'Import from calendar and hello@'}</button>}
+                {calendarOn && <button className="ws-opt" onClick={() => { close(); pull(); }} disabled={pulling}>{pulling ? 'Importing…' : 'Import from calendar and hello@'}</button>}
               </>
             )}
           </Menu>
@@ -600,13 +600,13 @@ export default function LeadWorkspace({ prospects, team, me, calendarOn, today, 
                 </div>
                 <div className="ws-sec-body">
                   {list.map(p => renderRow(p))}
-                  {!list.length && !sec.addAs && <div className="ws-empty">Nobody here.</div>}
+                  {!list.length && !sec.addAs && <div className="ws-empty">No leads here.</div>}
                   {renderQuick(sec)}
                 </div>
               </section>
             );
           })}
-          {!shown.length && <div className="ws-none"><h4>All clear</h4><p className="small">Nothing in this view right now.</p></div>}
+          {!shown.length && <div className="ws-none"><h4>No leads in this view</h4><p className="small">Try another view or clear the filters.</p></div>}
         </div>
       ) : (
         <div className="ws-board" aria-label="Stages">
@@ -733,7 +733,7 @@ export function LeadDetail({ p, team, today, onStage, onOwner, onFollow, onField
         })}
       </div>
       <div className="ws-step-say">
-        <span><b>{stageLabel(p.stage)}</b>{isOpenStage(p.stage) ? ` · step ${at + 1} of ${open.length}` : ''}{age !== null ? ` · ${age === 0 ? 'since today' : `${age} day${age === 1 ? '' : 's'} in this stage`}` : ''}</span>
+        <span><b>{stageLabel(p.stage)}</b>{isOpenStage(p.stage) ? ` · step ${at + 1} of ${open.length}` : ''}{age !== null ? ` · ${age === 0 ? 'entered today' : `${age} day${age === 1 ? '' : 's'} in this stage`}` : ''}</span>
         <span className="end">
           <button className={`ws-chip${p.stage === 'lost' ? ' over' : ''}`} onClick={() => p.stage !== 'lost' && onStage('lost')}><Icon.close />Passed</button>
         </span>
@@ -743,7 +743,7 @@ export function LeadDetail({ p, team, today, onStage, onOwner, onFollow, onField
         <dt><Icon.user />Owner</dt><dd><OwnerPicker ownerId={p.owner_id} team={team} onPick={onOwner} /></dd>
         <dt><Icon.cal />Follow-up</dt><dd><DateChip day={p.next_follow_up} today={today} onPick={onFollow} muteWhenDone={!isOpenStage(p.stage)} /></dd>
         <dt><Icon.flag />Stage</dt><dd><StageChip stage={p.stage} stages={STAGES} onPick={onStage} />
-          <span className="ws-faint" style={{ marginLeft: 10 }}>{age === null ? '' : age === 0 ? 'since today' : `for ${age} day${age === 1 ? '' : 's'}`}</span></dd>
+          <span className="ws-faint" style={{ marginLeft: 10 }}>{age === null ? '' : age === 0 ? 'entered today' : `for ${age} day${age === 1 ? '' : 's'}`}</span></dd>
         <dt><Icon.clock />Last touch</dt><dd><Fresh iso={p.last_touched_at} today={today} /><span style={{ marginLeft: 8 }}>{sinceWords(p.last_touched_at, today)}</span></dd>
         <dt><Icon.mail />Email</dt><dd>{field('email', 'Email', 'email')}</dd>
         <dt><Icon.link />Website</dt><dd>{field('website', 'Website', 'text', 'Add a website')}</dd>

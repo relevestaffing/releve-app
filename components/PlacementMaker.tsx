@@ -76,10 +76,10 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { toast.bad(d.error ? `Not saved. ${d.error}` : 'That did not save. Please try again.'); setBusy(false); return; }
       const mailed = Number(d.mailed ?? 0);
-      if (mailed >= 2) toast.saved(`Placement created. Both ${execLabel} and ${talentLabel} were emailed`);
+      if (mailed >= 2) toast.saved(`Placement created. ${execLabel} and ${talentLabel} have been emailed`);
       else toast.bad(mailed === 1
-        ? `Placement created, but only one of the two emails went out. Check the addresses on file for ${execLabel} and ${talentLabel}`
-        : `Placement created, but neither email went out. Check the addresses on file for ${execLabel} and ${talentLabel}`);
+        ? `Placement created, but only one email sent. Check the email addresses for ${execLabel} and ${talentLabel}`
+        : `Placement created, but neither email sent. Check the email addresses for ${execLabel} and ${talentLabel}`);
       setMadeId(d.placement_id ?? null);
       setBusy(false); setArmed(false);
       form.reset(); setClientId(''); setTalentId(''); setReplaces(''); router.refresh();
@@ -98,7 +98,7 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
       method: 'PATCH', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ id, reason })
     }), owesReplacement(reason)
-        ? 'Ended. A replacement is now owed, and it is listed here'
+        ? 'Placement ended. A replacement is owed and is listed here'
         : 'Placement ended');
     setBusy(false);
     setEnding(null); setConfirmEnd(null);
@@ -108,12 +108,12 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
   return (
     <>
       <div className="card">
-        <div className="card-head"><h3>Place someone</h3></div>
+        <div className="card-head"><h3>New placement</h3></div>
         {clients.length === 0 || talent.length === 0 ? (
           <div className="empty"><span className="tick" />
             <p className="small">
-              You need at least one executive and one talent account before a placement can exist.
-              Add them under Executives or the Talent Roster.
+              A placement needs at least one executive and one talent account. Add them under
+              Executives or Talent.
             </p></div>
         ) : (
           <form onSubmit={create}>
@@ -128,9 +128,9 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
             <div className="grid-2" style={{ gap: 14 }}>
               <div className="ff"><label htmlFor={`${fid}-1`}>Start date</label>
                 <input id={`${fid}-1`} type="date" name="started_on" defaultValue={todayInPacific()} /></div>
-              <div className="ff"><label htmlFor={`${fid}-2`}>The executive pays, per month</label>
+              <div className="ff"><label htmlFor={`${fid}-2`}>Executive pays (USD/month)</label>
                 <input id={`${fid}-2`} name="rate" inputMode="numeric" placeholder="3,500" />
-                <span className="xs muted">Leave blank to set it later, but nothing is invoiced until you do.</span></div>
+                <span className="xs muted">Optional now, but nothing is invoiced until it is set.</span></div>
             </div>
             {owed.length > 0 && (
               <div className="ff">
@@ -144,13 +144,13 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
                   ))}
                 </select>
                 <span className="xs muted">
-                  Saying so settles the replacement guarantee, and the replacement carries only what was
-                  left of the original&rsquo;s minimum commitment, so the client never pays twice for one seat.
+                  This settles the replacement guarantee. The replacement carries only the remainder of
+                  the original minimum commitment, so the client never pays twice for one seat.
                 </span>
               </div>
             )}
             <p className="xs muted" style={{ marginBottom: 16 }}>
-              This opens their shared task list and starts the end of week reports. The talent's stage moves to Placed.
+              This opens their shared task list, starts the end-of-week reports and moves the talent to Placed.
             </p>
             {armed ? (
               <>
@@ -173,16 +173,16 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
         )}
         {madeId && (
           <p className="small" style={{ marginTop: 14 }}>
-            <Link className="btn sm ghost" href={`/console/placements/${madeId}`}>Open the new placement file</Link>
+            <Link className="btn sm ghost" href={`/console/placements/${madeId}`}>Open the placement file</Link>
           </p>
         )}
       </div>
 
       <div className="card">
         <div className="card-head">
-          <h3>Running</h3>
+          <h3>Active</h3>
           <div className="row" style={{ gap: 10 }}>
-            {live.length > 0 && <span className="pill">{live.length} running</span>}
+            {live.length > 0 && <span className="pill">{live.length} active</span>}
             <div className="ff picker-inline">
               <input value={find} onChange={e => setFind(e.target.value)}
                 placeholder="Search placements…" aria-label="Search placements" />
@@ -191,7 +191,7 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
         </div>
         {live.length === 0 ? (
           <div className="empty"><span className="tick" /><p className="small">
-            {find.trim() ? `Nobody running matches “${find.trim()}”.` : 'No placements yet.'}
+            {find.trim() ? `No active placement matches “${find.trim()}”.` : 'No placements yet.'}
           </p></div>
         ) : (
           <table className="data pm-table" style={{ boxShadow: 'none' }}>
@@ -219,19 +219,19 @@ export default function PlacementMaker({ people, placements, owed = [], initialR
                         {confirmEnd?.id === p.id ? (
                           <>
                             <div className="xs" style={{ marginBottom: 8 }}>
-                              End it today as {ENDED_REASONS.find(r => r.key === confirmEnd.reason)?.label}?{' '}
+                              End this placement today as {ENDED_REASONS.find(r => r.key === confirmEnd.reason)?.label}?{' '}
                               {owesReplacement(confirmEnd.reason)
-                                ? 'Billing stops today; the replacement carries the rest of the minimum.'
+                                ? 'Billing stops today, and the replacement carries the rest of the minimum term.'
                                 : 'The minimum term and any notice period are still billed.'}
                             </div>
                             <div className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
-                              <button className="btn sm solid danger" disabled={busy} onClick={() => end(p.id, confirmEnd.reason)}>Yes, end it</button>
+                              <button className="btn sm solid danger" disabled={busy} onClick={() => end(p.id, confirmEnd.reason)}>End placement</button>
                               <button className="btn sm ghost" disabled={busy} onClick={() => setConfirmEnd(null)}>Back</button>
                             </div>
                           </>
                         ) : (
                           <>
-                            <div className="xs muted" style={{ marginBottom: 8 }}>Why is it ending?</div>
+                            <div className="xs muted" style={{ marginBottom: 8 }}>Reason for ending</div>
                             <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                               {ENDED_REASONS.map(r => (
                                 <button key={r.key} className="btn sm ghost" disabled={busy}

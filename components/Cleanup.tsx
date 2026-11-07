@@ -80,10 +80,10 @@ export default function Cleanup({ rows, archived }: {
         body: JSON.stringify({ action: 'restore', ids: [id] })
       });
       const d = await r.json().catch(() => ({}));
-      if (r.ok) { toast.saved(`${who} is back`); router.refresh(); }
-      else toast.bad(d.error ? `Not restored. ${d.error}` : `${who} was not put back. Please try again.`);
+      if (r.ok) { toast.saved(`${who} restored`); router.refresh(); }
+      else toast.bad(d.error ? `Not restored. ${d.error}` : `${who} was not restored. Please try again.`);
     } catch {
-      toast.bad(`No connection. ${who} was not put back.`);
+      toast.bad(`No connection. ${who} was not restored.`);
     }
     setRestoring(null);
   }
@@ -99,7 +99,7 @@ export default function Cleanup({ rows, archived }: {
         </div>
 
         {rows.length === 0 ? (
-          <p className="small muted">Nobody yet.</p>
+          <p className="small muted">No one in the directory yet.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="data">
@@ -154,7 +154,7 @@ export default function Cleanup({ rows, archived }: {
             <>
               <p className="small muted" style={{ maxWidth: 'var(--measure)', marginBottom: 16 }}>
                 Archiving takes them out of every list and keeps everything on file.
-                Removing erases them, and cannot be undone.
+                Removing erases them and cannot be undone.
               </p>
               <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
                 <button className="btn sm solid" disabled={busy || archivable.length === 0}
@@ -176,9 +176,8 @@ export default function Cleanup({ rows, archived }: {
                   {chosen.some(r => r.pending) && (
                     <li className="xs muted">
                       {chosen.filter(r => r.pending).length === 1
-                        ? 'One of these is an invitation with no account behind it.'
-                        : `${chosen.filter(r => r.pending).length} of these are invitations with no accounts behind them.`}
-                      {' '}There is nothing to archive, only to forget.
+                        ? 'One of these is an invitation with no account, so it can be removed but not archived.'
+                        : `${chosen.filter(r => r.pending).length} of these are invitations with no account, so they can be removed but not archived.`}
                     </li>
                   )}
                 </ul>
@@ -190,8 +189,8 @@ export default function Cleanup({ rows, archived }: {
             <>
               <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 16 }}>
                 Archive <b>{archivable.length}</b>? They leave every list and count.
-                Their Signature, placements, invoices and payment history all stay,
-                and you can put any of them back from this page.
+                Their Signature, placements, invoices and payment history stay, and you
+                can restore any of them from this page.
               </p>
               <div className="row" style={{ gap: 10 }}>
                 <button className="btn sm solid" disabled={busy} onClick={() => run('archive')}>
@@ -206,16 +205,16 @@ export default function Cleanup({ rows, archived }: {
           {confirming === 'remove' && (
             <>
               <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 14 }}>
-                Permanently remove <b>{removable.length}</b>. This erases their account and
-                everything attached to it, including identity documents, and it cannot be
+                Permanently remove <b>{removable.length}</b>? This erases their account and
+                everything attached to it, including identity documents. It cannot be
                 undone. Type <b>REMOVE</b> to confirm.
               </p>
               {removable.some(r => r.placements || r.invoices || r.payments) && (
                 <p className="small" style={{ maxWidth: 'var(--measure)', marginBottom: 14 }}>
-                  <b>Some of these have history on file.</b>{' '}
+                  <b>These have history on file:</b>{' '}
                   {removable.filter(r => r.placements || r.invoices || r.payments)
                     .map(r => r.name ?? r.email).join(', ')}
-                  . Archiving keeps all of it and still clears the list.
+                  . Archiving keeps that history and still takes them off every list.
                 </p>
               )}
               <div className="ff" style={{ maxWidth: 220 }}>
@@ -252,9 +251,8 @@ export default function Cleanup({ rows, archived }: {
         </div>
         {archived.length === 0 ? (
           <p className="small muted" style={{ maxWidth: 'var(--measure)' }}>
-            Nobody archived. Archiving is the gentle way to clear the directory:
-            they come off every list, everything on file stays, and they come back
-            from here whenever you want them.
+            No one archived. Archived people come off every list but keep everything
+            on file, and can be restored here at any time.
           </p>
         ) : (
           <ul className="plain archived-list">
@@ -270,7 +268,7 @@ export default function Cleanup({ rows, archived }: {
                 </div>
                 <button className="btn sm ghost" disabled={restoring !== null}
                   onClick={() => restore(a.id, a.full_name || a.email || 'They')}>
-                  {restoring === a.id ? 'Putting back…' : 'Put back'}
+                  {restoring === a.id ? 'Restoring…' : 'Restore'}
                 </button>
               </li>
             ))}

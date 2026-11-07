@@ -26,7 +26,7 @@ export default function TalentPaySetter({ placementId, cents, fallbackCents, cli
 
   async function save() {
     const c = toCents(text);
-    if (c == null || c <= 0) { toast.bad('That is not a monthly amount.'); return; }
+    if (c == null || c <= 0) { toast.bad('Enter a monthly amount in US dollars.'); return; }
     setBusy(true);
     try {
       const r = await fetch('/api/payout', {

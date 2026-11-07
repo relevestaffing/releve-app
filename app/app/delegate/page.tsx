@@ -27,12 +27,12 @@ export default async function DelegatePage() {
       <div className="next-step">
         <div>
           <div className="eyebrow" style={{ marginBottom: 6 }}>
-            {tour ? 'When you’re ready' : 'Ready to turn this into a role'}
+            {tour ? 'When you’re ready' : 'Next, the role'}
           </div>
           <div className="small" style={{ maxWidth: 480 }}>
             {tour
-              ? 'Nothing to decide yet. The role page walks you through it when your search opens.'
-              : 'Pick the areas that matter. The role page walks you through the rest.'}
+              ? 'Nothing to decide yet. Once your search opens, the role page takes you through it.'
+              : 'Choose the areas that matter. The role page takes you through the rest.'}
           </div>
         </div>
         <Link className="btn solid" href={tour ? '/app' : '/app/role'}>

@@ -29,9 +29,9 @@ export default async function TalentProfile() {
         <div className="empty-mark" aria-hidden="true" />
         <h3>Your profile starts with your {WORDS.signature}</h3>
         <p className="small">
-          Everything executives see about you is built on it: how you work, what you
-          are like to work with, and which roles will suit you. It takes about twenty
-          minutes and you can stop and come back at any point.
+          Your profile is built on it. It shows executives how you work, what you are
+          like to work with and which roles suit you. It takes about twenty minutes, and
+          you can stop and return at any time.
         </p>
         <a className="btn solid" href="/app/signature" style={{ marginTop: 20 }}>
           Take the {WORDS.talentSignature}
@@ -86,9 +86,9 @@ export default async function TalentProfile() {
         ) : (
           <div style={{ marginTop: 16 }}>
             <p className="small muted" style={{ maxWidth: 560, marginBottom: 12 }}>
-              Your skills are not broken down yet.
+              You have not added your skills yet.
             </p>
-            <a className="btn sm ghost" href="/app/skills">Break down your skills</a>
+            <a className="btn sm ghost" href="/app/skills">Add your skills</a>
           </div>
         )}
       </div>
@@ -116,7 +116,7 @@ export default async function TalentProfile() {
           <p className="small">{type.friction}</p>
           <div style={{ marginTop: 14 }}>
             <Explain>
-              This is not a criticism. It is what we tell an executive so they work with you well from day one.
+              We share this with your executive so they can work well with you from the first day.
             </Explain>
           </div>
         </div>

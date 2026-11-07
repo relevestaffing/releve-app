@@ -40,7 +40,7 @@ export default function RequestDesk({ rows }: { rows: Row[] }) {
         <h3>Requests from executives</h3>
         <span className={`pill ${live.some(r => r.state === 'open') ? 'warn' : ''}`}>{live.length} open</span>
       </div>
-      {!live.length && <p className="small muted" style={{ margin: 0 }}>Nothing waiting. Replacements, pauses and quarterly reviews asked for in the app appear here.</p>}
+      {!live.length && <p className="small muted" style={{ margin: 0 }}>No open requests. Replacement, pause and quarterly review requests from the app appear here.</p>}
       {live.map(r => {
         const meta = REQUEST_KINDS.find(k => k.key === r.kind);
         const st = REQUEST_STATE.find(s => s.key === r.state);
@@ -61,7 +61,7 @@ export default function RequestDesk({ rows }: { rows: Row[] }) {
             {closing?.id === r.id ? (
               <form onSubmit={e => { e.preventDefault(); move(r.id, closing.state, String(new FormData(e.currentTarget).get('outcome') ?? '')); }}>
                 <div className="ff" style={{ marginBottom: 10 }}>
-                  <label htmlFor={`oc-${r.id}`}>{closing.state === 'done' ? 'What was agreed' : 'Why it is closed'} <span className="muted">(the executive sees this)</span></label>
+                  <label htmlFor={`oc-${r.id}`}>{closing.state === 'done' ? 'What was agreed' : 'Reason for closing'} <span className="muted">(the executive sees this)</span></label>
                   <input id={`oc-${r.id}`} name="outcome" maxLength={2000}
                     placeholder={closing.state === 'done' ? 'Review held 12 Oct; next one in January.' : 'Resolved on our call.'} />
                 </div>
@@ -90,7 +90,7 @@ export default function RequestDesk({ rows }: { rows: Row[] }) {
 
       {past.length > 0 && (
         <details className="more" style={{ marginTop: 14 }}>
-          <summary>Recently handled</summary>
+          <summary>Recently closed</summary>
           <div className="inner">
             {past.map(r => (
               <div key={r.id} className="req-row">

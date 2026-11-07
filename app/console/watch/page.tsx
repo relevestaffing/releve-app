@@ -18,11 +18,11 @@ export default async function ConsoleWatch() {
 
   return (
     <Shell profile={profile} active="/console/directory" title="Taking The Watch™"
-      crumb="To review"
+      crumb="Work simulations to score"
       action={<Link className="btn sm ghost" href="/console/directory">← Directory</Link>}>
       {queue.length === 0 ? (
         <div className="card"><div className="empty"><span className="tick" />
-          <p className="small">Nothing waiting on review.</p></div></div>
+          <p className="small">No work simulations to score. Submitted Taking The Watch™ attempts appear here.</p></div></div>
       ) : (
         <div className="card">
           <table className="data" style={{ boxShadow: 'none' }}>

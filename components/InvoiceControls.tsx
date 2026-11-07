@@ -52,7 +52,7 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
     <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
       <span className="xs">
         {ask === 'paid'
-          ? `${money(inv.amount_cents)} from ${who}, received outside Stripe?`
+          ? `Mark ${money(inv.amount_cents)} from ${who} as paid outside Stripe?`
           : ask === 'sent'
             ? sentSentence
             : 'Void this invoice? Nothing will be owed on it.'}
@@ -60,7 +60,7 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
       <button className="btn sm solid" disabled={busy} onClick={() => apply(ask)}>
         {busy ? 'Working…' : ask === 'sent' ? 'Yes, send it' : ask === 'paid' ? 'Yes, mark paid' : 'Yes, void it'}
       </button>
-      <button className="btn sm ghost" disabled={busy} onClick={() => setAsk(null)}>Keep it</button>
+      <button className="btn sm ghost" disabled={busy} onClick={() => setAsk(null)}>Cancel</button>
     </div>
   );
 
@@ -70,7 +70,7 @@ export function InvoiceStatusPicker({ inv }: { inv: Invoice }) {
       onChange={e => {
         const next = e.target.value as InvoiceStatus;
         if (next === 'paid' || next === 'void' || next === 'sent') { setAsk(next); return; }
-        if (next === 'failed' && !confirm('Mark this invoice failed by hand? Stripe sets this on its own when a charge is declined; use it only for a payment that failed outside Stripe.')) { setValue(inv.status); return; }
+        if (next === 'failed' && !confirm('Mark this invoice as failed? Stripe sets this automatically when a charge is declined. Use it only for a payment that failed outside Stripe.')) { setValue(inv.status); return; }
         if (next === 'draft' && inv.status !== 'draft' && !confirm('Move this invoice back to draft? If the client was already emailed a pay link, that link keeps working.')) { setValue(inv.status); return; }
         apply(next);
       }}>
@@ -99,7 +99,7 @@ export function RunTheMonth({ month, previous }: { month: string; previous?: str
         toast.bad(d.error ? `Not drafted: ${d.error}` : 'Nothing was drafted. Please try again.');
       } else {
         toast.saved(d.made === 0
-          ? `${monthLabel(which)} is already drafted. Nothing new`
+          ? `${monthLabel(which)} is already drafted. No new invoices`
           : `${d.made} invoice${d.made === 1 ? '' : 's'} drafted`);
         router.refresh();
       }
