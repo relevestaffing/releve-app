@@ -60,7 +60,7 @@ export default async function PayDeposit({ params, searchParams }: {
                 <b>{money(summary.cents)}</b>{summary.who ? <> for {summary.who}</> : null}. This opens your search.
               </p>
               <p className="xs muted" style={{ marginBottom: 20 }}>
-                Credited in full against your first month once you are placed, and refunded in full if the search closes before we present a candidate. By bank or card,
+                Credited in full against your first month once your assistant is placed with you. By bank or card,
                 on Stripe&rsquo;s secure page.
               </p>
             </>

@@ -333,7 +333,7 @@ const rawTemplates = {
        footnotes" this layout was built to avoid. */
     const steps = [
       { n: 1, label: 'Sign your agreement', note: 'Takes a minute, right on your screen.', href: o.agreementUrl ?? `${SITE}/agreement`, cta: 'Sign agreement' },
-      { n: 2, label: 'Place your deposit', note: `${amount}, credited in full to your first invoice.`, href: o.payUrl, cta: `Pay ${amount}` },
+      { n: 2, label: 'Place your deposit', note: `${amount}, credited in full once your assistant is placed with you.`, href: o.payUrl, cta: `Pay ${amount}` },
       { n: 3, label: 'Set up your account', note: "This is where your candidate's profile will appear.", href: SITE, cta: 'Open account' },
       { n: 4, label: 'Add Relève to your phone', note: 'So updates reach you right away.', href: `${SITE}/install`, cta: 'Get the app' }
     ];
@@ -396,7 +396,7 @@ const rawTemplates = {
 
   <tr><td align="center" style="padding:52px 40px 58px;">
     <div style="width:44px;height:1px;background:#B0C4B2;margin:0 auto 26px;font-size:0;line-height:0;">&nbsp;</div>
-    <div style="font-family:${SERIF};font-style:italic;font-size:17px;line-height:1.6;color:#4A5A4F;">Once your deposit is in, we start your search.</div>
+    <div style="font-family:${SERIF};font-style:italic;font-size:17px;line-height:1.6;color:#4A5A4F;">Your search begins the moment your deposit is in.</div>
   </td></tr>
 </table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;"><tr><td style="padding:26px 8px 0;text-align:center;font-family:${SANS};font-size:10px;line-height:1.9;letter-spacing:3px;text-transform:uppercase;color:#8A8F82;">
@@ -405,7 +405,7 @@ const rawTemplates = {
 </td></tr></table></body></html>`;
     return {
       subject: `Welcome to Relève${firstName ? `, ${firstName}` : ''}`,
-      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThanks for choosing Relève. Here is how we get started. It takes about ten minutes:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}\n   ${s.note}`).join('\n\n')}\n\nOnce your deposit is in, we start your search.\n\nConsider it handled.\nRelève`,
+      text: `${o.name ? o.name + ',' : 'Hello,'}\n\nThanks for choosing Relève. Here is how we get started. It takes about ten minutes:\n\n${steps.map(s => `${s.n}. ${s.label}: ${s.href}\n   ${s.note}`).join('\n\n')}\n\nYour search begins the moment your deposit is in.\n\nConsider it handled.\nRelève`,
       html
     };
   },

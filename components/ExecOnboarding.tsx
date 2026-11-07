@@ -24,7 +24,7 @@ export default function ExecOnboarding({ deposit, stripeOn, manager }: {
         Nothing more is needed from you.
       </p>
       <p className="xs muted" style={{ maxWidth: 560 }}>
-        It is credited in full against your first month once you are placed. This page updates on its own
+        It is credited in full against your first month once your assistant is placed with you. This page updates on its own
         the moment it settles.
       </p>
     </div>
