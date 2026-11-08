@@ -49,6 +49,7 @@ uniform vec2 dxy;          // translation of the patch (uv)
 uniform vec3 sunCol, ambCol, lampCol;
 uniform float sunI, moonI, soft, sway, cloud;
 uniform vec3 dawn;         // x: how near the sun is to rising or setting (0..1)
+uniform float phone;       // 1 on phones: deeper green, finer grain, gentler light
 const vec2 P=vec2(.997,.0); // pivot: top right corner of the window patch
 vec2 warp(vec2 uv){vec2 q=uv-P-dxy; q.x/=xf.x; q.y=(q.y-xf.z*q.x)/xf.y; return P+q;}
 float h1(float n){return fract(sin(n)*43758.5453);}
@@ -84,7 +85,11 @@ void main(){
   // the shadows keep the cool green of the skylight, with only a little warm
   // bounce from the lit patch
   float gh=dawn.r;
-  float lightNow=sunI*cloud*(1.+.6*gh);
+  /* Phones (8 Nov 2026, Nona: "this background looks really bad in the mobile app"):
+     the wall is shown close up there, so the daytime light turned it a bright,
+     blotchy lime. On a phone the light is a third as strong, the grain is
+     calmer, and the colour stays the deep fern of the brand at every hour. */
+  float lightNow=sunI*cloud*(1.+.6*gh)*mix(1.,.32,phone);
   vec3 scol=mix(sunCol,vec3(1.,.60,.24),gh*.7);  // golden as the sun nears the horizon
   vec3 E=ambCol*amb + scol*lightNow*(direct + direct*direct*.15 + bounce*(.015+.02*gh) + .008*gh*amb) + vec3(.5,.6,.8)*moonI*direct;
   // lamp washing up from the lower right at night
@@ -95,7 +100,7 @@ void main(){
   vec2 cell=floor(uv*vec2(2048.,1024.));
   float sp=h1(dot(cell,vec2(12.9898,78.233)))-.5;
   // golden light is soft on the plaster: less glitter in the grain
-  float relief=g*(1.+1.8*lit*(1.-.35*dawn.r))+sp*.12*lit*(1.-.7*dawn.r);
+  float relief=(g*(1.+1.8*lit*(1.-.35*dawn.r))+sp*.12*lit*(1.-.7*dawn.r))*mix(1.,.6,phone);
   vec3 alb=vec3(.055,.10,.05)*exp(relief);
   vec3 c=alb*E;
   // Sunrise and sunset, as a camera sees them (Nona, 5 Nov 2026: "I want it
@@ -123,7 +128,7 @@ void main(){
   c=pow(c,vec3(1./2.2));
   // golden light is saturated: give the colour back that the film shoulder takes
   float lum=dot(c,vec3(.299,.587,.114));
-  c=max(vec3(0.),mix(vec3(lum),c,1.+.25*gh));
+  c=max(vec3(0.),mix(vec3(lum),c,1.+.25*gh*(1.-phone)));
   // veil so the greeting reads (screen space)
   float vl = veil<.5 ? mix(.6,0.,smoothstep(0.,.86,v.x))          // header, desktop: the greeting sits left
            : veil<1.5 ? mix(.30,.62,1.-v.y)                         // header, phone: the greeting sits low
@@ -202,7 +207,7 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
       const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
       const U: Record<string, WebGLUniformLocation | null> = {};
-      ['plaster', 'sun', 'res', 'focus', 'zoom', 't', 'veil', 'drift', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud', 'dawn']
+      ['plaster', 'sun', 'phone', 'res', 'focus', 'zoom', 't', 'veil', 'drift', 'xf', 'dxy', 'sunCol', 'ambCol', 'lampCol', 'sunI', 'moonI', 'soft', 'sway', 'cloud', 'dawn']
         .forEach(n => { U[n] = gl.getUniformLocation(pr, n); });
       imgs.forEach((img, unit) => {
         const tx = gl.createTexture(); gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tx);
@@ -250,7 +255,8 @@ export default function SunWall({ room = false, page = false }: { room?: boolean
         gl.uniform3f(U.dawn, tw.g, 0, 0);
         gl.uniform2f(U.res, w, h);
         gl.uniform2f(U.focus, room ? .85 : mob ? .82 : 1, page ? .35 : .45);
-        gl.uniform1f(U.zoom, 1.05);
+        gl.uniform1f(U.phone, mob ? 1 : 0);
+        gl.uniform1f(U.zoom, mob ? .75 : 1.05);
         gl.uniform1f(U.t, still ? 0 : t);
         gl.uniform1f(U.veil, page ? (mob ? 4 : 3) : room ? 2 : mob ? 1 : 0);
         /* The sign-in page is the first thing anyone sees, so the light there

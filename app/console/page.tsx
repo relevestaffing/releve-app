@@ -105,7 +105,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
     <Shell profile={{ ...profile, role: 'admin' }} active="/console"
       lead={{
         eyebrow: urgent.length ? `Today · ${urgent.length} urgent` : todo.length ? `Today · ${todo.length} to pick up` : 'Today',
-        title: todo[0] ? todo[0].what : 'All clear',
+        title: todo[0] ? (/^\d/.test(todo[0].what) ? todo[0].what : `${todo[0].count} ${todo[0].what}`) : 'All clear',
         meta: todo[0] ? todo[0].why : 'Nothing is waiting on you.',
         href: todo[0] ? todo[0].href : '/console/people',
         cta: todo[0]?.cta,
@@ -251,7 +251,7 @@ export default async function Console({ searchParams }: { searchParams: Promise<
               <li key={a.key} className={a.level}>
                 <span className="att-n">{a.count}</span>
                 <div className="att-body">
-                  <p className="att-line"><b>{a.what}</b>: {a.why}</p>
+                  <p className="att-line"><b>{a.what.replace(/^\d+\s+/, '')}</b>: {a.why}</p>
                 </div>
                 <Link className="btn sm solid" href={a.href}>{a.cta}</Link>
               </li>
