@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { adminClient } from '@/lib/supabase/admin';
 import {
-  getPost, updatePost, listWeek, kick, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA, writePostFromImage
+  getPost, updatePost, listWeek, kick, draftHiringPost, draftWeek, redraftPost, putSetting, getSetting, publishDue, weekStart, getGroups, exportForVA, writePostFromImage
 } from '@/lib/content';
 import { DEFAULT_RULES } from '@/lib/content-rules';
 import { DEFAULT_DESIGN } from '@/lib/design-standard';
@@ -24,6 +24,7 @@ const nodash = (s: unknown, max: number) => String(s ?? '').replace(/[–—]/g,
 
 /* Where a post goes back to when it is released from a hold. */
 function readyStatus(p: ContentPost): ContentPost['status'] {
+  if (p.channel === 'li_personal' && (p.card as any)?.layout === 'hiring') return 'scheduled';
   if (p.channel === 'li_personal') return (p.image_path && (p.caption ?? '').trim()) ? 'scheduled' : 'needs_image';
   if (p.format === 'video' && !(p.channel === 'li_group' && !p.parent_id)) {
     if (!p.video_path) return 'needs_video';
@@ -78,6 +79,16 @@ export async function POST(req: Request) {
         if (await kick('draft_week', { week })) return ok({ queued: true });
         await putSetting(`draft:${week}`, { status: 'failed', at: new Date().toISOString(), error: 'The background worker could not be reached.' });
         return bad('The background worker could not be reached. Check CRON_SECRET in Netlify.', 503);
+      }
+      case 'hiring_post': {
+        /* The hiring post for a live posting. It is made by the worker (Claude
+           writes it); if the worker cannot be reached it is made right here
+           from the posting's own words. */
+        const id = String(b.posting ?? '');
+        if (!id) return bad('Which posting?');
+        if (await kick('hiring_post', { id })) return ok({ queued: true });
+        const r = await draftHiringPost(id, { useAI: false });
+        return ok({ made: r.created, note: r.why });
       }
       case 'approve_week': {
         /* Nona approves a week: every held post goes back to its schedule,
@@ -208,9 +219,21 @@ export async function POST(req: Request) {
           const kp: any = { written_by: 'team' };
           if ('caption_li' in b) { const t = nodash(b.caption_li, 3000); if (t) kp.caption = t; }
           for (const f of ['hook', 'card', 'slides', 'script']) if (f in patch) kp[f] = patch[f];
-          if (Object.keys(kp).length > 1) for (const k of kids) await updatePost(k.id, kp);
+          /* A LinkedIn copy that carries its own brief keeps its own pages. */
+          const own = (k: ContentPost) => (k.card as any)?.look === 'brief' || (k.slides as any)?.[0]?.look === 'brief';
+          for (const k of kids) {
+            const mine = { ...kp };
+            if (own(k)) { delete mine.card; delete mine.slides; }
+            if (Object.keys(mine).length > 1) await updatePost(k.id, mine);
+          }
         }
         break;
+      }
+      case 'linkedin_week': {
+        /* Rebuild the LinkedIn brief for every day of the post's week that
+           still carries the Instagram graphic on LinkedIn. */
+        if (await kick('linkedin_week', { week: post.week_start })) return ok({ queued: true });
+        return bad('The background worker could not be reached. Try again in a minute.', 503);
       }
       case 'redraft':
         if (done) return bad('This one has already gone out.', 409);
@@ -275,7 +298,7 @@ export async function POST(req: Request) {
       case 'retry':
       case 'post_now': {
         if (post.status === 'posted') return bad('This one has already gone out.', 409);
-        if (post.channel === 'li_personal' && !post.image_path) return bad('Add your picture first.');
+        if (post.channel === 'li_personal' && !post.image_path && (post.card as any)?.layout !== 'hiring') return bad('Add your picture first.');
         await updatePost(post.id, { status: 'scheduled', error: null, hold_reason: null, ...(b.action === 'post_now' || Date.now() - new Date(post.publish_at).getTime() > 30 * 3600000 ? { publish_at: new Date().toISOString() } : {}) } as any);
         if (!(await kick('publish_due'))) await publishDue();
         return ok({ queued: true });

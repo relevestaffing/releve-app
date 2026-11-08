@@ -368,6 +368,7 @@ function PostCard({ p, kids, open, onToggle, onClose, groups, busy, run }: {
   const [slidesText, setSlidesText] = useState((p.slides ?? []).map(s => `${s.title}\n${s.body}`).join('\n\n'));
   const [uploading, setUploading] = useState(false);
   const [view, setView] = useState<number | null>(null);
+  const [liView, setLiView] = useState<number | null>(null);
   const done = p.status === 'posted' || p.status === 'publishing';
   const isCopy = Boolean(p.parent_id);
   const photoFirst = p.channel === 'li_personal' && !(p.caption ?? '').trim();
@@ -511,6 +512,31 @@ function PostCard({ p, kids, open, onToggle, onClose, groups, busy, run }: {
               <textarea rows={6} value={captionLi} readOnly={done} onChange={e => setCaptionLi(e.target.value)} /></div>
           )}
 
+          {(() => {
+            /* LinkedIn's own version, The Relève Brief (7 Nov 2026). */
+            const li = kids.find(k => k.channel === 'li_page_client' || k.channel === 'li_group');
+            if (!li || p.channel !== 'ig_client') return null;
+            const own = (li.card as any)?.look === 'brief' || (li.slides as any)?.[0]?.look === 'brief';
+            return (
+              <div className="ff"><label>LinkedIn version (page and groups)</label>
+                {own ? <span className="xs muted" style={{ marginBottom: 6 }}>{li.format === 'carousel' ? `The Relève Brief, a ${li.slides.length} page document. Post the PDF on LinkedIn as a document.` : 'The Relève Brief, one report page.'}</span>
+                  : <span className="xs muted" style={{ marginBottom: 6 }}>LinkedIn still carries the Instagram graphic for this day.</span>}
+                {own && li.images.length > 0 && (
+                  <div className="cd-strip">
+                    {li.images.map((src, i) => <button key={i} type="button" onClick={() => setLiView(i)} aria-label={`Open LinkedIn page ${i + 1} of ${li.images.length}`} className="cd-tile">
+                      <img src={src} alt={`LinkedIn page ${i + 1}`} width={162} height={203} loading="lazy" /></button>)}
+                  </div>
+                )}
+                {liView !== null && <Viewer images={li.images} start={liView} onClose={() => setLiView(null)} />}
+                {!done && <div className="row" style={{ gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                  {own && li.pdf && <a className="btn sm ghost" href={li.pdf}>Download the PDF</a>}
+                  <button className="btn sm ghost" disabled={!!busy} onClick={() => run('li' + li.id, 'redraft', { id: li.id }, 'Writing the LinkedIn version. Refresh in about two minutes.')}>
+                    {own ? 'Rewrite the LinkedIn version' : 'Make the LinkedIn version'}</button>
+                </div>}
+              </div>
+            );
+          })()}
+
           {kids.length > 0 && (
             <div className="ff"><label>Goes to</label>
               {[{ id: p.id, label: p.channel === 'ig_careers' ? 'Careers Instagram + Facebook' : 'Instagram + Facebook', status: p.status, channel: p.channel }, ...kids.map(k => ({ id: k.id, label: CHANNELS[k.channel].label, status: k.status, channel: k.channel }))].map(d => (
@@ -518,7 +544,7 @@ function PostCard({ p, kids, open, onToggle, onClose, groups, busy, run }: {
                   <span className="small">{d.label}</span>
                   <span className="row" style={{ gap: 8, alignItems: 'center' }}>
                     <span className={STATUS_PILL[d.status]}>{STATUS_LABEL[d.status]}</span>
-                    {d.status === 'manual' && d.channel.startsWith('li_page') && (
+                    {d.status === 'manual' && (d.channel.startsWith('li_page') || d.channel === 'ig_careers') && (
                       <button className="btn sm ghost" disabled={!!busy} onClick={() => run('m' + d.id, 'mark_posted', { id: d.id }, 'Marked as posted')}>Mark as posted</button>
                     )}
                   </span>

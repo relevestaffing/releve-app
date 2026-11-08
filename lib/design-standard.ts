@@ -44,8 +44,8 @@ Headlines are under 70 characters, in sentence case, never a question (except th
 9. NONA'S OWN BRAND IS SEPARATE
 Her carousels keep their own looks: Playfair Display on cream with deep navy and thin gold hairlines, and the full-bleed photo look for teach-then-sell posts. Every other carousel switches to a lighter, more premium alternate in different colouring, never near-black. Her reel covers use clean Playfair with no outline or shadow. Never mix her look into Relève, or Relève's into hers.
 
-10. THE TRENDS WE FOLLOW IN 2026
-Oversized editorial type as the hero in place of stock imagery. Serifs with mixed weights. Moody deep greens with one restrained accent. Tactile material and subtle depth. Scroll motion that carries the story rather than decorating it. Contrast and accessibility built in from the start. Real photography with one consistent art direction. We do not copy what everyone copies: bento grids only for modular content, frosted glass only where depth means something, and no brutalism.
+10. THE TRENDS WE FOLLOW (REFRESHED BY RESEARCH)
+The baseline as of November 2026: Oversized editorial type as the hero in place of stock imagery. Serifs with mixed weights. Moody deep greens with one restrained accent. Tactile material and subtle depth. Scroll motion that carries the story rather than decorating it. Contrast and accessibility built in from the start. Real photography with one consistent art direction. We do not copy what everyone copies: bento grids only for modular content, frosted glass only where depth means something, and no brutalism.
 
 11. THE TELLS OF AI DESIGN, NEVER
 Purple or indigo gradients. Gradient text. Glows and frosted panels with no purpose. The same large radius and soft shadow on everything. Three equal feature cards with icon circles. A pill badge above the headline. A tracked all-caps label over every heading. Numbers like 01, 02, 03 on content that is not a sequence. An arrow on every link. A stat that counts up. The same fade and slide on every section. Bounce easing. A high-contrast serif on cream with a terracotta accent as the default. Inter or a system font. Emoji bullets. Stock handshakes. Filler like "elevate your workflow". Invented ratings, logos, counts or testimonials. Perfect symmetry everywhere. A fake dashboard screenshot. Rendered faces.
@@ -60,7 +60,15 @@ Nothing is shown until it has been looked at, not just built. Render it and look
 - Tells: nothing from rule 11.
 - Words: read the text on it aloud and fix anything a person would not say.
 - Against the references: the Ledger, the plaster-wall header, the /discovery page. If it is weaker than those, it is not done.
-A piece that fails is fixed first, then shown. Nona should never have to ask for a redo to get this level.`;
+A piece that fails is fixed first, then shown. Nona should never have to ask for a redo to get this level.
+
+13. CREATIVE DIRECTION (NONA, 7 NOVEMBER 2026, PERMANENT)
+Relève's visuals are art-directed like a premium editorial publication: premium international magazines, luxury branding, high-end business titles, architectural and lifestyle photography, independent studios, private-client hospitality. Original, never copied. Strong composition, exceptional type, intentional negative space, nuanced colour, refined texture, considered asymmetry.
+Research before design: before a new campaign or series, look at current work (this year, weighted to the last 30 to 90 days) and sort what you find into relevant to Relève, popular but off-position, and timeless. Never claim a design will perform because it looks good. Rule 10 is refreshed from that research.
+Instagram: an editorial cover with a short, strong headline; every slide has one job and the set builds; layouts alternate; text slides are balanced with diagrams and worked examples; nothing crowded; every slide reads on a phone; the last slide is designed and holds one next step. Rotate treatments: type-led covers, annotated visuals, data-led and educational layouts.
+LinkedIn has its own creative direction and never reuses the Instagram graphic: The Relève Brief, a short editorial report. Opinion-led cover, typeset pages, minimal data storytelling, diagrams, frameworks and ruled tables, consistent page numbers, margins and type, shipped as a multi-page PDF. Never a PowerPoint look.
+Variation: no default cover, centred headline, background, three-card row, icon set or ornament. Each piece is designed around its message: some type-led, some editorial, educational, data-led or diagrammatic. The feed reads as curated. Hiring posts keep their one fixed framework.
+Before delivery, on top of rule 12: at home in a premium editorial publication; custom, not template; exceptional type; interesting, balanced composition; the message lands at once; readable on a phone; consistent with Relève; current without leaning on a trend; nothing cheap, generic or AI-made; presentable as a premium creative agency's work. Any weakness is fixed first.`;
 
 const GENERIC_BUTTON = /\b(get started|learn more|click here|sign up now|unlock|elevate your|supercharge|take it to the next level)\b/i;
 

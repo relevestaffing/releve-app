@@ -58,7 +58,8 @@ export const COPY_PLAN: { channel: Channel; days: number[] }[] = [
   { channel: 'li_page_client', days: [1, 2, 3, 4, 5, 6] },
   { channel: 'li_group', days: [1, 2, 3, 4, 5] }
 ];
-export const COPY_CHANNELS: Channel[] = ['li_group', 'li_page_client', 'li_page_careers'];
+/* li_personal and ig_careers only ever have a parent on a hiring post (6 Nov 2026): Sage's LinkedIn and the Careers accounts carry the same hiring post. */
+export const COPY_CHANNELS: Channel[] = ['li_group', 'li_page_client', 'li_page_careers', 'li_personal', 'ig_careers'];
 /* A copy of another post, shown inside that post rather than on its own. */
 export const isCopyPost = (p: { parent_id: string | null; channel: Channel }) => Boolean(p.parent_id) && COPY_CHANNELS.includes(p.channel);
 export const DAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];

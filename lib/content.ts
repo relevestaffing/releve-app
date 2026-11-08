@@ -309,7 +309,9 @@ type Drafted = {
   card?: Card | null; slides?: Slide[]; script?: Script | null; image_idea?: string;
 };
 
-const LAYOUTS = ['statement', 'number', 'rules', 'compare', 'chart', 'message', 'cover', 'step', 'cta', 'notes', 'search', 'flags', 'quiz', 'comment'];
+const LAYOUTS = ['statement', 'number', 'rules', 'compare', 'chart', 'message', 'cover', 'step', 'cta', 'notes', 'search', 'flags', 'quiz', 'comment',
+  /* The Relève Brief, LinkedIn's own look (7 Nov 2026) */
+  'masthead', 'thesis', 'figure', 'table', 'framework', 'method', 'contrast', 'takeaway', 'close'];
 /* The design half of a card or slide, cleaned: only known layouts and
    fields, every string trimmed, nothing that could break a graphic. */
 function design(x: any) {
@@ -326,6 +328,12 @@ function design(x: any) {
   if (Array.isArray(x?.messages)) out.messages = arr(x.messages, 3).map((m: any) => ({ from: m?.from === 'you' ? 'you' : 'assistant', text: clean(m?.text, 260) })).filter((m: any) => m.text);
   if (Array.isArray(x?.chips)) out.chips = arr(x.chips, 4).map((c: any) => clean(c, 24)).filter(Boolean);
   if (x?.keyword) out.keyword = clean(x.keyword, 16).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  /* The Brief's own fields: a ruled table, a 2 by 2. */
+  if (Array.isArray(x?.cols)) out.cols = arr(x.cols, 3).map((c: any) => clean(c, 24)).filter(Boolean);
+  if (Array.isArray(x?.table)) out.table = arr(x.table, 6).map((r: any) => arr(r, 3).map((c: any) => clean(c, 34)));
+  if (x?.x) out.x = clean(x.x, 34);
+  if (x?.y) out.y = clean(x.y, 34);
+  if (Array.isArray(x?.quads)) out.quads = arr(x.quads, 4).map((q: any) => ({ label: clean(q?.label, 28), text: clean(q?.text, 90) }));
   /* Retired looks (3 Nov 2026): a chat-bubble mock-up becomes the lines to
      send, set as rules; a fake chart becomes a statement. */
   if (out.layout === 'message') { out.layout = 'rules'; if (!out.rows?.length && out.messages?.length) out.rows = out.messages.map((m: any) => m.text).slice(0, 5); delete out.messages; }
@@ -419,7 +427,11 @@ export async function houseRules(): Promise<string> {
 /* The Design Standard (3 November 2026), kept the same way. */
 export async function houseDesign(): Promise<string> {
   const saved = (await getSetting<{ text: string }>('rules:design'))?.text?.trim();
-  return saved || DEFAULT_DESIGN;
+  if (!saved) return DEFAULT_DESIGN;
+  /* Nona's creative direction (7 Nov 2026) is permanent: a copy saved in the
+     Content tab before it existed still gets it. */
+  const r13 = DEFAULT_DESIGN.slice(DEFAULT_DESIGN.indexOf('13. CREATIVE DIRECTION'));
+  return saved.includes('13. CREATIVE DIRECTION') ? saved : `${saved}\n\n${r13}`;
 }
 
 /* The editor's pass (3 November 2026). Every post is checked against the
@@ -500,6 +512,113 @@ ${rules}`,
     part.forEach((f, i) => out.push(posts[i]));
   }
   return out;
+}
+
+/* ---------- The Relève Brief: LinkedIn's own version (7 Nov 2026) ----------
+   Nona's creative direction: LinkedIn has its own direction and never reuses
+   the Instagram graphic. Each day's client post is rebuilt for the Relève
+   LinkedIn page and the groups as The Relève Brief, a short editorial report
+   (a 7 or 8 page document on carousel days, one report page on card days)
+   with its own LinkedIn caption. Same idea, facts and next step. If it cannot
+   be written, the copies fall back to the Instagram graphic and the team is
+   told, so a day is never lost. */
+const BRIEF = `You now write the LinkedIn version of the same post: The Relève Brief, a short editorial report in Relève's house style. Same idea, same facts, same next step as the Instagram post below, rebuilt for LinkedIn readers: founders and owners who read for an argument and a method. It stands on its own and never mentions Instagram. Do not reuse the Instagram slides; rethink the structure as a report a consulting firm would be proud of.
+Pages. Each page is {"layout","title","body", plus that layout's own fields}, and may carry "kicker": a 1 to 3 word section label for the margin ("The argument", "The working").
+- "masthead": page 1 only. title: an opinion-led thesis or a concrete promise, under 64 characters, sentence case. body: one line saying what the reader will get, under 20 words.
+- "thesis": title: the argument in one sentence, under 70 characters. body: 1 to 3 sentences of reasoning, under 45 words.
+- "figure": "number": one checkable figure (honest arithmetic or clearly illustrative, never an invented statistic), title: what it measures, "facts":[up to 3 {"value","label"}] showing the working. body optional, one line.
+- "table": title, "cols":[2 or 3 short column headings], "table":[3 to 6 rows of cells], each cell under 28 characters. Real working: tasks, hours, owners, before and after.
+- "framework": a 2 by 2. title, "x": the horizontal axis, low to high, under 30 characters; "y": the vertical axis; "quads":[4 of {"label","text"}] in the order top left, top right, bottom left, bottom right; label under 24 characters, text under 70.
+- "method": title, "rows":[3 to 5 steps in order, each under 80 characters]. Only for a true sequence.
+- "contrast": title, "left":{"label","items":[3 or 4]}, "right":{"label","items":[3 or 4]}; the right side is the better way.
+- "takeaway": title: the one line to remember, under 70 characters. body optional, one sentence.
+- "close": last page only. title: the whole brief in one line; body: the one next step with its full address (relevestaffing.com/training or relevestaffing.com/discovery, matching the Instagram post's next step).
+A document has 7 or 8 pages: masthead first, close last, and between them at least three different layouts from thesis, figure, table, framework, method, contrast, takeaway. One idea per page; under 40 words of body on a page. A single page is one layout from thesis, figure, table, framework, contrast or method, carrying the post's one working idea in full.
+Then the LinkedIn caption: 500 to 1100 characters, \\n for breaks. Open with the thesis in plain words, give the reader one usable thing in the caption itself, say the full brief is in the document when it is a document, and end with the next step as a full address. At most three hashtags at the very end. No em dashes.
+Return exactly one JSON object: {"caption":"...","slides":[...]} for a document, or {"caption":"...","card":{"layout","title","body", plus the layout's fields}} for a single page.`;
+
+function normalizeBrief(j: any, format: Format, base: Drafted): Drafted | null {
+  const caption = clean(j?.caption ?? j?.caption_li ?? j?.text, 3000);
+  if (!caption) return null;
+  if (format === 'carousel') {
+    const raw = Array.isArray(j?.slides) ? j.slides : Array.isArray(j?.pages) ? j.pages : [];
+    const slides: any[] = raw.map((x: any) => ({ ...design(x), kicker: x?.kicker ? clean(x.kicker, 30) : undefined, title: clean(x?.title ?? x?.headline, 140), body: clean(x?.body ?? x?.text, 420) }))
+      .filter((x: any) => x.title).slice(0, 9);
+    if (slides.length < 6) return null;
+    slides[0].layout = 'masthead'; slides[slides.length - 1].layout = 'close';
+    for (const x of slides) if (!x.kicker) delete x.kicker;
+    slides[0].look = 'brief';
+    return { topic: base.topic, hook: base.hook, format: 'carousel', caption, slides, card: null };
+  }
+  const c = j?.card ?? (Array.isArray(j?.slides) ? j.slides[0] : null);
+  const title = clean(c?.title ?? c?.quote ?? c?.headline, 200);
+  if (!title) return null;
+  const card: any = { ...design(c), kicker: clean(c?.kicker, 30), quote: title, sub: clean(c?.body ?? c?.sub, 300) || undefined, look: 'brief' };
+  if (!card.kicker) delete card.kicker;
+  if (['masthead', 'close', undefined].includes(card.layout)) card.layout = 'thesis';
+  return { topic: base.topic, hook: base.hook, format: 'card', caption, card, slides: [] };
+}
+
+async function draftLinkedIn(d: Drafted, season = ''): Promise<Drafted | null> {
+  try {
+    const designStd = await houseDesign();
+    const graphic = d.card
+      ? `A single graphic (${d.card.layout ?? 'statement'}): ${JSON.stringify(d.card)}`
+      : `A carousel:\n${(d.slides ?? []).map((x, i) => `${i + 1}. ${JSON.stringify(x)}`).join('\n')}`;
+    const source = `THE INSTAGRAM POST (the idea to carry over)\nTopic: ${d.topic}\nHook: ${d.hook}\nLinkedIn caption already written for it: ${d.caption_li || d.caption}\n${graphic}`;
+    const want = d.format === 'carousel' ? 'Write the document (7 or 8 pages).' : 'Write the single page.';
+    const system = `You write Relève's LinkedIn content.\n\n${FACTS}`;
+    let feedback = '';
+    let best: { n: Drafted; problems: string[] } | null = null;
+    for (let tryNo = 0; tryNo < 2; tryNo++) {
+      const raw = await askClaude(system, [BRIEF, `THE DESIGN STANDARD. Every page is checked against this:\n${designStd}`, season ? `Keep it current. ${season}` : '', source, want].filter(Boolean).join('\n\n') + feedback, 8000);
+      const n = normalizeBrief(raw?.posts?.[0] ?? raw, d.format === 'carousel' ? 'carousel' : 'card', d);
+      if (!n) { feedback = '\n\nYOUR LAST ANSWER WAS INCOMPLETE (missing the caption or pages). Return the full JSON.'; continue; }
+      const text = [n.card ? [n.card.quote, n.card.sub, ...((n.card as any).rows ?? [])].join('\n') : '', ...(n.slides ?? []).map((x: any) => [x.title, x.body, ...(x.rows ?? [])].join('\n'))].join('\n');
+      const problems = [...designChecks(n), ...hardChecks({ hook: n.hook, text: n.caption, graphic: text, channel: 'li_page_client' }).problems];
+      if (!best || problems.length < best.problems.length) best = { n, problems };
+      if (!problems.length) break;
+      feedback = `\n\nYOUR PREVIOUS DRAFT WAS SENT BACK BY THE EDITOR. Fix every one of these and keep the same idea:\n- ${problems.join('\n- ')}`;
+    }
+    if (!best) throw new Error('The AI did not return a whole LinkedIn brief.');
+    return best.n;
+  } catch (e: any) {
+    const why = String(e?.message ?? e).slice(0, 300);
+    console.error('[content] LinkedIn brief failed:', why);
+    await putSetting('draft:linkedin', { at: new Date().toISOString(), topic: d.topic, error: why }).catch(() => {});
+    return null;
+  }
+}
+
+const isBriefPost = (p: { card?: any; slides?: any[] }) => p?.card?.look === 'brief' || p?.slides?.[0]?.look === 'brief';
+
+/* Rebuild the LinkedIn brief for a day's post and put it on its page and
+   group copies. Used by Redraft and by "Make the LinkedIn versions". */
+export async function rebuildLinkedIn(parent: ContentPost): Promise<boolean> {
+  const { data } = await sb().from('content_posts').select('*').eq('parent_id', parent.id).in('channel', ['li_page_client', 'li_group']);
+  const kids = ((data ?? []) as ContentPost[]).filter(k => k.status !== 'posted' && k.status !== 'publishing' && k.status !== 'skipped');
+  if (!kids.length || (parent.card as any)?.layout === 'hiring') return false;
+  const base: Drafted = { topic: parent.topic ?? '', hook: parent.hook ?? '', format: parent.format, caption: parent.caption, caption_li: kids[0].caption, card: parent.card, slides: parent.slides };
+  const li = await draftLinkedIn(base);
+  if (!li) return false;
+  for (const k of kids) await updatePost(k.id, { format: li.format, caption: li.caption, card: li.card ?? null, slides: li.slides ?? [], written_by: 'claude' } as any);
+  return true;
+}
+
+/* Every day of a week that still carries the Instagram graphic on LinkedIn. */
+export async function rebuildLinkedInWeek(monday: string, deadline = Date.now() + 12 * 60000) {
+  hardDeadline = deadline;
+  const all = await listWeek(monday);
+  const parents = all.filter(p => p.channel === 'ig_client' && !p.parent_id && p.status !== 'skipped' && (p.card as any)?.layout !== 'hiring');
+  let made = 0, left = 0;
+  for (const p of parents) {
+    const kids = all.filter(k => k.parent_id === p.id && (k.channel === 'li_page_client' || k.channel === 'li_group') && k.status !== 'posted' && k.status !== 'skipped' && new Date(k.publish_at).getTime() > Date.now());
+    if (!kids.length || kids.every(isBriefPost)) continue;
+    if (Date.now() > deadline - 90000) { left++; continue; }
+    if (await rebuildLinkedIn(p)) made++; else left++;
+  }
+  hardDeadline = 0;
+  return { made, left };
 }
 
 function statusFor(channel: Channel, format: Format) {
@@ -590,6 +709,14 @@ export async function draftWeek(monday: string) {
       catch (e: any) { lastDraftError = String(e?.message ?? e).slice(0, 300); console.error('[content] one post failed:', lastDraftError); continue; }
       const slot = `${monday}-${ch}-${DAY_KEYS[s.day]}`;
       const at = slotTime(monday, s.day, s.hour, s.minute).toISOString();
+      /* The copies (one post a day): the client post goes to the LinkedIn
+         page and the groups as its own LinkedIn version, The Relève Brief
+         (7 Nov 2026). Written before anything is saved, so a stopped worker
+         never leaves a day without its copies. */
+      const targets: Channel[] = ch === 'ig_client'
+        ? COPY_PLAN.filter(c => c.days.includes(s.day)).map(c => c.channel)
+        : (pageFor(ch) ? [pageFor(ch) as Channel] : []);
+      const li = targets.length && d.format !== 'video' ? await draftLinkedIn(d, seasonFor(monday)) : null;
       const { data: row, error } = await sb().from('content_posts').insert({
         slot, week_start: monday, channel: ch, format: d.format, publish_at: at, status: holdNew ? 'held' : statusFor(ch, d.format), ...heldFields,
         topic: d.topic, hook: d.hook, caption: d.caption, caption_fb: d.caption_fb ?? null,
@@ -600,17 +727,14 @@ export async function draftWeek(monday: string) {
       hooks.unshift(d.hook);
       earlier.push(`${d.topic} | layouts: ${[d.card?.layout, ...(d.slides ?? []).map((x: any) => x.layout)].filter(Boolean).join(', ') || d.format}`);
 
-      /* The copies (one post a day): the client post goes, identical, to the
-         LinkedIn page and the groups. */
-      const targets: Channel[] = ch === 'ig_client'
-        ? COPY_PLAN.filter(c => c.days.includes(s.day)).map(c => c.channel)
-        : (pageFor(ch) ? [pageFor(ch) as Channel] : []);
+      if (targets.length && !li && d.format !== 'video') await alertAdmins(`linkedin-${slot}`, 'A LinkedIn brief could not be written', `${dayLabel(at)}: the LinkedIn page and groups carry the Instagram graphic for now. Press Redraft on the LinkedIn copy, or "Make the LinkedIn versions", to try again.`);
       for (const target of targets) {
+        const f = li ? li.format : d.format;
         await sb().from('content_posts').insert({
-          slot: `${slot}-${target}`, week_start: monday, channel: target, format: d.format, publish_at: at,
-          status: holdNew ? 'held' : d.format === 'video' ? 'needs_video' : statusFor(target, d.format), ...heldFields,
-          topic: d.topic, hook: d.hook, caption: d.caption_li || d.caption || d.hook, caption_fb: null,
-          card: d.card ?? null, slides: d.slides ?? [], script: d.script ?? null, parent_id: row.id
+          slot: `${slot}-${target}`, week_start: monday, channel: target, format: f, publish_at: at,
+          status: holdNew ? 'held' : f === 'video' ? 'needs_video' : statusFor(target, f), ...heldFields,
+          topic: d.topic, hook: d.hook, caption: li?.caption || d.caption_li || d.caption || d.hook, caption_fb: null,
+          card: (li ? li.card : d.card) ?? null, slides: (li ? li.slides : d.slides) ?? [], script: d.script ?? null, parent_id: row.id
         });
       }
     }
@@ -636,6 +760,14 @@ export async function draftWeek(monday: string) {
 
 /* Rewrite one post in place (same channel, format and slot). */
 export async function redraftPost(post: ContentPost) {
+  /* A LinkedIn copy of a day's post: rebuild its brief from the day's post. */
+  if (post.parent_id && (post.channel === 'li_page_client' || post.channel === 'li_group')) {
+    const parent = await getPost(post.parent_id);
+    if (parent && (parent.card as any)?.layout !== 'hiring') {
+      if (!(await rebuildLinkedIn(parent))) throw new Error('The LinkedIn brief could not be written. Try again in a minute.');
+      return;
+    }
+  }
   const family = (post.channel === 'li_page_client' || post.channel === 'li_group' ? 'ig_client' : post.channel === 'li_page_careers' ? 'ig_careers' : post.channel) as 'li_personal' | 'li_group' | 'ig_client' | 'ig_careers';
   const [d] = await draftChannel(family, [post.format], [post.hook ?? '', ...(await recentHooks())].filter(Boolean),
     post.format === 'video' ? 'This one is the face-to-camera video.' : '');
@@ -645,12 +777,17 @@ export async function redraftPost(post: ContentPost) {
     card: d.card ?? null, slides: d.slides ?? [], script: d.script ?? null, image_idea: d.image_idea ?? post.image_idea,
     written_by: 'claude'
   } as any);
-  /* The copies (LinkedIn page, groups) carry the same new post. */
-  const { data: kids } = await sb().from('content_posts').select('id,status').eq('parent_id', post.id).in('channel', COPY_CHANNELS);
-  for (const k of (kids ?? []) as { id: string; status: string }[]) {
-    if (k.status === 'posted' || k.status === 'publishing') continue;
+  /* The copies (LinkedIn page, groups) carry the same new post; the page
+     and group copies of a client post get their own LinkedIn brief. */
+  const { data: kids } = await sb().from('content_posts').select('id,status,channel').eq('parent_id', post.id).in('channel', COPY_CHANNELS);
+  const live = ((kids ?? []) as { id: string; status: string; channel: Channel }[]).filter(k => k.status !== 'posted' && k.status !== 'publishing');
+  const liKids = post.channel === 'ig_client' ? live.filter(k => k.channel === 'li_page_client' || k.channel === 'li_group') : [];
+  const li = liKids.length && d.format !== 'video' ? await draftLinkedIn(d) : null;
+  for (const k of live) {
+    const brief = li && liKids.some(x => x.id === k.id);
     await updatePost(k.id, {
-      topic: d.topic, hook: d.hook, caption: d.caption_li || d.caption, card: d.card ?? null, slides: d.slides ?? [],
+      topic: d.topic, hook: d.hook, caption: brief ? li!.caption : (d.caption_li || d.caption),
+      format: brief ? li!.format : d.format, card: (brief ? li!.card : d.card) ?? null, slides: (brief ? li!.slides : d.slides) ?? [],
       script: d.script ?? null, written_by: 'claude'
     } as any);
   }
@@ -775,7 +912,8 @@ export async function publishOne(post: ContentPost): Promise<'posted' | 'pending
       if (!pageAccess() || !org || !li.scopes.includes('w_organization_social')) throw new Error('LinkedIn page posting is not approved yet. Schedule this one in LinkedIn.');
       author = `urn:li:organization:${org}`;
     }
-    const images = post.channel === 'li_personal'
+    const hiring = (post.card as any)?.layout === 'hiring';
+    const images = post.channel === 'li_personal' && !hiring
       ? (post.image_path ? [await fetchBytes(mediaUrl(post.image_path))] : [])
       : await Promise.all((await imagesFor(post)).map(fetchBytes));
     if (post.channel === 'li_personal' && !images.length) throw new Error('Add your picture first.');
@@ -824,6 +962,114 @@ export async function publishDue(now = new Date(), deadline = Date.now() + 10 * 
     }
   }
   return out;
+}
+
+
+/* ---------- hiring posts (6 Nov 2026) ----------
+   Every time a job posting goes live, the app makes a hiring post for it:
+   one graphic (the approved "We are hiring." layout, see content-render.tsx),
+   one caption, and a copy for every place it belongs. Every role is for one
+   of Relève's clients and never for Relève itself, so the post never names the
+   client. It waits for Nona's approval (Content tab, "Release the hold", or
+   Approve the week) unless HIRING_AUTOPOST=1 is set, then posts itself to
+   Relève's Instagram and Facebook and Sage's LinkedIn. The LinkedIn pages and
+   the Careers accounts go to the team as post-by-hand until they are
+   connected. */
+const nodashH = (s: unknown) => String(s ?? '').replace(/\s*[–—]\s*/g, ', ').replace(/\s+/g, ' ').trim();
+const lines = (s: unknown) => String(s ?? '').split(/\n+/).map(x => x.trim()).filter(Boolean);
+const sentence = (s: string) => { const t = s.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim(); return t ? t[0].toUpperCase() + t.slice(1).toLowerCase() : t; };
+
+const HIRING_EXAMPLE = `We're hiring a social media manager for one of our clients.
+
+The client is a founder-led business. I can't share the name until you're hired, but here is exactly what the work looks like.
+
+THE WORK
+- Twice a week you get a face-to-camera video and turn it into a finished post: cut it tight, add captions, size it for each platform.
+- Build the carousels from scratch.
+- Publish everything to the client's accounts on schedule.
+- Tell us when something needs attention, like a post that flopped or a comment that needs a reply.
+
+THE TERMS
+- 5 to 10 hours a week
+- Fully remote
+- $7 an hour
+
+WHO WE'RE LOOKING FOR
+- Strong design. Your carousels have to look better than everyone else's.
+- Fast, clean editing and deadlines you actually hit.
+- Use AI wherever it saves you time, as long as the finished work still looks like someone with taste made it.
+
+HOW TO APPLY
+Go to relevestaffing.com/careers and send examples of your work. I'll look at the work before I look at a résumé.`;
+
+function hiringFallback(job: any) {
+  const role = sentence(job.title);
+  const own = lines(job.owns).slice(0, 5).map(x => `- ${nodashH(x)}`).join('\n');
+  const need = lines(job.needs).slice(0, 5).map(x => `- ${nodashH(x)}`).join('\n');
+  const terms = [job.hours, job.location, job.pay_note].map(x => nodashH(x)).filter(Boolean).map(x => `- ${x}`).join('\n');
+  return [
+    `We're hiring a ${role.toLowerCase()} for one of our clients.`,
+    `The client is a founder-led business. I can't share the name until you're hired, but here is exactly what the work looks like.`,
+    own && `THE WORK\n${own}`, terms && `THE TERMS\n${terms}`, need && `WHO WE'RE LOOKING FOR\n${need}`,
+    `HOW TO APPLY\nGo to relevestaffing.com/careers and apply for the role.`
+  ].filter(Boolean).join('\n\n');
+}
+
+export async function draftHiringPost(postingId: string, opts: { useAI?: boolean } = {}): Promise<{ created: boolean; why?: string }> {
+  const { data: job } = await sb().from('job_posts').select('*').eq('id', postingId).maybeSingle();
+  if (!job) return { created: false, why: 'No such posting.' };
+  if (job.state !== 'open') return { created: false, why: 'The posting is not open.' };
+  const slot = `hire-${job.id}`;
+  const { data: have } = await sb().from('content_posts').select('id').like('slot', `${slot}%`).limit(1);
+  if (have?.length) return { created: false, why: 'This role already has its hiring post.' };
+
+  /* Short copy for the graphic and the words for the caption. */
+  let hire = {
+    work: nodashH(lines(job.owns)[0] ?? job.summary), hours: nodashH([job.hours, job.location].filter(Boolean).join('. ')),
+    pay: nodashH(job.pay_note), you: nodashH(lines(job.needs)[0] ?? ''), apply: 'Apply at relevestaffing.com/careers'
+  };
+  let caption = hiringFallback(job);
+  let drafted = false;
+  if (opts.useAI !== false && process.env.ANTHROPIC_API_KEY) {
+    try {
+      const r = await askClaude(
+        `You write the hiring announcement for one job posting at Relève, a premium virtual staffing agency. Every role is for one of Relève's clients and is never for Relève itself. Never name the client and never say Relève is the employer. The post is written in the first person by Sage, Relève's founder. Plain, direct, high-end, human. It must not sound like AI: no filler openers, no "not X but Y" constructions, no slogans, no exclamation marks, no emojis, no hashtags, no em dashes or en dashes (use commas, periods or colons). Do not invent facts that are not in the posting: if the posting does not say it, leave it out. Follow the structure and voice of this approved example exactly, with the same section labels in capitals, but with the facts of the posting you are given:\n\n${HIRING_EXAMPLE}\n\nReturn only JSON: {"work": string, "hours": string, "pay": string, "you": string, "caption": string}. The first four are the short lines printed on the graphic, so keep them tight: work at most 84 characters (what the person does, as one sentence), hours at most 40 characters (for example "Part time, 5 to 10 hours a week. Remote."), pay at most 36 characters (empty string if the posting shows no pay), you at most 84 characters (what we want in the person, as one sentence). caption is the full post text. It ends with the line to apply at relevestaffing.com/careers.`,
+        `THE POSTING\nTitle: ${job.title}\nOne line: ${job.summary}\nAbout: ${job.about ?? ''}\nWhat this person owns:\n${job.owns ?? ''}\nWhat we are looking for:\n${job.needs ?? ''}\nHours: ${job.hours ?? ''}\nLocation: ${job.location ?? ''}\nPay shown publicly: ${job.pay_note ?? '(none shown)'}`,
+        3000
+      );
+      const clean = (x: unknown, n: number) => nodashH(x).slice(0, n);
+      if (r && typeof r.caption === 'string' && r.caption.trim().length > 200) {
+        caption = String(r.caption).replace(/[–—]/g, ', ').replace(/[ \t]+\n/g, '\n').trim().slice(0, 2900);
+        hire = { work: clean(r.work, 100) || hire.work, hours: clean(r.hours, 48) || hire.hours, pay: clean(r.pay, 42), you: clean(r.you, 100) || hire.you, apply: hire.apply };
+        drafted = true;
+      }
+    } catch (e: any) { console.error('[hiring] Claude draft failed, using the template:', e?.message ?? e); }
+  }
+  if (!/relevestaffing\.com\/careers/i.test(caption)) caption += '\n\nApply at relevestaffing.com/careers';
+
+  const now = new Date();
+  const monday = weekStart(now);
+  const role = sentence(job.title);
+  const card = { layout: 'hiring', kicker: 'Now hiring', quote: 'We are hiring.', sub: role, hire };
+  const hold = process.env.HIRING_AUTOPOST === '1' ? null : 'New role: read the graphic and the words, then release the hold.';
+  const base = { week_start: monday, publish_at: now.toISOString(), topic: `Hiring: ${role}`, hook: `We are hiring a ${role.toLowerCase()}.`, caption, caption_fb: null, card, slides: [], script: null, written_by: 'claude' as const };
+
+  const { data: main, error } = await sb().from('content_posts').insert({
+    ...base, slot, channel: 'ig_client', format: 'card', status: hold ? 'held' : 'scheduled', hold_reason: hold
+  }).select('id').maybeSingle();
+  if (error || !main) throw new Error(error?.message ?? 'Could not save the hiring post.');
+
+  /* Sage's own LinkedIn, the careers accounts and the LinkedIn page copies. */
+  const more: any[] = [
+    { ...base, slot: `${slot}-li`, channel: 'li_personal', format: 'card', status: hold ? 'held' : 'scheduled', hold_reason: hold, parent_id: main.id },
+    { ...base, slot: `${slot}-ic`, channel: 'ig_careers', format: 'card', status: hold ? 'held' : 'scheduled', hold_reason: hold, parent_id: main.id },
+    { ...base, slot: `${slot}-pg`, channel: 'li_page_client', format: 'card', status: hold ? 'held' : (pageAccess() ? 'scheduled' : 'manual'), hold_reason: hold, parent_id: main.id },
+    { ...base, slot: `${slot}-pc`, channel: 'li_page_careers', format: 'card', status: hold ? 'held' : (pageAccess() ? 'scheduled' : 'manual'), hold_reason: hold, parent_id: main.id }
+  ];
+  await sb().from('content_posts').insert(more);
+
+  if (hold) await alertAdmins(`hire-${job.id}`, `A hiring post for ${role} is ready`, `${drafted ? 'Claude wrote' : 'The app drafted'} the graphic and the words for the new ${role} role. Open the Content tab, read them, and release the hold to post it to Instagram, Facebook and Sage's LinkedIn.`);
+  return { created: true };
 }
 
 /* ---------- the team's emails ---------- */
@@ -942,6 +1188,14 @@ export async function tick(now = new Date()) {
   /* The VA (on US hours) gets the coming week on Sunday from 8:00 AM
      Pacific, so any edits made after Thursday's draft are in what she
      receives. Once per week. */
+  /* LinkedIn's own version (7 Nov 2026): a week drafted before The Relève
+     Brief existed gets its LinkedIn briefs built once, in the background. */
+  for (const wk of [weekStart(now, 0), weekStart(now, 1)]) {
+    if ((await getSetting<{ status: string }>(`draft:${wk}`))?.status === 'drafting') continue;
+    if (await getSetting(`linkedin:${wk}`)) continue;
+    await putSetting(`linkedin:${wk}`, { status: 'queued', at: new Date().toISOString() });
+    try { out.linkedin = await kick('linkedin_week', { week: wk }); } catch (e: any) { out.linkedinError = e?.message ?? String(e); }
+  }
   if (pt.wd === 0 && pt.h >= 8) {
     try { out.va = await exportForVA(weekStart(now, 1)); } catch (e: any) { out.vaError = e?.message ?? String(e); await alertAdmins('va', 'The weekly send to the VA failed', String(out.vaError)); }
   }
@@ -1007,7 +1261,7 @@ export async function exportForVA(monday: string, force = false) {
       }
       const lines = [`\n${whenLabel(p.publish_at).toUpperCase()} · ${where}`];
       lines.push(file ? `File: ${file}` : p.format === 'video' ? 'Video: Sage records it from the script below; it goes in this folder when it is uploaded.' : 'Text only.');
-      if (p.format === 'carousel' && p.channel === 'li_group') lines.push('Post the PDF as a document (carousel) and give it the title of the first slide.');
+      if (p.format === 'carousel' && (p.channel === 'li_group' || p.channel.startsWith('li_page'))) lines.push('Post the PDF as a document (carousel) and give it the title of the first page.');
       lines.push('', 'Caption:', p.caption.trim());
       if (p.script) {
         const sc = p.script;

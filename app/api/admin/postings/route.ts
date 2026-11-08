@@ -3,6 +3,7 @@ import { currentProfile, configured } from '@/lib/supabase/server';
 import { savePosting, deletePosting, freeSlug, getPosting } from '@/lib/jobs';
 import { slugify, postReady } from '@/lib/jobs-public';
 import { safeMessage } from '@/lib/errors';
+import { kick, draftHiringPost } from '@/lib/content';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,10 +60,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: missing.join(' ') }, { status: 400 });
   }
   row.state = state;
+  let wasOpen = false;
 
   if (b.id) {
     row.id = b.id;
     const existing = await getPosting(b.id);
+    wasOpen = existing?.state === 'open';
     /* Keep the URL stable once a role has been live — a changed slug breaks
        every link already shared. */
     row.slug = existing?.opened_at
@@ -74,7 +77,17 @@ export async function POST(req: Request) {
 
   try {
     const id = await savePosting(row as any);
-    return NextResponse.json({ ok: true, id: id ?? b.id, slug: row.slug });
+    /* A role going live makes its hiring post: the graphic and the words, held
+       for Nona's approval (6 Nov 2026). A failure here never blocks the posting. */
+    let hiring: string | undefined;
+    const pid = id ?? b.id;
+    if (state === 'open' && !wasOpen && pid) {
+      try {
+        if (await kick('hiring_post', { id: pid })) hiring = 'queued';
+        else { const r = await draftHiringPost(pid, { useAI: false }); hiring = r.created ? 'made' : r.why; }
+      } catch (e: any) { console.error('[hiring] could not make the hiring post:', e?.message ?? e); hiring = 'failed'; }
+    }
+    return NextResponse.json({ ok: true, id: pid, slug: row.slug, hiring });
   } catch (e: any) {
     return NextResponse.json({ error: safeMessage(e) }, { status: 400 });
   }

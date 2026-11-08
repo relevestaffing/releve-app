@@ -444,13 +444,303 @@ function slideEl(p: Drawable, L: Look, n: number) {
   );
 }
 
+
+/* ---------- the hiring graphic (6 Nov 2026) ----------
+   ONE framework for every job post, approved by Nona: deep green plaster,
+   the real logo, "We are hiring." as the headline, the role under it, then
+   ruled rows (the work, hours, pay, who we want, how to apply). The bottom
+   sixth stays empty because Instagram covers it. The copy is held to seven
+   lines in total so it can never run into that sixth. */
+export type HiringCard = { layout: 'hiring'; kicker?: string; quote?: string; sub?: string; hire?: { work?: string; hours?: string; pay?: string; you?: string; apply?: string } };
+let hiringBg: string | null = null;
+async function loadHiringBg() {
+  if (hiringBg) return hiringBg;
+  const base = (process.env.NEXT_PUBLIC_APP_URL || 'https://app.relevestaffing.com').replace(/\/+$/, '');
+  const r = await fetch(`${base}/social/hiring-bg.jpg`);
+  if (!r.ok) throw new Error('The hiring graphic background is missing.');
+  hiringBg = `data:image/jpeg;base64,${Buffer.from(await r.arrayBuffer()).toString('base64')}`;
+  return hiringBg;
+}
+const clip = (s: string, n: number) => {
+  s = s.replace(/\s+/g, ' ').trim(); if (s.length <= n) return s;
+  /* Cut at the last clause that fits, never mid-phrase ("post them for the."). */
+  const head = s.slice(0, n); let cut = Math.max(head.lastIndexOf('. '), head.lastIndexOf(', '), head.lastIndexOf(': '));
+  if (cut < n * 0.5) cut = head.lastIndexOf(' ');
+  let t = head.slice(0, cut > 0 ? cut : n).replace(/[,;:\s]+$/, '');
+  t = t.replace(/(\s+(the|a|an|and|or|of|for|to|with|in|on|at|your|our|their|that|who))+$/i, '');
+  return t.replace(/[.]+$/, '') + '.';
+};
+export function hiringRows(c: HiringCard): [string, string][] {
+  const h = c.hire ?? {};
+  const rows: [string, string][] = [];
+  if (h.work) rows.push(['THE WORK', clip(h.work, 96)]);
+  if (h.hours) rows.push(['HOURS', clip(h.hours, 42)]);
+  if (h.pay) rows.push(['PAY', clip(h.pay, 38)]);
+  if (h.you) rows.push(['YOU', clip(h.you, 96)]);
+  rows.push(['APPLY', clip(h.apply || 'Apply at relevestaffing.com/careers', 44)]);
+  return rows;
+}
+function hiringEl(c: HiringCard, bg: string) {
+  const CREAM = '#F3EFE6', PALE = '#B0C4B2', SILVER = '#C9D0CB', SOFT = '#D6DED6', HAIR = '#788C7E';
+  const role = clip(c.sub || '', 44);
+  const rs = role.length <= 26 ? 64 : role.length <= 34 ? 56 : 48;
+  return (
+    <div style={flex({ width: W, height: H, position: 'relative', background: '#0E1813' })}>
+      <img src={bg} width={W} height={H} style={{ position: 'absolute', top: 0, left: 0 }} />
+      <img src={art!.logoWhite} width={330} height={99} style={{ position: 'absolute', top: 70, left: 78 }} />
+      <div style={col({ position: 'absolute', top: 232, left: 90, width: 900 })}>
+        <div style={flex({ fontFamily: 'Lora', fontSize: 124, lineHeight: 1.05, color: CREAM })}>{c.quote || 'We are hiring.'}</div>
+        <div style={flex({ fontFamily: 'Lora', fontSize: rs, lineHeight: 1.2, color: SILVER, marginTop: 4 })}>{role}</div>
+        <div style={col({ marginTop: 44 })}>
+          {hiringRows(c).map(([lab, val], i, all) => (
+            <div key={lab} style={flex({ borderTop: `1px solid ${HAIR}`, borderBottom: i === all.length - 1 ? `1px solid ${HAIR}` : 'none', padding: '26px 0 20px' })}>
+              <div style={flex({ width: 230, paddingTop: 9, fontFamily: 'Geist', fontWeight: 500, fontSize: 19, letterSpacing: 5, color: PALE })}>{lab}</div>
+              <div style={flex({ flex: 1, fontFamily: 'Geist', fontSize: 31, lineHeight: 1.32, color: lab === 'PAY' || lab === 'APPLY' ? CREAM : SOFT })}>{val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- The Relève Brief: LinkedIn's own look (7 Nov 2026) ----------
+   Nona's creative direction gives LinkedIn its own direction: never the
+   Instagram graphic. Each day's post is rebuilt as a short editorial report,
+   a document of 7 or 8 pages (or one page on card days): a fern masthead,
+   typeset paper pages with a margin column, ruled tables, a 2 by 2, the
+   method, and a fern back page. 4:5 portrait, body at 30 px or more, page
+   numbers and margins the same on every page. Marked by look: 'brief'. */
+export const BRIEF_LAYOUTS = ['masthead', 'thesis', 'figure', 'table', 'framework', 'method', 'contrast', 'takeaway', 'close'];
+const BR = { paper: '#FAF8F2', ink: '#22302A', body: '#3C463F', muted: '#6E7A71', rule: '#D8DDD6', strong: '#22302A', fern: '#18231D', cream: '#F3EFE6', silver: '#C9D0CB', pale: '#B0C4B2', hair: '#3A4A40' };
+type BriefPage = Omit<Design, 'layout'> & { layout?: string; title: string; body?: string; cols?: string[]; table?: string[][]; x?: string; y?: string; quads?: { label: string; text: string }[] };
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function briefDate(slot: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:-[a-z_]+-(mon|tue|wed|thu|fri|sat|sun))?/.exec(slot);
+  if (!m) return '';
+  const add = m[4] ? ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].indexOf(m[4]) : 0;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + add));
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+export function isBrief(p: { format?: string; card?: any; slides?: any[] }) {
+  return (p.format === 'card' ? p.card?.look : p.slides?.[0]?.look) === 'brief';
+}
+const bHead = (s: string, big = false) => big ? size(s, [[30, 96], [48, 86], [70, 76]], 66) : size(s, [[28, 66], [46, 58], [70, 52]], 46);
+const bBody = (s: string) => size(s, [[110, 34], [200, 32]], 30);
+const SECTION: Record<string, string> = { thesis: 'THE ARGUMENT', figure: 'THE ARITHMETIC', table: 'THE WORKING', framework: 'THE FRAMEWORK', method: 'THE METHOD', contrast: 'THE SHIFT', takeaway: 'THE TAKEAWAY' };
+
+function BriefPaper({ label, foot, children, wide }: { label: string; foot: [string, string]; children: any; wide?: boolean }) {
+  return (
+    <div style={col({ width: W, height: H, background: BR.paper, padding: '72px 84px 76px', color: BR.ink })}>
+      <div style={col({})}>
+        <div style={flex({ justifyContent: 'space-between', alignItems: 'center' })}>
+          <img src={art!.logoFern} width={Math.round(46 * 1200 / 360)} height={46} style={{ display: 'flex' }} />
+          <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 18, letterSpacing: 5, color: BR.muted }}>THE RELÈVE BRIEF</span>
+        </div>
+        <div style={{ height: 1, background: BR.strong, marginTop: 24 }} />
+      </div>
+      {wide ? (
+        <div style={col({ flexGrow: 1, justifyContent: 'center' })}>
+          <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 18, letterSpacing: 5, color: BR.muted, marginBottom: 30 }}>{label}</span>
+          {children}
+        </div>
+      ) : (
+        <div style={flex({ flexGrow: 1, alignItems: 'center' })}>
+          <div style={col({ width: 196, alignSelf: 'stretch', justifyContent: 'center', borderRight: `1px solid ${BR.rule}`, marginRight: 52 })}>
+            <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 18, letterSpacing: 5, lineHeight: 1.6, color: BR.muted, width: 160 }}>{label}</span>
+          </div>
+          <div style={col({ flex: 1 })}>{children}</div>
+        </div>
+      )}
+      <div style={col({})}>
+        <div style={{ height: 1, background: BR.rule, marginBottom: 20 }} />
+        <div style={flex({ justifyContent: 'space-between', alignItems: 'center' })}>
+          <span style={{ fontFamily: 'Geist', fontSize: 19, letterSpacing: 1, color: BR.muted }}>{foot[0]}</span>
+          <span style={{ fontFamily: 'Lora', fontSize: 24, color: BR.ink }}>{foot[1]}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+function BriefTitle({ text, size: px }: { text: string; size?: number }) {
+  return <div style={flex({ fontFamily: 'Lora', fontSize: px ?? bHead(text), lineHeight: 1.12, color: BR.ink, textWrap: 'balance' } as any)}>{text}</div>;
+}
+function BriefBody({ text, top = 30 }: { text?: string; top?: number }) {
+  if (!text) return null;
+  return <div style={flex({ fontFamily: 'Geist', fontSize: bBody(text), lineHeight: 1.5, color: BR.body, marginTop: top })}>{text}</div>;
+}
+function briefInner(d: BriefPage): { wide: boolean; el: any } {
+  const t = d.title, b = d.body;
+  switch (d.layout) {
+    case 'figure':
+      return { wide: false, el: (
+        <div style={col({})}>
+          <div style={flex({ fontFamily: 'Lora', fontSize: size(d.number || '', [[5, 190], [8, 150]], 118), lineHeight: 1, color: BR.ink })}>{d.number || ''}</div>
+          <div style={flex({ fontFamily: 'Lora', fontSize: 38, lineHeight: 1.2, color: BR.ink, marginTop: 22, textWrap: 'balance' } as any)}>{t}</div>
+          <div style={col({ marginTop: 40, borderTop: `2px solid ${BR.strong}` })}>
+            {(d.facts ?? []).map((f, i) => (
+              <div key={i} style={flex({ alignItems: 'baseline', borderBottom: `1px solid ${BR.rule}`, padding: '20px 0 18px' })}>
+                <span style={{ fontFamily: 'Lora', fontSize: 38, color: BR.ink, width: 190 }}>{f.value}</span>
+                <span style={{ fontFamily: 'Geist', fontSize: 30, color: BR.body, flex: 1 }}>{f.label}</span>
+              </div>
+            ))}
+          </div>
+          <BriefBody text={b} top={28} />
+        </div>) };
+    case 'table': {
+      const cols = (d.cols ?? []).slice(0, 3); const rows = (d.table ?? []).slice(0, 6);
+      const w = (i: number) => cols.length === 3 ? (i === 0 ? 400 : 250) : (i === 0 ? 520 : 392);
+      return { wide: true, el: (
+        <div style={col({})}>
+          <BriefTitle text={t} />
+          <div style={col({ marginTop: 44 })}>
+            <div style={flex({ borderBottom: `2px solid ${BR.strong}`, paddingBottom: 14 })}>
+              {cols.map((c, i) => <span key={i} style={{ width: w(i), fontFamily: 'Geist', fontWeight: 500, fontSize: 18, letterSpacing: 4, color: BR.muted }}>{c.toUpperCase()}</span>)}
+            </div>
+            {rows.map((r, j) => (
+              <div key={j} style={flex({ borderBottom: `1px solid ${BR.rule}`, padding: '20px 0 18px' })}>
+                {cols.map((_, i) => <span key={i} style={{ width: w(i), paddingRight: 18, fontFamily: i === 0 ? 'Geist' : 'Lora', fontSize: i === 0 ? 30 : 32, color: i === 0 ? BR.body : BR.ink }}>{r[i] ?? ''}</span>)}
+              </div>
+            ))}
+          </div>
+          <BriefBody text={b} top={30} />
+        </div>) };
+    }
+    case 'framework': {
+      const q = (d.quads ?? []).slice(0, 4);
+      const cell = (i: number) => (
+        <div style={col({ width: 455, height: 260, padding: i % 2 ? '30px 0 0 40px' : '30px 40px 0 0' })}>
+          <span style={{ fontFamily: 'Lora', fontSize: 34, color: BR.ink, lineHeight: 1.15 }}>{q[i]?.label ?? ''}</span>
+          <span style={{ fontFamily: 'Geist', fontSize: 27, color: BR.body, lineHeight: 1.4, marginTop: 12 }}>{q[i]?.text ?? ''}</span>
+        </div>
+      );
+      return { wide: true, el: (
+        <div style={col({})}>
+          <BriefTitle text={t} />
+          <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 17, letterSpacing: 4, color: BR.muted, marginTop: 40 }}>{`↑ ${(d.y || '').toUpperCase()}`}</span>
+          <div style={col({ marginTop: 14, position: 'relative', width: 910 })}>
+            <div style={flex({ borderBottom: `1px solid ${BR.strong}` })}>{cell(0)}<div style={{ width: 1, background: BR.strong }} />{cell(1)}</div>
+            <div style={flex({})}>{cell(2)}<div style={{ width: 1, background: BR.strong }} />{cell(3)}</div>
+          </div>
+          <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 17, letterSpacing: 4, color: BR.muted, marginTop: 14, alignSelf: 'flex-end' }}>{`${(d.x || '').toUpperCase()} →`}</span>
+        </div>) };
+    }
+    case 'method':
+      return { wide: false, el: (
+        <div style={col({})}>
+          <BriefTitle text={t} />
+          <div style={col({ marginTop: 36, borderTop: `2px solid ${BR.strong}` })}>
+            {(d.rows ?? []).slice(0, 5).map((r, i) => (
+              <div key={i} style={flex({ alignItems: 'baseline', borderBottom: `1px solid ${BR.rule}`, padding: '20px 0 18px' })}>
+                <span style={{ fontFamily: 'Lora', fontSize: 34, color: BR.muted, width: 58 }}>{String(i + 1)}</span>
+                <span style={{ fontFamily: 'Geist', fontSize: 30, lineHeight: 1.4, color: BR.ink, flex: 1 }}>{r}</span>
+              </div>
+            ))}
+          </div>
+          <BriefBody text={b} top={26} />
+        </div>) };
+    case 'contrast': {
+      const side = (s: { label: string; items: string[] } | undefined, strong: boolean) => (
+        <div style={col({ width: 430 })}>
+          <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 18, letterSpacing: 4, color: strong ? BR.ink : BR.muted, paddingBottom: 14, borderBottom: `2px solid ${strong ? BR.strong : BR.rule}` }}>{(s?.label ?? '').toUpperCase()}</span>
+          {(s?.items ?? []).slice(0, 4).map((it, i) => <span key={i} style={{ fontFamily: 'Geist', fontSize: 29, lineHeight: 1.4, color: strong ? BR.ink : BR.muted, padding: '18px 0 16px', borderBottom: `1px solid ${BR.rule}` }}>{it}</span>)}
+        </div>
+      );
+      return { wide: true, el: (
+        <div style={col({})}>
+          <BriefTitle text={t} />
+          <div style={flex({ marginTop: 44, justifyContent: 'space-between' })}>{side(d.left, false)}{side(d.right, true)}</div>
+          <BriefBody text={b} top={30} />
+        </div>) };
+    }
+    case 'takeaway':
+      return { wide: false, el: (
+        <div style={col({ borderLeft: `3px solid ${BR.strong}`, paddingLeft: 40 })}>
+          <div style={flex({ fontFamily: 'Lora', fontSize: size(t, [[40, 72], [70, 62]], 54), lineHeight: 1.14, color: BR.ink, textWrap: 'balance' } as any)}>{t}</div>
+          <BriefBody text={b} top={32} />
+        </div>) };
+    default: // thesis
+      return { wide: false, el: (<div style={col({})}><BriefTitle text={t} size={bHead(t, true)} /><BriefBody text={b} top={40} /></div>) };
+  }
+}
+function briefFern({ top, children, foot, low }: { top: any; children: any; foot: any; low?: boolean }) {
+  return (
+    <div style={col({ width: W, height: H, background: BR.fern, padding: '80px 88px 80px', color: BR.cream })}>
+      {top}
+      <div style={col({ flexGrow: 1, justifyContent: low ? 'flex-end' : 'center', paddingBottom: low ? 72 : 0 })}>{children}</div>
+      {foot}
+    </div>
+  );
+}
+function briefMasthead(d: BriefPage, date: string, pages: number, words: number) {
+  const mins = Math.max(2, Math.round(words / 200));
+  return briefFern({
+    low: true,
+    top: (<div style={col({})}><img src={art!.logoWhite} width={Math.round(60 * 1200 / 360)} height={60} style={{ display: 'flex' }} /><div style={{ height: 1, background: BR.hair, marginTop: 30 }} /></div>),
+    children: (
+      <div style={col({ width: 860 })}>
+        <span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 19, letterSpacing: 6, color: BR.pale, marginBottom: 40 }}>THE RELÈVE BRIEF</span>
+        <div style={flex({ fontFamily: 'Lora', fontSize: bHead(d.title, true) + 10, lineHeight: 1.06, color: BR.cream, textWrap: 'balance' } as any)}>{d.title}</div>
+        {d.body ? <div style={flex({ fontFamily: 'Geist', fontSize: 32, lineHeight: 1.45, color: BR.silver, marginTop: 40, width: 780 })}>{d.body}</div> : null}
+      </div>),
+    foot: (
+      <div style={col({})}>
+        <div style={{ height: 1, background: BR.hair, marginBottom: 22 }} />
+        <div style={flex({ justifyContent: 'space-between', fontFamily: 'Geist', fontSize: 20, letterSpacing: 2, color: BR.pale })}>
+          <span>{`${pages} PAGES · ${mins} MINUTE READ`}</span><span>{date.toUpperCase()}</span>
+        </div>
+      </div>)
+  });
+}
+function briefClose(d: BriefPage, page: string) {
+  return briefFern({
+    top: (<div style={col({})}><span style={{ fontFamily: 'Geist', fontWeight: 500, fontSize: 19, letterSpacing: 6, color: BR.pale }}>WHAT TO DO NEXT</span><div style={{ height: 1, background: BR.hair, marginTop: 26 }} /></div>),
+    children: (
+      <div style={col({ width: 860 })}>
+        <div style={flex({ fontFamily: 'Lora', fontSize: bHead(d.title, true), lineHeight: 1.1, color: BR.cream, textWrap: 'balance' } as any)}>{d.title}</div>
+        {d.body ? <div style={flex({ fontFamily: 'Geist', fontSize: 33, lineHeight: 1.45, color: BR.silver, marginTop: 40 })}>{d.body}</div> : null}
+        <div style={{ marginTop: 64, display: 'flex' }}><img src={art!.handledCream} width={Math.round(56 * 2755 / 414)} height={56} style={{ display: 'flex' }} /></div>
+      </div>),
+    foot: (
+      <div style={col({})}>
+        <div style={{ height: 1, background: BR.hair, marginBottom: 22 }} />
+        <div style={flex({ justifyContent: 'space-between', alignItems: 'center' })}>
+          <img src={art!.logoWhite} width={Math.round(46 * 1200 / 360)} height={46} style={{ display: 'flex' }} />
+          <span style={{ fontFamily: 'Lora', fontSize: 24, color: BR.cream }}>{page}</span>
+        </div>
+      </div>)
+  });
+}
+function briefEl(p: Drawable, n: number) {
+  const date = briefDate(p.slot);
+  if (p.format === 'card') {
+    const c = p.card as any;
+    const d: BriefPage = { ...c, title: c.quote, body: c.sub, layout: BRIEF_LAYOUTS.includes(c.layout) && !['masthead', 'close'].includes(c.layout) ? c.layout : 'thesis' };
+    const { wide, el } = briefInner(d);
+    return <BriefPaper label={(c.kicker || SECTION[d.layout as string] || 'THE ARGUMENT').toUpperCase()} foot={[date, 'relevestaffing.com']} wide={wide}>{el}</BriefPaper>;
+  }
+  const pages = (p.slides ?? []) as BriefPage[];
+  const total = pages.length, s = pages[n];
+  const page = `${n + 1} / ${total}`;
+  const layout = n === 0 ? 'masthead' : n === total - 1 ? 'close' : (BRIEF_LAYOUTS.includes(s.layout as string) && !['masthead', 'close'].includes(s.layout as string) ? s.layout : 'thesis');
+  if (layout === 'masthead') {
+    const words = pages.map(x => [x.title, x.body, ...(x.rows ?? []), ...((x.table ?? []).flat())].join(' ')).join(' ').split(/\s+/).length;
+    return briefMasthead(s, date, total, words);
+  }
+  if (layout === 'close') return briefClose(s, page);
+  const d = { ...s, layout } as BriefPage;
+  const { wide, el } = briefInner(d);
+  return <BriefPaper label={(s.kicker || SECTION[layout as string] || '').toUpperCase()} foot={[date, page]} wide={wide}>{el}</BriefPaper>;
+}
+
 /* One image of a post as PNG bytes. n counts from 0. */
 export async function renderSlidePng(p: Drawable, n: number): Promise<Buffer> {
   /* A post may name its look (card.look or the first slide's look). */
   const named = (p.format === 'card' ? (p.card as any)?.look : (p.slides as any)?.[0]?.look) as Look['key'] | undefined;
   const L = named && LOOKS[named] ? LOOKS[named] : lookFor(p.slot);
   await loadArt();
-  const el = p.format === 'card' ? cardEl(p, L) : slideEl(p, L, n);
+  const hiring = p.format === 'card' && (p.card as any)?.layout === 'hiring';
+  const el = hiring ? hiringEl(p.card as any, await loadHiringBg()) : isBrief(p as any) ? briefEl(p, n) : p.format === 'card' ? cardEl(p, L) : slideEl(p, L, n);
   const res = new ImageResponse(el, { width: W, height: H, fonts: await loadFonts() });
   return Buffer.from(await res.arrayBuffer());
 }
