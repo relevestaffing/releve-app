@@ -8,6 +8,7 @@ import { safeMessage } from '@/lib/errors';
 import { depositLocked } from '@/lib/stage';
 import { CONTACT_EMAIL } from '@/lib/experience-public';
 import { sameSigner } from '@/lib/words';
+import { markProspectSigned } from '@/lib/prospects';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,6 +70,9 @@ export async function POST(req: Request) {
       envelope_id: null, reject_reason: null
     }, { onConflict: 'client_id' });
     if (error) throw new Error(error.message);
+
+    /* Signing is what turns a lead into an executive: the lead moves to Signed. */
+    await markProspectSigned(me.email);
 
     const attachment = {
       filename: 'Releve-Client-Services-Agreement-signed.pdf', content: pdf, contentType: 'application/pdf'

@@ -16,7 +16,7 @@ export function aiReady(): boolean {
 
 /* The current commercial terms, stated for the model so the numbers in the
    audit are right. Mirror the Book; update here when the plans change. */
-const RELEVE_TERMS = `
+export const RELEVE_TERMS = `
 Relève is a premium virtual executive staffing agency. It places a vetted, fully managed virtual professional and manages them for the life of the relationship. The positioning is trust and relief ("Consider it handled."), never cost or offshore savings.
 
 Plans (US dollars, billed first Monday of the month, due on receipt):
@@ -30,7 +30,7 @@ Plans (US dollars, billed first Monday of the month, due on receipt):
 - Every placement comes with a Client Success Manager and a Talent Success Manager and a 90-Day Success Plan; oversight continues for the whole relationship, not just 90 days.
 `.trim();
 
-const AUDIT_FORMAT = `
+export const AUDIT_FORMAT = `
 Write the audit as a tailored proposal for THIS specific business owner, in the same shape as Relève's best audits:
 
 1. "# Business VA Audit: {Company}" as the only H1.

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabaseServer, configured } from './supabase/server';
+import { adminClient, hasServiceKey } from './supabase/admin';
 import { upcomingCalendarEvents, calendarConfigured } from './calendar';
 import { recentInboxMessages, inboxConfigured, guessInboxKind, resumeAttachment } from './gmail';
 import { classifyInboxEmailAI } from './ai';
@@ -225,6 +226,45 @@ export async function markProspectWon(email: string, pendingId: string | null) {
       .update({ stage: 'won', pending_id: pendingId })
       .eq('email', email.trim().toLowerCase()).not('stage', 'in', '("won","lost")');
   } catch { /* never worth failing the send over */ }
+}
+
+/* Onboarding sent: the lead moves to Deciding with a follow-up three days out,
+   and the history says so. They only become Signed (and an executive on the
+   board) when they sign the agreement; see markProspectSigned. Matched by the
+   lead's id when the send came from their page, otherwise by email. */
+export async function markOnboardingSent(email: string, pendingId: string | null, by?: string | null, prospectId?: string | null) {
+  if (!configured()) return;
+  try {
+    const sb = await supabaseServer();
+    let q = sb.from('prospects').select('id').not('stage', 'in', '("won","lost")');
+    q = prospectId ? q.eq('id', prospectId) : q.eq('email', email.trim().toLowerCase());
+    const { data } = await q;
+    for (const r of (data ?? []) as any[]) {
+      await sb.from('prospects').update({ stage: 'proposal', ...(pendingId ? { pending_id: pendingId } : {}) }).eq('id', r.id);
+      await sb.from('prospect_touches').insert({
+        prospect_id: r.id, kind: 'email', by: by ?? null,
+        note: 'Onboarding email sent. They move to Signed when they sign the agreement.',
+        next_follow_up: addDaysISO(todayInPacific(), 3)
+      });
+    }
+  } catch { /* never worth failing the send over */ }
+}
+
+/* The agreement is signed: the lead becomes Signed, which is what makes them
+   an executive on the board. Runs as the service role because the person
+   signing is the client, not the team. Once only: a lead already Signed is
+   left alone, so a re-sign never writes a second line of history. */
+export async function markProspectSigned(email: string) {
+  if (!configured() || !hasServiceKey()) return;
+  try {
+    const sb = adminClient();
+    const { data } = await sb.from('prospects').select('id, stage').eq('email', email.trim().toLowerCase()).neq('stage', 'lost');
+    for (const r of (data ?? []) as any[]) {
+      if (r.stage === 'won') continue;
+      await sb.from('prospects').update({ stage: 'won' }).eq('id', r.id);
+      await sb.from('prospect_touches').insert({ prospect_id: r.id, kind: 'note', note: 'Signed the Client Services Agreement in the app. Now an executive.' });
+    }
+  } catch { /* the signature is already filed; this is housekeeping */ }
 }
 
 /* Pull discovery calls off hello@'s calendar. Any upcoming event with at

@@ -11,10 +11,12 @@ import Overlay from './Overlay';
    them the deposit link along with the account link, in one motion. The
    role brief and everything else can be filled in afterwards, from their
    row below; nothing here waits on it. */
-export default function OnboardingSender({ prefill }: { prefill?: { name: string; email: string } | null } = {}) {
+export default function OnboardingSender({ prefill, prospectId, startClosed, label }: {
+  prefill?: { name: string; email: string } | null; prospectId?: string; startClosed?: boolean; label?: string;
+} = {}) {
   const fid = useId();
   const router = useRouter();
-  const [open, setOpen] = useState(Boolean(prefill));
+  const [open, setOpen] = useState(Boolean(prefill) && !startClosed);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -27,7 +29,7 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
     try {
       r = await fetch('/api/admin/onboarding', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, email: f.get('email') })
+        body: JSON.stringify({ name, email: f.get('email'), ...(prospectId ? { prospect_id: prospectId } : {}) })
       });
       d = await r.json().catch(() => ({}));
     } catch {
@@ -55,7 +57,7 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
      floating between the tabs and the card, the one object on the page with
      no container, and the form unfolded in that gap. */
   if (!open) return (
-    <button className="btn sm solid" onClick={() => setOpen(true)}>Send onboarding email</button>
+    <button className="btn sm solid" onClick={() => setOpen(true)}>{label ?? 'Send onboarding email'}</button>
   );
 
   return (
@@ -66,8 +68,8 @@ export default function OnboardingSender({ prefill }: { prefill?: { name: string
       </div>
       <p className="small muted" style={{ marginBottom: 20, maxWidth: 560 }}>
         Send this after the discovery call. It opens their search and emails the
-        deposit link (no account needed first), with account and invoicing setup.
-        Add the role brief later from their row below.
+        agreement and the deposit link (no account needed first), with account and
+        invoicing setup. They become an executive the moment they sign.
       </p>
       <form onSubmit={submit}>
         <div className="grid-2" style={{ gap: 14 }}>

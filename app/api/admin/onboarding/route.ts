@@ -6,7 +6,7 @@ import { SITE } from '@/lib/stripe';
 import { depositLinkReady, signDepositLink } from '@/lib/deposit-link';
 import { safeMessage } from '@/lib/errors';
 import { firstName } from '@/lib/words';
-import { markProspectWon } from '@/lib/prospects';
+import { markOnboardingSent } from '@/lib/prospects';
 
 export const dynamic = 'force-dynamic';
 
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       cents = (made as any).deposit_cents ?? 50_000;
     }
 
-    await markProspectWon(email, pendingId);
+    await markOnboardingSent(email, pendingId, g.p?.id ?? null, b.prospect_id ? String(b.prospect_id) : null);
 
     const payUrl = canLink ? `${SITE}/pay/${signDepositLink(searchId)}` : `${SITE}/app`;   // the dashboard carries the deposit button
     const sent = await send(email, {

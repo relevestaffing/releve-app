@@ -3,15 +3,15 @@ import Link from 'next/link';
 import { currentProfile } from '@/lib/supabase/server';
 import { getProspect } from '@/lib/prospects';
 import { listDocuments } from '@/lib/documents';
-import { listAudits } from '@/lib/audits';
+import { listStudioDocs } from '@/lib/studio';
 import { teamRoles } from '@/lib/care';
 import { aiReady } from '@/lib/ai';
-import { SITE } from '@/lib/stripe';
 import Shell from '@/components/Shell';
 import Files from '@/components/Files';
 import LeadRecord from '@/components/LeadRecord';
 import { todayInPacific } from '@/lib/money-public';
 import AuditDesk from '@/components/AuditDesk';
+import LeadOnboarding from '@/components/LeadOnboarding';
 
 export const metadata = { title: 'Lead' };
 export const dynamic = 'force-dynamic';
@@ -29,11 +29,9 @@ export default async function LeadFile({ params }: { params: Promise<{ id: strin
 
   const [docs, audits, team] = await Promise.all([
     listDocuments('prospect', id).catch(() => []),
-    listAudits(id).catch(() => []),
+    listStudioDocs('audit', id).catch(() => []),
     teamRoles().catch(() => [])
   ]);
-
-  const isElivate = false; // the member discount is confirmed per audit; default off
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console/directory" title={lead.full_name} crumb="Lead"
@@ -45,13 +43,10 @@ export default async function LeadFile({ params }: { params: Promise<{ id: strin
         <div className="detail-slot" style={{ marginTop: 26 }}>
           <AuditDesk
             prospectId={lead.id}
-            email={lead.email}
-            website={lead.website}
-            elivateMember={isElivate}
-            audits={audits}
+            audits={audits.map(a => ({ id: a.id, title: a.title, status: a.status === 'sent' ? 'sent' as const : 'draft' as const, created_at: a.created_at, done_at: a.done_at }))}
             aiOn={aiReady()}
-            siteUrl={SITE}
           />
+          <LeadOnboarding lead={{ id: lead.id, full_name: lead.full_name, email: lead.email, stage: lead.stage, pending_id: lead.pending_id }} />
           <Files kind="prospect" ownerId={id} docs={docs} />
         </div>
       </LeadRecord>

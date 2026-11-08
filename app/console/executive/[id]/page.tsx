@@ -5,6 +5,9 @@ import { redirect, notFound } from 'next/navigation';
 import { currentProfile, configured, supabaseServer } from '@/lib/supabase/server';
 import { teamRoles } from '@/lib/care';
 import AccountManagerPicker from '@/components/AccountManagerPicker';
+import PlanCard from '@/components/PlanCard';
+import { listStudioDocs, readinessFor } from '@/lib/studio';
+import { aiReady } from '@/lib/ai';
 import { listClients, getSearch, getAvailability } from '@/lib/store';
 import { signatureOf, archetype } from '@/lib/data';
 import { getClientAgreement } from '@/lib/agreement';
@@ -59,10 +62,13 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
   /* Who owns this account, and the team the picker chooses from. The owner
      column is new (part50), so read it on its own: a record that shows the
      account beats one that will not open because the column is not there yet. */
-  const [team, csm] = await Promise.all([
+  const [team, csm, plans, ready] = await Promise.all([
     teamRoles().catch(() => []),
-    accountManagerId(id, 'client')
+    accountManagerId(id, 'client'),
+    listStudioDocs('plan', id).catch(() => []),
+    client.signed_in && configured() ? supabaseServer().then(sb => readinessFor(sb, id)).catch(() => null) : Promise.resolve(null)
   ]);
+  const plan = plans[0] ?? null;
   const type = sig ? archetype((sig as any).scores, 'client') : null;
   const threadHref = `/console/messages?thread=${id}`;
   const talentHref = (t: string) => `/console/talent/${t}`;
@@ -83,6 +89,9 @@ export default async function ExecutiveRecord({ params }: { params: Promise<{ id
         {archived && <span className="acct-tag warn">Archived</span>}</div>
 
       <Strip a={acct} accountHref={talentHref} />
+
+      <PlanCard clientId={id} accountOpen={client.signed_in} ready={ready} aiOn={aiReady()}
+        plan={plan ? { id: plan.id, title: plan.title, status: plan.status === 'published' ? 'published' : 'draft', done_at: plan.done_at } : null} />
 
       <Tabs tabs={[
         { key: 'placement', label: 'Placement', body: <PlacementTab a={acct} accountHref={talentHref} emptyText="No placement yet. Use Assign placement above." /> },
