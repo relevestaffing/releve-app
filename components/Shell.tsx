@@ -333,6 +333,17 @@ export default async function Shell({
      matters for this role. */
   lead?: Lead;
 }) {
+  /* Accounts are opened by invitation. Anyone without one has no account to
+     show, and the terms gate below must not be the first thing a stranger is
+     asked to accept, so this runs first. /app/welcome tells them plainly.
+     Anyone Relève added by hand already has a side and passes straight on.
+     onboarded_at is the belt to the braces: an account that finished its
+     first run before the choice was stamped is never sent back. */
+  if (profile.role !== 'admin' && active !== '/app/welcome') {
+    const self = await getSelfProfile(profile.id);
+    if (!self.role_chosen_at && !self.assigned_by_releve && !self.onboarded_at) redirect('/app/welcome');
+  }
+
   /* Every signed-in page renders through here, so this is the one place the
      terms gate has to exist. Deep links included: there is no route into the
      account that goes around it.
@@ -340,19 +351,6 @@ export default async function Shell({
      Relève's own team is exempt — you do not contract with yourself. */
   if (profile.role !== 'admin' && !(await hasAccepted(profile.id, TERMS_VERSION)))
     return <TermsGate name={profile.full_name} side={profile.role === 'client' ? 'client' : 'talent'} />;
-
-  /* A sign-up who has not yet said which side they are on has no account to
-     show: the role they carry is a placeholder. Only /app/welcome asked that
-     question, so a deep link to any other page handed them the full talent
-     product under their raw e-mail. Same test welcome/page.tsx makes, here,
-     so every page under Shell sends them back to answer it first. Anyone
-     Relève added by hand already has a side and is never asked. */
-  if (profile.role !== 'admin' && active !== '/app/welcome') {
-    const self = await getSelfProfile(profile.id);
-    /* onboarded_at is the belt to the braces: an account that finished its
-       first run before the choice was stamped is never sent back to it. */
-    if (!self.role_chosen_at && !self.assigned_by_releve && !self.onboarded_at) redirect('/app/welcome');
-  }
 
   /* Nothing else opens while something asked-for sits unpaid — checked here
      rather than on any one page, so it holds no matter which page under

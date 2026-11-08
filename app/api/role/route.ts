@@ -14,6 +14,13 @@ export async function POST(req: Request) {
   const me = await currentProfile();
   if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
 
+  /* Accounts are opened by invitation, and an invitation settles the side.
+     Nobody picks their own, so this refuses everyone: an uninvited session
+     must not be able to make itself a client or talent by calling it
+     directly. The team changes a side from the console. */
+  if (configured())
+    return NextResponse.json({ error: 'Relève accounts are opened by invitation.' }, { status: 403 });
+
   const { role } = await req.json();
   if (role !== 'client' && role !== 'talent')
     return NextResponse.json({ error: 'that is not a side' }, { status: 400 });

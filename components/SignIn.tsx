@@ -2,6 +2,7 @@
 import { useEffect, useState, useId } from 'react';
 import { hasSupabase, supabaseBrowser } from '@/lib/supabase/client';
 import SunWall from '@/components/SunWall';
+import { INVITE_ONLY, DISCOVERY_URL, CONTACT, NOT_INVITED_CODE } from '@/lib/invite-copy';
 import './signin.css';
 
 /* A message the friendliest way to say "that link didn't work" can manage —
@@ -12,8 +13,8 @@ function friendly(raw: string): string {
   const low = raw.toLowerCase();
   /* Accounts are opened by invitation only (PART 60). Supabase words the refusal
      as a database or sign-up error, which says nothing useful to a person. */
-  if (low.includes('database error') || low.includes('signups not allowed') || low.includes('invitation only') || low.includes('signup is disabled'))
-    return 'Relève accounts are opened by invitation. Sign in with the email address your invitation was sent to, or write to hello@relevestaffing.com.';
+  if (raw === NOT_INVITED_CODE || low.includes('database error') || low.includes('signups not allowed') || low.includes('invitation only') || low.includes('signup is disabled'))
+    return INVITE_ONLY;
   if (low.includes('expired') || low.includes('invalid'))
     return 'That link has expired or has already been used. Each link works once, for one hour. Request a new one below.';
   return raw;
@@ -115,6 +116,12 @@ export default function SignIn({ initialError }: { initialError?: string }) {
                 {gBusy ? 'Opening Google…' : 'Continue with Google'}
               </button>
               {err && <div className="err" role="alert">{err}</div>}
+              {err === INVITE_ONLY && (
+                <p className="note" style={{ marginTop: 14 }}>
+                  To work with us, <a href={DISCOVERY_URL} style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>book a discovery call</a>, or write to{' '}
+                  <a href={`mailto:${CONTACT}`} style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>{CONTACT}</a>.
+                </p>
+              )}
             </>
           )}
         </div>

@@ -3,7 +3,7 @@ import { currentProfile } from '@/lib/supabase/server';
 import { getSelfProfile } from '@/lib/store';
 import Welcome from '@/components/Welcome';
 import ExecFirstRun from '@/components/ExecFirstRun';
-import ChooseRole from '@/components/ChooseRole';
+import NotInvited from '@/components/NotInvited';
 import TermsGate from '@/components/TermsGate';
 import { hasAccepted, TERMS_VERSION } from '@/lib/money';
 
@@ -16,19 +16,19 @@ export default async function WelcomePage() {
   if (!profile) redirect('/');
   if (profile.role === 'admin') redirect('/console');
 
-  /* This page renders outside Shell (there is no nav yet to put someone
-     into), which means Shell's own terms gate never runs for it either —
-     so it has to check for itself. Without this, a signed-in link straight
-     to /app/welcome reached the account without ever passing the gate every
-     other page enforces. */
+  /* Accounts are opened by invitation. Relève adds a person by hand (or sends
+     the onboarding email), and that settles their side the moment they sign in.
+     Anyone without that has no account to show, so they are told so before the
+     terms or anything else. This page renders outside Shell, so it checks for
+     itself. */
+  const self: any = await getSelfProfile(profile.id);
+  if (!self?.role_chosen_at && !self?.assigned_by_releve && !self?.onboarded_at)
+    return <NotInvited email={profile.email} />;
+
+  /* Shell's own terms gate never runs for this page either, so it has to
+     check for itself. */
   if (!(await hasAccepted(profile.id, TERMS_VERSION)))
     return <TermsGate name={profile.full_name} side={profile.role === 'client' ? 'client' : 'talent'} />;
-
-  /* Anyone Relève added by hand already has a side, and is never asked.
-     Everyone else picks one before they see anything else. */
-  const self: any = await getSelfProfile(profile.id);
-  if (!self?.role_chosen_at && !self?.assigned_by_releve)
-    return <ChooseRole name={profile.full_name} />;
 
   /* Executives walk the three screens on first sign-in; talent keep their own
      short intro. */

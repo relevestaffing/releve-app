@@ -6,6 +6,7 @@ import { saveCalendar } from '@/lib/store';
 import { send, templates, appGuideAttachment } from '@/lib/email';
 import { noteSigninTrouble } from '@/lib/signin-watch';
 import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
+import { NOT_INVITED_CODE } from '@/lib/invite-copy';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,20 @@ export async function GET(request: NextRequest) {
   };
   const fail = (msg: string) => go(`/?error=${encodeURIComponent(msg)}`);
 
+  /* Google (and Supabase) send a refusal back as ?error_description=… with no
+     code. The database refuses a stranger before an account exists, and that
+     arrives here, so it is shown on the sign-in screen instead of being lost
+     in a redirect to /app that bounces straight back. */
+  const refused = searchParams.get('error_description') ?? searchParams.get('error');
+  if (configured() && !code && refused) {
+    const low = refused.toLowerCase();
+    if (low.includes('database error') || low.includes('invitation only') || low.includes('signups not allowed'))
+      return go(`/?error=${NOT_INVITED_CODE}`);
+    if (low.includes('access_denied') || low.includes('denied'))
+      return fail('Sign-in did not finish. You can try again below.');
+    return fail(refused);
+  }
+
   if (!configured() || !code) return go('/app');
 
   const sb = createServerClient(
@@ -61,6 +76,25 @@ export async function GET(request: NextRequest) {
   if (user) {
     const { data: existing } = await sb.from('profiles').select('id').eq('id', user.id).maybeSingle();
     if (!existing) {
+      /* Accounts are opened by invitation. The database already refuses a
+         stranger, so this is a second lock for the same door, in case that
+         one is ever missing or loosened: with no invitation on file for this
+         address, no profile is made, no welcome email goes out, and no session
+         is kept. An account made a moment ago for nobody is removed; anything
+         older is left alone for a person to look at. */
+      if (hasServiceKey() && user.email) {
+        const ad = adminClient();
+        const em = user.email.trim().toLowerCase().replace(/[\\%_]/g, '\\$&');
+        const { data: invite } = await ad.from('pending_people')
+          .select('id').ilike('email', em).is('claimed_by', null).limit(1).maybeSingle();
+        if (!invite) {
+          console.error('[signin] refused, no invitation:', user.email);
+          const age = Date.now() - new Date((user as any).created_at ?? 0).getTime();
+          if (age < 15 * 60 * 1000) { try { await ad.auth.admin.deleteUser(user.id); } catch { /* the refusal still stands */ } }
+          /* Deliberately not through go(): the session cookie is not written. */
+          return NextResponse.redirect(new URL(`/?error=${NOT_INVITED_CODE}`, origin));
+        }
+      }
       const { error: made } = await sb.from('profiles').insert({
         id: user.id, email: user.email,
         full_name: (user.user_metadata as any)?.full_name ?? null,
