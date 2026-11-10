@@ -1,0 +1,45 @@
+{
+  "title": "Working with Relève",
+  "tag": "Talent training · Your account",
+  "eyebrow": "The Relève talent training",
+  "side": "Talent training",
+  "sub": "How working through Relève works, how to use the app, and what your days will look like with your client. Read it in order. Your place saves as you go.",
+  "time": "About an hour and a half",
+  "parts": [
+    [
+      "01",
+      "Welcome",
+      "What Relève is, and the people around you",
+      "2 lessons"
+    ],
+    [
+      "02",
+      "How it works",
+      "Your status, pay, hours and the agreement",
+      "4 lessons"
+    ],
+    [
+      "03",
+      "The app",
+      "Setup, tasks, messages and your reports",
+      "4 lessons"
+    ],
+    [
+      "04",
+      "Your day to day",
+      "Your first days, a good week, and our standards",
+      "4 lessons"
+    ]
+  ],
+  "engine": {
+    "title": "Working with Relève",
+    "signHook": "The last step. Confirm you have read the training, and your Talent Success Manager will see that you are done.",
+    "pledge": "I have finished Working with Relève. I understand how working through Relève works, and I will follow it.",
+    "ack": "I will keep client information private, use only tools my client approves, keep my pay private, never work with a Relève client outside Relève, and go to my Talent Success Manager with any concern.",
+    "doneTitle": "Welcome to the watch",
+    "doneText": "You have finished every lesson and every check. You can come back to this training at any time from your account.",
+    "doneToast": "Welcome to Relève.",
+    "back": "/app",
+    "backLabel": "Back to your account"
+  }
+}

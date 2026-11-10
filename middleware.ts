@@ -30,6 +30,6 @@ export const config = {
      (and burn a Supabase auth.getUser() call) on every icon, manifest and
      service-worker request. Keep this list in sync with /public. */
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.png|apple-touch-icon\\.png|icon-512\\.png|icon-1024\\.png|og-card\\.jpg|logo-.*\\.png|manifest\\.webmanifest|robots\\.txt|sw\\.js|splash/.*|fonts/.*|social30/.*).*)'
+    '/((?!_next/static|_next/image|favicon\\.png|apple-touch-icon\\.png|icon-512\\.png|icon-1024\\.png|og-card\\.jpg|logo-.*\\.png|manifest\\.webmanifest|robots\\.txt|sw\\.js|splash/.*|fonts/.*|social30/.*|learn-assets/.*).*)'
   ]
 };

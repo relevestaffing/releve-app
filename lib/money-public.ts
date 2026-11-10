@@ -28,6 +28,24 @@ export const PLANS: Record<PlanKey, {
   part_time_full: { label: 'Starter, paid in full', monthlyCents: 83_333, months: 3, hoursPerWeek: 15, blurb: '$2,500 paid in full for three months, up to 15 hours a week' }
 };
 export const PART_TIME_TOTAL_CENTS = 250_000;
+/* Talent pay standard (Nona, 10 November 2026): $7 an hour unless explicitly
+   adjusted, paid as a fixed monthly amount worked out from the role's weekly
+   hours. Roles come in four sizes, picked on the offer before it is sent:
+   15 hours is a Starter role; 25, 30 and 40 are Essential or Specialist.
+   The hours are the talent's side only and change nothing on the client's.
+   Taking The Watch stays at $6 an hour. */
+export const TALENT_HOURLY_CENTS = 700;
+export const TALENT_HOURS = [15, 25, 30, 40] as const;
+export type TalentHours = typeof TALENT_HOURS[number];
+export const isTalentHours = (n: unknown): n is TalentHours => TALENT_HOURS.includes(Number(n) as TalentHours);
+/** The plans a role of this size can sit on. */
+export const plansForHours = (h: TalentHours): PlanKey[] =>
+  h === 15 ? ['part_time', 'part_time_full'] : ['essential', 'specialist'];
+/** The usual role size for a plan, used as the starting pick. */
+export const defaultHoursFor = (k: PlanKey): TalentHours => (PLANS[k].hoursPerWeek ? 15 : 40);
+/** $7 x hours a week x 52 weeks / 12 months, to the whole dollar. */
+export const standardPayCents = (hoursPerWeek: number) =>
+  Math.round(TALENT_HOURLY_CENTS * hoursPerWeek * 52 / 12 / 100) * 100;
 /* eLIVate Club members: $500 off each month for the first three months, on
    Essential and Specialist only (part42-elivate.sql applies it to invoices). */
 export const ELIVATE_DISCOUNT_CENTS = 50_000;

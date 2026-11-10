@@ -30,8 +30,12 @@
      circumvention runs 12 months from the end of the last placement, with a
      stated conversion fee; confidentiality now runs both ways, with the talent
      NDA enforceable for the client; data, AI-tool, client-conduct, advice,
-     force majeure and notice clauses added; background-check claim removed. */
-export const AGREEMENT_VERSION = 'csa-2026-11-06.1';
+     force majeure and notice clauses added; background-check claim removed.
+   csa-2026-11-10.1 Section 1.2: Client buys hours of service from Relève, not the
+     services of one particular individual; the Placement Schedule terms continue
+     if the Talent changes; Talent log their work in the platform. Client-specific
+     addenda added (lib/client-addenda.ts), the first for Refynity. */
+export const AGREEMENT_VERSION = 'csa-2026-11-10.1';
 export const AGREEMENT_TITLE = 'Client Services Agreement';
 export type AgItem = { p?: string; sub?: string; bullet?: string };
 export const AGREEMENT_INTRO: string[] = [
@@ -66,7 +70,7 @@ export const AGREEMENT_SECTIONS: { h: string; items: AgItem[] }[] = [
     "sub": "1.2 Retainer Engagement"
    },
    {
-    "p": "Relève will source, evaluate, and match Talent to Client’s stated needs, and introduce candidates for Client’s review and approval. No candidate is presented to Client, and no Talent begins work for Client, without Client’s own named approval."
+    "p": "Relève will source, evaluate, and match Talent to Client’s stated needs, and introduce candidates for Client’s review and approval. No candidate is presented to Client, and no Talent begins work for Client, without Client’s own named approval. Client buys hours of service from Relève, delivered through the Talent Client approves, and not the services of one particular individual. If a Talent changes under Section 4, the plan, rate, weekly hours, and minimum term in the Placement Schedule continue to apply. Talent log their hours and work in the Relève platform."
    },
    {
     "sub": "1.3 Talent’s Status"

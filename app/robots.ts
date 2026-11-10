@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [{
       userAgent: '*',
       allow: '/$',
-      disallow: ['/app', '/console', '/api', '/auth', '/pay', '/pay-invoice', '/placement-confirmed']
+      disallow: ['/app', '/console', '/api', '/auth', '/pay', '/pay-invoice', '/placement-confirmed', '/learn']
     }]
   };
 }

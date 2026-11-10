@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { setApplicationState, resumeLink, setCall, getApplication } from '@/lib/jobs';
 import { createZoomMeeting, cancelZoomMeeting, zoomConfigured } from '@/lib/zoom';
+import { screeningLinkFor } from '@/lib/booking';
 import { createPerson } from '@/lib/store';
 import { markInvited } from '@/lib/jobs';
 import { send, templates } from '@/lib/email';
@@ -87,6 +88,11 @@ export async function POST(req: Request) {
       } catch { /* the booking stands either way */ }
 
       return NextResponse.json({ ok: true, mailed, warning, url: meeting?.url ?? null });
+    }
+
+    /* The personal link to book their own screening call. */
+    if (b.action === 'booking_link') {
+      return NextResponse.json({ ok: true, url: screeningLinkFor(String(b.id)) });
     }
 
     if (b.action === 'call_result') {

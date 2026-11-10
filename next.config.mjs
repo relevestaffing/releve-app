@@ -58,6 +58,17 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' }
 ];
 
+/* The team trainings (/learn/<token>, 10 November 2026) may play a lesson
+   video from YouTube, Vimeo or Loom, and the link in the address bar is a
+   private token, so the page sends no referrer at all. Listed after the
+   site-wide headers so these two keys win on that path. */
+const learnCsp = csp.replace("frame-src 'self'",
+  "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com https://www.loom.com");
+const learnHeaders = [
+  { key: 'Content-Security-Policy', value: learnCsp },
+  { key: 'Referrer-Policy', value: 'no-referrer' }
+];
+
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
@@ -72,7 +83,10 @@ const nextConfig = {
     ...(process.env.NEXT_BUILD_CPUS ? { cpus: Number(process.env.NEXT_BUILD_CPUS), workerThreads: false } : {})
   },
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }];
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      { source: '/learn/:path*', headers: learnHeaders }
+    ];
   }
 };
 

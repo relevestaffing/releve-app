@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { currentProfile, configured } from '@/lib/supabase/server';
 import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
-import { buildSignedAgreement } from '@/lib/agreement-pdf';
-import { AGREEMENT_VERSION } from '@/lib/agreement-text';
+import { buildSignedAgreement, clientDocFor } from '@/lib/agreement-pdf';
+import { agreementVersionFor } from '@/lib/client-addenda';
 import { send, templates } from '@/lib/email';
 import { safeMessage } from '@/lib/errors';
 import { depositLocked } from '@/lib/stage';
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Signing is not available in preview.' }, { status: 503 });
 
   const b = await req.json().catch(() => ({}));
-  if (b.version !== AGREEMENT_VERSION)
+  if (b.version !== agreementVersionFor(me.email))
     return NextResponse.json({ error: 'This agreement was updated. Please reload the page and read it again.' }, { status: 409 });
   if (b.agreed !== true)
     return NextResponse.json({ error: 'Please confirm you have read and agree to the agreement.' }, { status: 400 });
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     const pdf = await buildSignedAgreement({
       name, email: me.email, signedAt: now, ip, userAgent: req.headers.get('user-agent'), business
-    });
+    }, clientDocFor(me.email));
 
     const path = `${me.id}/client-agreement.pdf`;
     const { error: upErr } = await ad.storage.from('agreements')

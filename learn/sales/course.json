@@ -1,0 +1,23 @@
+{
+  "title": "Selling Relève",
+  "tag": "Sales training · Private link",
+  "eyebrow": "The Relève sales training",
+  "side": "Sales training",
+  "sub": "How owners decide, why they hesitate, and how to sell Relève honestly: from the first message on LinkedIn to a signed client on Starter, with the move to Essential already planned. Every lesson gives you the words and the reason they work.",
+  "time": "Two and a half to three hours",
+  "parts": [
+    ["01", "The buyer’s mind", "How owners decide, and how trust is built", "3 lessons"],
+    ["02", "Finding them", "Prospecting, outreach, and booking the call", "3 lessons"],
+    ["03", "The call", "Discovery, the live audit, Relève, the close", "4 lessons"],
+    ["04", "After the call", "Objections, follow-up, the step-up, your numbers", "3 lessons"]
+  ],
+  "engine": {
+    "title": "Selling Relève",
+    "signHook": "The last step. Confirm you have finished the training and will sell Relève the way it teaches, and the team will see that you are done.",
+    "pledge": "I have finished Selling Relève. I will sell Relève honestly, the way this training teaches.",
+    "ack": "I will never invent a claim, a number, a result or a deadline, never pressure an owner, never quote a price in a social post, and never promise a candidate or a term before it is in writing.",
+    "doneTitle": "You’re ready to sell Relève",
+    "doneText": "Every lesson and every check is done. Sage may ask you to run a practice discovery call with her before your first live one. Keep this link: the scripts are here whenever you need them.",
+    "doneToast": "Well done."
+  }
+}

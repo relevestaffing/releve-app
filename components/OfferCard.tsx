@@ -59,7 +59,9 @@ export default function OfferCard({ offer, side }: { offer: any; side: 'client' 
 
       <dl className="brief-facts">
         <dt>Starts</dt><dd>{fmtDate(offer.starts_on)}</dd>
-        {offer.hours && <><dt>Hours</dt><dd>{offer.hours}</dd></>}
+        {side === 'talent' && offer.talent_hours
+          ? <><dt>Hours</dt><dd><b>{offer.talent_hours} hours a week</b>, US business hours</dd></>
+          : offer.hours && <><dt>Hours</dt><dd>{offer.hours}</dd></>}
         {offer.scope && <><dt>Responsibilities</dt><dd>{offer.scope}</dd></>}
         <dt>{side === 'client' ? 'You pay' : 'You are paid'}</dt>
         <dd>{upfront

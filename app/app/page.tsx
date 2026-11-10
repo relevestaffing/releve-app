@@ -5,6 +5,7 @@ import { getMySignature, rankBench, archetype } from '@/lib/data';
 import { listDecisions } from '@/lib/work';
 import { getAvailability, getSelfProfile, getCalendar, getSearch } from '@/lib/store';
 import { talentSteps, clientSteps, progress } from '@/lib/onboarding';
+import { trainingDoneFor } from '@/lib/learn';
 import { watchStep } from '@/lib/setup';
 import Checklist from '@/components/Checklist';
 import { listVetting } from '@/lib/work';
@@ -137,9 +138,9 @@ export default async function AppHome() {
   const hasAvailability = !!avail.timezone && (avail.windows?.length ?? 0) > 0;
   /* Talent-only and independent of each other — batched rather than
      awaited one at a time while building talentSteps below. */
-  const [watch, payoutRow] = side === 'talent'
-    ? await Promise.all([watchStep(profile.id, skills), getPayout(profile.id)])
-    : ([null, null] as [Awaited<ReturnType<typeof watchStep>> | null, Awaited<ReturnType<typeof getPayout>>]);
+  const [watch, payoutRow, trainingDone] = side === 'talent'
+    ? await Promise.all([watchStep(profile.id, skills), getPayout(profile.id), trainingDoneFor(profile.id)])
+    : ([null, null, false] as [Awaited<ReturnType<typeof watchStep>> | null, Awaited<ReturnType<typeof getPayout>>, boolean]);
   const steps = side === 'client'
     ? clientSteps({ hasSignature: !!sig, hasAvailability, hasIntro: !!(self.bio && self.photo_url), hasRole })
         /* With no search open there is nothing to describe, so asking them to
@@ -157,9 +158,13 @@ export default async function AppHome() {
         hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
         agreementPending: !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
         hasPayout: payoutReady(payoutRow),
-        hasIntroVideo: !!self.intro_video_url
+        hasIntroVideo: !!self.intro_video_url,
+        hasTraining: trainingDone
       });
   const setup = progress(steps);
+  /* Phones: on a Home with nothing more pressing, the card stack is what is still to do. */
+  const stepDeck = setup.complete ? undefined : steps.filter(st => !st.done).map(st => ({
+    eyebrow: 'Still to do', title: st.title, meta: st.blurb, href: st.href, cta: 'Start', flag: st.minutes }));
 
   /* ---------- executive onboarding: vision, then deposit, then Signature ----------
      The search opens on the deposit, not before (the Book's rule), so before
@@ -178,7 +183,7 @@ export default async function AppHome() {
   const manager = await primaryManager(profile);
   if (side === 'client' && !stage.placed && !depositSettled) {
     return (
-      <Shell profile={profile} active="/app"
+      <Shell profile={profile} active="/app" deck={stepDeck}
         title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}
         crumb={profile.org_name ?? 'Executive'}>
         {clientAgreement?.state !== 'verified' && (
@@ -194,7 +199,7 @@ export default async function AppHome() {
      leads, and what is still to do follows. Found in the 1 November launch
      simulation, where a placed talent saw only "Before you can be matched". */
   if (!sig && side === 'talent' && placements.length > 0) return (
-    <Shell profile={profile} active="/app"
+    <Shell profile={profile} active="/app" deck={stepDeck}
       title={homeTitle}
       crumb={placements.length === 1 ? `Working with ${placements[0].client_name}` : 'Your placements'}>
       {offer && <OfferCard offer={offer} side="talent" />}
@@ -230,7 +235,7 @@ export default async function AppHome() {
   );
 
   if (!sig && !(side === 'client' && stage.placed)) return (
-    <Shell profile={profile} active="/app"
+    <Shell profile={profile} active="/app" deck={stepDeck}
       title={myName ? `Welcome, ${myName}` : 'Welcome to Relève'}>
       <Checklist steps={steps}
         heading={side === 'client' ? 'Set up your account' : 'Before you can be matched'} />
@@ -271,7 +276,7 @@ export default async function AppHome() {
        placement yet to give it a rail to sit in, narrower inside the rail
        once there is. Built once so the two layouts below can't drift apart. */
     const needsAttention = (
-      <div className="card">
+      <div className="card needs-card">
         <div className="card-head"><h3>Needs your attention</h3>
           <span className={`pill ${waitingOnMe ? 'warn' : 'good'}`}>
             <span className="dot" />{waitingOnMe ? 'Waiting on you' : 'Clear'}</span></div>
@@ -297,11 +302,13 @@ export default async function AppHome() {
           <>
             <div className="row" style={{ marginBottom: 18 }}>
               <Portrait id={current.person.id} name={current.person.name} cls="lg" url={current.person.photo_url} />
-              <div>
+              <div style={{ flex: 1 }}>
                 <h4 style={{ fontSize: 20 }}>{current.person.name}</h4>
                 <div className="small muted">{[current.person.role, current.person.yrs ? `${current.person.yrs} years` : null, current.person.loc].filter(Boolean).join(' · ')}</div>
               </div>
             </div>
+            {/* desktop only (desk.css): the match, as the one large figure on the card */}
+            <div className="needs-score" aria-hidden="true"><span>{current.match.overall}<sup>%</sup></span><small>Signature match</small></div>
             <p className="verdict">{fitSentence(current.match, firstName(current.person.name))}</p>
             <div className="row" style={{ marginTop: 18 }}>
               <Link className="btn sm solid"
@@ -328,8 +335,12 @@ export default async function AppHome() {
             stats: [{ n: placements.length, k: 'In seat' }] }
         : { eyebrow: 'Your search', title: 'Under way', meta: 'A qualified candidate within fourteen days', href: '/app/messages?tab=sm', cta: 'Message your manager' };
 
+    const openSteps = setup.complete ? [] : steps.filter(st => !st.done).map(st => ({
+      eyebrow: 'Still to do', title: st.title, meta: st.blurb, href: st.href, cta: 'Start',
+      flag: st.minutes }));
     return (
       <Shell profile={profile} active="/app" lead={lead}
+        deck={[{ eyebrow: lead.eyebrow, title: lead.title, meta: lead.meta, href: lead.href, cta: lead.cta }, ...openSteps]}
         title={homeTitle}
         crumb={profile.org_name ?? 'Executive'}>
 
@@ -393,6 +404,12 @@ export default async function AppHome() {
             {brief?.opened_at && <GuaranteeBadge openedAt={brief.opened_at} firstCandidateOn={brief.first_candidate_on ?? null}
               guaranteeDays={(brief as { guarantee_days?: number | null }).guarantee_days ?? 14} today={today} />}
             {needsAttention}
+            {/* desktop only (desk.css): three ways on, under the two panels */}
+            <div className="exec-tiles">
+              <Link className="qa-tile" href="/app/interviews"><span className="eyebrow">Interviews</span><b>Times and joining links</b><span className="small muted">In your own timezone</span></Link>
+              <Link className="qa-tile" href="/app/messages?tab=sm"><span className="eyebrow">Your Client Success Manager</span><b>{manager?.id ? manager.name : 'The Relève team'}</b><span className="small muted">Replies within one business day</span></Link>
+              <Link className="qa-tile" href="/app/value"><span className="eyebrow">The value</span><b>What your time is worth</b><span className="small muted">Hours and days back each year</span></Link>
+            </div>
           </>
         )}
       </Shell>
@@ -406,7 +423,7 @@ export default async function AppHome() {
   const selfLines = talentSelfLines(sig.scores);
 
   return (
-    <Shell profile={profile} active="/app"
+    <Shell profile={profile} active="/app" deck={stepDeck}
       title={homeTitle}
       crumb={self.headline ?? 'Your account'}>
 

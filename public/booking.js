@@ -151,7 +151,7 @@
           method: 'POST', mode: 'cors', headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             name: o.name, email: o.email, phone: o.phone || state.phone, org: o.org || '', notes: o.notes || '',
-            source: o.source || '', start: state.slot, timezone: tz
+            source: o.source || '', applicant: o.applicant || '', start: state.slot, timezone: tz
           })
         });
         req.then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })

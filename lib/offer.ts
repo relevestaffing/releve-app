@@ -8,6 +8,7 @@
    in exactly one place. */
 import { configured, supabaseServer } from './supabase/server';
 import type { Offer } from './offer-public';
+import { isTalentHours } from './money-public';
 
 export * from './offer-public';
 
@@ -48,11 +49,12 @@ export async function makeOffer(o: {
   hours?: string; scope?: string;
   rate_month_cents?: number; talent_pay_cents?: number; minimum_months?: number; prepaid_total_cents?: number;
   intro_discount_cents?: number; intro_discount_months?: number;
+  talent_hours?: number;
   send?: boolean;
 }) {
   if (!configured()) return null;
   const sb = await supabaseServer();
-  const { data, error } = await sb.from('offers').insert({
+  const row: Record<string, unknown> = {
     client_id: o.client_id, talent_id: o.talent_id,
     role_title: o.role_title.trim(), starts_on: o.starts_on,
     hours: o.hours?.trim() || null, scope: o.scope?.trim() || null,
@@ -64,7 +66,16 @@ export async function makeOffer(o: {
     intro_discount_months: o.intro_discount_months ?? null,
     state: o.send ? 'sent' : 'draft',
     sent_on: o.send ? new Date().toISOString().slice(0, 10) : null
-  }).select().single();
+  };
+  /* The role's size, talent side only (part63-talent-hours.sql). */
+  if (isTalentHours(o.talent_hours)) row.talent_hours = Number(o.talent_hours);
+  let { data, error } = await sb.from('offers').insert(row).select().single();
+  /* Until part63 is applied the column is not there yet: save the offer
+     without it rather than lose it. */
+  if (error && 'talent_hours' in row && /talent_hours/.test(error.message)) {
+    delete row.talent_hours;
+    ({ data, error } = await sb.from('offers').insert(row).select().single());
+  }
   if (error) throw new Error(error.message);
   return data as Offer;
 }

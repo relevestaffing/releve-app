@@ -14,6 +14,7 @@ import { getPayout, listPayments } from '@/lib/payout';
 import { payoutReady, PAYOUT_METHODS, periodLabel } from '@/lib/payout-public';
 import { money, dayLabel } from '@/lib/money-public';
 import { talentSteps } from '@/lib/onboarding';
+import { trainingDoneFor } from '@/lib/learn';
 import { watchStep } from '@/lib/setup';
 import { watchEarningsFor } from '@/lib/watch';
 import Shell from '@/components/Shell';
@@ -104,7 +105,8 @@ export default async function TalentFile({ params }: { params: Promise<{ id: str
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: identity?.state === 'verified',
     agreementPending: !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
-    hasPayout: payoutReady(payout)
+    hasPayout: payoutReady(payout),
+    hasTraining: await trainingDoneFor(id)
   });
   const method = PAYOUT_METHODS.find(m => m.key === payout?.method);
   const stateWord = (v?: { state: string } | null) =>

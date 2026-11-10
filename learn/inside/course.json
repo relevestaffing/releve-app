@@ -1,0 +1,25 @@
+{
+  "title": "Inside Relève",
+  "tag": "Team training · Private link",
+  "eyebrow": "The Relève team training",
+  "side": "Team training",
+  "sub": "Everything a new member of the team needs to know about Relève: who we serve, how we stand out, how a placement runs from the first call to the second year, and how we sell. Read it in order. It saves as you go.",
+  "time": "About two and a half hours",
+  "parts": [
+    ["00", "Welcome", "Who we are, and why Relève exists", "2 lessons"],
+    ["01", "The market", "Who we serve, and how we stand out", "4 lessons"],
+    ["02", "The offer", "The plans, the terms, and the path between them", "3 lessons"],
+    ["03", "How it works", "From the first call to a placement that lasts", "6 lessons"],
+    ["04", "How we sell", "Our voice, our leads, the call, objections", "5 lessons"],
+    ["05", "The standards", "The lines we never cross", "2 lessons"]
+  ],
+  "engine": {
+    "title": "Inside Relève",
+    "signHook": "The last step. Confirm you have read the training and will follow the Relève standards, and the team will see that you are done.",
+    "pledge": "I have read every lesson of Inside Relève. I understand the Relève standards, and I will follow them.",
+    "ack": "I understand that pay, check-ins and client information stay private, that only an onboarding email from Relève opens the app, and that I never promise a term that isn’t in writing.",
+    "doneTitle": "Welcome to Relève",
+    "doneText": "You have finished every lesson and every check. Keep this link: you can come back to any lesson whenever you need it.",
+    "doneToast": "Welcome to Relève."
+  }
+}

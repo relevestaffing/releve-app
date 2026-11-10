@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { currentProfile } from '@/lib/supabase/server';
 import { hasServiceKey, adminClient } from '@/lib/supabase/admin';
 import { todayInPacific } from '@/lib/money-public';
-import { cancelBooking, getBooking, getBookingSettings, listBookings, saveBookingSettings } from '@/lib/booking';
+import { cancelBooking, getBooking, getBookingSettings, isScreening, listBookings, saveBookingSettings } from '@/lib/booking';
 import { sendCancelled, tellTeam } from '@/lib/booking-emails';
 
 export const dynamic = 'force-dynamic';
@@ -46,7 +46,12 @@ export async function POST(req: Request) {
   const b = await getBooking(String(body?.id ?? ''));
   if (!b) return NextResponse.json({ error: 'That booking was not found.' }, { status: 404 });
   const done = await cancelBooking(b);
-  try {
+  if (isScreening(b)) {
+    try {
+      if (b.applicationId) await adminClient().from('job_applications')
+        .update({ call_state: 'none', call_at: null, call_url: null, call_id: null, state: 'reviewing' }).eq('id', b.applicationId);
+    } catch (e) { console.error('[admin/booking] application update failed', e); }
+  } else try {
     await adminClient().from('prospects').update({ stage: 'contacted', call_at: null, next_follow_up: todayInPacific(), last_touched_at: new Date().toISOString() })
       .eq('email', b.email).eq('stage', 'booked');
   } catch (e) { console.error('[admin/booking] lead update failed', e); }

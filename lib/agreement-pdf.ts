@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import {
   AGREEMENT_VERSION, AGREEMENT_TITLE, AGREEMENT_INTRO, AGREEMENT_SECTIONS
 } from '@/lib/agreement-text';
+import { agreementVersionFor, agreementSectionsFor } from '@/lib/client-addenda';
 import {
   TALENT_AGREEMENT_VERSION, TALENT_AGREEMENT_TITLE, TALENT_AGREEMENT_INTRO, TALENT_AGREEMENT_SECTIONS
 } from '@/lib/talent-agreement-text';
@@ -19,6 +20,11 @@ export const CLIENT_DOC: AgreementDoc = {
   subtitle: 'Client / Executive Master Agreement, governing the retainer relationship',
   intro: AGREEMENT_INTRO, sections: AGREEMENT_SECTIONS, esignClause: '13.11'
 };
+/* The client's agreement as they are shown it: the standard text, plus the
+   addendum added at the bottom for a client who has one. */
+export function clientDocFor(email?: string | null): AgreementDoc {
+  return { ...CLIENT_DOC, version: agreementVersionFor(email), sections: agreementSectionsFor(email) };
+}
 export const TALENT_DOC: AgreementDoc = {
   title: TALENT_AGREEMENT_TITLE, version: TALENT_AGREEMENT_VERSION, party: 'Talent',
   subtitle: 'Talent Master Agreement: governs every Placement',

@@ -19,6 +19,7 @@ const TIMES = Array.from({ length: 96 }, (_, i) => {
   return { v, label };
 });
 const LINK = 'https://relevestaffing.com/book/';
+const SCREEN_LINK = 'https://relevestaffing.com/book/screening/';
 const SEL: React.CSSProperties = { width: 136, padding: '9px 10px', fontSize: 14.5, border: '1px solid rgba(53,68,58,.25)', borderRadius: 2, background: '#fff', color: 'inherit', font: 'inherit' };
 
 function RangeRow({ r, onChange, onRemove, id }: { r: Range; onChange: (r: Range) => void; onRemove: () => void; id: string }) {
@@ -46,6 +47,7 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedScreen, setCopiedScreen] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -98,6 +100,17 @@ export default function BookingSettingsEditor({ initial, bookings, calendarOk, z
             try { await navigator.clipboard.writeText(LINK); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
           }}>{copied ? 'Copied' : 'Copy link'}</button>
           <a className="btn sm ghost" href={LINK} target="_blank" rel="noopener">Open the page</a>
+        </div>
+        <p className="small muted" style={{ margin: '22px 0 10px' }}>
+          For someone who wants to work with Relève but did not apply on the website: this books a screening call. They give their name,
+          email and phone, pick a time from the same hours, and they appear under Applications with the call already on them.
+        </p>
+        <div className="row" style={{ gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <code style={{ fontSize: 15 }}>{SCREEN_LINK.replace('https://', '')}</code>
+          <button className="btn sm solid" onClick={async () => {
+            try { await navigator.clipboard.writeText(SCREEN_LINK); setCopiedScreen(true); setTimeout(() => setCopiedScreen(false), 2000); } catch {}
+          }}>{copiedScreen ? 'Copied' : 'Copy screening link'}</button>
+          <a className="btn sm ghost" href={SCREEN_LINK} target="_blank" rel="noopener">Open the page</a>
         </div>
         <label className="row" style={{ gap: 10, marginTop: 16, alignItems: 'center', cursor: 'pointer' }}>
           <input type="checkbox" checked={s.enabled} onChange={e => set({ enabled: e.target.checked })} />

@@ -1,7 +1,7 @@
 import { send, shell, p, esc, tagline } from '@/lib/email';
 import type { Message } from '@/lib/email';
 import { teamEmails } from '@/lib/work';
-import { bookingIcs, manageUrl, type Booking } from '@/lib/booking';
+import { bookingIcs, manageUrl, isScreening, SCREENING_LINK, type Booking } from '@/lib/booking';
 
 /* The emails around a discovery call booked on relevestaffing.com/book.
    One email per moment, all from hello@ in Relève's white and green, each
@@ -10,6 +10,11 @@ import { bookingIcs, manageUrl, type Booking } from '@/lib/booking';
 
 const SENDER = 'Relève <hello@relevestaffing.com>';
 
+/* A screening call is the first conversation with someone interested in working with Relève; a discovery call is with a prospective client. */
+const callWord = (b: Booking) => isScreening(b) ? 'screening call' : 'discovery call';
+const aboutCall = (b: Booking, host: string) => isScreening(b)
+  ? `${minutes(b)} with ${host}, to get to know you and the work that would suit you. There is nothing to prepare.`
+  : `${minutes(b)} with ${host}. We will have read what you shared, and you will leave knowing what to hand off first and how the 14-day search works.`;
 function first(name: string) { return (name || '').trim().split(/\s+/)[0] || 'Hello'; }
 function when(iso: string, timeZone: string) {
   const d = new Date(iso);
@@ -33,21 +38,21 @@ export function confirmedEmail(b: Booking, host: string, rescheduled = false): M
   const l = line(b), manage = manageUrl(b.id);
   const head = rescheduled ? 'Your call has moved' : 'Your call is confirmed';
   const lead = rescheduled
-    ? `Your discovery call with Relève is now set for <b>${esc(l.text)}</b>.`
-    : `Your discovery call with Relève is set for <b>${esc(l.text)}</b>.`;
+    ? `Your ${callWord(b)} with Relève is now set for <b>${esc(l.text)}</b>.`
+    : `Your ${callWord(b)} with Relève is set for <b>${esc(l.text)}</b>.`;
   return {
     kind: rescheduled ? 'bookingRescheduled' : 'bookingConfirmed',
     from: SENDER,
-    subject: rescheduled ? `Rescheduled: your discovery call, ${l.day}` : `Confirmed: your discovery call, ${l.day}`,
+    subject: rescheduled ? `Rescheduled: your ${callWord(b)}, ${l.day}` : `Confirmed: your ${callWord(b)}, ${l.day}`,
     html: shell(head,
       p(`${esc(first(b.name))},`) +
       p(`${lead} The invitation is attached for your calendar.`) +
-      p(`${minutes(b)} with ${esc(host)}. We will have read what you shared, and you will leave knowing what to hand off first and how the 14-day search works.`) +
+      p(esc(aboutCall(b, host))) +
       tagline(),
       b.joinUrl ? { label: 'Join on Zoom', href: b.joinUrl } : undefined,
       { label: 'Reschedule or cancel', href: manage }),
-    text: `${first(b.name)},\n\n${rescheduled ? `Your discovery call with Relève is now set for ${l.text}.` : `Your discovery call with Relève is set for ${l.text}.`} The invitation is attached for your calendar.\n\n${minutes(b)} with ${host}. We will have read what you shared, and you will leave knowing what to hand off first and how the 14-day search works.${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
-    icalEvent: { method: 'REQUEST', filename: 'releve-discovery-call.ics', content: bookingIcs(b, { method: 'REQUEST', host, sequence: rescheduled ? 1 : 0 }) }
+    text: `${first(b.name)},\n\n${rescheduled ? `Your ${callWord(b)} with Relève is now set for ${l.text}.` : `Your ${callWord(b)} with Relève is set for ${l.text}.`} The invitation is attached for your calendar.\n\n${aboutCall(b, host)}${b.joinUrl ? `\n\nJoin on Zoom: ${b.joinUrl}` : ''}\nReschedule or cancel: ${manage}\n\nConsider it handled.\nRelève`,
+    icalEvent: { method: 'REQUEST', filename: 'releve-call.ics', content: bookingIcs(b, { method: 'REQUEST', host, sequence: rescheduled ? 1 : 0 }) }
   };
 }
 
@@ -56,15 +61,15 @@ export function cancelledEmail(b: Booking, host: string): Message {
   return {
     kind: 'bookingCancelled',
     from: SENDER,
-    subject: `Cancelled: your discovery call, ${l.day}`,
+    subject: `Cancelled: your ${callWord(b)}, ${l.day}`,
     html: shell('Your call is cancelled',
       p(`${esc(first(b.name))},`) +
-      p(`Your discovery call for ${esc(l.text)} has been taken off your calendar.`) +
+      p(`Your ${callWord(b)} for ${esc(l.text)} has been taken off your calendar.`) +
       p('If you would like to talk another time, choose one below.') +
       tagline(),
-      { label: 'Choose a new time', href: 'https://relevestaffing.com/book/' }),
-    text: `${first(b.name)},\n\nYour discovery call for ${l.text} is cancelled and has been taken off your calendar.\n\nIf you would like to talk another time, choose one here: https://relevestaffing.com/book/\n\nConsider it handled.\nRelève`,
-    icalEvent: { method: 'CANCEL', filename: 'releve-discovery-call.ics', content: bookingIcs(b, { method: 'CANCEL', host, sequence: 2 }) }
+      { label: 'Choose a new time', href: isScreening(b) ? SCREENING_LINK : 'https://relevestaffing.com/book/' }),
+    text: `${first(b.name)},\n\nYour ${callWord(b)} for ${l.text} is cancelled and has been taken off your calendar.\n\nIf you would like to talk another time, choose one here: ${isScreening(b) ? SCREENING_LINK : 'https://relevestaffing.com/book/'}\n\nConsider it handled.\nRelève`,
+    icalEvent: { method: 'CANCEL', filename: 'releve-call.ics', content: bookingIcs(b, { method: 'CANCEL', host, sequence: 2 }) }
   };
 }
 
@@ -74,8 +79,8 @@ export async function tellTeam(kind: 'booked' | 'rescheduled' | 'cancelled', b: 
     const to = await teamEmails();
     if (!to.length) return;
     const pt = when(b.start, 'America/Los_Angeles');
-    const verb = kind === 'booked' ? 'booked a discovery call' : kind === 'rescheduled' ? 'moved their discovery call' : 'cancelled their discovery call';
-    const subject = `${kind === 'cancelled' ? 'Cancelled' : kind === 'rescheduled' ? 'Rescheduled' : 'New call'}: ${b.name}, ${pt.day} ${pt.time}`;
+    const verb = kind === 'booked' ? `booked a ${callWord(b)}` : kind === 'rescheduled' ? `moved their ${callWord(b)}` : `cancelled their ${callWord(b)}`;
+    const subject = `${kind === 'cancelled' ? 'Cancelled' : kind === 'rescheduled' ? 'Rescheduled' : isScreening(b) ? 'New screening call' : 'New call'}: ${b.name}, ${pt.day} ${pt.time}`;
     const facts = [
       `${b.email}${b.phone ? ` · ${b.phone}` : ''}${b.org ? ` · ${b.org}` : ''}`,
       `${pt.day} at ${pt.time} ${pt.zone}`,

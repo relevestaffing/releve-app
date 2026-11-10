@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { adminClient, hasServiceKey } from '@/lib/supabase/admin';
 import { configured } from '@/lib/supabase/server';
-import { buildSignedAgreement } from '@/lib/agreement-pdf';
-import { AGREEMENT_VERSION } from '@/lib/agreement-text';
+import { buildSignedAgreement, clientDocFor } from '@/lib/agreement-pdf';
+import { agreementVersionFor } from '@/lib/client-addenda';
 import { verifyDepositLink } from '@/lib/deposit-link';
 import { signerForSearch, savePendingSignature, pendingSigned } from '@/lib/agreement-link';
 import { send, templates } from '@/lib/email';
@@ -21,13 +21,14 @@ export async function POST(req: Request) {
   const b = await req.json().catch(() => ({}));
   const link = verifyDepositLink(String(b.token ?? ''));
   if (!link) return NextResponse.json({ error: 'That link has expired. Ask your Client Success Manager for a fresh one.' }, { status: 400 });
-  if (b.version !== AGREEMENT_VERSION)
-    return NextResponse.json({ error: 'This agreement was updated. Please reload the page and read it again.' }, { status: 409 });
   if (b.agreed !== true)
     return NextResponse.json({ error: 'Please confirm you have read and agree to the agreement.' }, { status: 400 });
 
   const who = await signerForSearch(link.searchId);
   if (!who) return NextResponse.json({ error: 'That link is no longer open.' }, { status: 400 });
+  const version = agreementVersionFor(who.email);
+  if (b.version !== version)
+    return NextResponse.json({ error: 'This agreement was updated. Please reload the page and read it again.' }, { status: 409 });
 
   const signed = String(b.signed_name ?? '').trim().replace(/\s+/g, ' ');
   if (signed.length < 3) return NextResponse.json({ error: 'Please type your full name as your signature.' }, { status: 400 });
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
     const ip = (req.headers.get('x-nf-client-connection-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? '').trim() || null;
     const now = new Date();
     const business = String(b.business ?? '').trim().slice(0, 120) || who.business || null;
-    const pdf = await buildSignedAgreement({ name, email: who.email, signedAt: now, ip, userAgent: req.headers.get('user-agent'), business });
+    const pdf = await buildSignedAgreement({ name, email: who.email, signedAt: now, ip, userAgent: req.headers.get('user-agent'), business }, clientDocFor(who.email));
 
     if (who.clientId) {
       const path = `${who.clientId}/client-agreement.pdf`;
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
       }, { onConflict: 'client_id' });
       if (error) throw new Error(error.message);
     } else if (who.pendingId) {
-      await savePendingSignature(who.pendingId, pdf, { name, at: now.toISOString(), version: AGREEMENT_VERSION });
+      await savePendingSignature(who.pendingId, pdf, { name, at: now.toISOString(), version });
     } else {
       throw new Error('Nobody to file this under.');
     }

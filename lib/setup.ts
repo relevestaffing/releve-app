@@ -8,6 +8,7 @@ import { getPayout } from '@/lib/payout';
 import { payoutReady } from '@/lib/payout-public';
 import { myWatchStatus } from '@/lib/watch';
 import { executiveStage } from '@/lib/stage';
+import { trainingDoneFor } from '@/lib/learn';
 
 /* Where Taking The Watch stands across every discipline they claim, for
    the checklist. Nothing claimed means nothing to take. */
@@ -46,8 +47,8 @@ export async function setupFor(profile: Profile): Promise<Step[]> {
     }).filter(st => stage.hiring || st.key !== 'role');
   }
 
-  const [vetting, skills, payout] = await Promise.all([
-    listVetting(profile.id), getSkills(profile.id), getPayout(profile.id)
+  const [vetting, skills, payout, hasTraining] = await Promise.all([
+    listVetting(profile.id), getSkills(profile.id), getPayout(profile.id), trainingDoneFor(profile.id)
   ]);
   return talentSteps({
     hasSignature: !!sig, hasAvailability,
@@ -66,6 +67,7 @@ export async function setupFor(profile: Profile): Promise<Step[]> {
     vettingSent: vetting.filter(v => v.state === 'submitted').length,
     hasIdentity: vetting.some(v => v.kind === 'identity' && v.state === 'verified'),
     agreementPending: !vetting.some(v => v.kind === 'agreement' && v.state === 'verified'),
-    hasPayout: payoutReady(payout)
+    hasPayout: payoutReady(payout),
+    hasTraining
   });
 }

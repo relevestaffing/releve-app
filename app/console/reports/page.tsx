@@ -158,7 +158,8 @@ export default async function Reports() {
         { href: '/console/signals', label: 'Match accuracy' },
         { href: '/console/calendar', label: 'Calendar' },
         { href: '/console/booking', label: 'Booking page' },
-        { href: '/console/team', label: 'Team' }
+        { href: '/console/team', label: 'Team' },
+        { href: '/console/training', label: 'Training' }
       ]} />
 
       <h3 className="section-h">Money</h3>

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { preflight } from '@/lib/cors';
 import { guard, one, zoneOk } from '@/lib/booking-http';
 import { adminClient } from '@/lib/supabase/admin';
-import { bookingReady, cancelBooking, createBooking, getBooking, getBookingSettings, manageUrl, readManageToken, SlotTaken } from '@/lib/booking';
+import { bookingReady, isScreening, cancelBooking, createBooking, getBooking, getBookingSettings, manageUrl, readManageToken, SlotTaken } from '@/lib/booking';
 import { sendCancelled, sendConfirmed, tellTeam } from '@/lib/booking-emails';
 import { todayInPacific } from '@/lib/money-public';
 
@@ -18,7 +18,14 @@ async function load(token: string) {
   const id = readManageToken(token);
   return id ? await getBooking(id) : null;
 }
-const view = (b: any) => ({ name: b.name, start: b.start, end: b.end, status: b.status, joinUrl: b.joinUrl, timezone: b.timezone });
+const view = (b: any) => ({ name: b.name, start: b.start, end: b.end, status: b.status, joinUrl: b.joinUrl, timezone: b.timezone, kind: b.source === 'screening' ? 'screening' : 'discovery' });
+
+/* A screening call lives on the job application too; keep it in step. */
+async function syncApplication(b: any, patch: Record<string, unknown>) {
+  if (!isScreening(b) || !b.applicationId) return;
+  try { await adminClient().from('job_applications').update(patch).eq('id', b.applicationId); }
+  catch (e) { console.error('[booking/manage] application sync failed', e); }
+}
 
 export async function GET(req: Request) {
   const { cors, fail } = guard(req);
@@ -43,7 +50,8 @@ export async function POST(req: Request) {
 
   if (body?.action === 'cancel') {
     const done = await cancelBooking(b);
-    try {
+    await syncApplication(b, { call_state: 'none', call_at: null, call_url: null, call_id: null, state: 'reviewing' });
+    if (!isScreening(b)) try {
       await sb.from('prospects').update({ stage: 'contacted', call_at: null, next_follow_up: todayInPacific(), last_touched_at: new Date().toISOString() })
         .eq('email', b.email).eq('stage', 'booked');
     } catch (e) { console.error('[booking/manage] lead update failed', e); }
@@ -68,7 +76,8 @@ export async function POST(req: Request) {
       return fail('That did not go through. Please try again.', 500);
     }
     await cancelBooking(b);
-    try {
+    await syncApplication(nb, { call_state: 'invited', call_at: nb.start, call_url: nb.joinUrl, call_id: nb.zoomId });
+    if (!isScreening(b)) try {
       await sb.from('prospects').update({ stage: 'booked', call_at: nb.start, last_touched_at: new Date().toISOString(),
         ...(nb.eventId ? { calendar_event_id: nb.eventId } : {}) }).eq('email', b.email).not('stage', 'in', '("won","lost")');
     } catch (e) { console.error('[booking/manage] lead update failed', e); }

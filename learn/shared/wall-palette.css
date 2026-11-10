@@ -1,0 +1,33 @@
+/* ONE WALL, ONE PALETTE for the standalone pages (/discovery, /training,
+   /book) (3 November 2026). The same two grounds as the main site: dark
+   olive plaster from the window wall, and pale limewash. */
+:root{--ink:#1A241E;--deep:#161D17;--deeper:#121812;--paper:#EEEAE1}
+body{background:#EEEAE1 url("/learn-assets/limewash.webp") 50% 0/1600px 800px repeat!important}
+.dark,footer,.marq{
+  background:radial-gradient(70% 55% at 88% 0%,rgba(214,221,226,.075) 0%,rgba(214,221,226,0) 62%),
+             linear-gradient(180deg,rgba(12,17,12,.10) 0%,rgba(12,17,12,.32) 100%),
+             url("/learn-assets/plaster-deep-green.webp") 50% 0/1600px 800px repeat,#1A241E!important}
+.calc-out,.ba,.stats.dark .stat,.mode-b .day-meter,aside.side,body:has(#gate) .calc{
+  background-image:url("/learn-assets/plaster-deep-green.webp")!important;background-size:1600px 800px!important;background-color:#1A241E!important}
+.card,.calc-card,.front,.stat:not(.stats.dark .stat),.task,.viz,.fit .card{background-color:#FDFCF8}
+body:not(:has(#gate)) .calc,.relief{background:linear-gradient(180deg,rgba(120,110,80,.05),rgba(120,110,80,.02)),url("/learn-assets/limewash.webp") 50% 0/1600px 800px repeat,#E6E1D5!important}
+/* Texture only once (3 November 2026): the footer and a dark band that
+   follows another are plain, flat colour. */
+footer{background:#131C17!important;background-image:none!important}
+.dark + .dark,.dark + .marq,.marq + .dark{background:#1E2822!important;background-image:none!important}
+
+/* DISCOVERY HERO ON THE WALL (3 November 2026). Nona: the /discovery hero
+   needs the same backdrop as the site's headers: the live window wall,
+   lit by the visitor's time of day (/learn-assets/wall.js), with the photograph
+   underneath until it draws. The dot pattern and glow are retired here. */
+section.hero.wall-dark{background:linear-gradient(180deg,rgba(10,16,13,.35),rgba(10,16,13,.55)),url("/learn-assets/window-wall.webp") 100% 35%/cover no-repeat,#1A241E!important;overflow:hidden}
+@media (max-width:900px){section.hero.wall-dark{background:linear-gradient(180deg,rgba(10,16,13,.45),rgba(10,16,13,.6)),url("/learn-assets/window-wall.webp") 88% 30%/cover no-repeat,#1A241E!important}}
+section.hero.wall-dark::before,section.hero.wall-dark > .glow{display:none!important}
+section.hero.wall-dark > canvas.rv-wall{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;opacity:0;transition:opacity 1.4s ease;pointer-events:none}
+section.hero.wall-dark > canvas.rv-wall.on{opacity:1}
+section.hero.wall-dark > .wrap{position:relative;z-index:2}
+section.hero.wall-dark :is(h1,.eyebrow,.sub,.script,.hero-note){text-shadow:0 1px 18px rgba(8,14,10,.55)}
+
+/* AUDIT 3 NOV: muted text reads darker on light grounds, keeps its lighter olive on dark ones */
+.dark,.wall-dark,.l-dark,.book.dark,footer,.hero.dark,.cout,.g-card{--muted:#9EA6AC;--mut-x:#9EA6AC}
+.dark .panel,.dark .card,.dark .m-card{--muted:#6E6A4A;--mut-x:#6E6A4A}

@@ -160,6 +160,8 @@ export type Booking = {
   start: string; end: string; timezone: string;
   zoomId: string | null; joinUrl: string | null; eventId: string | null;
   source: string | null; created_at: string; cancelled_at?: string | null; rescheduled_from?: string | null;
+  /* Screening calls (source 'screening') belong to a job application, so a move or a cancel can keep that application's call in step. */
+  applicationId?: string | null;
   /* The calendar UID stays the same across reschedules so the guest's calendar
      replaces the old time instead of keeping both (QA, 2 Nov 2026). */
   uid?: string; sequence?: number;
@@ -203,6 +205,22 @@ export function readManageToken(token: string): string | null {
   const a = Buffer.from(sig), b = Buffer.from(want);
   return a.length === b.length && crypto.timingSafeEqual(a, b) ? id : null;
 }
+/* The applicant's own booking link: their application id, signed, so a link
+   made for one person cannot be turned into another's. */
+export function appToken(id: string) {
+  const sig = crypto.createHmac('sha256', secret()).update(`app:${id}`).digest('base64url').slice(0, 22);
+  return `${id}.${sig}`;
+}
+export function readAppToken(token: string): string | null {
+  const [id, sig] = String(token || '').split('.');
+  if (!id || !sig || !/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const want = appToken(id).split('.')[1];
+  const a = Buffer.from(sig), b = Buffer.from(want);
+  return a.length === b.length && crypto.timingSafeEqual(a, b) ? id : null;
+}
+export const SCREENING_LINK = `${SITE}/book/screening/`;
+export const screeningLinkFor = (applicationId: string) => `${SCREENING_LINK}?a=${encodeURIComponent(appToken(applicationId))}`;
+export const isScreening = (b: { source: string | null }) => b.source === 'screening';
 export const manageUrl = (id: string) => `${SITE}/book/manage/?b=${encodeURIComponent(manageToken(id))}`;
 
 /* ---------- open times ---------- */
@@ -255,7 +273,7 @@ export class SlotTaken extends Error {}
 
 export async function createBooking(o: {
   name: string; email: string; phone: string | null; org?: string | null; notes?: string | null;
-  start: string; timezone: string; source?: string | null; rescheduleOf?: Booking | null;
+  start: string; timezone: string; source?: string | null; rescheduleOf?: Booking | null; applicationId?: string | null;
 }): Promise<Booking> {
   const { settings: s, slots } = await openSlots({ ignoreBookingId: o.rescheduleOf?.id });
   const startISO = new Date(o.start).toISOString();
@@ -278,14 +296,14 @@ export async function createBooking(o: {
   if (zoomConfigured()) {
     try {
       zoom = await createZoomMeeting({
-        topic: `Relève discovery call: ${o.name}`, startISO, durationMin: s.durationMin,
-        timezone: s.timezone, agenda: `Discovery call with ${o.name}${o.org ? ` (${o.org})` : ''}.`
+        topic: o.source === 'screening' ? `Relève screening call: ${o.name}` : `Relève discovery call: ${o.name}`, startISO, durationMin: s.durationMin,
+        timezone: s.timezone, agenda: o.source === 'screening' ? `Screening call with ${o.name}.` : `Discovery call with ${o.name}${o.org ? ` (${o.org})` : ''}.`
       });
     } catch (e) { console.error('[booking] zoom failed', e); }
   }
 
   const description = [
-    `Discovery call with ${o.name} (${o.email}${o.phone ? `, ${o.phone}` : ''}).`,
+    `${o.source === 'screening' ? 'Screening call' : 'Discovery call'} with ${o.name} (${o.email}${o.phone ? `, ${o.phone}` : ''}).`,
     o.org ? `Business: ${o.org}` : '',
     o.notes ? `\nWhat they told us:\n${o.notes}` : '',
     zoom ? `\nZoom: ${zoom.url}` : '',
@@ -303,7 +321,8 @@ export async function createBooking(o: {
     id, status: 'booked', name: o.name, email: o.email, phone: o.phone, org: o.org ?? null, notes: o.notes ?? null,
     start: startISO, end, timezone: o.timezone, zoomId: zoom?.id ?? null, joinUrl: zoom?.url ?? null, eventId,
     source: o.source ?? null, created_at: new Date().toISOString(), rescheduled_from: o.rescheduleOf?.id ?? null,
-    uid: o.rescheduleOf?.uid ?? o.rescheduleOf?.id ?? id, sequence: (o.rescheduleOf?.sequence ?? 0) + 1
+    uid: o.rescheduleOf?.uid ?? o.rescheduleOf?.id ?? id, sequence: (o.rescheduleOf?.sequence ?? 0) + 1,
+    applicationId: o.applicationId ?? o.rescheduleOf?.applicationId ?? null
   };
   try { await putBooking(b); }
   catch (e) { try { await adminClient().from('content_settings').delete().eq('key', `slot:${startISO}`); } catch {} throw e; }

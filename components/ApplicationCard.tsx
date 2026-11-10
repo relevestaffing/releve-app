@@ -43,6 +43,20 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
       setBusy(false);
     }
   }
+  /* Their own link to pick a time, to send by text or email. Made on the
+     server so it is signed and cannot be altered into someone else's. */
+  async function copyLink() {
+    try {
+      const r = await fetch('/api/admin/applications', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id: app.id, action: 'booking_link' })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.url) { toast.bad('The link was not made. Please try again.'); return; }
+      await navigator.clipboard.writeText(d.url);
+      toast.saved(`Link copied. Send it to ${first}`);
+    } catch { toast.bad('The link could not be copied. Please try again.'); }
+  }
   const callWhen = app.call_at
     ? new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short',
         hour: 'numeric', minute: '2-digit' }).format(new Date(app.call_at))
@@ -190,6 +204,11 @@ export default function ApplicationCard({ app, role }: { app: JobApplication; ro
             {app.state !== 'invited' && app.call_state === 'none' && (
               <button className="btn sm solid" disabled={busy} onClick={() => setBooking(true)}>
                 Book a call with {first}
+              </button>
+            )}
+            {app.state !== 'invited' && (app.call_state === 'none' || app.call_state === 'no_show') && (
+              <button className="btn sm ghost" disabled={busy} onClick={copyLink}>
+                Copy booking link
               </button>
             )}
             {app.call_state === 'invited' && (

@@ -18,6 +18,9 @@ export function talentSteps(o: {
   vettingSent?: number; hasIdentity?: boolean; agreementPending?: boolean;
   hasPayout?: boolean;
   hasIntroVideo?: boolean;
+  /* Working with Relève, the talent training (10 November 2026): an early
+     onboarding step, tracked but never a gate. */
+  hasTraining?: boolean;
   /* Taking The Watch: the real-work test built from the disciplines they
      claim. 'none' while no discipline is claimed (nothing to test yet);
      otherwise whether every claimed discipline has cleared. The release
@@ -47,6 +50,11 @@ export function talentSteps(o: {
             ? 'Received. We review documents within one working day and will email you the result.'
             : 'A one-time identity check. Your document is never shown to an executive.',
       done: idDone && !signLeft, critical: true },
+    { key: 'training', title: 'Working with Relève', href: '/app/training', minutes: 'About 90 min',
+      blurb: o.hasTraining
+        ? 'Finished. You can open it again any time from the menu.'
+        : 'Our short training on how working through Relève works, how the app works, and what your days will look like. Your place saves as you go.',
+      done: !!o.hasTraining },
     { key: 'signature', title: o.signatureInvalid ? 'Retake the Talent Signature™' : 'Take the Talent Signature™',
       href: o.signatureInvalid ? '/app/signature?retake=1' : '/app/signature', minutes: '20 to 25 min',
       blurb: o.signatureInvalid

@@ -3,7 +3,7 @@ import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { saving, toast } from '@/components/Toast';
-import { money, toCents, RATE_MIN_CENTS, RATE_MAX_CENTS, PLANS, PART_TIME_TOTAL_CENTS, ELIVATE_DISCOUNT_CENTS, ELIVATE_DISCOUNT_MONTHS, type PlanKey } from '@/lib/money-public';
+import { money, toCents, RATE_MIN_CENTS, RATE_MAX_CENTS, PLANS, PART_TIME_TOTAL_CENTS, ELIVATE_DISCOUNT_CENTS, ELIVATE_DISCOUNT_MONTHS, TALENT_HOURLY_CENTS, TALENT_HOURS, plansForHours, standardPayCents, type PlanKey, type TalentHours } from '@/lib/money-public';
 import { fmtDate } from '@/lib/words';
 import { OFFER_STATE, type Offer } from '@/lib/offer-public';
 import PersonPicker from './PersonPicker';
@@ -37,10 +37,29 @@ export default function OfferDesk({ offers, clients, talent }: {
      "Send to both sides" emails two people, and "Discard" drops whatever was
      typed. Each arms a confirm inside the card before it fires. */
   const [formArmed, setFormArmed] = useState<null | 'send' | 'discard'>(null);
-  const blank = { client_id: '', talent_id: '', role_title: '', starts_on: '', hours: '', scope: '', rate: '', pay: '', plan: 'essential', elivate: false };
+  const blank = { client_id: '', talent_id: '', role_title: '', starts_on: '', hours: '', scope: '', rate: '', pay: '', plan: 'essential', talent_hours: '40', elivate: false };
   const [f, setF] = useState(blank);
 
   const set = (k: string, v: string) => setF({ ...f, [k]: v });
+  const th = Number(f.talent_hours) as TalentHours;
+  const stdPay = standardPayCents(th);
+  const allowed = plansForHours(th);
+  const isStd = (pay: string, h: number) => !pay || pay === String(standardPayCents(h) / 100);
+  /* The role's size comes first. It decides which plans fit (15 is Starter,
+     25 to 40 are Essential or Specialist) and the talent's standard pay; a
+     plan that no longer fits moves to the first one that does, and a pay
+     figure someone has typed by hand is left alone. */
+  function pickHours(v: string) {
+    const h = Number(v) as TalentHours;
+    const plans = plansForHours(h);
+    const plan = plans.includes(f.plan as PlanKey) ? f.plan as PlanKey : plans[0];
+    const pl = PLANS[plan];
+    setF({ ...f, talent_hours: v, plan,
+      pay: isStd(f.pay, th) ? String(standardPayCents(h) / 100) : f.pay,
+      ...(plan !== f.plan ? { rate: String(pl.monthlyCents / 100),
+        hours: pl.hoursPerWeek ? `Up to ${pl.hoursPerWeek} hours a week` : '' } : {}),
+      elivate: plan === 'essential' || plan === 'specialist' ? f.elivate : false });
+  }
   const elivateOk = f.plan === 'essential' || f.plan === 'specialist';
   const dirty = Object.entries(f).some(([k, v]) => v !== (blank as any)[k]);
   const execName = clients.find(p => p.id === f.client_id);
@@ -82,6 +101,7 @@ export default function OfferDesk({ offers, clients, talent }: {
         intro_discount_months: elivateOk && f.elivate ? ELIVATE_DISCOUNT_MONTHS : undefined,
         rate_month_cents: rate ?? undefined,
         talent_pay_cents: pay ?? undefined,
+        talent_hours: th,
         send
       });
       const d = await r.json().catch(() => ({}));
@@ -166,14 +186,23 @@ export default function OfferDesk({ offers, clients, talent }: {
                 <input id={`${fid}-2`} type="date" value={f.starts_on} onChange={e => set('starts_on', e.target.value)} /></div>
             </div>
 
+            <div className="ff"><label htmlFor={`${fid}-th`}>Role size (talent hours a week)</label>
+              <select id={`${fid}-th`} value={f.talent_hours} onChange={e => pickHours(e.target.value)}>
+                {TALENT_HOURS.map(h => (
+                  <option key={h} value={String(h)}>{h} hours a week · {h === 15 ? 'Starter' : 'Essential or Specialist'} · talent paid {money(standardPayCents(h))} a month</option>
+                ))}
+              </select>
+              <p className="xs muted" style={{ marginTop: 6 }}>Shown to the talent on their offer. The executive does not see it.</p></div>
+
             <div className="ff"><label htmlFor={`${fid}-plan`}>Plan</label>
               <select id={`${fid}-plan`} value={f.plan} onChange={e => {
                 const k = e.target.value as PlanKey;
                 const pl = PLANS[k];
                 setF({ ...f, plan: k, rate: String(pl.monthlyCents / 100),
+                  pay: isStd(f.pay, th) ? String(stdPay / 100) : f.pay,
                   hours: pl.hoursPerWeek ? `Up to ${pl.hoursPerWeek} hours a week` : f.hours });
               }}>
-                {(Object.keys(PLANS) as PlanKey[]).map(k => (
+                {allowed.map(k => (
                   <option key={k} value={k}>{PLANS[k].label}: {PLANS[k].blurb} ({PLANS[k].months}-month commitment)</option>
                 ))}
               </select></div>
@@ -202,7 +231,12 @@ export default function OfferDesk({ offers, clients, talent }: {
                 </p>}</div>
               <div className="ff"><label htmlFor={`${fid}-6`}>Talent is paid (USD/month)</label>
                 <input id={`${fid}-6`} value={f.pay} inputMode="decimal" onChange={e => set('pay', e.target.value)}
-                  placeholder="1450" /></div>
+                  placeholder={String(stdPay / 100)} />
+                <p className="xs muted" style={{ marginTop: 6 }}>
+                  {f.pay && f.pay !== String(stdPay / 100)
+                    ? <>Adjusted from the standard {money(stdPay)} ({money(TALENT_HOURLY_CENTS)} an hour, {th} hours a week). <button type="button" style={{ background: "none", border: 0, padding: 0, font: "inherit", color: "inherit", textDecoration: "underline", cursor: "pointer" }} onClick={() => set('pay', String(stdPay / 100))}>Use the standard</button></>
+                    : <>Standard: {money(TALENT_HOURLY_CENTS)} an hour × {th} hours a week, paid as {money(stdPay)} a month.</>}
+                </p></div>
             </div>
 
             {margin != null && margin > 0 && (

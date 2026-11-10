@@ -3,7 +3,7 @@ import { preflight } from '@/lib/cors';
 import { guard, one, zoneOk } from '@/lib/booking-http';
 import { adminClient } from '@/lib/supabase/admin';
 import { publicFormAllowed } from '@/lib/booking-http';
-import { bookingReady, createBooking, getBookingSettings, manageUrl, SlotTaken } from '@/lib/booking';
+import { bookingReady, createBooking, getBookingSettings, manageUrl, readAppToken, SlotTaken } from '@/lib/booking';
 import { sendConfirmed, tellTeam } from '@/lib/booking-emails';
 import { todayInPacific } from '@/lib/money-public';
 
@@ -45,13 +45,60 @@ export async function POST(req: Request) {
   if (allowed === 'unsure') return fail('We could not book that just now. Please try again in a few minutes.', 503);
   if (!start || isNaN(Date.parse(start))) return fail('Please choose a time.');
 
+  /* A screening call (the link sent to applicants, or to people who never applied
+     on the site) belongs to a job application rather than to a sales lead. A link
+     made for one applicant carries their signed application id; a generic link
+     creates the application when the call is booked. */
+  const screening = source === 'screening';
+  let applicationId: string | null = null;
+  if (screening) {
+    const sb = adminClient();
+    const fromToken = readAppToken(one(body?.applicant, 120));
+    if (fromToken) {
+      const { data } = await sb.from('job_applications').select('id').eq('id', fromToken).maybeSingle();
+      applicationId = data?.id ?? null;
+    }
+    if (!applicationId) {
+      const { data } = await sb.from('job_applications').select('id')
+        .ilike('email', email).in('state', ['new', 'reviewing', 'call_booked']).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      applicationId = data?.id ?? null;
+    }
+  }
+  const newApplicationId = screening && !applicationId ? crypto.randomUUID() : null;
+
   let b;
   try {
-    b = await createBooking({ name, email, phone, org, notes, start, timezone, source });
+    b = await createBooking({ name, email, phone, org, notes, start, timezone, source, applicationId: applicationId ?? newApplicationId });
   } catch (e: any) {
     if (e instanceof SlotTaken) return fail('That time was just taken. Please choose another.', 409);
     console.error('[booking/book]', e?.message ?? e);
     return fail('That did not go through. Please try again, or email hello@relevestaffing.com.', 500);
+  }
+
+  /* The application, with the call on it, so the console shows it in the queue. */
+  if (screening) {
+    try {
+      const sb = adminClient();
+      const call = { call_state: 'invited', call_at: b.start, call_url: b.joinUrl, call_id: b.zoomId, call_sent_at: new Date().toISOString() };
+      if (newApplicationId) {
+        const { error } = await sb.from('job_applications').insert({
+          id: newApplicationId, post_id: null, full_name: name, email, phone, timezone,
+          heard_via: 'Screening call link', note: notes, state: 'call_booked', ...call
+        });
+        if (error) throw error;
+      } else if (applicationId) {
+        const { data: cur } = await sb.from('job_applications').select('state, phone, timezone').eq('id', applicationId).maybeSingle();
+        const keepState = cur && !['new', 'reviewing', 'call_booked'].includes(cur.state);
+        await sb.from('job_applications').update({
+          ...call, ...(keepState ? {} : { state: 'call_booked' }),
+          ...(cur && !cur.phone ? { phone } : {}), ...(cur && !cur.timezone ? { timezone } : {})
+        }).eq('id', applicationId);
+      }
+    } catch (e) { console.error('[booking/book] application update failed:', e); }
+    const s = await getBookingSettings();
+    await sendConfirmed(b, s.page.host);
+    await tellTeam('booked', b, Boolean(b.eventId));
+    return NextResponse.json({ ok: true, start: b.start, manage: manageUrl(b.id) }, { headers: cors });
   }
 
   /* The lead, marked booked. Best effort: the call stands either way. */

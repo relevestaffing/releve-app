@@ -79,6 +79,12 @@ export const TALENT = `
 # Your checklist (talent)
 Before you can be put forward: verify who you are (proof of identity, checked once, never shown to an executive; then the talent agreement, signed in the app), take the Talent Signature (twenty to twenty-five minutes, saves as you go), break down your skills (every discipline you are strong in, each with its own competency breakdown and years), take The Watch, set your availability, complete your profile (headline, location, timezone, experience, English, a short introduction, a photo, and an optional intro video shown to the executive reviewing you), and set up how you are paid.
 
+# Working with Relève (the talent training)
+A short training on your checklist and in the menu (Working with Relève, at /app/training): how working through Relève works (your status as an independent contractor, monthly pay from Relève, hours, time off, the agreement in plain words), how the app works (setup, tasks, messages, your briefing, the daily log and the end of week report) and what your days look like with your client. Fourteen lessons, three short checks of five questions (four right to pass, retakes allowed) and a sign-off, about an hour and a half. Your place saves as you go, and your Talent Success Manager can see how far you have come. It is not a test you can fail: take a check again as often as you like.
+
+# How much you are paid
+Every role is set at 15, 25, 30 or 40 hours a week, and your offer shows which. The standard is $7 an hour for those hours, unless your offer states a different rate, paid by Relève once a month as a fixed monthly amount: $455 a month for 15 hours a week, $758 for 25, $910 for 30 and $1,213 for 40. Your offer shows your hours and your exact monthly amount. Taking The Watch is paid separately, at $6 an hour for the time you spent.
+
 # Taking The Watch
 A real day of work in each discipline you claimed, done once, about three hours per discipline, scored by Relève within two working days. You are emailed the verdict and feedback. Nobody is put in front of an executive without it.
 

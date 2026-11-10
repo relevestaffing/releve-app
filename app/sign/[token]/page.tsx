@@ -1,6 +1,7 @@
 import { verifyDepositLink } from '@/lib/deposit-link';
 import { signerForSearch, searchSigned } from '@/lib/agreement-link';
-import { AGREEMENT_VERSION, AGREEMENT_TITLE, AGREEMENT_INTRO, AGREEMENT_SECTIONS } from '@/lib/agreement-text';
+import { AGREEMENT_TITLE, AGREEMENT_INTRO } from '@/lib/agreement-text';
+import { agreementVersionFor, agreementSectionsFor } from '@/lib/client-addenda';
 import AgreementSign from '@/components/AgreementSign';
 
 export const metadata = { title: 'Your agreement' };
@@ -39,7 +40,7 @@ export default async function SignAgreement({ params }: { params: Promise<{ toke
           <>
             <article className="card agr-read" aria-label={AGREEMENT_TITLE} style={{ maxWidth: 'none' }}>
               {AGREEMENT_INTRO.map((t, i) => t === 'Recitals' ? <h4 key={i} className="agr-h">Recitals</h4> : <p key={i}>{t}</p>)}
-              {AGREEMENT_SECTIONS.map(s => (
+              {agreementSectionsFor(who.email).map(s => (
                 <section key={s.h}>
                   <h3 className="agr-sec">{s.h}</h3>
                   {s.items.map((it, i) => it.sub ? <h4 key={i} className="agr-h">{it.sub}</h4>
@@ -47,7 +48,7 @@ export default async function SignAgreement({ params }: { params: Promise<{ toke
                 </section>
               ))}
             </article>
-            <AgreementSign name={who.name} email={who.email} version={AGREEMENT_VERSION} token={token} />
+            <AgreementSign name={who.name} email={who.email} version={agreementVersionFor(who.email)} token={token} />
           </>
         )}
       </div>
