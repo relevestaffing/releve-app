@@ -15,10 +15,9 @@
      chrome   deep ink bar and dock, mounted once, never reloading.
      motion   screens push and pop, sheets rise, the wall settles back as the
               paper comes up. Nothing moves that the hand did not move.
-   Every rule is scoped to html.rv-native (phones and small tablets, signed-in
-   app only). Desktop is untouched by this file. The earlier phone looks
-   (native.css, "The Room") are no longer loaded. ?native=0 turns the shell off
-   in one browser. */
+   This file is generated from tools/console.src.css only in the sense that
+   every rule is scoped to html.rv-native (phones, signed-in app). Desktop is
+   untouched by it. */
 
 html.rv-native{
   --nv-bar:48px;
@@ -468,4 +467,42 @@ html.rv-native body main.main .page-body :is(.grid-2,.grid-3,.grid-4,.overview-s
   html.rv-native .nv-lens{left:calc((100vw - 520px) / 2);width:calc(520px / var(--n))}
 }
 
-html.rv-native .toast-wrap{bottom:calc(var(--cx-dock) + 14px)!important}
+/* ═══ Approved on the design canvas, 10 November 2026 ═══
+   The wall is the whole screen now, at every scroll position; it keeps the real hour and the
+   sprig sways (components/SunWall.tsx). Paper is only what you work on: the cards on Home and
+   the sheet on every other screen. Nothing follows the finger or the cursor. */
+html.rv-native body main.main > .sun-page{height:100lvh!important;-webkit-mask-image:none!important;mask-image:none!important;
+  transform:none;filter:brightness(calc(1 - var(--cx-y) * .34))}
+html.rv-native body main.main::before{inset:0;height:auto;background:linear-gradient(180deg,rgba(8,13,10,.78) 0%,rgba(8,13,10,.12) 26%,rgba(8,13,10,.3) 58%,rgba(8,13,10,.94) 100%)}
+.cx-deck{display:none}
+html.rv-native body .topbar.home{padding-top:calc(var(--nv-top) + 40px)!important;padding-bottom:34px!important}
+html.rv-native body .topbar.home .crumb{letter-spacing:.16em!important}
+html.rv-native body .cx-deck{display:block;margin-top:44px}
+html.rv-native body .cx-deck-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+html.rv-native body .cx-deck-head span{font:400 10.5px/1.4 'Poppins',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--cx-silver)}
+html.rv-native body .cx-deck-head b{font:400 14px/1 'Lora',Georgia,serif;color:var(--cx-cream);font-variant-numeric:lining-nums}
+html.rv-native body .cx-deck-stage{position:relative;height:262px;perspective:1100px;perspective-origin:50% 20%}
+html.rv-native body .cx-deck-stage[data-n="1"]{height:216px}
+html.rv-native body .cx-deck-stage[data-n="2"]{height:236px}
+html.rv-native body .cx-deck-tilt{position:absolute;inset:0;transform-style:preserve-3d}
+html.rv-native body .cx-card{position:absolute;left:0;right:0;bottom:0;height:216px;box-sizing:border-box;margin:0;padding:22px 22px 20px;border-radius:24px;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#FDFBF6,#F3EFE5);color:var(--cx-text);
+  box-shadow:0 34px 50px -22px rgba(2,5,3,.85),0 10px 18px -8px rgba(2,5,3,.45),inset 0 1px 0 #fff;
+  transition:transform .7s var(--nv-ease),opacity .5s ease,filter .5s ease;will-change:transform;transform-origin:50% 0}
+html.rv-native body .cx-card[data-k="0"]{transform:translate3d(0,0,0) scale(1)}
+html.rv-native body .cx-card[data-k="1"]{transform:translate3d(0,-22px,-60px) rotateX(-5deg) scale(.95);opacity:.92;filter:brightness(.86);pointer-events:none}
+html.rv-native body .cx-card[data-k="2"]{transform:translate3d(0,-42px,-120px) rotateX(-9deg) scale(.9);opacity:.8;filter:brightness(.72);pointer-events:none}
+html.rv-native body .cx-card[data-k="3"]{transform:translate3d(0,-42px,-120px) rotateX(-9deg) scale(.9);opacity:0;pointer-events:none}
+html.rv-native body .cx-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+html.rv-native body .cx-card-k{font:500 10px/1.4 'Poppins',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#5B6A60;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.rv-native body .cx-card-flag{font:500 12px/1.3 'Poppins',sans-serif;color:var(--cx-text);white-space:nowrap}
+html.rv-native body .cx-card-flag.urgent{color:#9C4A3C}
+html.rv-native body .cx-card h2{margin:12px 0 0;font:400 22px/1.2 'Lora',Georgia,serif;letter-spacing:-.008em;color:var(--cx-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.rv-native body .cx-card p{margin:7px 0 0;font:300 14px/1.45 'Poppins',sans-serif;color:var(--cx-body);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.rv-native body .cx-card-go{margin-top:auto;display:flex;gap:10px}
+html.rv-native body .cx-card-do{flex:1;height:48px;display:flex;align-items:center;justify-content:center;border-radius:14px;text-decoration:none;font:500 15px/1 'Poppins',sans-serif;color:var(--cx-cream);
+  background:linear-gradient(180deg,#27382F,#1A2720);box-shadow:0 10px 20px -12px rgba(16,26,20,.8),inset 0 1px 0 rgba(255,255,255,.14);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 14px;
+  -webkit-touch-callout:none;touch-action:manipulation;transition:transform .18s var(--cx-out)}
+html.rv-native body .cx-card-next{flex:none;width:88px;height:48px;border-radius:14px;border:1px solid var(--cx-rule-2);background:transparent;color:var(--cx-text);font:500 15px/1 'Poppins',sans-serif;cursor:pointer;touch-action:manipulation;transition:transform .18s var(--cx-out)}
+html.rv-native body :is(.cx-card-do,.cx-card-next):active{transform:scale(.96)}
+@media (prefers-reduced-motion:reduce){ html.rv-native body .cx-card{transition:none} }

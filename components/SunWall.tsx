@@ -89,7 +89,7 @@ void main(){
      the wall is shown close up there, so the daytime light turned it a bright,
      blotchy lime. On a phone the light is a third as strong, the grain is
      calmer, and the colour stays the deep fern of the brand at every hour. */
-  float lightNow=sunI*cloud*(1.+.6*gh)*mix(1.,.32,phone);
+  float lightNow=sunI*cloud*(1.+.6*gh)*mix(1.,.58,phone);  /* 10 Nov 2026: lifted from .32 to the strength she approved on the design canvas; still well under desktop so it never goes lime */
   vec3 scol=mix(sunCol,vec3(1.,.60,.24),gh*.7);  // golden as the sun nears the horizon
   vec3 E=ambCol*amb + scol*lightNow*(direct + direct*direct*.15 + bounce*(.015+.02*gh) + .008*gh*amb) + vec3(.5,.6,.8)*moonI*direct;
   // lamp washing up from the lower right at night

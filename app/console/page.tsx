@@ -103,6 +103,12 @@ export default async function Console({ searchParams }: { searchParams: Promise<
 
   return (
     <Shell profile={{ ...profile, role: 'admin' }} active="/console"
+      deck={todo.slice(0, 6).map(a => ({
+        eyebrow: a.level === 'high' ? 'Urgent' : 'Today',
+        title: /^\d/.test(a.what) ? a.what : `${a.count} ${a.what}`,
+        meta: a.why.charAt(0).toUpperCase() + a.why.slice(1), href: a.href, cta: a.cta,
+        urgent: a.level === 'high', flag: a.level === 'high' ? 'Needs you today' : undefined
+      }))}
       lead={{
         eyebrow: urgent.length ? `Today · ${urgent.length} urgent` : todo.length ? `Today · ${todo.length} to pick up` : 'Today',
         title: todo[0] ? (/^\d/.test(todo[0].what) ? todo[0].what : `${todo[0].count} ${todo[0].what}`) : 'All clear',

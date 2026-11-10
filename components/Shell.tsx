@@ -7,6 +7,7 @@ import MobileNav from './MobileNav';
 import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
 import { type Lead, MATERIALS } from './native/HomeStage';
+import Deck, { type DeckCard } from './native/Deck';
 import ScreenRail from './native/ScreenRail';
 import Motion from './Motion';
 import PageLift from './PageLift';
@@ -325,7 +326,7 @@ function Title({ text }: { text: string }) {
 }
 
 export default async function Shell({
-  profile, active, title, crumb, action, children, lead
+  profile, active, title, crumb, action, children, lead, deck
 }: {
   profile: Profile; active: string; title: string; crumb?: string;
   action?: React.ReactNode; children: React.ReactNode;
@@ -333,6 +334,9 @@ export default async function Shell({
      pass their own; otherwise unread messages, then the next date that
      matters for this role. */
   lead?: Lead;
+  /* Phones: the stack of things that need this person, front card first.
+     Without one, Home shows the single lead as the only card. */
+  deck?: DeckCard[];
 }) {
   /* Accounts are opened by invitation. Anyone without one has no account to
      show, and the terms gate below must not be the first thing a stranger is
@@ -500,19 +504,11 @@ export default async function Shell({
                 there — action is typically a small client component (a picker, a
                 button), and mounting two independent instances of it is cheap. */}
             {isHome && (() => {
-              /* Phones only (see components/native/console.css): the one thing that
-                 needs this person next, set on the wall under the greeting. */
+              /* Phones only (components/native/console.css): the things that need this
+                 person, as a stack of cards on the wall. */
               const L = lead ?? defaultLead(profile.role, unread, messagesHref);
-              return (
-                <Link href={L.href} className="cx-lead" data-title={L.title}>
-                  {L.eyebrow && <span className="cx-lead-k">{L.eyebrow}</span>}
-                  <span className="cx-lead-t">{L.title}</span>
-                  {L.meta && <span className="cx-lead-m">{L.meta}</span>}
-                  <span className="cx-lead-go" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-                  </span>
-                </Link>
-              );
+              const cards: DeckCard[] = deck?.length ? deck : [{ eyebrow: L.eyebrow, title: L.title, meta: L.meta, href: L.href, cta: L.cta }];
+              return <Deck cards={cards.slice(0, 6)} label={cards.length > 1 ? 'Needs you' : 'Next'} />;
             })()}
             {action && <div className="topbar-action">{action}</div>}
           </div>
