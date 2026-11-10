@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   /* The top of the app on a phone is the cream topbar, not the fern sidebar —
      which is hidden below 900px. Matching it keeps the status bar seamless. */
-  themeColor: '#FAF8F2',
+  themeColor: '#0C1410',
   colorScheme: 'light',          // never a black launch or form controls on a dark phone
   width: 'device-width',
   initialScale: 1,
@@ -76,6 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             to load — renders the whole app visible rather than blank. */}
         <script dangerouslySetInnerHTML={{ __html:
           "var d=document.documentElement;d.classList.add('js');" +
+          "try{if(/^\\/(app|console)(\\/|$)/.test(location.pathname)&&matchMedia('(max-width:900px)').matches&&!/rv_native=0/.test(document.cookie))d.classList.add('rv-native')}catch(e){}" +
           "window.__rvSplashStart=Date.now();" +
           "setTimeout(function(){if(!d.classList.contains('rv-live'))d.classList.add('rv-off')},2200);" +
           "setTimeout(function(){var s=document.getElementById('rv-splash');if(s){s.style.display='none'}},8000)"

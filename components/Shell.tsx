@@ -6,7 +6,7 @@ import DemoSwitch from './DemoSwitch';
 import MobileNav from './MobileNav';
 import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
-import HomeStage, { type Lead, MATERIALS } from './native/HomeStage';
+import { type Lead, MATERIALS } from './native/HomeStage';
 import ScreenRail from './native/ScreenRail';
 import Motion from './Motion';
 import PageLift from './PageLift';
@@ -71,6 +71,7 @@ const NAV: Record<string, NavGroup[]> = {
   talent: [
     { items: [{ href: '/app', label: 'Dashboard' }] },
     { group: 'About you', items: [
+      { href: '/app/training', label: 'Working with Relève' },
       { href: '/app/signature', label: 'Talent Signature™' },
       { href: '/app/skills', label: 'Your skills' },
       { href: '/app/talent', label: 'Your profile' },
@@ -417,8 +418,9 @@ export default async function Shell({
   /* 7 November 2026: Nona asked for the phone app to look like the desktop app again. The native
      shell is off for everyone (NATIVE_ALL and the owner default no longer turn it on); ?native=1 still
      opens it in one browser for a look. */
-  const nativeOn = nativePref === '1';
-  const layout = nativeOn && !isHome ? layoutFor(active) : null;
+  const nativeOn = nativePref !== '0';
+  const layout: PhoneLayout | null = null as PhoneLayout | null;
+  void layoutFor;
   const matAt = roomAt >= 0 ? roomAt : [...active].reduce((n, c) => n + c.charCodeAt(0), 0);
   const heroMat = layout ? MATERIALS[matAt % MATERIALS.length] : null;
   const WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -444,7 +446,7 @@ export default async function Shell({
         name={shownName}
         org={profile.org_name}
         profileHref={profileHref} unread={unread} messagesHref={messagesHref} />
-      <div className="shell" data-title={isHome ? undefined : title} data-layout={isHome && nativeOn ? 'today' : layout ?? undefined}>
+      <div className="shell" data-title={isHome ? undefined : title} data-home={isHome ? '1' : undefined}>
         <aside className="side">
           <Link href={home} className="side-logo"><img src="/logo-white.png" alt="Relève" /></Link>
           {profileHref ? (
@@ -497,6 +499,21 @@ export default async function Shell({
                 breakpoint, rather than restructuring the desktop layout to get
                 there — action is typically a small client component (a picker, a
                 button), and mounting two independent instances of it is cheap. */}
+            {isHome && (() => {
+              /* Phones only (see components/native/console.css): the one thing that
+                 needs this person next, set on the wall under the greeting. */
+              const L = lead ?? defaultLead(profile.role, unread, messagesHref);
+              return (
+                <Link href={L.href} className="cx-lead" data-title={L.title}>
+                  {L.eyebrow && <span className="cx-lead-k">{L.eyebrow}</span>}
+                  <span className="cx-lead-t">{L.title}</span>
+                  {L.meta && <span className="cx-lead-m">{L.meta}</span>}
+                  <span className="cx-lead-go" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                  </span>
+                </Link>
+              );
+            })()}
             {action && <div className="topbar-action">{action}</div>}
           </div>
           <div className="page-body">
@@ -519,11 +536,6 @@ export default async function Shell({
             {profile.role !== 'admin' && !clientTour && active === '/app' && (
               <PushSetup compact />
             )}
-            {isHome && nativeOn && <HomeStage unreadHref={messagesHref} unread={unread}
-              lead={lead ?? defaultLead(profile.role, unread, messagesHref)}
-              greeting={title.split(',')[0]} name={firstName(shownName)} askHref={profile.role === 'admin' ? '/console/ask' : '/app/ask'}
-              today={new Date(Date.now() - 8 * 3600 * 1000).getUTCDay()}
-              rooms={roomList} />}
             {children}
             {isHome && <HomeJump items={jump} unreadHref={messagesHref} unread={unread} />}
             {/* Last in the DOM, first on the screen: both carry order:-2 in the

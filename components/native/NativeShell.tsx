@@ -7,7 +7,7 @@ import { haptic } from '@/lib/haptic';
 import UnreadBadge from '../UnreadBadge';
 import Sheet from './Sheet';
 import { Glyph, glyphFor } from './icons';
-import './native.css';
+import './console.css';
 
 /* Relève on a phone, as an app (Nona, 3 November 2026: "it feels like a
    website ... I want it to feel like a $1 million app"). She chose a new phone
@@ -44,7 +44,9 @@ export type NativeCtx = {
 type Kind = 'push' | 'pop' | 'tab';
 
 const PHONE = '(max-width:900px)';
-const raf2 = () => new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+/* two frames, or 80 ms if the browser holds frames back while a transition is being prepared */
+const raf2 = () => new Promise<void>(r => { let done = false; const end = () => { if (!done) { done = true; r(); } };
+  requestAnimationFrame(() => requestAnimationFrame(end)); window.setTimeout(end, 80); });
 
 function readCtx(): NativeCtx | null {
   const el = document.getElementById('rv-native-ctx');
@@ -135,33 +137,18 @@ export default function NativeShell() {
     return () => window.clearTimeout(t);
   }, [path]);
 
-  /* depth under the bar: as a panel slides under the top bar it recedes and dims, the way
-     cards do in Wallet; as the wall scrolls it drifts slower than the page (parallax) */
+  /* The sheet rises over the wall: as the page scrolls, the wall settles back a little and the
+     greeting dims behind the paper. One number (--cx-y, 0 to 1) drives it, on the compositor. */
   useEffect(() => {
     if (!active) return;
-    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (calm) return;
+    const rootEl = document.documentElement;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { rootEl.style.setProperty('--cx-y', '0'); return; }
     let tick = false;
-    const top = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nv-top')) || 48;
-    const read = () => {
-      tick = false;
-      const edge = top() + 8;
-      document.querySelectorAll<HTMLElement>('main.main > .page-body > *, main.main > .page-body > .stack > *').forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.height < 40) return;
-        const gone = Math.min(1, Math.max(0, (edge - r.top) / Math.max(120, r.height * .7)));
-        if (gone <= 0) { if (el.dataset.nvDepth) { el.style.transform = ''; el.style.opacity = ''; delete el.dataset.nvDepth; } return; }
-        el.dataset.nvDepth = '1';
-        el.style.transform = `perspective(1100px) translateZ(${-90 * gone}px) translateY(${18 * gone}px)`;
-        el.style.opacity = String(1 - .55 * gone);
-      });
-      const wall = document.querySelector<HTMLElement>('main.main > .sun-page');
-      if (wall) wall.style.transform = `translateY(${Math.min(0, -window.scrollY * .1)}px)`;
-    };
+    const read = () => { tick = false; rootEl.style.setProperty('--cx-y', Math.min(1, Math.max(0, window.scrollY / 260)).toFixed(3)); };
     const on = () => { if (!tick) { tick = true; requestAnimationFrame(read); } };
     read();
     window.addEventListener('scroll', on, { passive: true });
-    return () => { window.removeEventListener('scroll', on); document.querySelectorAll<HTMLElement>('[data-nv-depth]').forEach(el => { el.style.transform = ''; el.style.opacity = ''; delete el.dataset.nvDepth; }); };
+    return () => { window.removeEventListener('scroll', on); rootEl.style.removeProperty('--cx-y'); };
   }, [active, path]);
 
   useEffect(() => {
@@ -367,7 +354,6 @@ export default function NativeShell() {
           aria-expanded={more} onClick={() => { haptic(8); setMore(true); }}>
           <Glyph k="more" /><span>More</span>
         </button>
-        {ctx.line && <div className="nv-horizon" aria-hidden="true">{ctx.line}</div>}
       </nav>
 
       {ghost && (
