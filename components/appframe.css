@@ -116,18 +116,28 @@
    A design-lead sweep of every screen on desktop and phone, inside the Design
    Standard and today's phone decision. Each rule names what it fixes. */
 
-/* Ask Relève on the desktop: a square tab in the sidebar's colour, not a pill,
-   and the silver dot sits before the words instead of breathing over the A. */
+/* Ask Relève on the desktop (10 November 2026, Nona: "switch the current Ask Relève to
+   look like the Ask Relève on mobile at the top of the page"). The same word as on the
+   phone: tracked Lora capitals, one rule beneath, no box and no dot. It sits at the top
+   right of the page, in line with the content's right edge, and scrolls away with the
+   page instead of floating over the cards. */
 @media (min-width:901px){
   html:not(.rv-native) body .ask-fab{
-    border-radius:0!important;background:#131C17!important;background-image:none!important;color:#F3EFE6!important;
-    border:1px solid rgba(214,221,226,.16)!important;padding:14px 22px 14px 20px!important;gap:12px!important;
-    font-size:10.5px!important;letter-spacing:.24em!important;
-    box-shadow:0 20px 38px -20px rgba(5,10,8,.8)!important;transform:none!important}
-  html:not(.rv-native) body .ask-fab:hover{background:#1E2822!important;border-color:rgba(214,221,226,.3)!important}
+    position:absolute!important;top:44px!important;bottom:auto!important;right:calc(max(72px, 100vw - 1520px) - 6px)!important;
+    display:flex;align-items:center;height:38px;padding:0 6px!important;gap:0!important;
+    background:none!important;background-image:none!important;box-shadow:none!important;border:0!important;
+    border-radius:0!important;color:#fff!important;font-size:11px!important;letter-spacing:.2em!important;
+    transform:none!important;transition:opacity .3s ease!important}
+  html:not(.rv-native) body .ask-fab:hover{background:none!important;border:0!important;opacity:.78}
+  html:not(.rv-native) body .ask-fab:active{transform:none!important;opacity:.6}
   html:not(.rv-native) body .ask-fab::after{
-    position:static!important;order:-1;flex:none;width:5px!important;height:5px!important;
-    background:#C3CBD1!important;box-shadow:none!important;animation:none!important;transform:none!important;opacity:1!important}
+    content:"";position:absolute!important;order:0;left:6px!important;right:4px!important;top:auto!important;bottom:7px!important;
+    width:auto!important;height:1px!important;border-radius:0!important;background:currentColor!important;
+    box-shadow:none!important;animation:none!important;transform:none!important;opacity:1!important}
+  html:not(.rv-native) body .ask-fab.open{display:none}
+  /* nothing to step aside for any more: it is no longer over the Send button */
+  html body:has(.chat-card .composer) .ask-fab,html body:has(.page-body .composer) .ask-fab{display:flex!important}
+  html body:has(.chat-card .composer) .ask-fab.open,html body:has(.page-body .composer) .ask-fab.open{display:none!important}
 }
 /* the phone's word in the bar: the old pulse painted a grey halo round its underline */
 @media (max-width:900px){
