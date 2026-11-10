@@ -26,6 +26,7 @@ export default function Deck({ cards, label = 'Needs you' }: { cards: DeckCard[]
             return (
               <article key={i} className="cx-card" data-k={Math.min(k, 3)} aria-hidden={k !== 0}
                 style={{ zIndex: n - k }}>
+                <div className="cx-card-in">
                 <div className="cx-card-top">
                   <span className="cx-card-k">{c.eyebrow ?? 'Today'}</span>
                   {c.flag && <span className={`cx-card-flag${c.urgent ? ' urgent' : ''}`}>{c.flag}</span>}
@@ -36,6 +37,7 @@ export default function Deck({ cards, label = 'Needs you' }: { cards: DeckCard[]
                   <Link href={c.href} className="cx-card-do" data-title={c.title} tabIndex={k === 0 ? 0 : -1}>{c.cta ?? 'Open'}</Link>
                   {n > 1 && <button type="button" className="cx-card-next" tabIndex={k === 0 ? 0 : -1}
                     onClick={() => setAt(a => (a + 1) % n)}>Next</button>}
+                </div>
                 </div>
               </article>
             );

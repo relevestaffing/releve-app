@@ -525,3 +525,57 @@ html.rv-native body .topbar.home h1{font-size:27px!important;line-height:1.12!im
 html.rv-native body .topbar.home{padding-top:calc(var(--nv-top) + 30px)!important}
 html.rv-native body .topbar.home .crumb{margin-bottom:8px!important}
 html.rv-native body .cx-deck{margin-top:30px}
+
+/* ═══ The wall and the card as approved on the design canvas, 10 November 2026 (second pass: "clean and premium") ═══ */
+.cx-wall{display:none}
+html.rv-native body main.main > .sun-page{display:none!important}
+html.rv-native .cx-wall{display:block;position:fixed;inset:-24px;height:calc(100lvh + 48px);z-index:0;overflow:hidden;pointer-events:none;
+  filter:brightness(calc(1 - var(--cx-y) * .3));animation:cxWallDrift 44s ease-in-out infinite alternate}
+html.rv-native .cx-wall i{position:absolute;inset:0;display:block;background-size:cover;background-position:50% 50%;background-repeat:no-repeat}
+html.rv-native .cx-wall-base{background-color:#0F1812;background-image:url(/atmos/phone/wall-base.jpg);transition:filter 2.4s ease}
+html.rv-native .cx-wall-pos,html.rv-native .cx-wall-sun,html.rv-native .cx-wall-sway{position:absolute;inset:0}
+html.rv-native .cx-wall-sun{transform-origin:100% 34%;transition:transform 2.4s var(--nv-ease)}
+html.rv-native .cx-wall-light{background-image:url(/atmos/phone/wall-light.webp);transition:opacity 2.4s ease,filter 2.4s ease}
+html.rv-native .cx-wall-leaves{background-image:url(/atmos/phone/wall-leaves.webp);transform-origin:95% 38%;animation:cxSwayB 4.6s ease-in-out infinite alternate;transition:opacity 2.4s ease}
+html.rv-native .cx-wall-sway{transform-origin:98% 38%;animation:cxSwayA 11s ease-in-out infinite alternate}
+/* on a screen with a short header the window sits higher, so its light still shows above the sheet */
+html.rv-native .shell:not([data-home]) .cx-wall-pos{transform:translateY(-21%)}
+@keyframes cxWallDrift{0%{transform:scale(1.03) translate3d(-.8%,0,0)}100%{transform:scale(1.07) translate3d(.8%,-.6%,0)}}
+@keyframes cxSwayA{0%{transform:rotate(-.9deg)}100%{transform:rotate(1.1deg) translate3d(-.4%,.3%,0)}}
+@keyframes cxSwayB{0%{transform:rotate(-1.3deg) skewX(-.6deg)}55%{transform:rotate(.5deg) skewX(.3deg)}100%{transform:rotate(1.7deg) skewX(.8deg)}}
+/* the hour */
+html.rv-native .cx-wall[data-sky="dawn"] .cx-wall-light{opacity:.6;filter:sepia(.55) saturate(1.5) hue-rotate(-12deg)}
+html.rv-native .cx-wall[data-sky="dawn"] .cx-wall-sun{transform:skewX(5deg) scale(1,.94)}
+html.rv-native .cx-wall[data-sky="dawn"] .cx-wall-base{filter:brightness(.9)}
+html.rv-native .cx-wall[data-sky="dawn"] .cx-wall-leaves{opacity:.8}
+html.rv-native .cx-wall[data-sky="morning"] .cx-wall-light{opacity:.88;filter:sepia(.08) brightness(.98)}
+html.rv-native .cx-wall[data-sky="morning"] .cx-wall-sun{transform:skewX(4deg) scale(1,.96)}
+html.rv-native .cx-wall[data-sky="midday"] .cx-wall-light{opacity:1;filter:saturate(.9) brightness(1.1)}
+html.rv-native .cx-wall[data-sky="midday"] .cx-wall-base{filter:brightness(1.08)}
+html.rv-native .cx-wall[data-sky="afternoon"] .cx-wall-light{opacity:.95;filter:sepia(.18) brightness(1.02)}
+html.rv-native .cx-wall[data-sky="afternoon"] .cx-wall-sun{transform:skewX(-4deg) scale(1.04,1)}
+html.rv-native .cx-wall[data-sky="golden"] .cx-wall-light{opacity:.92;filter:sepia(.6) saturate(1.7) hue-rotate(-14deg) brightness(1.04)}
+html.rv-native .cx-wall[data-sky="golden"] .cx-wall-sun{transform:skewX(-6deg) scale(1.06,1.02)}
+html.rv-native .cx-wall[data-sky="golden"] .cx-wall-base{filter:brightness(.96)}
+html.rv-native .cx-wall[data-sky="dusk"] .cx-wall-light{opacity:.3;filter:sepia(.3) saturate(.8) hue-rotate(-20deg) brightness(.9)}
+html.rv-native .cx-wall[data-sky="dusk"] .cx-wall-sun{transform:skewX(-8deg) scale(1.08,1.02)}
+html.rv-native .cx-wall[data-sky="dusk"] .cx-wall-base{filter:brightness(.8)}
+html.rv-native .cx-wall[data-sky="dusk"] .cx-wall-leaves{opacity:.5}
+html.rv-native .cx-wall[data-sky="night"] .cx-wall-light{opacity:.2;filter:saturate(.25) hue-rotate(60deg) brightness(1.15)}
+html.rv-native .cx-wall[data-sky="night"] .cx-wall-sun{transform:skewX(3deg) scale(1,.98)}
+html.rv-native .cx-wall[data-sky="night"] .cx-wall-base{filter:brightness(.72)}
+html.rv-native .cx-wall[data-sky="night"] .cx-wall-leaves{opacity:.4}
+html.rv-native body main.main::before{background:linear-gradient(180deg,rgba(8,13,10,.6) 0%,rgba(8,13,10,0) 20%,rgba(8,13,10,0) 62%,rgba(8,13,10,.9) 100%)}
+@media (prefers-reduced-motion:reduce){html.rv-native .cx-wall,html.rv-native .cx-wall-sway,html.rv-native .cx-wall-leaves{animation:none}}
+/* the card: more air, blank edges behind, Next as a quiet word */
+html.rv-native body .cx-deck-stage{height:286px}
+html.rv-native body .cx-deck-stage[data-n="1"]{height:240px}
+html.rv-native body .cx-deck-stage[data-n="2"]{height:264px}
+html.rv-native body .cx-card{height:240px;padding:24px 24px 22px;border-radius:26px}
+html.rv-native body .cx-card-in{display:flex;flex-direction:column;height:100%;transition:opacity .4s ease}
+html.rv-native body .cx-card:not([data-k="0"]) .cx-card-in{opacity:0}
+html.rv-native body .cx-card-go{padding-top:16px}
+html.rv-native body .cx-card-next{width:76px;border:0;color:var(--cx-body);font-weight:400}
+/* Home leaves room between the greeting and the cards, so the window's light and the sprig show there */
+html.rv-native body .cx-deck{margin-top:66px}
+html.rv-native .shell[data-home] .cx-wall-pos{transform:translateY(-4%)}

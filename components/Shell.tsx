@@ -8,6 +8,7 @@ import QuickBar, { quickItems } from './QuickBar';
 import HomeJump from './HomeJump';
 import { type Lead, MATERIALS } from './native/HomeStage';
 import Deck, { type DeckCard } from './native/Deck';
+import PhoneWall from './native/PhoneWall';
 import ScreenRail from './native/ScreenRail';
 import Motion from './Motion';
 import PageLift from './PageLift';
@@ -489,6 +490,7 @@ export default async function Shell({
         </aside>
         <main className="main">
           <SunWall page />
+          <PhoneWall />
           <HeaderScroll />
           <div className={`topbar${active === '/app' || active === '/console' ? ' home' : ''}${layout ? ` nv-L nv-L-${layout}` : ''}`}
             style={heroMat ? { ['--hero' as any]: `url(/atmos/tiles/${heroMat}.webp)` } : undefined}>
