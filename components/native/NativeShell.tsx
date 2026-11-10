@@ -39,7 +39,7 @@ type Group = { group?: string; items: Item[] };
 export type NativeCtx = {
   on: boolean; role: string; home: string; title: string; isHome: boolean; active?: string;
   tabs: Item[]; groups: Group[]; who: string; name: string; org?: string | null;
-  profileHref?: string; unread: number; messagesHref: string; line?: string;
+  profileHref?: string; unread: number; messagesHref: string; line?: string; demo?: boolean;
 };
 type Kind = 'push' | 'pop' | 'tab';
 
@@ -388,6 +388,21 @@ export default function NativeShell() {
             </div>
           </div>
         ))}
+        {ctx.demo && (
+          /* The sample copy only: look at each of the three accounts from a phone, where the
+             sidebar's switcher is not on screen. Never rendered against a real database. */
+          <div className="nv-group">
+            <div className="nv-group-h">Preview as</div>
+            <div className="nv-list">
+              {([['client', 'Executive'], ['talent', 'Talent'], ['admin', 'Relève console']] as const).map(([k, label]) => (
+                <button key={k} type="button" className="nv-row" onClick={async () => {
+                  try { await fetch('/api/demo-role', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role: k }) }); } catch { /* stays put */ }
+                  window.location.assign(k === 'admin' ? '/console' : '/app');
+                }}><span className="nv-row-t">{label}</span><Glyph k="chevron" /></button>
+              ))}
+            </div>
+          </div>
+        )}
         <form action="/api/signout" method="post" className="nv-group">
           <div className="nv-list"><button type="submit" className="nv-row nv-signout"><span>Sign out</span></button></div>
         </form>

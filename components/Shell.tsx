@@ -429,7 +429,7 @@ export default async function Shell({
     on: nativeOn, role: profile.role, home, title, isHome, active,
     tabs: quickItems(profile.role, clientTour, placedOnly, talentPlaced),
     groups: withHints(profile.role, nav), who: WHO[profile.role], name: shownName, org: profile.org_name ?? null,
-    profileHref, unread, messagesHref, line: horizonLine(profile.role)
+    profileHref, unread, messagesHref, line: horizonLine(profile.role), demo: !configured()
   }).replace(/</g, '\\u003c');
   return (
     <>
