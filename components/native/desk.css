@@ -63,4 +63,49 @@ html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .
 html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .founder-tiles > *{min-width:0}
 html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .card-head h3{white-space:nowrap}
 html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band) > .qa-grid{order:0;gap:22px!important}
+
+/* Console Overview, as approved: Today's numbered rows lead, the business stands beside them */
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .today-card{grid-column:1;order:-2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .followup-card{grid-column:1 / -1;order:1}
+html:not(.rv-native) body .shell .today-card .attention li:not(:first-child) .btn.solid:not(#_){background:transparent!important;color:#1C2922!important;box-shadow:inset 0 0 0 1px rgba(28,41,34,.22)!important}
+html:not(.rv-native) body .shell .today-card .attention .att-n{font-family:'Lora',Georgia,serif;font-size:28px}
+
+/* Executive Dashboard before a placement: the candidate leads, what is still to do sits beside it, three tiles below */
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup){display:grid!important;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:22px;align-items:start}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > *{grid-column:1 / -1;margin:0!important}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .push-bar{order:-4}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .needs-card{grid-column:1;order:-2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .setup{grid-column:2;order:-1}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .exec-tiles{order:0}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .setup .setup-next{flex-direction:column;align-items:flex-start;gap:10px}
+html:not(.rv-native) body .shell .needs-card{position:relative}
+html:not(.rv-native) body .shell .needs-card .needs-score{display:block;position:absolute;right:48px;top:96px;text-align:right}
+html:not(.rv-native) body .shell .needs-card .needs-score span{font:400 52px/1 'Lora',Georgia,serif;color:#1C2922}
+html:not(.rv-native) body .shell .needs-card .needs-score sup{font-size:22px;vertical-align:top;position:relative;top:6px}
+html:not(.rv-native) body .shell .needs-card .needs-score small{display:block;margin-top:8px;font:400 10.5px/1 'Poppins',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#76847A}
+html:not(.rv-native) body .shell .needs-card h4:not(#_){font-size:30px!important;letter-spacing:-.01em}
+html:not(.rv-native) body .shell .needs-card .verdict{max-width:520px}
+html:not(.rv-native) body .shell .exec-tiles{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+html:not(.rv-native) body .shell .exec-tiles .qa-tile:not(#_){display:flex!important;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:6px;min-height:150px;padding:24px 28px!important;text-decoration:none;color:#1C2922}
+html:not(.rv-native) body .shell .exec-tiles .qa-tile .eyebrow{margin-bottom:auto;color:#76847A!important;text-shadow:none!important}
+html:not(.rv-native) body .shell .exec-tiles .qa-tile b{font:400 23px/1.2 'Lora',Georgia,serif;letter-spacing:-.008em}
+html:not(.rv-native) body .shell .exec-tiles .qa-tile .small{color:#47564C!important;text-shadow:none!important}
 }
+@media (min-width:901px){
+/* the right-hand panel runs the height of the panel and tiles beside it; the tiles sit straight under the left panel */
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card){grid-template-rows:auto min-content 1fr}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .console-search{grid-row:1}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .today-card{grid-row:2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .founder-band{grid-row:2 / span 2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .qa-grid{grid-row:3;grid-column:1;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px!important;align-self:start}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .today-card) > .qa-grid .qa-tile:not(#_){padding:20px 20px!important;min-height:74px;align-items:center}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup){grid-template-rows:auto min-content 1fr}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .push-bar{grid-row:1}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .needs-card{grid-row:2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .setup{grid-row:2 / span 2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .exec-tiles{grid-row:3;grid-column:1;gap:16px;align-self:start}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .needs-card):has(> .setup) > .exec-tiles .qa-tile:not(#_){padding:22px 22px!important;min-height:170px}
+html:not(.rv-native) body .shell .exec-tiles .qa-tile b{font-size:20px}
+}
+/* the desktop-only pieces stay out of the phone app */
+.needs-score,.exec-tiles{display:none}
