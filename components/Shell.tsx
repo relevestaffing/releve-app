@@ -73,7 +73,6 @@ const NAV: Record<string, NavGroup[]> = {
   talent: [
     { items: [{ href: '/app', label: 'Dashboard' }] },
     { group: 'About you', items: [
-      { href: '/app/training', label: 'Working with Relève' },
       { href: '/app/signature', label: 'Talent Signature™' },
       { href: '/app/skills', label: 'Your skills' },
       { href: '/app/talent', label: 'Your profile' },

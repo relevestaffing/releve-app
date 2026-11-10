@@ -36,7 +36,10 @@ export async function saving<T extends Response>(
     if (!res.ok) {
       let why = '';
       try { why = (await res.json())?.error ?? ''; } catch { /* not json */ }
-      toast.bad(why ? `Not saved. ${why}` : 'That did not save. Please try again.');
+      /* Never show a person the plumbing: an address, a key name or a long
+         machine message becomes the plain line. The route logs the detail. */
+      const plumbing = /https?:\/\/|supabase|postgres|_KEY\b|\bURL and Key\b|\bat \w+ \(|\{|\}/i.test(why) || why.length > 180;
+      toast.bad(why && !plumbing ? `Not saved. ${why}` : 'That did not save. Please try again.');
       return false;
     }
     toast.saved(okText);

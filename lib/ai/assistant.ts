@@ -230,7 +230,7 @@ You are talking with a team member, not the founder. You may use the lookup tool
    announced with a status line. `chat` below is the same turn collected. */
 export async function chatStream(p: Profile, history: Msg[], emit: (e: ChatEvent) => void): Promise<ChatResult> {
   const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new Error('The assistant is not switched on yet. Add ANTHROPIC_API_KEY in Netlify.');
+  if (!key) throw new Error('The assistant is not switched on yet.');
   const started = Date.now();
   const founder = p.role === 'admin' && await isOwner();
   const account = p.role === 'admin' ? `Signed in as ${p.full_name ?? p.email}, ${founder ? 'founder' : 'team'}.` : await accountSummary(p);

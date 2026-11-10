@@ -1,6 +1,6 @@
 'use client';
 import { zoneLabel, ZONES } from '@/lib/words';
-import { useEffect, useState, useId } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 import { WEEKDAYS, minutesToLabel, type Window } from '@/lib/scheduling';
 import { saving } from './Toast';
 
@@ -28,6 +28,20 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
     }
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+
+  /* On a narrow screen the day is wider than the page: open at the first hour
+     already chosen (or 8am), one column early, rather than at midnight. */
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scroller.current;
+    if (!loaded || !el || el.scrollWidth <= el.clientWidth + 8) return;
+    const first = windows.length ? Math.min(...windows.map(w => w.start_min)) : 8 * 60;
+    const cells = el.querySelectorAll<HTMLElement>('.avail-hd');
+    const at = cells[Math.max(0, Math.floor(first / 60) - 1)];
+    const day = el.querySelector<HTMLElement>('.avail-day');
+    if (at) el.scrollLeft = Math.max(0, at.offsetLeft - (day ? day.offsetWidth + 6 : 0));
+    /* eslint-disable-next-line */
+  }, [loaded]);
 
   const isOn = (weekday: number, min: number) =>
     windows.some(w => w.weekday === weekday && min >= w.start_min && min < w.end_min);
@@ -84,7 +98,7 @@ export default function AvailabilityEditor({ who }: { who: 'client' | 'talent' }
           : 'The hours you are free to meet candidates. Interviews are only offered inside these.'}
         {' '}These repeat every week.
       </p>
-      <div className="avail-scroll">
+      <div className="avail-scroll" ref={scroller}>
       <div className="avail-grid">
         <div />
         {HOURS.map(h => <div className="avail-hd" key={h}>{minutesToLabel(h)}</div>)}

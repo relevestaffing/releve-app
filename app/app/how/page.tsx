@@ -15,6 +15,8 @@ export default async function HowPage() {
   const profile = await currentProfile();
   if (!profile) redirect('/');
   if (profile.role === 'admin') redirect('/console');
+  /* written for executives; talent have their own first-run tour */
+  if (profile.role === 'talent') redirect('/app');
 
   return (
     <Shell profile={profile} active="/app/how" title="How Relève works">

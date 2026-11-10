@@ -579,3 +579,50 @@ html.rv-native body .cx-card-next{width:76px;border:0;color:var(--cx-body);font-
 /* Home leaves room between the greeting and the cards, so the window's light and the sprig show there */
 html.rv-native body .cx-deck{margin-top:66px}
 html.rv-native .shell[data-home] .cx-wall-pos{transform:translateY(-4%)}
+
+/* ── 10 Nov assurance pass: the desktop "text on the wall" rule (evergreen.css) must never reach the paper sheet ── */
+html.rv-native body main.main .page-body :is(h2,h3,h4,p,span,a,li,label,div,.muted,.small,.xs,.eyebrow,.section-h,.group-count,.cd-dayhead):not(#_){text-shadow:none!important}
+html.rv-native body main.main .page-body :is(h2,h3,h4):not(#_):not(.card.dark *,.btn *,[class*="ws-"] *,.cx-card *){color:var(--cx-text)!important}
+html.rv-native body main.main .page-body .btn:not(.solid):not(#_){background:transparent!important;background-image:none!important;color:var(--cx-text)!important;border:0!important;box-shadow:inset 0 0 0 1px var(--cx-rule-2)!important}
+html.rv-native body main.main .page-body .btn:not(.solid):not(#_):disabled{opacity:.45!important}
+
+/* touch: nothing you are meant to press is smaller than a fingertip */
+html.rv-native body .push-bar-actions{gap:8px!important;align-items:center}
+html.rv-native body .push-bar-actions button{min-height:44px!important;padding:0 14px!important;border-radius:12px!important;font:500 14px/1 'Poppins',sans-serif!important}
+html.rv-native body .explain-q{min-height:44px!important;min-width:48px!important;padding:0 6px!important}
+html.rv-native body main.main .page-body input[type=range]{height:44px!important;background-clip:content-box;touch-action:pan-y}
+html.rv-native body main.main .page-body input[type=checkbox],html.rv-native body main.main .page-body input[type=radio]{width:26px!important;height:26px!important;flex:none}
+html.rv-native body .check-line{gap:14px!important;align-items:flex-start;min-height:44px}
+html.rv-native body .ws-tab{min-height:44px!important}
+html.rv-native body .ws-view{min-height:38px!important;padding:0 13px!important;font-size:13px!important}
+html.rv-native body .ws-views{gap:8px!important;row-gap:8px!important}
+html.rv-native body .ws-add > button,html.rv-native body .ws-tbtn,html.rv-native body .ws-quick .go{min-height:42px!important;min-width:42px!important}
+html.rv-native body .ws-rowmenu{min-height:40px!important;min-width:40px!important}
+html.rv-native body .ws-stage{min-height:30px!important}
+html.rv-native body :is(.ws-sec-head .chev,.ws-sec-head .add,.ws-cb,.ws-stage){position:relative}
+html.rv-native body :is(.ws-sec-head .chev,.ws-sec-head .add,.ws-cb,button.ws-stage)::after{content:"";position:absolute;inset:-11px}
+html.rv-native body main.main .page-body :is(p,.small,.xs) > a:not(.btn){padding:6px 0;margin:-6px 0;display:inline-block}
+
+/* the smallest labels: 11px, never 10 */
+html.rv-native body main.main .page-body :is(.money-stat .k,.card.stat .eyebrow,.stat .eyebrow,.avail-hd,.ask-day span){font-size:11px!important}
+
+/* availability: the day names stay put while the hours slide */
+html.rv-native body .avail-scroll .avail-day{position:sticky;left:0;z-index:2;background:var(--cx-paper)}
+html.rv-native body .avail-scroll{scroll-behavior:auto;overscroll-behavior-x:contain}
+
+html.rv-native body main.main .page-body :is(.mobile-action,.section-title) .pill:not(#_){background:transparent!important;color:var(--cx-dim)!important;border:0!important;padding-left:0!important}
+
+/* ── the screens before the app (sign-in, first-run tour, terms, not invited, not found) on a phone:
+   the same buttons, fields and soft corners as the app they lead into ── */
+@media (max-width:900px){
+  :is(.auth,.welcome,.firstrun,.brand-error):not(#_) :is(.btn,.gbtn){min-height:50px!important;border-radius:14px!important;font:500 15px/1 'Poppins',sans-serif!important;letter-spacing:.005em!important;text-transform:none!important;display:inline-flex!important;align-items:center;justify-content:center;gap:10px}
+  :is(.auth,.welcome,.firstrun,.brand-error):not(#_) .btn.sm{min-height:46px!important;font-size:14.5px!important;padding:0 20px!important}
+  :is(.auth,.welcome,.firstrun,.brand-error):not(#_) .btn::before,:is(.auth,.welcome,.firstrun,.brand-error):not(#_) .btn::after{content:none!important}
+  :is(.auth,.welcome,.firstrun,.brand-error):not(#_) .btn.solid{background:linear-gradient(180deg,#27382F,#1A2720)!important;color:#F1EDE2!important;border:0!important;box-shadow:0 10px 22px -12px rgba(16,26,20,.75),inset 0 1px 0 rgba(255,255,255,.14)!important}
+  :is(.auth,.welcome,.firstrun,.brand-error):not(#_) .btn.solid:disabled{opacity:.45!important}
+  :is(.auth,.welcome,.firstrun,.brand-error):not(#_) :is(.btn:not(.solid),.gbtn){background:transparent!important;color:#1C2922!important;border:0!important;box-shadow:inset 0 0 0 1px rgba(28,41,34,.2)!important}
+  :is(.auth-card,.welcome-card,.brand-error-card):not(#_){border-radius:26px!important}
+  .firstrun:not(#_) :is(.card,.method){border-radius:18px!important;overflow:hidden}
+  :is(.auth,.welcome,.firstrun):not(#_) input:not([type=checkbox]):not([type=radio]):not([type=range]){border-radius:14px!important;min-height:50px!important;font-size:16px!important}
+  :is(.auth,.welcome,.firstrun):not(#_) :is(.gate-link,.welcome-skip){text-transform:none!important;letter-spacing:.01em!important;font:400 14px/1 'Poppins',sans-serif!important;min-height:44px}
+}
