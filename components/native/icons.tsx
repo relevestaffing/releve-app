@@ -1,21 +1,21 @@
-/* The tab bar's own glyphs (Nona, 3 November 2026: thin custom icons, tab bar
-   only). Drawn for Relève on one 24 px grid with a 1.5 stroke and round ends,
-   so they read as one hand. Home is the arched doorway of the arched portrait
-   frames on the site, not a stock house. Each glyph has a faint fill layer
-   (.f) that comes up only on the tab you are on, the way a native tab marks
-   its place. */
+/* The dock's own marks. Thin custom icons are allowed in the tab bar only (Nona, 3 November 2026). */
 const G: Record<string, React.ReactNode> = {
-  home: <><path className="f" d="M5.5 20.25V10.5a6.5 6.5 0 0 1 13 0v9.75z" /><path d="M5.5 20.25V10.5a6.5 6.5 0 0 1 13 0v9.75M3.5 20.25h17" /></>,
-  person: <><circle className="f" cx="12" cy="8.5" r="3.6" /><circle cx="12" cy="8.5" r="3.6" /><path d="M4.75 20c.6-3.7 3.6-6.1 7.25-6.1s6.65 2.4 7.25 6.1" /></>,
-  people: <><circle className="f" cx="9.25" cy="9" r="3.25" /><circle cx="9.25" cy="9" r="3.25" /><path d="M3 19.5c.5-3.3 3.1-5.4 6.25-5.4s5.75 2.1 6.25 5.4M15.5 5.9a3.2 3.2 0 0 1 0 6.2M17.6 14.4c1.9.7 3.1 2.4 3.4 5.1" /></>,
-  calendar: <><rect className="f" x="3.75" y="5.25" width="16.5" height="15" rx="3" /><rect x="3.75" y="5.25" width="16.5" height="15" rx="3" /><path d="M3.75 10h16.5M8.25 3.25v4M15.75 3.25v4" /></>,
-  message: <><path className="f" d="M5.25 4.75h13.5a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H10.5l-4.75 3.5v-3.5h-.5a2 2 0 0 1-2-2v-8.5a2 2 0 0 1 2-2z" /><path d="M5.25 4.75h13.5a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H10.5l-4.75 3.5v-3.5h-.5a2 2 0 0 1-2-2v-8.5a2 2 0 0 1 2-2z" /></>,
-  briefcase: <><rect className="f" x="3.25" y="7.25" width="17.5" height="12.5" rx="2.5" /><rect x="3.25" y="7.25" width="17.5" height="12.5" rx="2.5" /><path d="M9 7.25V5.75a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5v1.5M3.25 12.5h17.5" /></>,
-  tasks: <><rect className="f" x="3.75" y="3.75" width="16.5" height="16.5" rx="3.5" /><rect x="3.75" y="3.75" width="16.5" height="16.5" rx="3.5" /><path d="M8 12.25l2.6 2.6L16.25 9.2" /></>,
-  card: <><rect className="f" x="2.75" y="5.75" width="18.5" height="12.5" rx="2.5" /><rect x="2.75" y="5.75" width="18.5" height="12.5" rx="2.5" /><path d="M2.75 10h18.5M6.5 14.5h3.5" /></>,
-  book: <><path className="f" d="M12 6.75C10 5.2 7.4 4.7 4.25 5.2v13.1c3.15-.5 5.75 0 7.75 1.5 2-1.5 4.6-2 7.75-1.5V5.2C16.6 4.7 14 5.2 12 6.75z" /><path d="M12 6.75C10 5.2 7.4 4.7 4.25 5.2v13.1c3.15-.5 5.75 0 7.75 1.5 2-1.5 4.6-2 7.75-1.5V5.2C16.6 4.7 14 5.2 12 6.75zM12 6.75V19.8" /></>,
-  chart: <><path d="M4 19.75h16M6.75 16.5v-4.25M11 16.5V7.75M15.25 16.5v-6.5M19.5 16.5V5.25" /></>,
-  more: <><circle cx="5.5" cy="12" r="1.35" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none" /><circle cx="18.5" cy="12" r="1.35" fill="currentColor" stroke="none" /></>,
+  /* Redrawn 10 November 2026 (Nona: the first set "felt template"). Every mark now comes from
+     Relève's own world rather than a stock set: the arched doorway and the arched portrait frame
+     from the website, the paned window from the wall, the stack of cards from Home, a note with a
+     seal, two rings for a pairing, a colonnade for the directory, the sprig for More. One hand:
+     a 24 px grid, a fine 1.1 stroke, round ends, and a quiet fill (.f) on the tab you are on. */
+  home: <><path className="f" d="M6 20V11a6 6 0 0 1 12 0v9z" /><path d="M6 20V11a6 6 0 0 1 12 0v9M9.75 20v-8.25a2.25 2.25 0 0 1 4.5 0V20M3.5 20h17" /></>,
+  person: <><path className="f" d="M6.5 20.5V10.5a5.5 5.5 0 0 1 11 0v10z" /><path d="M6.5 20.5V10.5a5.5 5.5 0 0 1 11 0v10z" /><circle cx="12" cy="11.2" r="2.1" /><path d="M8.7 18.7c.5-2.2 1.7-3.3 3.3-3.3s2.8 1.1 3.3 3.3" /></>,
+  people: <><path className="f" d="M9.5 19.5V9.75a2.5 2.5 0 0 1 5 0v9.75z" /><path d="M4 19.5v-6a2.5 2.5 0 0 1 5 0M9.5 19.5V9.75a2.5 2.5 0 0 1 5 0v9.75M15 13.5a2.5 2.5 0 0 1 5 0v6M3 19.5h18" /></>,
+  calendar: <><rect className="f" x="5" y="4.5" width="14" height="15" rx="1.5" /><rect x="5" y="4.5" width="14" height="15" rx="1.5" /><path d="M12 4.5v15M5 12h14" /></>,
+  message: <><rect className="f" x="4" y="5.5" width="16" height="13" rx="2.25" /><rect x="4" y="5.5" width="16" height="13" rx="2.25" /><path d="M7.5 10h5M7.5 13.75h9" /><circle cx="16.4" cy="9.6" r="1.15" fill="currentColor" stroke="none" /></>,
+  briefcase: <><circle className="f" cx="9.5" cy="12" r="5" /><circle cx="9.5" cy="12" r="5" /><circle cx="14.5" cy="12" r="5" /></>,
+  tasks: <><rect className="f" x="4.5" y="10" width="15" height="10" rx="2.5" /><path d="M8 4.75h8M6.25 7.4h11.5" /><rect x="4.5" y="10" width="15" height="10" rx="2.5" /><path d="M9 15l2.1 2.1 4-4.3" /></>,
+  card: <><rect className="f" x="3.5" y="6" width="17" height="12" rx="2.25" /><rect x="3.5" y="6" width="17" height="12" rx="2.25" /><path d="M3.5 10h17M7 14.5h3.5" /></>,
+  book: <><path d="M12 7C10.1 5.6 7.6 5.1 4.5 5.6v12.5c3.1-.5 5.6 0 7.5 1.4 1.9-1.4 4.4-1.9 7.5-1.4V5.6C16.4 5.1 13.9 5.6 12 7zM12 7v12.5" /></>,
+  chart: <><path d="M4 19.75h16M7 16.5v-4M12 16.5V8M17 16.5V5.25" /></>,
+  more: <><path d="M5.5 19c4.5-1.6 9-6 12.5-13" /><path className="f" d="M9.6 16.3c-.6-2.6.5-4.5 3.1-5.1.5 2.6-.6 4.5-3.1 5.1z" /><path d="M9.6 16.3c-.6-2.6.5-4.5 3.1-5.1.5 2.6-.6 4.5-3.1 5.1zM14.3 11.2c1.9 1.5 4 1.2 5.3-.9-1.9-1.5-4-1.2-5.3.9zM7.4 13.4c-2 .3-3.3-.9-3.4-3 2-.3 3.3.9 3.4 3z" /></>,
   back: <><path d="M14.75 5L7.75 12l7 7" /></>,
   chevron: <><path d="M9.5 6l6 6-6 6" /></>
 };
@@ -32,7 +32,7 @@ export const glyphFor = (href: string, fallback?: string) => BY_HREF[href] ?? (f
 
 export function Glyph({ k }: { k: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.1"
       strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{G[k] ?? G.home}</svg>
   );
 }

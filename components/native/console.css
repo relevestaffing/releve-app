@@ -507,17 +507,21 @@ html.rv-native body .cx-card-next{flex:none;width:88px;height:48px;border-radius
 html.rv-native body :is(.cx-card-do,.cx-card-next):active{transform:scale(.96)}
 @media (prefers-reduced-motion:reduce){ html.rv-native body .cx-card{transition:none} }
 
-/* 10 November 2026 (Nona): the dock's icons "feel template", so the dock is words, set in Lora like
-   the desktop sidebar, under the gliding silver mark. And the real logo sits top left on every
-   top-level screen, above the greeting. */
-html.rv-native{--nv-tabs-h:54px}
+/* 10 November 2026 (Nona): the first icons "felt template"; she tried words and wanted icons back, "something
+   less template". The dock wears Relève's own marks (components/native/icons.tsx) over a small Lora word. The
+   real logo sits top left on every top-level screen, and the greeting is set smaller so it does not crowd Home. */
+html.rv-native{--nv-tabs-h:60px}
 .nv-bar{grid-template-columns:118px minmax(0,1fr) 118px}
 .nv-logo{display:flex;align-items:center;height:44px;padding:0 10px;-webkit-touch-callout:none}
 .nv-logo img{display:block;height:30px;width:auto}
 .nv-logo:active{opacity:.6}
-.nv-tab{flex-direction:row;gap:0;font:400 13.5px/1 'Lora',Georgia,serif;letter-spacing:.01em;color:#8B978D}
-.nv-tab span{position:relative}
+.nv-tab{gap:4px;font:400 10.5px/1 'Lora',Georgia,serif;letter-spacing:.04em;color:#869288}
+.nv-tab svg{width:26px;height:26px;stroke-width:1.1}
 .nv-tab[aria-current="page"]{color:var(--cx-cream)}
-.nv-tab :is(.unread-dot,.unread-badge){position:static;margin:0 0 9px 3px;width:6px;min-width:6px;height:6px;box-shadow:none;align-self:center}
+.nv-tab[aria-current="page"] svg{color:#E4E9EC}
+.nv-tab[aria-current="page"] svg .f{opacity:.2}
 .nv-lens::before{width:22px;margin-left:-11px}
-@media (max-width:380px){.nv-tab{font-size:12.5px}.nv-tabs{padding-left:2px;padding-right:2px}}
+html.rv-native body .topbar.home h1{font-size:27px!important;line-height:1.12!important;letter-spacing:-.006em!important}
+html.rv-native body .topbar.home{padding-top:calc(var(--nv-top) + 30px)!important}
+html.rv-native body .topbar.home .crumb{margin-bottom:8px!important}
+html.rv-native body .cx-deck{margin-top:30px}

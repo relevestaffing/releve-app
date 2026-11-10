@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { haptic } from '@/lib/haptic';
 import UnreadBadge from '../UnreadBadge';
 import Sheet from './Sheet';
-import { Glyph } from './icons';
+import { Glyph, glyphFor } from './icons';
 import './console.css';
 
 /* Relève on a phone, as an app (Nona, 3 November 2026: "it feels like a
@@ -348,13 +348,14 @@ export default function NativeShell() {
         {ctx.tabs.map((t, i) => (
           <Link key={t.href} href={t.href} className="nv-tab" aria-current={i === tab && !more ? 'page' : undefined}
             data-title={t.label}>
+            <Glyph k={glyphFor(t.href, t.icon)} />
             <span>{t.label}</span>
             {t.href === ctx.messagesHref && <UnreadBadge initial={ctx.unread} variant="dot" />}
           </Link>
         ))}
         <button type="button" className="nv-tab" aria-current={more ? 'page' : undefined}
           aria-expanded={more} onClick={() => { haptic(8); setMore(true); }}>
-          <span>More</span>
+          <Glyph k="more" /><span>More</span>
         </button>
       </nav>
 
