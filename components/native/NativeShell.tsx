@@ -8,6 +8,7 @@ import UnreadBadge from '../UnreadBadge';
 import Sheet from './Sheet';
 import { Glyph, glyphFor } from './icons';
 import './console.css';
+import './desk.css';
 
 /* Relève on a phone, as an app (Nona, 3 November 2026: "it feels like a
    website ... I want it to feel like a $1 million app"). She chose a new phone

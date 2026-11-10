@@ -1,0 +1,66 @@
+/* THE DESKTOP, ELEVATED (approved on the design canvas, 10 November 2026).
+   Today's workspace kept as it is: the band on the left, the wall, white panels. What changes
+   is the finish. The wall is the photographed plaster with real window light (no generated
+   texture), panels are soft-cornered paper with real shadow, buttons and fields match the
+   phone app, and the Home greeting sits at the top so a few key things show without scrolling.
+   Desktop only (over 900px, never html.rv-native). html:not(.rv-native) body .shell = html:not(.rv-native) body .shell */
+@media (min-width:901px){
+/* the wall: one photograph, its tone following the hour (PhoneWall sets data-sky) */
+html:not(.rv-native) body .shell canvas.sun-wall.sun-page{display:none!important}
+html:not(.rv-native) body .shell .cx-wall{display:block;position:fixed;inset:-16px;z-index:0;overflow:hidden;pointer-events:none;background:#0F1812;animation:dkWall 60s ease-in-out infinite alternate}
+html:not(.rv-native) body .shell .cx-wall .cx-wall-pos{display:none}
+html:not(.rv-native) body .shell .cx-wall .cx-wall-base{position:absolute;inset:0;display:block;background:#0F1812 url(/atmos/window-wall.webp) 60% 50%/cover no-repeat;transition:filter 2.4s ease}
+html:not(.rv-native) body .shell .cx-wall::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,13,10,.25) 0%,rgba(8,13,10,0) 30%,rgba(8,13,10,0) 80%,rgba(8,13,10,.25) 100%)}
+html:not(.rv-native) body .shell .cx-wall[data-sky="dawn"] .cx-wall-base{filter:sepia(.35) saturate(1.2) brightness(.9)}
+html:not(.rv-native) body .shell .cx-wall[data-sky="midday"] .cx-wall-base{filter:brightness(1.08) saturate(.95)}
+html:not(.rv-native) body .shell .cx-wall[data-sky="afternoon"] .cx-wall-base{filter:sepia(.1) brightness(1.02)}
+html:not(.rv-native) body .shell .cx-wall[data-sky="golden"] .cx-wall-base{filter:sepia(.45) saturate(1.4)}
+html:not(.rv-native) body .shell .cx-wall[data-sky="dusk"] .cx-wall-base{filter:brightness(.7) saturate(.8)}
+html:not(.rv-native) body .shell .cx-wall[data-sky="night"] .cx-wall-base{filter:brightness(.5) saturate(.5)}
+@keyframes dkWall{0%{transform:scale(1.02) translate3d(-.5%,0,0)}100%{transform:scale(1.05) translate3d(.5%,-.4%,0)}}
+@media (prefers-reduced-motion:reduce){ html:not(.rv-native) body .shell .cx-wall{animation:none} }
+html:not(.rv-native) body .shell main.main > :not(.cx-wall):not(canvas){position:relative;z-index:1}
+
+/* the greeting sits at the top; the page starts right under it */
+html:not(.rv-native) body .shell .topbar.home:not(#_){min-height:0!important;padding-top:64px!important;padding-bottom:26px!important}
+html:not(.rv-native) body .shell .topbar:not(.home):not(#_){min-height:0!important;padding-top:64px!important;padding-bottom:22px!important}
+html:not(.rv-native) body .shell .topbar h1:not(#_){font-size:58px!important;line-height:1.04!important;letter-spacing:-.016em!important}
+html:not(.rv-native) body .shell .topbar .cx-deck{display:none!important}
+html:not(.rv-native) body .shell .page-body:not(#_){margin-top:0!important}
+
+/* panels: soft-cornered paper with real shadow */
+html:not(.rv-native) body .shell .page-body :is(.card:not(.dark),.setup,.qa-tile,.push-bar,.push-setup,.today-card,.next-step,.overview-table,.empty-card,.match-card,.role-card,.chat-card,.ws,.cd-day,.choose-card,.money-stat,.console-search .cs-box):not(.card .card):not(#_){
+  border-radius:22px!important;border:0!important;background:linear-gradient(180deg,#FEFCF8,#F7F3EA)!important;
+  box-shadow:0 40px 70px -36px rgba(4,8,5,.75),0 12px 24px -14px rgba(4,8,5,.4),inset 0 1px 0 #fff!important}
+html:not(.rv-native) body .shell .page-body .card.dark:not(#_){border-radius:22px!important;box-shadow:0 40px 70px -36px rgba(4,8,5,.8),inset 0 1px 0 rgba(255,255,255,.08)!important}
+html:not(.rv-native) body .shell .page-body :is(.card,.setup,.ws,.overview-table):not(#_){overflow:hidden}
+html:not(.rv-native) body .shell .page-body :is(.qa-tile,.push-bar):not(#_){border-radius:18px!important}
+html:not(.rv-native) body .shell .page-body .card :is(.card,.money-stat,.setup-next):not(.dark):not(#_){border-radius:14px!important}
+html:not(.rv-native) body .shell .page-body .card-head :is(h2,h3):not(#_){font-size:24px!important;letter-spacing:-.008em!important}
+
+html:not(.rv-native) body .shell .page-body > :is(.grid-2,.grid-3,.grid-4):not(#_){gap:16px!important}
+
+/* buttons and fields: the phone app's */
+html:not(.rv-native) body .shell :is(.page-body,.topbar,.modal,.drawer,.tb-panel) .btn:not(#_){border-radius:12px!important;font:500 14px/1 'Poppins',sans-serif!important;letter-spacing:.005em!important;text-transform:none!important;min-height:42px;padding:0 20px!important;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+html:not(.rv-native) body .shell :is(.page-body,.topbar,.modal,.drawer,.tb-panel) .btn::after{content:none!important}
+html:not(.rv-native) body .shell :is(.page-body,.topbar,.modal,.drawer,.tb-panel) .btn.solid:not(#_){background:linear-gradient(180deg,#27382F,#1A2720)!important;color:#F1EDE2!important;border:0!important;box-shadow:0 10px 20px -12px rgba(16,26,20,.8),inset 0 1px 0 rgba(255,255,255,.14)!important}
+html:not(.rv-native) body .shell .page-body :is(.card,.setup,.ws,.modal,.overview-table,.match-card,.role-card,.empty-card) .btn:not(.solid):not(.on-dark):not(#_){background:transparent!important;color:#1C2922!important;border:0!important;box-shadow:inset 0 0 0 1px rgba(28,41,34,.22)!important}
+html:not(.rv-native) body .shell .page-body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea):not(#_){border-radius:12px!important}
+html:not(.rv-native) body .shell .console-search .cs-box:not(#_){border-radius:999px!important;background:rgba(250,248,242,.94)!important}
+html:not(.rv-native) body .shell .console-search .cs-box input:not(#_){background:transparent!important;border:0!important;box-shadow:none!important;color:#1C2922!important}
+html:not(.rv-native) body .shell .console-search .cs-box input::placeholder{color:#76847A!important;opacity:1}
+html:not(.rv-native) body .shell .console-search .cs-box :is(svg,.cs-icon){color:#76847A!important}
+
+/* Console Overview: what needs you beside where the business stands, the rooms as tiles below */
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .followup-card){display:grid!important;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px;align-items:start}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .followup-card) > *{grid-column:1 / -1;margin:0!important}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .followup-card) > .console-search{order:-3;max-width:440px;justify-self:end;width:100%;margin-top:-98px!important;margin-bottom:18px!important}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .followup-card) > .followup-card{grid-column:1;order:-2}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band):has(> .followup-card) > .founder-band{grid-column:2;order:-1}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .founder-grid{grid-template-columns:1fr!important;gap:18px!important}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .card-head{flex-wrap:wrap;gap:8px}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .founder-tiles{grid-template-columns:1fr 1fr!important;gap:16px 0!important}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .founder-tiles > *{min-width:0}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .followup-card) > .founder-band .card-head h3{white-space:nowrap}
+html:not(.rv-native) body .shell[data-home] .page-body:has(> .founder-band) > .qa-grid{order:0;gap:22px!important}
+}
