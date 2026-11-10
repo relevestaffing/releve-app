@@ -858,7 +858,7 @@ async function remindUploadPhotos(monday: string, n: number) {
    pictures, so those posts go out as the stored files rather than being
    drawn again from their text. */
 export function launchFile(slot: string, i: number) {
-  const m = /-launch(\d{2})$/.exec(slot);
+  const m = /-launch(\d{2})(?:-li_page_client|-li_group)?$/.exec(slot);  /* LinkedIn copies carry the same stored pictures (10 Nov 2026) */
   return m ? `/social30/p${m[1]}-${i + 1}.jpg` : null;
 }
 async function imagesFor(post: ContentPost): Promise<string[]> {

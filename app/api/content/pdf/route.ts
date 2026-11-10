@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { PDFDocument } from 'pdf-lib';
-import { getPost, sign } from '@/lib/content';
+import { getPost, sign, launchFile } from '@/lib/content';
 import { renderSlidePng, pngToJpeg, slideCount, W, H } from '@/lib/content-render';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +25,9 @@ export async function GET(req: Request) {
   doc.setTitle(post.hook || 'Relève');
   doc.setAuthor('Relève');
   for (let i = 0; i < n; i++) {
-    const img = await doc.embedJpg(pngToJpeg(await renderSlidePng(post, i), 88));
+    /* Stored pictures (the launch set and the monthly batches) go into the PDF as they are. */
+    const lf = launchFile(post.slot, i);
+    const img = await doc.embedJpg(lf ? new Uint8Array(await (await fetch(new URL(lf, req.url))).arrayBuffer()) : pngToJpeg(await renderSlidePng(post, i), 88));
     const page = doc.addPage([W, H]);
     page.drawImage(img, { x: 0, y: 0, width: W, height: H });
   }
