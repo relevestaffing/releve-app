@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { haptic } from '@/lib/haptic';
 import UnreadBadge from '../UnreadBadge';
 import Sheet from './Sheet';
-import { Glyph, glyphFor } from './icons';
+import { Glyph } from './icons';
 import './console.css';
 
 /* Relève on a phone, as an app (Nona, 3 November 2026: "it feels like a
@@ -323,12 +323,15 @@ export default function NativeShell() {
     <>
       <header className="nv-bar" data-glass={bar.glass ? '1' : '0'}>
         <div className="nv-left">
-          {!root && (
+          {!root ? (
             <button type="button" className="nv-btn" aria-label="Back" onClick={back}><Glyph k="back" /></button>
+          ) : (
+            /* Every top-level screen carries the real logo, top left (Nona, 10 November 2026). */
+            <Link href={ctx.home} className="nv-logo" aria-label="Relève, home" data-title="Home"><img src="/logo-white.png" alt="Relève Executive Staffing" /></Link>
           )}
         </div>
-        <div className={`nv-title${bar.title ? ' on' : ''}`} aria-hidden={!bar.title}>
-          {ctx.isHome ? <img src="/logo-white.png" alt="" /> : ctx.title}
+        <div className={`nv-title${bar.title && !root ? ' on' : ''}`} aria-hidden={!(bar.title && !root)}>
+          {ctx.title}
         </div>
         <div className="nv-right">
           <button type="button" className="nv-btn nv-ask" aria-label="Ask Relève"
@@ -345,14 +348,13 @@ export default function NativeShell() {
         {ctx.tabs.map((t, i) => (
           <Link key={t.href} href={t.href} className="nv-tab" aria-current={i === tab && !more ? 'page' : undefined}
             data-title={t.label}>
-            <Glyph k={glyphFor(t.href, t.icon)} />
             <span>{t.label}</span>
             {t.href === ctx.messagesHref && <UnreadBadge initial={ctx.unread} variant="dot" />}
           </Link>
         ))}
         <button type="button" className="nv-tab" aria-current={more ? 'page' : undefined}
           aria-expanded={more} onClick={() => { haptic(8); setMore(true); }}>
-          <Glyph k="more" /><span>More</span>
+          <span>More</span>
         </button>
       </nav>
 

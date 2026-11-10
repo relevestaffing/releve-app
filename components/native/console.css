@@ -506,3 +506,18 @@ html.rv-native body .cx-card-do{flex:1;height:48px;display:flex;align-items:cent
 html.rv-native body .cx-card-next{flex:none;width:88px;height:48px;border-radius:14px;border:1px solid var(--cx-rule-2);background:transparent;color:var(--cx-text);font:500 15px/1 'Poppins',sans-serif;cursor:pointer;touch-action:manipulation;transition:transform .18s var(--cx-out)}
 html.rv-native body :is(.cx-card-do,.cx-card-next):active{transform:scale(.96)}
 @media (prefers-reduced-motion:reduce){ html.rv-native body .cx-card{transition:none} }
+
+/* 10 November 2026 (Nona): the dock's icons "feel template", so the dock is words, set in Lora like
+   the desktop sidebar, under the gliding silver mark. And the real logo sits top left on every
+   top-level screen, above the greeting. */
+html.rv-native{--nv-tabs-h:54px}
+.nv-bar{grid-template-columns:118px minmax(0,1fr) 118px}
+.nv-logo{display:flex;align-items:center;height:44px;padding:0 10px;-webkit-touch-callout:none}
+.nv-logo img{display:block;height:30px;width:auto}
+.nv-logo:active{opacity:.6}
+.nv-tab{flex-direction:row;gap:0;font:400 13.5px/1 'Lora',Georgia,serif;letter-spacing:.01em;color:#8B978D}
+.nv-tab span{position:relative}
+.nv-tab[aria-current="page"]{color:var(--cx-cream)}
+.nv-tab :is(.unread-dot,.unread-badge){position:static;margin:0 0 9px 3px;width:6px;min-width:6px;height:6px;box-shadow:none;align-self:center}
+.nv-lens::before{width:22px;margin-left:-11px}
+@media (max-width:380px){.nv-tab{font-size:12.5px}.nv-tabs{padding-left:2px;padding-right:2px}}
